@@ -1,0 +1,131 @@
+"""Tests for `ait reindex` CLI command and the underlying rebuild flow."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from click.testing import CliRunner
+
+from ait.cli import main
+
+
+@pytest.fixture
+def project_root(tmp_path: Path, monkeypatch) -> Path:
+    docs_root = tmp_path / "project-docs"
+    (docs_root / "docs" / "prd").mkdir(parents=True)
+    (docs_root / "docs" / "impl").mkdir(parents=True)
+    (docs_root / ".meta").mkdir()
+    monkeypatch.chdir(tmp_path)
+    return docs_root
+
+
+def _run_reindex(runner: CliRunner, root: Path):
+    result = runner.invoke(
+        main, ["reindex"], catch_exceptions=False
+    )
+    assert result.exit_code == 0, result.output
+    payload = json.loads(result.output.strip().splitlines()[-1])
+    assert payload["ok"] is True, payload
+    return payload["data"]
+
+
+def test_reindex_empty_docs(project_root: Path):
+    """Empty docs/ → zero blocks, zero links, both index files written."""
+    runner = CliRunner()
+    data = _run_reindex(runner, project_root)
+
+    assert data["blocks"] == 0
+    assert data["links"] == 0
+    assert data["baseline_index"] == ".meta/blocks-index.yaml"
+    assert data["links_index"] == ".meta/links-index.yaml"
+    assert (project_root / ".meta" / "blocks-index.yaml").exists()
+    assert (project_root / ".meta" / "links-index.yaml").exists()
+
+
+def test_reindex_single_file_multiple_blocks(project_root: Path):
+    """A single PRD file with N blocks should yield N baseline entries."""
+    (project_root / "docs" / "prd" / "demo.md").write_text(
+        "# Demo\n\n"
+        "<!-- @id:prd-demo-overview -->\n## 概述\n\nfoo\n\n"
+        "<!-- @id:prd-demo-rules -->\n## 规则\n\nbar\n",
+        encoding="utf-8",
+    )
+
+    runner = CliRunner()
+    data = _run_reindex(runner, project_root)
+
+    assert data["blocks"] == 2
+    assert data["links"] == 0
+
+
+def test_reindex_picks_up_cross_file_refs(project_root: Path):
+    """@ref across PRD and impl files should populate links-index."""
+    (project_root / "docs" / "prd" / "demo.md").write_text(
+        "<!-- @id:prd-demo-feature -->\n## 功能\n\n描述\n",
+        encoding="utf-8",
+    )
+    (project_root / "docs" / "impl" / "api.md").write_text(
+        "<!-- @id:impl-api-demo -->\n## 接口\n\n"
+        "<!-- @ref:prd/demo#prd-demo-feature rel:implements -->\n",
+        encoding="utf-8",
+    )
+
+    runner = CliRunner()
+    data = _run_reindex(runner, project_root)
+
+    assert data["blocks"] == 2
+    assert data["links"] == 1
+
+    import yaml
+
+    links = yaml.safe_load(
+        (project_root / ".meta" / "links-index.yaml").read_text(encoding="utf-8")
+    )
+    link = links["links"][0]
+    assert link["from"] == "impl/api#impl-api-demo"
+    assert link["to"] == "prd/demo#prd-demo-feature"
+    assert link["rel"] == "implements"
+
+
+def test_reindex_is_idempotent(project_root: Path):
+    """Running reindex twice should yield identical index contents."""
+    (project_root / "docs" / "prd" / "a.md").write_text(
+        "<!-- @id:prd-a-one -->\n## One\n\nx\n",
+        encoding="utf-8",
+    )
+
+    runner = CliRunner()
+    _run_reindex(runner, project_root)
+    first = (project_root / ".meta" / "blocks-index.yaml").read_text(encoding="utf-8")
+
+    _run_reindex(runner, project_root)
+    second = (project_root / ".meta" / "blocks-index.yaml").read_text(encoding="utf-8")
+
+    import yaml
+
+    a = yaml.safe_load(first)
+    b = yaml.safe_load(second)
+    assert a["blocks"] == b["blocks"]
+
+
+def test_reindex_overwrites_stale_index(project_root: Path):
+    """If a block is removed from docs/, reindex should drop it from the index."""
+    prd = project_root / "docs" / "prd" / "demo.md"
+    prd.write_text(
+        "<!-- @id:prd-demo-a -->\n## A\n\nx\n\n"
+        "<!-- @id:prd-demo-b -->\n## B\n\ny\n",
+        encoding="utf-8",
+    )
+
+    runner = CliRunner()
+    data1 = _run_reindex(runner, project_root)
+    assert data1["blocks"] == 2
+
+    prd.write_text(
+        "<!-- @id:prd-demo-a -->\n## A\n\nx\n",
+        encoding="utf-8",
+    )
+    data2 = _run_reindex(runner, project_root)
+    assert data2["blocks"] == 1

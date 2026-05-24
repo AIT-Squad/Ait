@@ -1,0 +1,18 @@
+# 版本定义模板
+# 复制为 vX.Y.yaml 使用
+
+version: "1.0"                         # 版本号
+created_at: "2026-05-09"              # 创建日期
+merged_at: null                        # 合并日期（合并后填入）
+owner: ""                              # 版本负责人
+
+changes:                               # 该版本包含的变更记录
+  # - chg-001
+  # - chg-002
+
+dependencies:
+  based_on: null                       # 基于哪个版本的全局状态
+  conflicts_with: []                   # 已知冲突版本
+  merge_after: []                      # 合并前置条件（哪些版本必须先合并）
+
+snapshot: null                         # 合并后自动生成，如 snapshots/v1.0/

@@ -1,0 +1,39 @@
+version: 1
+updated: '2026-05-24T10:04:47.612941+00:00'
+links:
+- from: impl/block-parser#impl-block-parser-overview
+  to: prd/block-system#prd-block-format
+  rel: implements
+- from: impl/block-parser#impl-block-parser-overview
+  to: prd/block-system#prd-block-parse-rule
+  rel: implements
+- from: impl/block-parser#impl-block-parser-algorithm
+  to: prd/block-system#prd-block-parse-rule
+  rel: implements
+- from: impl/merge-engine#impl-merge-engine-overview
+  to: prd/index-system#prd-index-baseline
+  rel: implements
+- from: impl/merge-engine#impl-merge-engine-overview
+  to: prd/block-system#prd-block-parse-rule
+  rel: implements
+- from: impl/merge-engine#impl-merge-engine-algorithm
+  to: prd/index-system#prd-index-version
+  rel: implements
+- from: impl/project-docs-only#impl-project-docs-only-root-resolver
+  to: prd/project-docs-only#prd-project-docs-only-detection
+  rel: implements
+- from: impl/version-manager#impl-version-manager-overview
+  to: prd/index-system#prd-index-version
+  rel: implements
+- from: impl/version-manager#impl-version-manager-overview
+  to: prd/overview#prd-overview-scope
+  rel: implements
+- from: impl/version-manager#impl-version-manager-merge
+  to: prd/index-system#prd-index-baseline
+  rel: implements
+- from: impl/version-manager#impl-version-manager-amends
+  to: prd/block-system#prd-block-id-naming
+  rel: implements
+- from: prd/overview#prd-overview-terminology
+  to: file#block-id
+  rel: type

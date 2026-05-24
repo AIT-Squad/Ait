@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# AIT Skill entry point — self-installing bash wrapper.
+#
+# Resolves its own location, lazy-creates a venv inside the skill directory on
+# first run, and forwards all arguments to `python -m ait.cli`.
+#
+# Stdout MUST stay pristine for the JSON contract — all setup messages go to
+# stderr.
+
+set -e
+
+resolve_path() {
+    # Resolve a path through symlinks. Works on macOS without readlink -f.
+    local p="$1"
+    if command -v readlink >/dev/null 2>&1; then
+        local resolved
+        resolved="$(readlink -f "$p" 2>/dev/null || true)"
+        if [ -n "$resolved" ]; then
+            echo "$resolved"
+            return
+        fi
+    fi
+    echo "$p"
+}
+
+SCRIPT_PATH="$(resolve_path "$0")"
+SKILL_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+VENV_DIR="$SKILL_DIR/.venv"
+
+pick_system_python() {
+    local cmd
+    for cmd in python3.13 python3.12 python3.11 python3.10 python3 python; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            if "$cmd" -c 'import sys; sys.exit(0 if sys.version_info[:2] >= (3, 10) else 1)' 2>/dev/null; then
+                echo "$cmd"
+                return 0
+            fi
+        fi
+    done
+    return 1
+}
+
+venv_python() {
+    if [ -x "$VENV_DIR/bin/python" ]; then
+        echo "$VENV_DIR/bin/python"
+    elif [ -x "$VENV_DIR/Scripts/python.exe" ]; then
+        echo "$VENV_DIR/Scripts/python.exe"
+    else
+        return 1
+    fi
+}
+
+ensure_venv() {
+    local vpy
+    if vpy="$(venv_python 2>/dev/null)" && "$vpy" -c "import ait" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    echo "[ait] First-time setup: creating venv in $VENV_DIR ..." >&2
+    local sys_py
+    sys_py="$(pick_system_python)" || {
+        echo '{"ok":false,"error":"Python 3.10+ not found on PATH. Install Python 3.10 or newer and try again.","code":"PYTHON_MISSING"}'
+        exit 1
+    }
+
+    rm -rf "$VENV_DIR"
+    if ! "$sys_py" -m venv "$VENV_DIR" 2>&1 >&2; then
+        echo '{"ok":false,"error":"Failed to create venv. Ensure python venv module is available.","code":"VENV_CREATE_FAILED"}'
+        exit 1
+    fi
+
+    vpy="$(venv_python)" || {
+        echo '{"ok":false,"error":"venv created but python binary not found","code":"VENV_BROKEN"}'
+        exit 1
+    }
+
+    # Upgrade pip quietly, then install the bundled package from the skill dir.
+    if ! "$vpy" -m pip install --quiet --disable-pip-version-check --upgrade pip 2>&1 >&2; then
+        echo '[ait] pip upgrade failed (continuing with bundled pip)' >&2
+    fi
+
+    if ! "$vpy" -m pip install --quiet --disable-pip-version-check "$SKILL_DIR" 2>&1 >&2; then
+        echo '{"ok":false,"error":"Failed to install ait package. Check internet connectivity for the first install.","code":"PIP_INSTALL_FAILED"}'
+        exit 1
+    fi
+
+    echo "[ait] Setup complete." >&2
+}
+
+ensure_venv
+VPY="$(venv_python)"
+exec "$VPY" -m ait.cli "$@"

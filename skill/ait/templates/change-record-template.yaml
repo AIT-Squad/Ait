@@ -1,0 +1,26 @@
+# 变更记录模板
+# 复制为 chg-NNN.yaml 使用
+
+id: chg-001                          # 变更编号，全局唯一
+version: "1.0"                        # 所属版本
+type: MODIFY                          # ADD / MODIFY / DELETE
+target: impl/component-inventory#comp-mbti-chart  # 目标块（文档路径#锚点）
+author: ""
+date: "2026-05-09"
+message: "变更说明"
+
+# 变更内容
+# ADD：base_hash 和 base_content 为 null
+# MODIFY：记录修改前后的完整内容和哈希
+# DELETE：new_content 为 null
+
+base_hash: a1b2c3d4                   # 修改前该块内容哈希（ADD 时为 null）
+base_content: |                        # 修改前完整内容（ADD 时为 null）
+  <!-- @id:comp-mbti-chart -->
+  ### MBTI 图表组件
+  原始内容...
+
+new_content: |                         # 修改后完整内容（DELETE 时为 null）
+  <!-- @id:comp-mbti-chart -->
+  ### MBTI 图表组件
+  修改后的内容...

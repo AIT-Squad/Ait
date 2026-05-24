@@ -1,0 +1,11 @@
+version: 1
+scope: version
+version_name: v1.0
+based_on_hash: null
+status: developing
+blocks: []
+commits: []
+stats:
+  total_blocks: 0
+  by_action: {}
+  by_state: {}

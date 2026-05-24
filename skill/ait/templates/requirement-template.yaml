@@ -1,0 +1,69 @@
+# 需求定义模板
+# 复制为 req-NNN.yaml 使用
+
+# ═══ 基本属性 ═══
+id: req-001                           # 需求编号，全局唯一
+title: ""                              # 需求标题
+status: draft                          # draft | prd_draft | prd_confirmed | impl_progress | impl_done
+created_at: ""                         # ISO 8601
+updated_at: ""                         # ISO 8601
+author: ""                             # 创建者
+
+# ═══ 版本关联 ═══
+assigned_version: null                 # 分配到的版本（prd_confirmed 后设置）
+confirmed_at: null                     # PRD 确认时间
+
+# ═══ PRD 草稿 ═══
+# 状态 draft / prd_draft 时使用
+# 确认后变为只读
+prd_draft: |
+  # 在此编写 PRD 内容
+  # 每个标题上方标注 <!-- @id:xxx -->
+  #
+  # 示例：
+  # <!-- @id:prd-feature-name -->
+  # ## 功能名称
+  # 功能描述...
+
+# PRD 块列表（从 prd_draft 解析得出，确认时自动填充）
+prd_blocks: []
+  # - id: prd-feature-name
+  #   heading: "功能名称"
+  #   level: 2
+  #   impl_status: pending         # pending | in_progress | done
+
+# ═══ impl 草稿 ═══
+# 状态 impl_progress 时使用
+impl_drafts: []
+  # - prd_id: prd-feature-name
+  #   impl_blocks:
+  #     - id: impl-api-feature
+  #       file: impl/api-contracts
+  #       heading: "功能接口"
+  #       layer: api               # api | data | workflow
+  #       content: |
+  #         <!-- @id:impl-api-feature -->
+  #         ## 功能接口
+  #         ...
+  #         <!-- @ref:prd/xxx#prd-feature-name rel:implements -->
+
+# ═══ 代码映射 ═══
+# impl_done 后由 /req code 命令填充
+code_mappings: []
+  # - impl_id: impl-api-feature
+  #   files:
+  #     - path: src/controllers/FeatureController.java
+  #       symbols: [FeatureController.getFeature]
+
+# ═══ 讨论记录摘要 ═══
+discussion_log: []
+  # - phase: prd                   # prd | impl
+  #   timestamp: ""
+  #   summary: "讨论结论"
+  #   blocks_affected: []
+
+# ═══ 同步状态 ═══
+sync_status: null                      # null | stale | synced
+stale_since: null
+stale_impl_blocks: []
+stale_files: []

@@ -1,0 +1,65 @@
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# ── Virtual environments ─────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Testing & coverage ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+.nox/
+
+# ── Type checking / linting caches ───────────────────────────────────
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+
+# ── IDE / editors ────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# ── OS ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Claude Code — keep team-shared settings.json, ignore personal/local
+.claude/
+
+# ── Archive───────────────────────────────────────────────────────────
+project-demo/
+.archive/
+
+# ── Notes ────────────────────────────────────────────────────────────
+# Intentionally NOT ignored (committed by design):
+#   - project-docs/.meta/**  (AIT version metadata, changes, snapshots — audit trail)
+#   - project-docs/versions/** (AIT version workspaces)
+#   - project-docs/.meta/blocks-index*.yaml + links-index.yaml
+#     (technically regeneratable via `ait reindex`, but committing avoids the
+#      bootstrap step after clone and provides diff visibility)
+
+
+
