@@ -1,0 +1,361 @@
+id: req-013
+title: AIT 重构：prd-impl-task 三态版本化 AI 开发流水线
+status: prd_confirmed
+created_at: '2026-06-01T03:00:38.767114+00:00'
+updated_at: '2026-06-01T03:01:58.951190+00:00'
+author: system
+assigned_version: v1.4
+confirmed_at: '2026-06-01T03:01:58.951190+00:00'
+prd_draft: '<!-- @id:prd-core-model -->
+
+  ## 核心模型与版本原子性
+
+
+  ### 概述
+
+  AIT 重构为围绕 **prd → impl → task** 三核心态的版本化 AI 开发流水线。每个版本是一个原子单元：要么完整走完确认链合并入全局，要么整体重置重来。该模型用"版本不可变"消除了局部回滚、增量继承、变更失效检测等复杂子系统。
+
+
+  ### 业务规则
+
+  - 三核心态：PRD（需求意图）→ impl（实现设计）→ task（AI coding 执行单元），逐级派生
+
+  - 版本内不可变：任一 confirm 之后，对应内容在本版本内冻结，不可局部修改、撤销或回滚
+
+  - 唯一逃生口：`/ait version reset` 清空整个版本工作区，回到空白 PRD 状态重来
+
+  - 版本号：init 不算版本，首个功能版本从 v1.0 起，逐版递增
+
+  - 全程 chunk 聚焦：任何阶段只加载当前 chunk 及其关联，最小化 token
+
+  - 每个流程步骤都更新 `state.md`
+
+
+  ### 验收标准
+
+  - [ ] prd/impl/task 三态数据结构与命令齐备
+
+  - [ ] confirm 后对应内容不可改（写保护生效）
+
+  - [ ] `version reset` 能清空版本工作区并回到起点（二次确认，物理删除）
+
+  - [ ] 每个命令执行后 state.md 被刷新
+
+
+  ### 边界与非目标
+
+  - 不做局部回滚 / 单 chunk 放弃 / checksum 失效检测（被版本原子性取代）
+
+  - 不做增量版本继承（每版本独立）
+
+
+  <!-- @id:prd-init -->
+
+  ## 项目初始化
+
+
+  ### 概述
+
+  `/ait init` 是项目的一次性初始化入口，通过讨论生成项目的全局基线信息（全局 prd、impl 概览、global 静态/动态信息骨架），为后续版本开发建立上下文底座。
+
+
+  ### 业务规则
+
+  - `/ait init` 启动讨论模式，引导生成：全局 PRD 概览、全局 impl 概览、global 信息（静态：技术栈/overview；动态：ddl/schema/api 骨架）
+
+  - init 产出写入 `docs/`（基线），不占用版本号
+
+  - init 为幂等保护：已初始化的项目再次 init 需提示确认
+
+  - init 完成后，项目进入"可开始版本开发"状态
+
+
+  ### 验收标准
+
+  - [ ] `/ait init` 能讨论生成全局 prd/impl/global 并写入 docs/
+
+  - [ ] 生成的 global 区分 static 与 dynamic 两类
+
+  - [ ] 重复 init 有保护提示
+
+
+  ### 边界与非目标
+
+  - init 不创建功能版本，不拆 task
+
+  - 动态 global 此阶段只建骨架，真实内容由后续 version confirm 从 impl 提取
+
+
+  <!-- @id:prd-prd-stage -->
+
+  ## PRD 阶段
+
+
+  ### 概述
+
+  版本开发的起点。通过创建或讨论确定本版本的 PRD，定稿后锁定。PRD 是本版本一切实现的需求源头。
+
+
+  ### 业务规则
+
+  - `/ait prd create "title"`：带标题直接创建
+
+  - `/ait prd discuss`：启动讨论模式，讨论收敛后总结出 title
+
+  - title 写入 state.md 的独立字段（后续作为 git commit message）
+
+  - `/ait prd confirm`：确认 PRD 写入工作区并锁定；锁定后本版本任何流程不得以任何形式改动 PRD
+
+  - PRD chunk 采用四段固定结构（见 prd-formats）
+
+
+  ### 验收标准
+
+  - [ ] create 与 discuss 两种入口都能产出 PRD chunk
+
+  - [ ] discuss 模式能总结 title 并写入 state.md 独立字段
+
+  - [ ] confirm 后 PRD 进入锁定态，再次修改被拒绝
+
+
+  ### 边界与非目标
+
+  - 锁定后若需改 PRD，只能 `version reset` 整版重来，无局部解锁
+
+
+  <!-- @id:prd-impl-stage -->
+
+  ## impl 阶段
+
+
+  ### 概述
+
+  基于已锁定的 PRD chunk 设计具体实现。一个 PRD chunk 可对应多个 impl chunk（1:N）。impl 既是实现设计，又是动态 global（DDL/schema/api）的数据源。
+
+
+  ### 业务规则
+
+  - `/ait impl create "chunk-id"`：为指定 PRD chunk 设计实现
+
+  - `/ait impl create`（无 id）：逐批交互，遍历待实现的 PRD chunk 依次设计
+
+  - 1:N 派生式命名：`impl-{源chunk}-{名}`（如 `impl-pet-archive-ddl`、`impl-pet-archive-api`）
+
+  - impl chunk 内用 `@extract` 注释标记可提取到动态 global 的片段（DDL/schema/api）
+
+  - impl 通过 `@ref ... rel:implements` 绑定其源 PRD chunk
+
+  - `/ait impl confirm "chunk-id"`：确认 impl 写入工作区并锁定；锁定后本版本不得改动 impl
+
+
+  ### 验收标准
+
+  - [ ] 一个 PRD chunk 能派生多个 impl chunk
+
+  - [ ] 无 id 时逐批交互生成
+
+  - [ ] impl 中 `@extract` 标记的片段可被识别
+
+  - [ ] confirm 后 impl 锁定
+
+
+  ### 边界与非目标
+
+  - 锁定后若需改 impl，只能 version reset 整版重来
+
+
+  <!-- @id:prd-task-stage -->
+
+  ## task 阶段
+
+
+  ### 概述
+
+  把锁定的 PRD+impl 拆分为 AI coding 任务（YAML 格式），并执行。一个 PRD chunk 可拆多个 task。execute 成功即自动收口，无需单独 confirm。
+
+
+  ### 业务规则
+
+  - `/ait task create "chunk-id"`：为指定 PRD chunk 生成 task YAML；无 id 则逐批交互
+
+  - task 命名：`T-{源chunk}-NN`，文件 `T-{源chunk}-NN.yaml`
+
+  - task YAML 字段见 prd-formats，含 source_chunk/impl_refs/global_refs/depends_on/order_hint/steps
+
+  - `/ait task execute "taskId或chunk-id"`：AI coding 执行；无参则逐批交互
+
+  - task 状态机：created → executing → done / failed
+
+  - execute 成功自动标 done 并回写 code_refs（git commit hash + 文件路径）；失败停在 failed，可重跑
+
+  - 无 task confirm 步骤（execute 自动收口）
+
+
+  ### 验收标准
+
+  - [ ] 一个 PRD chunk 能拆多个 task YAML
+
+  - [ ] execute 成功后 task 自动 done 且回写 code_refs
+
+  - [ ] execute 失败 task 停在 failed 且可重跑
+
+  - [ ] 依赖（depends_on）未满足的 task 不先执行
+
+
+  ### 边界与非目标
+
+  - 不提供 task confirm；人工审核统一在 version confirm
+
+
+  <!-- @id:prd-version-merge -->
+
+  ## 版本合并
+
+
+  ### 概述
+
+  `/ait version confirm` 是版本的终点：守卫检查 → 合并版本 prd/impl 到全局 → 从 impl 提取动态 global → 一次 git commit。采用两阶段+失败回退保证原子性。
+
+
+  ### 业务规则
+
+  - 前置守卫：本版本所有 task 必须为 done，且 git 工作区干净；否则拦截并提示
+
+  - 合并以 chunk 为维度：同名 chunk 用本版本内容替换，其他 chunk 不动（不覆盖无关全局信息）
+
+  - 从本版本 impl 提取 `@extract` 标记的 DDL/schema/api 片段，按 chunk 合并进动态 global
+
+  - 两阶段执行：①预检 → ②merge 写入 docs/ → ③git commit（message = state.md 的 title）
+
+  - 失败回退：若 git commit 失败，回退 merge（恢复 docs/ 到 merge 前），报错；要么全成要么全不动
+
+
+  ### 验收标准
+
+  - [ ] 有 task 非 done 时 version confirm 被拦截
+
+  - [ ] 合并按 chunk 替换，不影响无关全局 chunk
+
+  - [ ] 动态 global 由 impl 的 @extract 片段提取生成
+
+  - [ ] commit message 等于 title
+
+  - [ ] commit 失败时 docs/ 回退到合并前状态
+
+
+  ### 边界与非目标
+
+  - 不在 version confirm 之外提供合并入口
+
+
+  <!-- @id:prd-global -->
+
+  ## 全局信息层
+
+
+  ### 概述
+
+  global 承载跨版本的全局约束，分静态与动态两类，存于同一目录，靠 chunk 类型（category）区分。静态人工维护，动态由 version confirm 从 impl 提取。
+
+
+  ### 业务规则
+
+  - 静态 global（category: static）：技术栈、overview 等，人工维护
+
+  - 动态 global（category: dynamic）：DDL、schema、api 等，由 version confirm 从 impl 的 @extract 片段提取
+
+  - 同目录存放：`docs/global/` 下不分子目录，靠 chunk id 前缀 + links-index 的 `category` 字段区分
+
+  - global chunk 参与 context 组装，任务执行时作为全局约束注入
+
+
+  ### 验收标准
+
+  - [ ] links-index 中 global chunk 带 category: static|dynamic
+
+  - [ ] 静态 global 可人工编辑，动态 global 由提取生成
+
+  - [ ] task execute 时 global_refs 指向的约束被加载
+
+
+  ### 边界与非目标
+
+  - 动态 global 不接受人工直接编辑（应改 impl 再 version confirm 提取）
+
+
+  <!-- @id:prd-formats -->
+
+  ## 格式规范
+
+
+  ### 概述
+
+  统一 PRD chunk、impl chunk、task YAML 的格式，沿用现有 `@id`/`@ref` HTML 注释体系，最小扩展。
+
+
+  ### 业务规则
+
+  - PRD chunk 四段固定结构：`概述` / `业务规则` / `验收标准` / `边界与非目标`
+
+  - impl chunk 提取标记：`<!-- @extract:dynamic/{类型}#{chunk} -->` ... ```代码``` ... `<!-- @extract-end -->`，与 @id/@ref 同构，可覆盖代码块与纯文本
+
+  - task YAML 字段：`id` / `title` / `source_chunk` / `impl_refs` / `global_refs` / `depends_on` / `order_hint` / `steps` / `status`
+  / `code_refs`
+
+  - 命名规范（派生式）：impl=`impl-{源chunk}-{名}`，task=`T-{源chunk}-NN`
+
+  - chunk id 沿用 `{type}-{domain}-{name}` 小写短横线规则，全局唯一
+
+
+  ### 验收标准
+
+  - [ ] PRD chunk 解析器认四段结构
+
+  - [ ] impl 的 @extract 片段可被精确提取（边界正确）
+
+  - [ ] task YAML 字段完整且可被 execute 消费
+
+  - [ ] 派生式命名能反推源 chunk 血缘
+
+
+  ### 边界与非目标
+
+  - 不引入 YAML frontmatter（保持 HTML 注释元数据哲学）
+
+  - 砍掉 v1.4 的 inherited_from / status_inherited / provenance 等增量继承字段
+
+  '
+prd_chunks:
+- id: prd-core-model
+  heading: 核心模型与版本原子性
+  level: 2
+  impl_status: pending
+- id: prd-init
+  heading: 项目初始化
+  level: 2
+  impl_status: pending
+- id: prd-prd-stage
+  heading: PRD 阶段
+  level: 2
+  impl_status: pending
+- id: prd-impl-stage
+  heading: impl 阶段
+  level: 2
+  impl_status: pending
+- id: prd-task-stage
+  heading: task 阶段
+  level: 2
+  impl_status: pending
+- id: prd-version-merge
+  heading: 版本合并
+  level: 2
+  impl_status: pending
+- id: prd-global
+  heading: 全局信息层
+  level: 2
+  impl_status: pending
+- id: prd-formats
+  heading: 格式规范
+  level: 2
+  impl_status: pending
+impl_drafts: []

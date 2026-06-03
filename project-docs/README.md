@@ -10,20 +10,33 @@
 
 ```
 project-docs/
-├── docs/                    # 基线文档（Source of Truth）
-│   ├── prd/                 #   产品需求层
-│   └── impl/                #   实现规范层
-├── versions/                # 版本工作空间（增量变更入口）
-├── templates/               # 文档模板（复用 project-demo/）
-└── .meta/                   # 元数据
-    ├── config.yaml          #   项目配置
-    ├── blocks-index.yaml    #   全局 Block 索引（由 ait reindex / ait version merge 维护）
-    ├── links-index.yaml     #   双向引用索引（同上）
-    ├── versions/            #   版本元数据
-    ├── changes/             #   变更记录
-    ├── snapshots/           #   合并快照
-    └── requirements/        #   需求草稿
+├── docs/                          # 基线文档（Source of Truth）
+│   ├── prd/                       #   产品需求层
+│   ├── impl/                      #   实现规范层
+│   └── global/                    #   全局信息层（overview/tech-stack 静态 + ddl/schema/api 动态）
+├── versions/                       # 版本工作空间（增量变更入口）
+│   └── {vX.Y}/
+│       ├── prd/
+│       ├── impl/
+│       ├── tasks/T-*.yaml         #   v1.5+ task YAML 与版本同位
+│       └── state.md
+├── templates/                      # 文档模板（复用 project-demo/）
+└── .meta/                         # 元数据
+    ├── config.yaml                 #   项目配置（initialized / skill_path）
+    ├── chunks-index.yaml           #   基线块台账（状态视角，替代旧 blocks-index）
+    ├── chunks-index-{vX.Y}.yaml   #   版本块台账
+    ├── specgraph.yaml              #   基线关系图（关系视角，替代旧 links-index）
+    ├── specgraph-{vX.Y}.yaml      #   每版本关系图（分文件）
+    ├── versions/                   #   版本元数据（phase/锁定/title/tasks_summary）
+    ├── changes/                    #   变更记录
+    ├── snapshots/                  #   合并快照
+    └── requirements/               #   需求草稿
 ```
+
+> **变更说明（v1.5）**：
+> - `blocks-index.yaml` 已重命名为 `chunks-index.yaml`（块台账）
+> - `links-index.yaml` 已废弃，关系查询统一由 `specgraph.yaml` 管理
+> - task YAML 从 `.meta/tasks/` 迁移到 `versions/{vX.Y}/tasks/`（与版本同位）
 
 ## 文档层次
 
@@ -32,7 +45,7 @@ project-docs/
 | PRD | 描述 AIT 工具"做什么"和"为什么" |
 | impl | 描述 AIT 工具"怎么做"（对应 Python 模块） |
 
-当前 PRD: `overview` / `block-system` / `index-system`；impl: `block-parser` / `merge-engine` / `version-manager`。后续通过 `ait prd create` / `ait impl create` 增量补充。
+当前 PRD: `overview` / `chunk-system` / `index-system` / `global`；impl: `chunk-parser` / `merge-engine` / `version-manager` / `task` / `specgraph`。后续通过 `ait prd create` / `ait impl create` 增量补充。
 
 ## @id 命名规范
 
@@ -40,19 +53,36 @@ project-docs/
 {type}-{domain}-{name}
 
 type ∈ {prd, impl}
-domain：所属子域，如 block / index / version / workflow / context / cmd / skill / validation
+domain：所属子域，如 chunk / index / version / workflow / context / cmd / skill / validation
 name：语义化短名，全小写，短横线连接
 ```
 
 示例：
 
-- `prd-block-format` — Block 标注格式（产品需求）
-- `impl-block-parser-algorithm` — Block 解析算法（实现）
+- `prd-chunk-format` — Chunk 标注格式（产品需求）
+- `impl-chunk-parser-algorithm` — Chunk 解析算法（实现）
 
 ## 快速导航
 
-- **想了解 AIT 系统是什么** → 读 [docs/prd/overview.md](docs/prd/overview.md)
-- **想看 Block 怎么解析** → 读 [docs/prd/block-system.md](docs/prd/block-system.md) + [docs/impl/block-parser.md](docs/impl/block-parser.md)
-- **想了解版本工作流** → 读 [docs/prd/index-system.md](docs/prd/index-system.md) + [docs/impl/version-manager.md](docs/impl/version-manager.md)
+- **想了解 AIT 系统是什么** → 读 [docs/prd/global.md](docs/prd/global.md)（概述 + 完整 PRD）
+- **想看 Chunk 怎么解析** → 读 [docs/prd/global.md](docs/prd/global.md) + [docs/impl/chunk-parser.md](docs/impl/chunk-parser.md)
+- **想了解版本工作流** → 读 [docs/impl/version-manager.md](docs/impl/version-manager.md) + [docs/impl/workflow.md](docs/impl/workflow.md)
+- **想了解 task 流水线** → 读 [docs/impl/task.md](docs/impl/task.md) + [docs/impl/workflow.md](docs/impl/workflow.md)
 
-详细的全局 Block 列表见 [.meta/blocks-index.yaml](.meta/blocks-index.yaml)；引用关系见 [.meta/links-index.yaml](.meta/links-index.yaml)（两者由 `ait reindex` 维护）。
+详细的全局 Chunk 列表见 [.meta/chunks-index.yaml](.meta/chunks-index.yaml)；关系图见 [.meta/specgraph.yaml](.meta/specgraph.yaml)（两者由 `ait reindex` 维护）。
+
+## 常用命令
+
+```bash
+# 初始化项目（首次）
+ait init
+
+# 重建索引
+ait reindex
+
+# 查看版本状态
+ait state --version vX.Y
+
+# 全文搜索
+ait search "关键词"
+```

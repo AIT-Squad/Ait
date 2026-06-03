@@ -1,0 +1,32 @@
+id: T-prd-format-enforcement-01
+title: 实现 impl-prd-format-enforcement-gate
+source_chunk: prd-prd-format-enforcement
+impl_refs:
+- impl-prd-format-enforcement-gate
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-format-enforcement-gate 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/format_validator.py
+  - skill/ait/ait/cli.py
+  - skill/ait/ait/prd_manager.py
+  - skill/ait/ait/impl_manager.py
+  - skill/ait/ait/task_manager.py
+  - skill/ait/ait/validator.py
+  - tests/test_format_validator_prd.py
+  - tests/test_format_validator_impl.py
+  - tests/test_format_validator_id.py
+  - tests/test_lint_cli.py
+  - tests/test_task_create_format.py
+  - tests/test_prd_commit_summary.py
+  - tests/test_impl_commit_coverage.py
+  - tests/test_prd_impl_context.py
+  - tests/test_e2e_cli.py
+  - project-docs/versions/v1.6/impl/prd-global-single-file.md
+  bound_at: '2026-06-03T05:03:56.740196Z'

@@ -56,4 +56,7 @@ if errorlevel 1 (
 echo [ait] Setup complete. 1>&2
 
 :run
+rem Pass the resolved skill installation path to the Python process so the CLI
+rem can trust os.environ["AIT_SKILL_DIR"] without re-deriving it from cwd/argv[0].
+set "AIT_SKILL_DIR=%SKILL_DIR%"
 "%VENV_PY%" -m ait.cli %*

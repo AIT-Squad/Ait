@@ -26,6 +26,16 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
+def _prd_chunk(chunk_id: str, heading: str, summary: str, body: str = "body") -> str:
+    return (
+        f"<!-- @id:{chunk_id} -->\n## {heading}\n\n<!-- @summary: {summary} -->\n\n"
+        f"### 概述\n\n{body}\n\n"
+        "### 业务规则\n\n规则\n\n"
+        "### 验收标准\n\n验收\n\n"
+        "### 边界与非目标\n\n边界\n"
+    )
+
+
 def test_prd_create_auto_creates_version(project: Path):
     mgr = PrdManager(project)
     result = mgr.create("图书推荐")
@@ -52,34 +62,35 @@ Some rules.
 """
     req = mgr.save_draft(result.req_id, draft)
     assert req.status == "prd_draft"
-    assert len(req.prd_blocks) == 2
-    assert req.prd_blocks[0].id == "prd-test-overview"
-    assert req.prd_blocks[1].heading == "规则"
+    assert len(req.prd_chunks) == 2
+    assert req.prd_chunks[0].id == "prd-test-overview"
+    assert req.prd_chunks[1].heading == "规则"
 
 
 def test_prd_write_to_version_registers_blocks(project: Path):
     mgr = PrdManager(project)
     res = mgr.create("recommend")
-    draft = "<!-- @id:prd-recommend-overview -->\n## 概述\n\nA"
+    draft = _prd_chunk("prd-recommend-overview", "概述", "推荐概述", "A")
     mgr.save_draft(res.req_id, draft)
 
     write = mgr.write_to_version(res.req_id, prd_file="prd/recommend")
     assert write.version == "v1.0"
-    assert write.block_ids == ["prd-recommend-overview"]
+    assert write.chunk_ids == ["prd-recommend-overview"]
 
     idx = mgr.indexes.load_version_index("v1.0")
-    assert len(idx.blocks) == 1
-    assert idx.blocks[0].action == "add"
-    assert idx.blocks[0].state == "working"
-    assert idx.blocks[0].source_req == res.req_id
+    assert len(idx.chunks) == 1
+    assert idx.chunks[0].action == "add"
+    assert idx.chunks[0].state == "working"
+    assert idx.chunks[0].source_req == res.req_id
 
 
 def test_prd_commit_stages_and_commits_file(project: Path):
     mgr = PrdManager(project)
     res = mgr.create("recommend")
     draft = (
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nA\n\n"
-        "<!-- @id:prd-recommend-rules -->\n## 规则\n\nB"
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述", "A")
+        + "\n"
+        + _prd_chunk("prd-recommend-rules", "规则", "推荐规则", "B")
     )
     mgr.save_draft(res.req_id, draft)
     mgr.write_to_version(res.req_id, prd_file="prd/recommend")
@@ -94,7 +105,7 @@ def test_impl_create_auto_attaches_ref(project: Path):
     res = prd.create("recommend")
     prd.save_draft(
         res.req_id,
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nbody",
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述"),
     )
     prd.write_to_version(res.req_id, prd_file="prd/recommend")
     prd.commit("prd/recommend", "commit prd", req_id=res.req_id)
@@ -102,11 +113,11 @@ def test_impl_create_auto_attaches_ref(project: Path):
     impl = ImplManager(project)
     result = impl.create(
         "prd-recommend-overview",
-        "<!-- @id:impl-api-recommend -->\n## 推荐接口\n\nGET /api/recommend",
+        "<!-- @id:impl-recommend-overview-api -->\n## 推荐接口\n\n<!-- @summary: 推荐接口 -->\n\nGET /api/recommend",
         req_id=res.req_id,
     )
-    assert result.block_ids == ["impl-api-recommend"]
-    text = (project / "versions" / "v1.0" / "impl" / "api-contracts.md").read_text(
+    assert result.chunk_ids == ["impl-recommend-overview-api"]
+    text = (project / "versions" / "v1.0" / "impl" / "recommend.md").read_text(
         encoding="utf-8"
     )
     assert "@ref:prd/recommend#prd-recommend-overview rel:implements" in text
@@ -117,7 +128,7 @@ def test_impl_commit_requires_prd_committed(project: Path):
     res = prd.create("recommend")
     prd.save_draft(
         res.req_id,
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nbody",
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述"),
     )
     prd.write_to_version(res.req_id, prd_file="prd/recommend")
     # NOT committing the PRD.
@@ -125,11 +136,11 @@ def test_impl_commit_requires_prd_committed(project: Path):
     impl = ImplManager(project)
     impl.create(
         "prd-recommend-overview",
-        "<!-- @id:impl-api-recommend -->\n## 推荐接口\n\nGET /api/recommend",
+        "<!-- @id:impl-recommend-overview-api -->\n## 推荐接口\n\n<!-- @summary: 推荐接口 -->\n\nGET /api/recommend",
         req_id=res.req_id,
     )
     with pytest.raises(ValidationError) as exc:
-        impl.commit("impl-api-recommend", "msg", req_id=res.req_id)
+        impl.commit("impl-recommend-overview-api", "msg", req_id=res.req_id)
     assert exc.value.issues[0].code == "PRD_NOT_COMMITTED"
 
 
@@ -138,7 +149,7 @@ def test_impl_commit_succeeds_after_prd_committed(project: Path):
     res = prd.create("recommend")
     prd.save_draft(
         res.req_id,
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nbody",
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述"),
     )
     prd.write_to_version(res.req_id, prd_file="prd/recommend")
     prd.commit("prd/recommend", "commit prd", req_id=res.req_id)
@@ -146,10 +157,10 @@ def test_impl_commit_succeeds_after_prd_committed(project: Path):
     impl = ImplManager(project)
     impl.create(
         "prd-recommend-overview",
-        "<!-- @id:impl-api-recommend -->\n## 推荐接口\n\nGET /api/recommend",
+        "<!-- @id:impl-recommend-overview-api -->\n## 推荐接口\n\n<!-- @summary: 推荐接口 -->\n\nGET /api/recommend",
         req_id=res.req_id,
     )
-    result = impl.commit("impl-api-recommend", "commit impl", req_id=res.req_id)
+    result = impl.commit("impl-recommend-overview-api", "commit impl", req_id=res.req_id)
     assert result["commit_id"] == "c2"  # PRD took c1
 
 
@@ -158,7 +169,7 @@ def test_context_assembler_prd_to_impl(project: Path):
     res = prd.create("recommend")
     prd.save_draft(
         res.req_id,
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nA",
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述", "A"),
     )
     prd.write_to_version(res.req_id, prd_file="prd/recommend")
     prd.commit("prd/recommend", "msg", req_id=res.req_id)
@@ -166,10 +177,10 @@ def test_context_assembler_prd_to_impl(project: Path):
     impl = ImplManager(project)
     impl.create(
         "prd-recommend-overview",
-        "<!-- @id:impl-api-recommend -->\n## 推荐接口\n\nGET /api/recommend",
+        "<!-- @id:impl-recommend-overview-api -->\n## 推荐接口\n\n<!-- @summary: 推荐接口 -->\n\nGET /api/recommend",
         req_id=res.req_id,
     )
-    impl.commit("impl-api-recommend", "msg", req_id=res.req_id)
+    impl.commit("impl-recommend-overview-api", "msg", req_id=res.req_id)
     # Merge so the links-index includes the link.
     prd.versions.merge("v1.0")
 
@@ -178,7 +189,7 @@ def test_context_assembler_prd_to_impl(project: Path):
     assert ctx["l1"]["id"] == "prd-recommend-overview"
     assert "@id:prd-recommend-overview" in ctx["l1"]["content"]
     impl_ids = [s["id"] for s in ctx["l2"]]
-    assert "impl-api-recommend" in impl_ids
+    assert "impl-recommend-overview-api" in impl_ids
 
 
 def test_context_assembler_impl_edit(project: Path):
@@ -186,7 +197,7 @@ def test_context_assembler_impl_edit(project: Path):
     res = prd.create("recommend")
     prd.save_draft(
         res.req_id,
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\nA",
+        _prd_chunk("prd-recommend-overview", "概述", "推荐概述", "A"),
     )
     prd.write_to_version(res.req_id, prd_file="prd/recommend")
     prd.commit("prd/recommend", "msg", req_id=res.req_id)
@@ -194,12 +205,12 @@ def test_context_assembler_impl_edit(project: Path):
     impl = ImplManager(project)
     impl.create(
         "prd-recommend-overview",
-        "<!-- @id:impl-api-recommend -->\n## 推荐接口\n\nGET /api/recommend",
+        "<!-- @id:impl-recommend-overview-api -->\n## 推荐接口\n\n<!-- @summary: 推荐接口 -->\n\nGET /api/recommend",
         req_id=res.req_id,
     )
 
     asm = ContextAssembler(project)
-    ctx = asm.assemble("impl-api-recommend", scenario="impl-edit").to_dict()
-    assert ctx["l1"]["id"] == "impl-api-recommend"
+    ctx = asm.assemble("impl-recommend-overview-api", scenario="impl-edit").to_dict()
+    assert ctx["l1"]["id"] == "impl-recommend-overview-api"
     l2_ids = [s["id"] for s in ctx["l2"]]
     assert "prd-recommend-overview" in l2_ids

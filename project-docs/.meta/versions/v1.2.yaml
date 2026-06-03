@@ -1,0 +1,20 @@
+version: v1.2
+created_at: '2026-05-25T05:23:25.977410+00:00'
+merged_at: '2026-05-25T07:04:46.676871+00:00'
+owner: system
+changes:
+- chg-007
+- chg-008
+- chg-009
+- chg-010
+- chg-011
+- chg-012
+- chg-013
+- chg-014
+- chg-015
+- chg-016
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: snapshots/v1.2/

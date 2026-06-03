@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from ait.block_parser import Block
+from ait.chunk_parser import Chunk
 from ait.validator import ValidationError
 from ait.version_manager import VersionManager
 
@@ -21,9 +21,9 @@ def vm_root(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _make_block(id_: str, heading: str, file: str = "prd/test", level: int = 2) -> Block:
+def _make_chunk(id_: str, heading: str, file: str = "prd/test", level: int = 2) -> Chunk:
     content = f"<!-- @id:{id_} -->\n## {heading}\n\nbody"
-    return Block(
+    return Chunk(
         id=id_,
         heading=heading,
         level=level,
@@ -54,8 +54,8 @@ def test_current_returns_latest_unmerged(vm_root: Path):
 def test_stage_all_working_blocks(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-a", "A"))
-    vm.add_block("v1.1", block=_make_block("prd-test-b", "B"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-b", "B"))
 
     # Write the actual file content so commit can find new_content later.
     vm.write_version_file(
@@ -74,10 +74,10 @@ def test_stage_all_working_blocks(vm_root: Path):
 def test_stage_specific_blocks(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-a", "A"))
-    vm.add_block("v1.1", block=_make_block("prd-test-b", "B"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-b", "B"))
 
-    result = vm.stage("v1.1", block_ids=["prd-test-a"])
+    result = vm.stage("v1.1", chunk_ids=["prd-test-a"])
     assert result.staged == ["prd-test-a"]
     status = vm.status("v1.1")
     assert status.staged == ["prd-test-a"]
@@ -87,7 +87,7 @@ def test_stage_specific_blocks(vm_root: Path):
 def test_unstage_returns_block_to_working(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-a", "A"))
     vm.stage("v1.1")
     result = vm.unstage("v1.1", ["prd-test-a"])
     assert result.unstaged == ["prd-test-a"]
@@ -97,7 +97,7 @@ def test_unstage_returns_block_to_working(vm_root: Path):
 def test_commit_generates_chg_records(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-a", "A"))
 
     vm.write_version_file(
         "v1.1",
@@ -125,7 +125,7 @@ def test_commit_generates_chg_records(vm_root: Path):
 def test_commit_without_staged_raises_e1(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-test-a", "A"))
     with pytest.raises(ValidationError) as exc:
         vm.commit("v1.1", "empty")
     assert exc.value.issues[0].code == "COMMIT_EMPTY"
@@ -134,13 +134,13 @@ def test_commit_without_staged_raises_e1(vm_root: Path):
 def test_multiple_commits_increment_ids(vm_root: Path):
     vm = VersionManager(vm_root)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-a", "A"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-a", "A"))
     vm.write_version_file("v1.1", "prd/test", "<!-- @id:prd-a -->\n## A\n\nbody\n")
     vm.stage("v1.1")
     first = vm.commit("v1.1", "first")
     assert first.commit_id == "c1"
 
-    vm.add_block("v1.1", block=_make_block("prd-b", "B"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-b", "B"))
     vm.write_version_file(
         "v1.1",
         "prd/test",
@@ -149,3 +149,86 @@ def test_multiple_commits_increment_ids(vm_root: Path):
     vm.stage("v1.1")
     second = vm.commit("v1.1", "second")
     assert second.commit_id == "c2"
+
+
+def test_add_chunk_upserts_working_entry(vm_root: Path):
+    """Re-adding the same chunk in working state must replace, not duplicate.
+
+    Regression: prd confirm <req> --file <prd> twice used to grow the version
+    chunks-index linearly (4 → 8 → 12 …). The fix is upsert semantics in
+    VersionManager.add_chunk.
+    """
+    vm = VersionManager(vm_root)
+    vm.create("v1.1")
+
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("prd-up-a", "A v1"),
+        action="add",
+        source_req="req-001",
+    )
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("prd-up-b", "B v1"),
+        action="add",
+        source_req="req-001",
+    )
+    # Re-add the same ids with refreshed metadata (simulating a second prd confirm).
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("prd-up-a", "A v2"),
+        action="modify",
+        overrides="prd-up-a",
+        source_req="req-002",
+    )
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("prd-up-b", "B v2"),
+        action="add",
+        source_req="req-002",
+    )
+
+    idx = vm.indexes.load_version_index("v1.1")
+    ids = [c.id for c in idx.chunks]
+    assert ids == ["prd-up-a", "prd-up-b"], f"duplicate entries: {ids}"
+
+    a = next(c for c in idx.chunks if c.id == "prd-up-a")
+    assert a.heading == "A v2"
+    assert a.action == "modify"
+    assert a.overrides == "prd-up-a"
+    assert a.source_req == "req-002"
+    assert a.state == "working"
+
+    b = next(c for c in idx.chunks if c.id == "prd-up-b")
+    assert b.heading == "B v2"
+    assert b.source_req == "req-002"
+
+
+def test_add_chunk_refuses_to_overwrite_staged(vm_root: Path):
+    vm = VersionManager(vm_root)
+    vm.create("v1.1")
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-lock-a", "A"))
+    vm.stage("v1.1", chunk_ids=["prd-lock-a"])
+
+    with pytest.raises(ValidationError) as exc:
+        vm.add_chunk("v1.1", chunk=_make_chunk("prd-lock-a", "A again"))
+    assert exc.value.issues[0].code == "CHUNK_LOCKED"
+    # Index must remain unchanged.
+    idx = vm.indexes.load_version_index("v1.1")
+    assert len(idx.chunks) == 1
+    assert idx.chunks[0].state == "staged"
+
+
+def test_add_chunk_refuses_to_overwrite_committed(vm_root: Path):
+    vm = VersionManager(vm_root)
+    vm.create("v1.1")
+    vm.add_chunk("v1.1", chunk=_make_chunk("prd-lock-c", "C"))
+    vm.write_version_file(
+        "v1.1", "prd/test", "<!-- @id:prd-lock-c -->\n## C\n\nbody\n"
+    )
+    vm.stage("v1.1")
+    vm.commit("v1.1", "lock-c")
+
+    with pytest.raises(ValidationError) as exc:
+        vm.add_chunk("v1.1", chunk=_make_chunk("prd-lock-c", "C again"))
+    assert exc.value.issues[0].code == "CHUNK_LOCKED"

@@ -1,0 +1,18 @@
+id: T-subskills-coverage-03
+title: 实现 impl-subskill-task-execute-add
+source_chunk: prd-subskills-coverage
+impl_refs:
+- impl-subskill-task-execute-add
+global_refs:
+- global-tech-stack
+depends_on:
+- T-subskills-coverage-02
+order_hint: 3
+steps:
+- 按 impl-subskill-task-execute-add 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-task-execute/SKILL.md
+  bound_at: '2026-06-01T13:42:50.918741Z'

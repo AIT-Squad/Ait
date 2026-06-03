@@ -1,0 +1,42 @@
+id: chg-045
+version: v1.4
+type: ADD
+target: prd/ait-redesign#prd-global
+author: system
+date: '2026-06-01T03:03:46.379975+00:00'
+message: AIT 重构设计 PRD 定稿（8块）
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-global -->
+
+  ## 全局信息层
+
+
+  ### 概述
+
+  global 承载跨版本的全局约束，分静态与动态两类，存于同一目录，靠 chunk 类型（category）区分。静态人工维护，动态由 version confirm 从 impl 提取。
+
+
+  ### 业务规则
+
+  - 静态 global（category: static）：技术栈、overview 等，人工维护
+
+  - 动态 global（category: dynamic）：DDL、schema、api 等，由 version confirm 从 impl 的 @extract 片段提取
+
+  - 同目录存放：`docs/global/` 下不分子目录，靠 chunk id 前缀 + links-index 的 `category` 字段区分
+
+  - global chunk 参与 context 组装，任务执行时作为全局约束注入
+
+
+  ### 验收标准
+
+  - [ ] links-index 中 global chunk 带 category: static|dynamic
+
+  - [ ] 静态 global 可人工编辑，动态 global 由提取生成
+
+  - [ ] task execute 时 global_refs 指向的约束被加载
+
+
+  ### 边界与非目标
+
+  - 动态 global 不接受人工直接编辑（应改 impl 再 version confirm 提取）'

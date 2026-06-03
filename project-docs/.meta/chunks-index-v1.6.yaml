@@ -1,0 +1,226 @@
+version: 1
+scope: version
+version_name: v1.6
+based_on_hash: null
+status: merged
+chunks:
+- id: prd-prd-global-single-file
+  file: prd/v1-6-roadmap
+  heading: 'prd-global-single-file: Baseline PRD 单文件化'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-016
+  summary: null
+- id: prd-prd-chunk-summary-index
+  file: prd/v1-6-roadmap
+  heading: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-016
+  summary: null
+- id: prd-prd-recursive-modify-discovery
+  file: prd/v1-6-roadmap
+  heading: 'prd-recursive-modify-discovery: prd create 时递归识别 modify 候选'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-016
+  summary: null
+- id: prd-prd-chunk-atomic-impl-merge
+  file: prd/v1-6-roadmap
+  heading: 'prd-chunk-atomic-impl-merge: PRD chunk 原子规则与 impl 整组替换'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-016
+  summary: null
+- id: prd-prd-format-enforcement
+  file: prd/v1-6-roadmap
+  heading: 'prd-format-enforcement: PRD/impl 格式规范强制化'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-016
+  summary: null
+- id: impl-prd-global-migrate-script
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — 一次性迁移脚本
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-global-merge-target-rewrite
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — version confirm 路由收敛
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-global-parser-compat-check
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-chunk-summary-field
+  file: impl/prd-chunk-summary-index
+  heading: chunks-index 增加 summary 字段 + @summary 注释解析
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-recursive-modify-discovery-pipeline
+  file: impl/prd-recursive-modify-discovery
+  heading: prd create 递归扫描 baseline + skill 侧 candidates 决议
+  level: 2
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-chunk-atomic-impl-merge-engine
+  file: impl/prd-chunk-atomic-impl-merge
+  heading: PRD chunk 原子规则：confirm 整组替换 impl + commit 覆盖率守卫 + impl inherit
+  level: 2
+  action: add
+  state: committed
+  commit_id: c7
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-format-enforcement-gate
+  file: impl/prd-format-enforcement
+  heading: PRD/impl 格式硬约束 + ait lint 命令 + 派生命名校验
+  level: 2
+  action: add
+  state: committed
+  commit_id: c8
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-06-02T09:16:57.318981+00:00'
+  message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+  chunks:
+  - prd-prd-global-single-file
+  - prd-prd-chunk-summary-index
+  - prd-prd-recursive-modify-discovery
+  - prd-prd-chunk-atomic-impl-merge
+  - prd-prd-format-enforcement
+  req_id: null
+- id: c2
+  timestamp: '2026-06-02T12:36:40.050071+00:00'
+  message: 'impl#1: 一次性迁移脚本 + dry-run/apply + 7 步自检'
+  chunks:
+  - impl-prd-global-migrate-script
+  req_id: req-016
+- id: c3
+  timestamp: '2026-06-02T12:36:40.382668+00:00'
+  message: 'impl#2: version_manager 路由强制收敛到 prd/global'
+  chunks:
+  - impl-prd-global-merge-target-rewrite
+  req_id: req-016
+- id: c4
+  timestamp: '2026-06-02T12:36:40.700768+00:00'
+  message: 'impl#3: 单文件 baseline 兼容性回归测试网'
+  chunks:
+  - impl-prd-global-parser-compat-check
+  req_id: req-016
+- id: c5
+  timestamp: '2026-06-02T13:24:25.557875+00:00'
+  message: 'impl: chunks-index summary 字段 + @summary 注释 + baseline-summary 命令'
+  chunks:
+  - impl-prd-chunk-summary-field
+  req_id: req-016
+- id: c6
+  timestamp: '2026-06-02T13:24:25.909229+00:00'
+  message: 'impl: prd create 递归扫 baseline + candidates 决议 + commit overrides 校验'
+  chunks:
+  - impl-prd-recursive-modify-discovery-pipeline
+  req_id: req-016
+- id: c7
+  timestamp: '2026-06-02T13:24:26.261017+00:00'
+  message: 'impl: PRD chunk 原子 impl 替换 + 覆盖率守卫 + impl inherit + @prd-no-impl'
+  chunks:
+  - impl-prd-chunk-atomic-impl-merge-engine
+  req_id: req-016
+- id: c8
+  timestamp: '2026-06-02T13:24:26.603818+00:00'
+  message: 'impl: 格式硬约束闸门 + ait lint --fix + 派生命名校验'
+  chunks:
+  - impl-prd-format-enforcement-gate
+  req_id: req-016
+stats:
+  total_chunks: 12
+  by_action:
+    add: 12
+  by_state:
+    committed: 12
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 7
+    failed: 0

@@ -1,0 +1,22 @@
+id: T-prd-recursive-modify-discovery-01
+title: 实现 impl-prd-recursive-modify-discovery-pipeline
+source_chunk: prd-prd-recursive-modify-discovery
+impl_refs:
+- impl-prd-recursive-modify-discovery-pipeline
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-recursive-modify-discovery-pipeline 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/cli.py
+  - skill/ait/ait/prd_manager.py
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - tests/test_prd_commit_modify.py
+  - tests/test_prd_resolve_candidates.py
+  - tests/test_prd_save_draft_sync.py
+  bound_at: '2026-06-03T05:40:14.637371Z'

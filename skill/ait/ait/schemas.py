@@ -2,9 +2,9 @@
 
 Five schemas (covering project-docs/.meta/*.yaml):
     - ProjectConfig       — .meta/config.yaml
-    - BaselineIndex       — .meta/blocks-index.yaml
+    - BaselineIndex       — .meta/chunks-index.yaml
     - LinksIndex          — .meta/links-index.yaml
-    - VersionIndex        — .meta/blocks-index-{vX.Y}.yaml
+    - VersionIndex        — .meta/chunks-index-{vX.Y}.yaml
     - VersionMeta         — .meta/versions/{vX.Y}.yaml
     - RequirementMeta     — .meta/requirements/req-{N}.yaml
     - ChangeRecord        — .meta/changes/chg-{N}.yaml
@@ -17,10 +17,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Action = Literal["add", "modify", "delete"]
 State = Literal["working", "staged", "committed"]
+VersionPhase = Literal["empty", "prd_locked", "impl_locked", "coding", "merged"]
+TaskStatus = Literal["created", "executing", "done", "failed"]
 ReqStatus = Literal[
     "draft", "prd_draft", "prd_confirmed", "impl_progress", "impl_done", "merged"
 ]
@@ -48,22 +50,28 @@ class ProjectConfig(StrictModel):
 
 
 # ─────────────────────────────────────────────────────────────
-# baseline blocks-index.yaml
+# baseline chunks-index.yaml
 # ─────────────────────────────────────────────────────────────
 
-
-class BaselineBlockEntry(StrictModel):
+class BaselineChunkEntry(StrictModel):
     id: str
     file: str
     heading: str
     level: int
+    summary: str | None = None
 
+    @field_validator("summary")
+    @classmethod
+    def _validate_summary_length(cls, value: str | None) -> str | None:
+        if value is not None and len(value) > 120:
+            raise ValueError("summary must be <= 120 characters")
+        return value
 
 class BaselineIndex(StrictModel):
     version: int = 1
     scope: Literal["global"] = "global"
     updated: datetime | None = None
-    blocks: list[BaselineBlockEntry] = Field(default_factory=list)
+    chunks: list[BaselineChunkEntry] = Field(default_factory=list)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -86,11 +94,10 @@ class LinksIndex(StrictModel):
 
 
 # ─────────────────────────────────────────────────────────────
-# version blocks-index-{vX.Y}.yaml
+# version chunks-index-{vX.Y}.yaml
 # ─────────────────────────────────────────────────────────────
 
-
-class VersionBlockEntry(StrictModel):
+class VersionChunkEntry(StrictModel):
     id: str
     file: str | None  # null when action=delete
     heading: str | None  # null when action=delete
@@ -103,21 +110,27 @@ class VersionBlockEntry(StrictModel):
     insert_after: str | None = None
     base_hash: str | None = None
     source_req: str | None = None
+    summary: str | None = None
 
+    @field_validator("summary")
+    @classmethod
+    def _validate_summary_length(cls, value: str | None) -> str | None:
+        if value is not None and len(value) > 120:
+            raise ValueError("summary must be <= 120 characters")
+        return value
 
 class CommitEntry(StrictModel):
     id: str
     timestamp: datetime
     message: str
-    blocks: list[str]
+    chunks: list[str]
     req_id: str | None = None
 
-
 class VersionIndexStats(StrictModel):
-    total_blocks: int = 0
+    total_chunks: int = 0
     by_action: dict[str, int] = Field(default_factory=dict)
     by_state: dict[str, int] = Field(default_factory=dict)
-
+    tasks_summary: dict[str, int] = Field(default_factory=dict)
 
 class VersionIndex(StrictModel):
     version: int = 1
@@ -125,7 +138,7 @@ class VersionIndex(StrictModel):
     version_name: str
     based_on_hash: str | None = None
     status: Literal["developing", "committed", "merged"] = "developing"
-    blocks: list[VersionBlockEntry] = Field(default_factory=list)
+    chunks: list[VersionChunkEntry] = Field(default_factory=list)
     commits: list[CommitEntry] = Field(default_factory=list)
     stats: VersionIndexStats = Field(default_factory=VersionIndexStats)
 
@@ -149,6 +162,12 @@ class VersionMeta(StrictModel):
     changes: list[str] = Field(default_factory=list)
     dependencies: VersionDependencies = Field(default_factory=VersionDependencies)
     snapshot: str | None = None
+    # ── Redesign: version atomicity & lock state (new fields, default-valued
+    # so existing v1.1-v1.3 metadata without them still loads cleanly) ──
+    phase: VersionPhase = "empty"
+    title: str | None = None        # summarized in prd discuss; used as git commit msg
+    prd_locked: bool = False
+    impl_locked: bool = False
 
 
 # ─────────────────────────────────────────────────────────────
@@ -156,25 +175,22 @@ class VersionMeta(StrictModel):
 # ─────────────────────────────────────────────────────────────
 
 
-class PrdBlockSummary(StrictModel):
+class PrdChunkSummary(StrictModel):
     id: str
     heading: str
     level: int
     impl_status: Literal["pending", "in_progress", "done"] = "pending"
 
-
-class ImplBlockDraft(StrictModel):
+class ImplChunkDraft(StrictModel):
     id: str
     file: str
     heading: str
     layer: Literal["api", "data", "workflow", "other"] = "other"
     content: str
 
-
 class ImplDraftBundle(StrictModel):
     prd_id: str
-    impl_blocks: list[ImplBlockDraft] = Field(default_factory=list)
-
+    impl_chunks: list[ImplChunkDraft] = Field(default_factory=list)
 
 class RequirementMeta(StrictModel):
     id: str
@@ -186,7 +202,7 @@ class RequirementMeta(StrictModel):
     assigned_version: str | None = None
     confirmed_at: datetime | None = None
     prd_draft: str = ""
-    prd_blocks: list[PrdBlockSummary] = Field(default_factory=list)
+    prd_chunks: list[PrdChunkSummary] = Field(default_factory=list)
     impl_drafts: list[ImplDraftBundle] = Field(default_factory=list)
 
 
@@ -199,10 +215,34 @@ class ChangeRecord(StrictModel):
     id: str
     version: str
     type: ChangeType
-    target: str  # "file#block_id"
+    target: str  # "file#chunk_id"
     author: str = "system"
     date: datetime
     message: str
     base_hash: str | None = None
     base_content: str | None = None
     new_content: str | None = None
+
+
+# ─────────────────────────────────────────────────────────────
+# versions/{vX.Y}/tasks/T-{src}-NN.yaml  (redesign: AI coding tasks)
+# ─────────────────────────────────────────────────────────────
+
+
+class CodeRef(StrictModel):
+    commit: str | None = None       # git commit hash
+    paths: list[str] = Field(default_factory=list)
+    bound_at: datetime | None = None
+
+
+class TaskYaml(StrictModel):
+    id: str                          # T-{src-chunk}-NN
+    title: str
+    source_chunk: str                # originating PRD chunk id
+    impl_refs: list[str] = Field(default_factory=list)
+    global_refs: list[str] = Field(default_factory=list)
+    depends_on: list[str] = Field(default_factory=list)
+    order_hint: int = 1
+    steps: list[str] = Field(default_factory=list)
+    status: TaskStatus = "created"
+    code_refs: list[CodeRef] = Field(default_factory=list)

@@ -1,0 +1,19 @@
+id: T-subskills-coverage-02
+title: 实现 impl-subskill-state-merge
+source_chunk: prd-subskills-coverage
+impl_refs:
+- impl-subskill-state-merge
+global_refs:
+- global-tech-stack
+depends_on:
+- T-subskills-coverage-01
+order_hint: 2
+steps:
+- 按 impl-subskill-state-merge 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-state/SKILL.md
+  - skill/ait/SKILL.md
+  bound_at: '2026-06-01T13:42:50.485872Z'

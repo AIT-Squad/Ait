@@ -1,0 +1,184 @@
+version: 1
+updated: '2026-06-03T07:49:22.525784+00:00'
+specs:
+- uri: spec:impl:v1.6:impl-prd-chunk-atomic-impl-merge-engine
+  title: PRD chunk 原子规则：confirm 整组替换 impl + commit 覆盖率守卫 + impl inherit
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-chunk-atomic-impl-merge-engine
+  file: impl/prd-chunk-atomic-impl-merge
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c7
+- uri: spec:impl:v1.6:impl-prd-chunk-summary-field
+  title: chunks-index 增加 summary 字段 + @summary 注释解析
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-chunk-summary-field
+  file: impl/prd-chunk-summary-index
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v1.6:impl-prd-format-enforcement-gate
+  title: PRD/impl 格式硬约束 + ait lint 命令 + 派生命名校验
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-format-enforcement-gate
+  file: impl/prd-format-enforcement
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c8
+- uri: spec:impl:v1.6:impl-prd-global-merge-target-rewrite
+  title: Baseline PRD 单文件化 — version confirm 路由收敛
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-global-merge-target-rewrite
+  file: impl/prd-global-single-file
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v1.6:impl-prd-global-migrate-script
+  title: Baseline PRD 单文件化 — 一次性迁移脚本
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-global-migrate-script
+  file: impl/prd-global-single-file
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v1.6:impl-prd-global-parser-compat-check
+  title: Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-global-parser-compat-check
+  file: impl/prd-global-single-file
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v1.6:impl-prd-recursive-modify-discovery-pipeline
+  title: prd create 递归扫描 baseline + skill 侧 candidates 决议
+  type: impl
+  version: v1.6
+  chunk_id: impl-prd-recursive-modify-discovery-pipeline
+  file: impl/prd-recursive-modify-discovery
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:prd:v1.6:prd-prd-chunk-atomic-impl-merge
+  title: 'prd-chunk-atomic-impl-merge: PRD chunk 原子规则与 impl 整组替换'
+  type: prd
+  version: v1.6
+  chunk_id: prd-prd-chunk-atomic-impl-merge
+  file: prd/v1-6-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.6:prd-prd-chunk-summary-index
+  title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
+  type: prd
+  version: v1.6
+  chunk_id: prd-prd-chunk-summary-index
+  file: prd/v1-6-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.6:prd-prd-format-enforcement
+  title: 'prd-format-enforcement: PRD/impl 格式规范强制化'
+  type: prd
+  version: v1.6
+  chunk_id: prd-prd-format-enforcement
+  file: prd/v1-6-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.6:prd-prd-global-single-file
+  title: 'prd-global-single-file: Baseline PRD 单文件化'
+  type: prd
+  version: v1.6
+  chunk_id: prd-prd-global-single-file
+  file: prd/v1-6-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.6:prd-prd-recursive-modify-discovery
+  title: 'prd-recursive-modify-discovery: prd create 时递归识别 modify 候选'
+  type: prd
+  version: v1.6
+  chunk_id: prd-prd-recursive-modify-discovery
+  file: prd/v1-6-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v1.6:impl-prd-chunk-atomic-impl-merge-engine
+  dst: spec:prd:v1.6:prd-prd-chunk-atomic-impl-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-chunk-summary-field
+  dst: spec:prd:v1.6:prd-prd-chunk-summary-index
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-format-enforcement-gate
+  dst: spec:prd:v1.6:prd-prd-format-enforcement
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-global-migrate-script
+  dst: spec:prd:v1.6:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-global-merge-target-rewrite
+  dst: spec:prd:v1.6:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-global-parser-compat-check
+  dst: spec:prd:v1.6:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.6:impl-prd-recursive-modify-discovery-pipeline
+  dst: spec:prd:v1.6:prd-prd-recursive-modify-discovery
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:prd:v1.6:prd-prd-format-enforcement
+  dst: spec:prd:baseline:prd-formats
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: version-ref

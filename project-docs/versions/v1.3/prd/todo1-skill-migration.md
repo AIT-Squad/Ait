@@ -1,0 +1,140 @@
+<!-- @id:prd-skill-migration -->
+
+# 需求1：参考项目 skill 功能迁移
+
+## 需求来源
+
+`todo.md` 需求1：
+
+> 把参考项目下：`/Users/jenningwang/PycharmProjects/version-design/tools/ait/templates/skills` 的 skill 功能放到当前项目中
+> 约束要求：按照当前项目的规范来重新组织 skills；按照当前项目 init 的方式不改动；适配当前框架格式，增加新的流程
+
+## 背景
+
+参考项目 `version-design` 的 `tools/ait/templates/skills/` 目录下有一套 **micro-skill 模板**，包含：
+- 子 skill 的 `SKILL.md` 模板
+- 主 skill router 模板
+- 各子 skill 的触发语模板
+
+当前项目（`ait`）的 v1.2 PRD 已经规划了 micro-skill 拆分，但 **impl 未落地**。本 chunk 的职责是：**把参考项目的 skill 功能按当前项目规范重新组织，填入 v1.3 的 impl chunk 中**。
+
+## 与 v1.2 PRD 的关系
+
+本需求 **不是** 替代 v1.2 的 `prd-skills-*` 系列 chunk，而是 **为 v1.3 的 impl 提供"参考实现素材"**：
+
+| v1.2 PRD chunk | 本需求提供的素材 |
+|---|---|
+| `prd-skills-layout` | 参考项目的 `sub-skills/` 目录结构模板 |
+| `prd-skills-format-adapt` | 参考项目的 `SKILL.md` frontmatter + CLI Dependencies 模板 |
+| `prd-skills-mapping` | 参考项目的 4 个子 skill 行为模板（ait-discuss / ait-impl-discuss / ait-progress / ait-resume） |
+| `prd-skills-router` | 参考项目的主 SKILL.md router 模板 |
+
+## 迁移原则
+
+### 原则 1：术语对齐
+
+| 参考项目术语 | 当前项目对齐 |
+|---|---|
+| `chunk-id` / `chunk` | 沿用（v1.2 已完成 block→chunk 重构） |
+| `.planning/STATE.md` | 改为 `.meta/versions/<vX.Y>.yaml` + `.meta/chunks-index.yaml` |
+| `.planning/ait/progress.json` | 改为 `.meta/chunks-index-<vX.Y>.yaml` |
+| `.planning/ait/issues.md` | 本期不引入（留 v1.4+） |
+| `ait list` / `ait draft new` | 改为 `bin/ait reindex` / `bin/ait prd create` / `bin/ait prd save-draft` |
+| `ait progress show` | 本期用现有 CLI 组合实现（ait-progress 子 skill 内调用） |
+| `ait resume` | 本期用现有 CLI 错误码字典实现（ait-resume 子 skill 内调用） |
+
+### 原则 2：不改动 init
+
+- 参考项目中可能有 `ait init` 的增强逻辑 → **不迁移到当前项目**
+- 当前项目 `bin/ait` 的 init 流程保持不变
+- 如需增强 init，走 `todo.md` 需求2 单独处理
+
+### 原则 3：适配当前框架格式
+
+参考项目的 `SKILL.md` 格式需要按当前项目规范调整：
+
+| 维度 | 参考项目 | 当前项目规范 |
+|---|---|---|
+| frontmatter | `name` + `description` | 沿用，description 必须以 `INVOKE THIS SKILL when ...` 起头 |
+| 触发语 | 可能不统一 | 每个子 skill 必须有明确 INVOKE 触发语，不重叠 |
+| CLI 调用 | 直接调用 `ait <subcommand>` | 必须通过 `bin/ait <subcommand>`（相对路径或 PATH） |
+| 写入路径 | 可能直接写文件 | 禁止直接写，必须通过 `bin/ait` CLI |
+| 输出格式 | 可能 dump JSON | 必须复述关键字段，不原样 dump |
+
+## 迁移内容清单
+
+### 1. 主 skill router 模板
+
+**来源**：参考项目主 `SKILL.md`
+
+**迁移为**：当前项目 `skill/ait/SKILL.md` router 改造（对应 `impl-skills-router`）
+
+**关键改动**：
+- 删除 PRD 三阶段详细流程（下沉到 ait-discuss）
+- 删除 impl 设计详细流程（下沉到 ait-impl-discuss）
+- 保留：Project Layout、Commands 速查表、Common Pitfalls、MVP Scope Boundaries
+- 新增：Sub-skills 索引段（列出 4 个子 skill 的 Trigger / Purpose）
+
+### 2. ait-discuss 子 skill
+
+**来源**：参考项目 PRD 讨论 skill
+
+**迁移为**：`skill/ait/sub-skills/ait-discuss/SKILL.md`（对应 `impl-skills-mapping` + `impl-skills-format-adapt`）
+
+**关键改动**：
+- Clarify → Design → Generate 三阶段流程保留
+- CLI 命令全部替换为当前项目 `bin/ait prd <subcommand>`
+- 数据源从 `.planning/` 改为 `.meta/versions/` + `.meta/chunks-index.yaml`
+- 输出契约：复述 `data` 关键字段，不 dump JSON
+
+### 3. ait-impl-discuss 子 skill
+
+**来源**：参考项目 impl 设计讨论 skill
+
+**迁移为**：`skill/ait/sub-skills/ait-impl-discuss/SKILL.md`（对应 `impl-skills-mapping` + `impl-skills-format-adapt`）
+
+**关键改动**：
+- 为稳定 PRD chunk 驱动 impl 设计的流程保留
+- CLI 命令全部替换为当前项目 `bin/ait impl <subcommand>`
+- context 组装：调用 `bin/ait context <prd-chunk-id> --scenario prd-to-impl`
+- 落盘：调用 `bin/ait impl create <prd-chunk-id> --content-file <tmp>`
+
+### 4. ait-progress 子 skill（占位实现）
+
+**来源**：参考项目 progress skill
+
+**迁移为**：`skill/ait/sub-skills/ait-progress/SKILL.md`（对应 `impl-skills-mapping`，本期占位）
+
+**关键改动**：
+- 数据源从 `.planning/STATE.md` + `progress.json` 改为 `.meta/versions/<vX.Y>.yaml` + `.meta/chunks-index-<vX.Y>.yaml`
+- 本期不引入新 CLI，子 skill 内调用 `bin/ait reindex` 后读 chunks-index 统计三态分布
+- 渲染面板：Version / Requirements / Chunks{working,staged,committed} / Pending merges
+
+### 5. ait-resume 子 skill（占位实现）
+
+**来源**：参考项目 resume skill
+
+**迁移为**：`skill/ait/sub-skills/ait-resume/SKILL.md`（对应 `impl-skills-mapping`，本期占位）
+
+**关键改动**：
+- 数据源从 `issues.md` 改为 CLI 错误码字典（PRD_NOT_COMMITTED / MERGE_CONFLICT / CHUNK_NOT_IN_VERSION / ID_FORMAT 等）
+- 本期不引入新 CLI，子 skill 通过解析 `code` 字段给出恢复建议
+
+## 不涉及迁移的内容（明确排除）
+
+| 参考项目内容 | 排除原因 |
+|---|---|
+| `ait init` 增强逻辑 | todo.md 需求1 约束"按照当前项目 init 的方式不改动" |
+| `.planning/phases/` 体系 | v1.2 non-goals，留 v1.4+ |
+| `.planning/ait/issues.md` | 同上 |
+| `ait next-up` CLI | 同上 |
+| `ait build-tasks` / `ait execute` | 同上 |
+
+## 验收标准
+
+1. `skill/ait/sub-skills/` 下 4 个目录各含 `SKILL.md`
+2. 每个 `SKILL.md` 的 frontmatter description 以 `INVOKE THIS SKILL when` 起头
+3. 每个 `SKILL.md` 包含 CLI Dependencies 表（列出调用的 `bin/ait` 命令）
+4. 每个 `SKILL.md` 包含 Artifacts 段（Reads / Writes / Side-effect）
+5. 主 `SKILL.md` router 改造后 < 120 行，包含 Sub-skills 索引段
+6. 全项目 `grep -r "直接写" skill/ait/sub-skills/` 命中数为 0（无直接文件写入）

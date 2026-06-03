@@ -1,0 +1,26 @@
+version: v1.6
+created_at: '2026-06-02T08:27:56.489339+00:00'
+merged_at: '2026-06-03T07:49:22.534986+00:00'
+owner: system
+changes:
+- chg-080
+- chg-081
+- chg-082
+- chg-083
+- chg-084
+- chg-085
+- chg-086
+- chg-087
+- chg-088
+- chg-089
+- chg-090
+- chg-091
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: snapshots/v1.6/
+phase: merged
+title: null
+prd_locked: true
+impl_locked: true

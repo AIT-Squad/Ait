@@ -1,0 +1,24 @@
+id: T-skill-cli-resolution-02
+title: 实现 impl-skill-cli-doc-rewrite
+source_chunk: prd-skill-cli-resolution
+impl_refs:
+- impl-skill-cli-doc-rewrite
+global_refs:
+- global-tech-stack
+depends_on:
+- T-skill-cli-resolution-01
+order_hint: 2
+steps:
+- 按 impl-skill-cli-doc-rewrite 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/SKILL.md
+  - skill/ait/README.md
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - skill/ait/sub-skills/ait-impl-discuss/SKILL.md
+  - skill/ait/sub-skills/ait-init-guide/SKILL.md
+  - skill/ait/sub-skills/ait-resume/SKILL.md
+  - skill/ait/sub-skills/ait-state/SKILL.md
+  bound_at: '2026-06-01T13:42:48.759119Z'

@@ -1,0 +1,31 @@
+id: chg-076
+version: v1.5
+type: ADD
+target: impl/init-incremental#impl-init-guide-skill
+author: system
+date: '2026-06-01T13:08:04.350745+00:00'
+message: 'v1.5: ait-init-guide workflow rewrite'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-init-guide-skill -->\n## ait-init-guide 子 skill 升级（差异补全交互）\n\n<!-- @ref:prd-init-incremental rel:implements\
+  \ -->\n<!-- @ref:impl-init-state-detect rel:depends-on -->\n<!-- @ref:prd-subskills-coverage rel:complements -->\n\n###\
+  \ 设计\n\n> 这是 PRD `prd-init-incremental` 的 sub-skill 端配套。`prd-subskills-coverage` 中的\"重命名 ait-init-check → ait-init-guide\"\
+  \ 仅做目录搬迁；本 chunk 负责 SKILL.md 内容重写以承载补全工作流。两个 chunk 通过 `complements` 关系耦合，由 task 层先后调度。\n\n#### 1. SKILL.md 工作流（重写 `sub-skills/ait-init-guide/SKILL.md`）\n\
+  四段结构：\n- **Trigger**：`INVOKE THIS SKILL when bin/ait init returns status=incomplete and the user needs to fill missing docs/global/*\
+  \ files interactively`\n- **CLI Dependencies**：\n  - `project-docs/.ait/ait-cli init --check` — 诊断\n  - `project-docs/.ait/ait-cli\
+  \ init` — 执行补全（CLI 自动识别 incomplete 进入差异写入）\n  - `project-docs/.ait/ait-cli reindex` — 兜底刷新（init 已自动调用，此处仅恢复路径用）\n- **Workflow**：\n\
+  \  1. 调 `init --check`，解析 `data.files` 字典。\n  2. 对每个 status ≠ `present` 的项，向用户朗读\"我准备补 `<filename>`，要我现在补么？\"。\n  3. 用户同意：把该\
+  \ filename 加入待补列表；用户拒绝：跳过并记入 `skipped`。\n  4. 全部用户决策完毕后，调 `init`（CLI 全量补全所有缺失，但 sub-skill 提前已让用户在 docs/global/<name>.md\
+  \ 写入\"留空保护标记\"——见步骤 5）。\n  5. **拒绝项保护机制**：用户拒绝某项时，sub-skill 在 `docs/global/<name>.md` 预先写入：\n     ```\n     <!-- @id:global-<name>\
+  \ -->\n     ## <heading>\n     \n     <!-- ait-init-guide: user-skipped, will not be touched by init -->\n     ```\n   \
+  \  CLI 端 `_classify_global_file` 见到 `<!-- @id -->` 即视为 `present`，跳过覆盖。\n  6. 输出 ASCII 表格汇报最终结果（含 `created` / `skipped`）。\n\
+  - **Common Pitfalls**：\n  - `--check` 输出 `status: ready` → 无需补全，引导用户跑 `prd create`。\n  - `init` 之后若 `chunks-index.yaml`\
+  \ 缺新增 chunk → 兜底跑 `reindex`。\n\n#### 2. Artifacts 段\n- Reads：`docs/global/*.md`、`.meta/chunks-index.yaml`\n- Writes：`docs/global/*.md`（仅缺失项\
+  \ + 用户拒绝项的占位写入由 sub-skill 直接做，因为这是配置类小文件，符合 Global Contract 的例外条款；其它写入仍走 CLI）\n- ⚠️ 修订：上述\"sub-skill 直接写占位\"违反 Global Contract，改为：**新增\
+  \ CLI 子命令 `bin/ait init --skip <name1,name2>` 把跳过列表传给 CLI**，由 CLI 写占位。\n  - `ait/cli.py` `init` 命令增加 `--skip TEXT`（逗号分隔），传到\
+  \ `InitManager.run(skip=[...])`。\n  - `_run_incremental` 中遇到 `name in skip` 时，写入\"用户跳过占位\"内容（带 @id 但加注释 `user-skipped`）。\n\
+  \n#### 3. 旧 ait-init-check 删除（在 `prd-subskills-coverage` 的 impl 中执行 `rm -rf`，本 chunk 仅写新文件）\n\n### 验收\n- `cat skill/ait/sub-skills/ait-init-guide/SKILL.md`\
+  \ 含 Workflow 6 步与 `--check`、`--skip` 命令引用。\n- 端到端：tmp 目录 init 后删 `tech-stack.md` 与 `api.md` → AI 跑 ait-init-guide → 用户拒绝\
+  \ `api` → 最终 `tech-stack.md` 完整骨架、`api.md` 含 `user-skipped` 注释。\n\n### 边界\n- 不引入用户 GUI / 交互输入框；交互由 AI 对话完成。\n- 不实现\"已 skipped\
+  \ 的文件被用户后续手动补内容后自动重纳管\"——只要文件含 `<!-- @id -->` CLI 视为 present，已自然覆盖该场景。\n\n<!-- @ref:prd/v1-5-roadmap#prd-init-incremental\
+  \ rel:implements -->"

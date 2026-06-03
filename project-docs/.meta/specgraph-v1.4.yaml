@@ -1,0 +1,364 @@
+version: 1
+updated: '2026-06-01T07:17:45.909010+00:00'
+specs:
+- uri: spec:impl:v1.4:impl-core-model-reset
+  title: 核心模型：version reset 清空逻辑
+  type: impl
+  version: v1.4
+  chunk_id: impl-core-model-reset
+  file: impl/core
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v1.4:impl-core-model-state
+  title: 核心模型：版本与锁定状态机数据结构
+  type: impl
+  version: v1.4
+  chunk_id: impl-core-model-state
+  file: impl/core
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v1.4:impl-core-specgraph-store
+  title: SpecGraph 分文件存储与环检测
+  type: impl
+  version: v1.4
+  chunk_id: impl-core-specgraph-store
+  file: impl/core
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v1.4:impl-formats-naming
+  title: 派生式命名校验
+  type: impl
+  version: v1.4
+  chunk_id: impl-formats-naming
+  file: impl/formats
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v1.4:impl-formats-parser
+  title: 格式解析扩展（四段 PRD + chunk 解析）
+  type: impl
+  version: v1.4
+  chunk_id: impl-formats-parser
+  file: impl/formats
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:impl:v1.4:impl-global-index
+  title: 全局信息索引与 context 注入
+  type: impl
+  version: v1.4
+  chunk_id: impl-global-index
+  file: impl/global
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c7
+- uri: spec:impl:v1.4:impl-impl-stage-cli
+  title: impl 阶段命令实现
+  type: impl
+  version: v1.4
+  chunk_id: impl-impl-stage-cli
+  file: impl/impl
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c8
+- uri: spec:impl:v1.4:impl-impl-stage-extract
+  title: '@extract 提取标记解析器'
+  type: impl
+  version: v1.4
+  chunk_id: impl-impl-stage-extract
+  file: impl/impl
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c9
+- uri: spec:impl:v1.4:impl-init-flow
+  title: 初始化流程与 docs/ 骨架生成
+  type: impl
+  version: v1.4
+  chunk_id: impl-init-flow
+  file: impl/init
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c10
+- uri: spec:impl:v1.4:impl-prd-stage-cli
+  title: PRD 阶段命令实现
+  type: impl
+  version: v1.4
+  chunk_id: impl-prd-stage-cli
+  file: impl/prd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c11
+- uri: spec:impl:v1.4:impl-prd-stage-title
+  title: title 抽取与 state.md 写入
+  type: impl
+  version: v1.4
+  chunk_id: impl-prd-stage-title
+  file: impl/prd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c12
+- uri: spec:impl:v1.4:impl-task-stage-build
+  title: task 拆分（task create）
+  type: impl
+  version: v1.4
+  chunk_id: impl-task-stage-build
+  file: impl/task
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c13
+- uri: spec:impl:v1.4:impl-task-stage-execute
+  title: task 执行与自动收口（task execute）
+  type: impl
+  version: v1.4
+  chunk_id: impl-task-stage-execute
+  file: impl/task
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c14
+- uri: spec:impl:v1.4:impl-task-stage-schema
+  title: task YAML Schema
+  type: impl
+  version: v1.4
+  chunk_id: impl-task-stage-schema
+  file: impl/task
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c15
+- uri: spec:impl:v1.4:impl-version-merge-engine
+  title: 版本合并引擎（两阶段 + 失败回退）
+  type: impl
+  version: v1.4
+  chunk_id: impl-version-merge-engine
+  file: impl/version
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c16
+- uri: spec:impl:v1.4:impl-version-merge-extract
+  title: impl → 动态 global 提取
+  type: impl
+  version: v1.4
+  chunk_id: impl-version-merge-extract
+  file: impl/version
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c17
+- uri: spec:prd:v1.4:prd-core-model
+  title: 核心模型与版本原子性
+  type: prd
+  version: v1.4
+  chunk_id: prd-core-model
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-formats
+  title: 格式规范
+  type: prd
+  version: v1.4
+  chunk_id: prd-formats
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-global
+  title: 全局信息层
+  type: prd
+  version: v1.4
+  chunk_id: prd-global
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-impl-stage
+  title: impl 阶段
+  type: prd
+  version: v1.4
+  chunk_id: prd-impl-stage
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-init
+  title: 项目初始化
+  type: prd
+  version: v1.4
+  chunk_id: prd-init
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-prd-stage
+  title: PRD 阶段
+  type: prd
+  version: v1.4
+  chunk_id: prd-prd-stage
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-task-stage
+  title: task 阶段
+  type: prd
+  version: v1.4
+  chunk_id: prd-task-stage
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.4:prd-version-merge
+  title: 版本合并
+  type: prd
+  version: v1.4
+  chunk_id: prd-version-merge
+  file: prd/ait-redesign
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v1.4:impl-core-model-state
+  dst: spec:prd:v1.4:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-core-model-reset
+  dst: spec:prd:v1.4:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-core-specgraph-store
+  dst: spec:prd:v1.4:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-formats-parser
+  dst: spec:prd:v1.4:prd-formats
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-formats-naming
+  dst: spec:prd:v1.4:prd-formats
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-global-index
+  dst: spec:prd:v1.4:prd-global
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-impl-stage-cli
+  dst: spec:prd:v1.4:prd-impl-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-impl-stage-extract
+  dst: spec:prd:v1.4:prd-impl-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-init-flow
+  dst: spec:prd:v1.4:prd-init
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-prd-stage-cli
+  dst: spec:prd:v1.4:prd-prd-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-prd-stage-title
+  dst: spec:prd:v1.4:prd-prd-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-task-stage-build
+  dst: spec:prd:v1.4:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-task-stage-schema
+  dst: spec:prd:v1.4:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-task-stage-execute
+  dst: spec:prd:v1.4:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-version-merge-engine
+  dst: spec:prd:v1.4:prd-version-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.4:impl-version-merge-extract
+  dst: spec:prd:v1.4:prd-version-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

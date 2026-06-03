@@ -1,0 +1,90 @@
+<!-- @id:impl-prd-chunk-atomic-impl-merge-engine -->
+## PRD chunk 原子规则：confirm 整组替换 impl + commit 覆盖率守卫 + impl inherit
+
+<!-- @ref:prd/v1-6-roadmap#prd-prd-chunk-atomic-impl-merge rel:implements -->
+
+### 改动点
+
+#### 1. `ait/version_manager.py` — `_perform_merge_internal` 中加"PRD chunk 原子替换 impl"步
+
+定位：本文件 `_perform_merge_internal` 函数（第 555~565 行的"Apply per-file merges"循环之前），追加一个新阶段。
+
+逻辑：
+1. 加载当前 specgraph（一次，缓存）
+2. 收集 `ok_records` 中 `id` 以 `prd-` 开头且 `action ∈ {add, modify, delete}` 的 PRD chunk id 集合 `changed_prd_ids`
+3. 对每个 `prd_id`：
+   - `baseline_impl_ids = sg.implements_of(prd_id, version="baseline")`
+   - `version_impl_ids  = sg.implements_of(prd_id, version=version)`
+   - 对 `baseline_impl_ids - version_impl_ids` 中的每个 `bid`：
+     - 若 `ok_records` 中已显式包含 `id == bid and action == "delete"` → 跳过（用户已声明，不重复合成）
+     - 否则查 `self.indexes.query_baseline(bid)` 拿 baseline file，合成一条 `VersionChunkEntry`：`id=bid, file=base.file, action="delete", state="committed", overrides=bid, base_hash=baseline_hashes[bid]`，加入 `synthetic_ops`
+4. 把 `synthetic_ops` 追加到 `ok_records` 末尾，并对它们重新跑一次 `by_file` 分组（沿用现有分组逻辑，**impl chunk 不走 PRD 单文件收敛**——只有 file 以 `prd/` 开头的才被路由到 `prd/global`）
+5. 既有 `for file_key, records_for_file in by_file.items():` 循环自然吃掉合成的 delete ops
+
+具体实现细节：
+- 合成 ops 的 `base_hash` 必须取自迁移前 baseline_hashes（已在第 513 行附近 `_snapshot_baseline_hashes()` 调用过），保证 conflict-detection 一致；但因为是合成（非用户声明），可设 `base_hash=None` 让冲突检测跳过 —— 选择 None 更安全，避免误判
+- 新增 helper `_changed_prd_ids(ok_records)` 一行函数，纯过滤
+- 不重复处理：用 set 去重 `changed_prd_ids`
+
+#### 2. `ait/impl_manager.py` — `commit` 阶段加覆盖率守卫
+
+`ImplManager.commit()`（约第 171 行）在 `stage_result = self.versions.stage(...)` 调用之前追加：调 `self._assert_impl_coverage_after(version, pending_impl_id=impl_chunk_id)`。
+
+新增 `_assert_impl_coverage_after()` 实现：
+1. 加载 `chunks-index-{version}.yaml`，找出 `id` 以 `prd-` 开头且 `action ∈ {add, modify}` 的 PRD chunk 列表（called `prd_changed`）
+2. 加载 specgraph (version scope)，对每个 `prd_changed` 项查 `sg.implements_of(prd_id, version=version)` 拿当前已注册 impl 集合 `current_impls`
+3. 把 `pending_impl_id` 也算进去：解析其在版本工作区文件中的 @ref（`parse_file` 拿 chunk → 找 rel:implements 边），若指向某个 prd_changed 项 → 视作已覆盖
+4. 对 `current_impls ∪ {pending}` 仍为空的 prd_changed：检查该 PRD chunk content（先在版本工作区找，再回退 baseline）是否含 `<!-- @prd-no-impl -->` 标记 → 含则跳过
+5. 剩余未覆盖项 → 抛 `IMPL_COVERAGE_INCOMPLETE`，错误体列出 `[{prd_id, heading}, ...]`
+
+对 `action: delete` 的 PRD chunk：
+- 若版本工作区任何 impl chunk 的 `@ref:...rel:implements` 指向被删 PRD → `IMPL_ON_DELETED_PRD`，错误体含违规 impl id 列表
+
+时机注意：守卫在 `commit()` 入口检查；用户提交"最后一个补齐覆盖"的 impl 时，pending 算入 → 不应误报。
+
+#### 3. `ait/cli.py` + `ait/impl_manager.py` — 新增 `ait impl inherit <prd-chunk-id>` 命令
+
+CLI 端（impl 子命令组，约第 333~410 行）新增 `@impl_group.command("inherit")`，单参数 `prd_chunk_id`。
+
+`ImplManager.inherit(prd_chunk_id)` 实现：
+1. 验证 PRD chunk 存在（version chunks-index 或 baseline 任一即可）；不存在 → `PRD_NOT_FOUND`
+2. 查 specgraph baseline 中所有 `@ref:...#prd_chunk_id rel:implements` 的 impl chunk id 列表 + 它们各自的 baseline file
+3. 对每个 baseline impl chunk：
+   - 用 `parse_file(baseline_path)` 拿原 chunk 对象（含完整 content + @ref + @summary + @extract）
+   - 把 chunk 原样追加到 `versions/{vX.Y}/{baseline-impl-file}.md`（沿用 baseline 文件名；与现有 `impl create` 写盘逻辑一致——`existing.rstrip() + "\n\n" + chunk.raw + "\n"`）
+   - 调 `versions.add_chunk(version, chunk=chunk, action="add", source_req=None)` 注册到 chunks-index
+4. 返回 `{prd_chunk_id, inherited: [impl-id, ...], skipped: [...], file_writes: [path, ...]}`
+
+幂等性：若版本工作区已含同 id 的 impl chunk → 跳过该 id（不重复注入），返回值标注 `skipped: [...]`。
+
+#### 4. `ait/chunk_parser.py` — 识别 `<!-- @prd-no-impl -->` 标记
+
+新增正则 `NO_IMPL_PATTERN = re.compile(r"^<!--\s*@prd-no-impl\s*-->\s*$")`，在 `Chunk` 类加 `no_impl: bool = False` 字段；解析循环里命中即 `chunk.no_impl = True`，注释行从 content 中剔除（与 `@summary` 处理对称，保 chunk_hash 稳定）。
+
+#### 5. `ait/version_manager.py` confirm 阶段 + reindex 后置自检
+
+merge 主流程末尾（紧邻第 561 行 `self.indexes.rebuild_baseline()` 之后）追加 specgraph orphan 检查：
+
+加载新 specgraph，对所有 impl spec 的出边（`rel:implements`）检查 dst 是否在 specgraph.specs 内；发现 orphan 时：
+- 收集 `[(impl_id, missing_prd_id), ...]`
+- 抛 `VersionManagerError("orphan impl @refs after merge: ...")` 并触发 confirm 整体回滚（confirm 已有 snapshot 机制）
+
+#### 6. 不得改动
+
+- merge_engine.py（合成 ops 用现有 add/delete 语义足够）
+- specgraph.implements_of（已有方法直接复用）
+- task_manager 任何代码（task 是 impl 之下的执行单元，不在本契约范围）
+
+### 单元测试
+
+- `tests/test_version_confirm_atomic.py::test_modify_prd_replaces_impl_set` — baseline 有 `prd-A` + 2 个 impl 指向它；版本工作区 modify `prd-A` 并提供 1 个新 impl；confirm 后 baseline 该 PRD 下 impl 集合 = 新 1 个，旧 2 个被删除。
+- `tests/test_version_confirm_atomic.py::test_modify_prd_keeps_impl_when_inherited` — 同上但版本提供的 1 个新 impl 是 baseline 已有 impl 之一（`ait impl inherit` 后又 commit）→ confirm 后该 impl 保留、其他被删。
+- `tests/test_version_confirm_atomic.py::test_delete_prd_removes_all_impls` — 版本 delete `prd-A`，confirm 后 baseline 中所有曾 @ref 指向 prd-A 的 impl 全部消失。
+- `tests/test_version_confirm_atomic.py::test_no_impl_marker_skips_coverage` — PRD chunk 含 `<!-- @prd-no-impl -->` → 版本工作区无 impl 也允许 confirm。
+- `tests/test_impl_commit_coverage.py::test_block_when_prd_uncovered` — 版本 add `prd-A` 但无 impl @ref → impl commit 任意 chunk 时报 `IMPL_COVERAGE_INCOMPLETE`，错误体列出 prd-A。
+- `tests/test_impl_commit_coverage.py::test_block_delete_with_orphan_impl` — 版本 delete `prd-A` 但工作区仍有 `@ref:...#prd-A` → `IMPL_ON_DELETED_PRD`。
+- `tests/test_impl_commit_coverage.py::test_pending_impl_counted` — 提交"最后一个补齐覆盖"的 impl chunk 时不应误报（pending 算入）。
+- `tests/test_impl_inherit.py::test_inherit_clones_baseline_impls` — `ait impl inherit prd-A` 把 baseline 下 2 个 impl 原样落入版本工作区、注册到 chunks-index、@ref 指向不变。
+- `tests/test_impl_inherit.py::test_inherit_idempotent` — 已存在的 impl id 跳过、返回 skipped 列表。
+- `tests/test_chunk_parser_no_impl.py::test_marker_recognized` — 含标记的 chunk.no_impl == True，content 不含该注释行。
+- `tests/test_specgraph_orphan_guard.py::test_orphan_blocks_confirm` — 人为构造 orphan（impl @ref 指向已删除 PRD），confirm 报错回滚。

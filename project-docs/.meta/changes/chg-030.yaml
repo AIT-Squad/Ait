@@ -1,0 +1,42 @@
+id: chg-030
+version: v1.3
+type: ADD
+target: impl/skills#impl-skills-overview
+author: system
+date: '2026-05-26T09:27:05.888592+00:00'
+message: Implement v1.3 micro-skill overview
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-skills-overview -->
+
+
+  # Micro-skill 总览实现
+
+
+  ## 目标
+
+
+  为 `prd-skills-overview` 补齐实现层说明，明确 v1.3 后 AIT skill 的组织原则：主 skill 负责路由，子 skill 负责具体流程。
+
+
+  ## 设计原则
+
+
+  - 主入口轻量化：减少主 `SKILL.md` 的流程细节，降低上下文噪声。
+
+  - 子流程专业化：PRD、impl、progress、resume 各自独立维护。
+
+  - CLI 权威化：任何文档状态变更都通过 `bin/ait` 完成。
+
+  - 术语统一：全部使用 chunk，不恢复 block 术语。
+
+
+  ## 验收
+
+
+  - 主 `SKILL.md` 中保留 `micro-skill` 或等价概述。
+
+  - 子 skill 索引能够说明每个子 skill 的职责边界。
+
+
+  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'

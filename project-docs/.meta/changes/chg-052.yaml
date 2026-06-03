@@ -1,0 +1,20 @@
+id: chg-052
+version: v1.4
+type: ADD
+target: impl/global#impl-global-index
+author: system
+date: '2026-06-01T07:11:12.785634+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-global-index -->\n## 全局信息索引与 context 注入\n\n实现 global 的 static/dynamic 分类索引，以及在 context 组装时注入全局约束。\n\
+  \n### 索引扩展\n\nspecgraph 中 global chunk 节点的 `metadata` 增加 `category` 字段（不再使用 links-index）：\n\n<!-- @extract:dynamic/schema#global-index\
+  \ -->\n```yaml\n# .meta/specgraph.yaml 片段（baseline）\nspecs:\n  - uri: spec:global:baseline:global-tech-stack\n    type:\
+  \ global\n    chunk_id: global-tech-stack\n    metadata:\n      category: static          # static | dynamic\n      path:\
+  \ docs/global/tech-stack.md\n  - uri: spec:global:baseline:global-ddl-pet\n    type: global\n    chunk_id: global-ddl-pet\n\
+  \    metadata:\n      category: dynamic\n      path: docs/global/ddl.md\n```\n<!-- @extract-end -->\n\n### category 判定\n\
+  - `reindex` 扫 `docs/global/` 时，按 chunk id 前缀或文件名归类，写入 specgraph 节点 metadata：\n  - `overview` / `tech-stack` → static\n \
+  \ - `ddl` / `schema` / `api` → dynamic\n- static 人工维护可编辑；dynamic 标只读（应改 impl 再 version confirm 提取）\n\n### context 注入\n-\
+  \ `ait context <chunk>` 输出附加 `<global-context>` 区块，数据源为 specgraph\n- task execute 组装上下文时，按 task 的 `global_refs` 加载对应 global\
+  \ chunk\n- 同目录存放，不分子目录，靠 specgraph 节点的 category metadata 区分（非物理路径）\n\n<!-- @ref:prd/ait-redesign#prd-global rel:implements\
+  \ -->"

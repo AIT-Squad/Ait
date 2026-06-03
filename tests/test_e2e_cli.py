@@ -46,6 +46,18 @@ def _parse(out: str) -> dict:
     return json.loads(out.strip().splitlines()[-1])
 
 
+def _prd_chunk(chunk_id: str, heading: str, summary: str, body: str, *, no_impl: bool = False) -> str:
+    marker = "<!-- @prd-no-impl -->\n\n" if no_impl else ""
+    return (
+        f"<!-- @id:{chunk_id} -->\n## {heading}\n\n<!-- @summary: {summary} -->\n\n"
+        + marker
+        + f"### 概述\n\n{body}\n\n"
+        "### 业务规则\n\n规则\n\n"
+        "### 验收标准\n\n验收\n\n"
+        "### 边界与非目标\n\n边界\n"
+    )
+
+
 def test_end_to_end_happy_path(cli_project: Path):
     runner = CliRunner()
     root = cli_project
@@ -59,8 +71,9 @@ def test_end_to_end_happy_path(cli_project: Path):
 
     # 2. save the AI-discussed PRD draft
     draft = (
-        "<!-- @id:prd-recommend-overview -->\n## 概述\n\n基于借阅历史推荐图书。\n\n"
-        "<!-- @id:prd-recommend-rules -->\n## 业务规则\n\n不推荐已借阅过的图书。\n"
+        _prd_chunk("prd-recommend-overview", "概述", "推荐功能概述", "基于借阅历史推荐图书。")
+        + "\n"
+        + _prd_chunk("prd-recommend-rules", "业务规则", "推荐业务规则", "不推荐已借阅过的图书。", no_impl=True)
     )
     res = _run(
         runner,
@@ -72,8 +85,8 @@ def test_end_to_end_happy_path(cli_project: Path):
         draft,
     )
     parsed = _parse(res.output)["data"]
-    assert parsed["block_count"] == 2
-    assert "prd-recommend-overview" in parsed["block_ids"]
+    assert parsed["chunk_count"] == 2
+    assert "prd-recommend-overview" in parsed["chunk_ids"]
 
     # 3. confirm → write to version workspace
     res = _run(
@@ -88,7 +101,7 @@ def test_end_to_end_happy_path(cli_project: Path):
     parsed = _parse(res.output)["data"]
     assert parsed["version"] == version
     assert parsed["file"] == "prd/recommend"
-    assert sorted(parsed["block_ids"]) == ["prd-recommend-overview", "prd-recommend-rules"]
+    assert sorted(parsed["chunk_ids"]) == ["prd-recommend-overview", "prd-recommend-rules"]
     assert (root / "versions" / version / "prd" / "recommend.md").exists()
 
     # 4. /ait:prd commit
@@ -109,8 +122,8 @@ def test_end_to_end_happy_path(cli_project: Path):
 
     # 5. /ait:impl <prd-block-id> — generate impl
     impl_content = (
-        "<!-- @id:impl-api-recommend -->\n"
-        "## 推荐接口\n\nGET /api/v1/books/recommend\n"
+        "<!-- @id:impl-recommend-overview-api -->\n"
+        "## 推荐接口\n\n<!-- @summary: 推荐接口实现 -->\n\nGET /api/v1/books/recommend\n"
     )
     res = _run(
         runner,
@@ -124,8 +137,8 @@ def test_end_to_end_happy_path(cli_project: Path):
         req_id,
     )
     parsed = _parse(res.output)["data"]
-    assert parsed["block_ids"] == ["impl-api-recommend"]
-    impl_file_path = root / "versions" / version / "impl" / "api-contracts.md"
+    assert parsed["chunk_ids"] == ["impl-recommend-overview-api"]
+    impl_file_path = root / "versions" / version / "impl" / "recommend.md"
     assert impl_file_path.exists()
     text = impl_file_path.read_text(encoding="utf-8")
     assert "@ref:prd/recommend#prd-recommend-overview rel:implements" in text
@@ -136,7 +149,7 @@ def test_end_to_end_happy_path(cli_project: Path):
         root,
         "impl",
         "commit",
-        "impl-api-recommend",
+        "impl-recommend-overview-api",
         "-m",
         "推荐 API",
         "--req-id",
@@ -149,13 +162,15 @@ def test_end_to_end_happy_path(cli_project: Path):
     res = _run(runner, root, "version", "merge", version)
     parsed = _parse(res.output)["data"]
     assert parsed["status"] == "completed"
-    assert "prd-recommend-overview" in parsed["merged_blocks"]
-    assert "prd-recommend-rules" in parsed["merged_blocks"]
-    assert "impl-api-recommend" in parsed["merged_blocks"]
+    assert "prd-recommend-overview" in parsed["merged_chunks"]
+    assert "prd-recommend-rules" in parsed["merged_chunks"]
+    assert "impl-recommend-overview-api" in parsed["merged_chunks"]
 
     # Final assertions on baseline state
-    baseline_prd = root / "docs" / "prd" / "recommend.md"
-    baseline_impl = root / "docs" / "impl" / "api-contracts.md"
+    # PRD baseline 单文件化：v1.6 起所有 PRD chunks 被收敛到 docs/prd/global.md。
+    # 版本工作区仍可以使用 prd/recommend，但 baseline 只有 prd/global.md。
+    baseline_prd = root / "docs" / "prd" / "global.md"
+    baseline_impl = root / "docs" / "impl" / "recommend.md"
     assert baseline_prd.exists()
     assert baseline_impl.exists()
     prd_text = baseline_prd.read_text(encoding="utf-8")
@@ -163,12 +178,12 @@ def test_end_to_end_happy_path(cli_project: Path):
     assert "基于借阅历史推荐图书" in prd_text
     assert "GET /api/v1/books/recommend" in impl_text
 
-    # Snapshot exists
-    snapshot = root / ".meta" / "snapshots" / version / "docs" / "prd" / "recommend.md"
+    # Snapshot exists — 版本侧仍是 prd/recommend.md（快照是 docs/ 的拷贝）
+    snapshot = root / ".meta" / "snapshots" / version / "docs" / "prd" / "global.md"
     assert snapshot.exists()
 
     # Baseline index updated
-    baseline_index = root / ".meta" / "blocks-index.yaml"
+    baseline_index = root / ".meta" / "chunks-index.yaml"
     assert baseline_index.exists()
     assert "prd-recommend-overview" in baseline_index.read_text(encoding="utf-8")
 
@@ -195,12 +210,12 @@ def test_show_returns_block_after_merge(cli_project: Path):
     res = _run(runner, root, "prd", "show", "prd/testing")
     parsed = _parse(res.output)["data"]
     assert parsed["source"] == "version"
-    block_ids = [b["id"] for b in parsed["blocks"]]
-    assert "prd-test-overview" in block_ids
+    chunk_ids = [b["id"] for b in parsed["chunks"]]
+    assert "prd-test-overview" in chunk_ids
 
     res = _run(runner, root, "prd", "show", "prd/testing", "prd-test-overview")
     parsed = _parse(res.output)["data"]
-    assert parsed["block"]["heading"] == "概述"
+    assert parsed["chunk"]["heading"] == "概述"
 
 
 def test_context_command_returns_l1_only_when_no_links(cli_project: Path):
@@ -218,7 +233,7 @@ def test_context_command_returns_l1_only_when_no_links(cli_project: Path):
         "save-draft",
         req_id,
         "--content",
-        "<!-- @id:prd-ctxtest-overview -->\n## 概述\n\nbody",
+        _prd_chunk("prd-ctxtest-overview", "概述", "context 测试概述", "body"),
     )
     _run(runner, root, "prd", "confirm", req_id, "--file", "prd/ctxtest")
     _run(runner, root, "prd", "commit", "prd/ctxtest", "-m", "msg", "--req-id", req_id)

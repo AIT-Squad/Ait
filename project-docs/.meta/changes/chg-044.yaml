@@ -1,0 +1,48 @@
+id: chg-044
+version: v1.4
+type: ADD
+target: prd/ait-redesign#prd-version-merge
+author: system
+date: '2026-06-01T03:03:46.378933+00:00'
+message: AIT 重构设计 PRD 定稿（8块）
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-version-merge -->
+
+  ## 版本合并
+
+
+  ### 概述
+
+  `/ait version confirm` 是版本的终点：守卫检查 → 合并版本 prd/impl 到全局 → 从 impl 提取动态 global → 一次 git commit。采用两阶段+失败回退保证原子性。
+
+
+  ### 业务规则
+
+  - 前置守卫：本版本所有 task 必须为 done，且 git 工作区干净；否则拦截并提示
+
+  - 合并以 chunk 为维度：同名 chunk 用本版本内容替换，其他 chunk 不动（不覆盖无关全局信息）
+
+  - 从本版本 impl 提取 `@extract` 标记的 DDL/schema/api 片段，按 chunk 合并进动态 global
+
+  - 两阶段执行：①预检 → ②merge 写入 docs/ → ③git commit（message = state.md 的 title）
+
+  - 失败回退：若 git commit 失败，回退 merge（恢复 docs/ 到 merge 前），报错；要么全成要么全不动
+
+
+  ### 验收标准
+
+  - [ ] 有 task 非 done 时 version confirm 被拦截
+
+  - [ ] 合并按 chunk 替换，不影响无关全局 chunk
+
+  - [ ] 动态 global 由 impl 的 @extract 片段提取生成
+
+  - [ ] commit message 等于 title
+
+  - [ ] commit 失败时 docs/ 回退到合并前状态
+
+
+  ### 边界与非目标
+
+  - 不在 version confirm 之外提供合并入口'

@@ -1,0 +1,19 @@
+id: T-subskills-coverage-01
+title: 实现 impl-subskill-init-guide-rename
+source_chunk: prd-subskills-coverage
+impl_refs:
+- impl-subskill-init-guide-rename
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-subskill-init-guide-rename 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-init-guide/SKILL.md
+  - skill/ait/SKILL.md
+  - skill/ait/ait/root.py
+  bound_at: '2026-06-01T13:42:50.055069Z'

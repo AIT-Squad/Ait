@@ -6,7 +6,7 @@
 `src/ait/merge_engine.py` 实现块级合并算法：把版本工作区的增量块缝合回基线文件。
 
 <!-- @ref:prd/index-system#prd-index-baseline rel:implements -->
-<!-- @ref:prd/block-system#prd-block-parse-rule rel:implements -->
+<!-- @ref:prd/chunk-system#prd-chunk-parse-rule rel:implements -->
 
 被 `version_manager.merge` 调用。本模块本身**不做 I/O**，只做内存中的块列表合并，便于单元测试。
 
@@ -14,23 +14,23 @@
 ## 公开 API
 
 ```python
-from ait.block_parser import Block, ParsedFile
+from ait.chunk_parser import Chunk, ParsedFile
 
 @dataclass(frozen=True)
 class VersionBlockOp:
     """版本索引中一条对基线的操作"""
-    block_id: str
+    chunk_id: str
     action: str               # add / modify / delete
     overrides: str | None     # action in (modify, delete) 时指向基线块 id
     insert_after: str | None  # action=add 时的插入锚点；null=末尾
-    new_block: Block | None   # action in (add, modify) 时提供新内容；delete=None
+    new_block: Chunk | None   # action in (add, modify) 时提供新内容；delete=None
     base_hash: str | None     # action in (modify, delete) 时的基线块 hash 快照
 
 @dataclass(frozen=True)
 class MergedFile:
     file: str
     file_header: str
-    blocks: list[Block]       # 合并后块列表
+    chunks: list[Chunk]       # 合并后块列表
     new_content: str          # 序列化后的完整 markdown
 
 def merge_file(
@@ -44,7 +44,7 @@ def merge_new_file(
 ) -> MergedFile:
     """基线中不存在的新文件：所有 ops 必须 action=add。"""
 
-def serialize(file_header: str, blocks: list[Block]) -> str:
+def serialize(file_header: str, chunks: list[Chunk]) -> str:
     """序列化为 markdown 文本，块之间用一个空行分隔。"""
 ```
 
@@ -62,16 +62,16 @@ merge_file(base, ops):
        add_tail: [VersionBlockOp]  # insert_after=null
 
   2. result = []
-     for block in base.blocks:
-       if block.id in delete_set:
+     for chunk in base.chunks:
+       if chunk.id in delete_set:
          continue
-       elif block.id in modify_map:
-         result.append(modify_map[block.id].new_block)
+       elif chunk.id in modify_map:
+         result.append(modify_map[chunk.id].new_block)
        else:
-         result.append(block)
+         result.append(chunk)
 
-       # 在当前块之后插入所有以 block.id 为 insert_after 的 add
-       for op in add_after_map.get(block.id, []):
+       # 在当前块之后插入所有以 chunk.id 为 insert_after 的 add
+       for op in add_after_map.get(chunk.id, []):
          result.append(op.new_block)
 
   3. 追加 add_tail
@@ -84,7 +84,7 @@ merge_file(base, ops):
      → 用反向扫描找到第一个未删除的祖先块，把孤儿 op 接在其后；
      若找不到（已是首块）→ 接在 file_header 之后（result 头部）
 
-  5. 返回 MergedFile(file=base.file, file_header=base.file_header, blocks=result,
+  5. 返回 MergedFile(file=base.file, file_header=base.file_header, chunks=result,
                      new_content=serialize(base.file_header, result))
 ```
 
@@ -105,25 +105,25 @@ merge_file(base, ops):
 | modify 的 overrides 在基线找不到 | merge_engine 静默忽略（应由前置 validator 报错） |
 | add 的 insert_after 在基线找不到且非 null | 按"孤儿插入"规则处理（接在 header 之后） |
 | 同一 insert_after 多个 add | 按 ops 出现顺序插入 |
-| add 的 block_id 与基线已有冲突 | merge_engine 不检查（validator 应在 stage/commit 时报 E1） |
-| 全新文件（base.blocks=[]）传入 modify/delete | 报 ValueError（应调用 merge_new_file） |
+| add 的 chunk_id 与基线已有冲突 | merge_engine 不检查（validator 应在 stage/commit 时报 E1） |
+| 全新文件（base.chunks=[]）传入 modify/delete | 报 ValueError（应调用 merge_new_file） |
 
 <!-- @id:impl-merge-engine-serialize -->
 ## 序列化规则
 
 ```python
-def serialize(file_header, blocks):
+def serialize(file_header, chunks):
   parts = []
   if file_header.strip():
     parts.append(file_header.rstrip())
-  for block in blocks:
-    parts.append(block.content.strip())
+  for chunk in chunks:
+    parts.append(chunk.content.strip())
   return "\n\n".join(parts) + "\n"
 ```
 
 - 块之间用恰好一个空行分隔
 - 文件末尾保证一个换行符
-- 不重排块内部的空行（依赖 block.content 的原貌）
+- 不重排块内部的空行（依赖 chunk.content 的原貌）
 
 <!-- @id:impl-merge-engine-tests -->
 ## 测试要点
@@ -134,4 +134,4 @@ def serialize(file_header, blocks):
 - 删除-插入孤儿：delete 块 A 同时 add 一个 insert_after=A 的块
 - 全新文件（merge_new_file）
 - 序列化空文件头时不留多余空行
-- 用 project-demo/docs/prd/book-management.md 做 base，构造一组 ops，断言合并结果可被 block_parser 再次解析出预期数量的块（自反性）
+- 用 project-demo/docs/prd/book-management.md 做 base，构造一组 ops，断言合并结果可被 chunk_parser 再次解析出预期数量的块（自反性）

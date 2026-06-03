@@ -89,4 +89,7 @@ ensure_venv() {
 
 ensure_venv
 VPY="$(venv_python)"
+# Pass the resolved skill installation path to the Python process so the CLI
+# can trust os.environ["AIT_SKILL_DIR"] without re-deriving it from cwd/argv[0].
+export AIT_SKILL_DIR="$SKILL_DIR"
 exec "$VPY" -m ait.cli "$@"

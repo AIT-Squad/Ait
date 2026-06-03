@@ -1,0 +1,21 @@
+id: T-subskills-coverage-04
+title: 实现 impl-subskill-trigger-audit
+source_chunk: prd-subskills-coverage
+impl_refs:
+- impl-subskill-trigger-audit
+global_refs:
+- global-tech-stack
+depends_on:
+- T-subskills-coverage-03
+order_hint: 4
+steps:
+- 按 impl-subskill-trigger-audit 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/scripts/verify-subskill-triggers.sh
+  - skill/ait/scripts/verify-all.sh
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - skill/ait/sub-skills/ait-impl-discuss/SKILL.md
+  bound_at: '2026-06-01T13:42:51.345098Z'

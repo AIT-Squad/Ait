@@ -1,28 +1,13 @@
-# AIT 项目自身文档系统配置
-# 项目 dogfooding：用 AIT 工具的设计来管理 AIT 工具自己的文档
-
-# 锚点命名规范
-# @id 格式：{type}-{domain}-{name}
-# type 前缀：prd / impl
-# 例：prd-block-format / impl-block-parser-api
-id_prefix_separator: "-"
-
-# 版本号规则
-version_format: "{major}.{minor}"
-
-# 合并后自动生成快照
+id_prefix_separator: '-'
+version_format: '{major}.{minor}'
 auto_snapshot_on_merge: true
-
-# 自定义关系类型
-# 内置：implements / modifies / see-also
-# 项目扩展：
-#   - refines：细化关系（impl 子块细化父块）
-#   - depends-on：模块依赖（impl 模块间）
 custom_relations:
-  - refines
-  - depends-on
-
-# 文档类型前缀映射（用于 @id 校验）
+- refines
+- depends-on
 id_prefixes:
-  prd: "产品需求与设计意图"
-  impl: "模块实现规范"
+  prd: 产品需求与设计意图
+  impl: 模块实现规范
+initialized: true
+skill_dir: /Users/jenningwang/Documents/project/ait/skill/ait
+cli_path: /Users/jenningwang/Documents/project/ait/skill/ait/bin/ait
+wrapper_path: project-docs/.ait/ait-cli

@@ -1,0 +1,54 @@
+id: chg-026
+version: v1.3
+type: ADD
+target: impl/skills#impl-skills-router
+author: system
+date: '2026-05-26T09:27:05.183390+00:00'
+message: Implement v1.3 skill router
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-skills-router -->
+
+
+  # 主 SKILL.md Router 改造实现
+
+
+  ## 目标
+
+
+  将主 `skill/ait/SKILL.md` 从完整流程文档改造成 router，只保留全局规则、命令速查、项目布局、子 skill 索引和错误处理边界。
+
+
+  ## 保留内容
+
+
+  - AIT 项目布局与 `project-docs/` 工作根约束。
+
+  - `bin/ait` 命令速查与 JSON 输出契约。
+
+  - Common Pitfalls 与 MVP Scope Boundaries。
+
+  - `Sub-skills 索引`：列出 `ait-discuss`、`ait-impl-discuss`、`ait-progress`、`ait-resume` 的 Trigger 与 Purpose。
+
+
+  ## 下沉内容
+
+
+  - PRD Clarify → Design → Generate 流程下沉到 `ait-discuss`。
+
+  - Impl context → generate → create 流程下沉到 `ait-impl-discuss`。
+
+  - 三态进度展示下沉到 `ait-progress`。
+
+  - 错误恢复建议下沉到 `ait-resume`。
+
+
+  ## 验收
+
+
+  - `wc -l skill/ait/SKILL.md` 小于 120 行。
+
+  - `grep "Sub-skills 索引" skill/ait/SKILL.md` 有结果。
+
+
+  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'

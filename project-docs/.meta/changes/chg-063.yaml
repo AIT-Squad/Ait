@@ -1,0 +1,61 @@
+id: chg-063
+version: v1.5
+type: ADD
+target: prd/v1-5-roadmap#prd-task-relocation
+author: system
+date: '2026-06-01T12:52:13.736404+00:00'
+message: 'v1.5 roadmap: task relocation, init incremental, CLI path resolution, sub-skills coverage'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-task-relocation -->
+
+  ## task YAML 目录从 .meta 迁到版本工作区
+
+
+  ### 概述
+
+  当前 task YAML 落在 `.meta/tasks/{vX.Y}/T-*.yaml`，把"用户/AI 编辑读取的资产"放进了"系统索引账本"目录，与 `versions/{vX.Y}/` 已承载 `prd/`、`impl/`、`state.md`
+  的版本工作区心智不一致。本期把 task YAML 物理位置迁到 `versions/{vX.Y}/tasks/`，让一个版本的所有用户态资产同处一个目录。
+
+
+  ### 业务规则
+
+  - task YAML 物理路径变更：`project-docs/versions/{vX.Y}/tasks/T-{源chunk}-NN.yaml`
+
+  - 所有 task 子命令读写新路径：`task create` / `task execute` / `task complete` / `task fail` / `task list` / `task show`
+
+  - `version reset <vX.Y> --confirm` 在物理删除版本时一并清除 `versions/{vX.Y}/tasks/`
+
+  - `version confirm <vX.Y>` 的前置守卫"task 必须全 done"按新路径扫描
+
+  - `.meta/` 不再保留 task YAML 单文件；如需要状态快照，由 `chunks-index-{vX.Y}.yaml` 增加 `tasks_summary` 字段在 reindex 时同步生成（counts: created/executing/done/failed）
+
+  - task-yaml schema chunk（`global/schema.md`）的路径示例同步更新
+
+  - 历史 `.meta/tasks/` 不做迁移：项目本身未真实使用过该路径，零数据；CLI 在启动时若发现旧路径存在，输出一次性告警并建议手动删除
+
+
+  ### 验收标准
+
+  - [ ] `task create` 后，新文件出现在 `versions/{vX.Y}/tasks/T-*.yaml`，旧路径无新增
+
+  - [ ] `task list <vX.Y>` 能枚举新路径下所有 task 且数量正确
+
+  - [ ] `task execute` / `complete` / `fail` 全链路读写新路径，状态机闭环
+
+  - [ ] `version reset` 后 `versions/{vX.Y}/tasks/` 整目录被删除
+
+  - [ ] `version confirm` 在 task 未 done 时仍能正确拦截（错误码 `TASK_NOT_DONE` 不变）
+
+  - [ ] `chunks-index-{vX.Y}.yaml` 在 reindex 后含 `tasks_summary` 字段，计数与磁盘文件一致
+
+  - [ ] 主 SKILL.md 与 `global/schema.md` 中所有 task 路径引用同步更新
+
+
+  ### 边界与非目标
+
+  - 不提供 `.meta/tasks/` → `versions/<v>/tasks/` 的自动迁移脚本（零数据）
+
+  - 不改 task YAML 的字段结构，仅改物理位置
+
+  - 不改 task 命名规则 `T-{源chunk}-NN.yaml`'

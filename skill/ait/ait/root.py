@@ -86,6 +86,8 @@ def resolve_project_root() -> ProjectRoot:
 
     candidate = cwd / DOCS_DIR_NAME
 
+    # AI_HINT: if project-docs exists, explain that version management is already enabled.
+    # AI_HINT: if this is an existing project without project-docs, invoke ait-init-guide to guide adoption.
     if not candidate.is_dir():
         raise NotAtProjectRoot(cwd=str(cwd), expected=str(candidate))
 

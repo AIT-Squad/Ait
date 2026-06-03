@@ -8,7 +8,7 @@
 <!-- @ref:prd/index-system#prd-index-version rel:implements -->
 <!-- @ref:prd/overview#prd-overview-scope rel:implements -->
 
-依赖：`index_manager` / `block_parser` / `hash_utils` / `validator` / `merge_engine`。
+依赖：`index_manager` / `chunk_parser` / `hash_utils` / `validator` / `merge_engine`。
 
 <!-- @id:impl-version-manager-state-model -->
 ## 三阶段状态模型
@@ -43,9 +43,9 @@ class VersionManager:
         """返回未合并的最新版本，无则 None。新需求默认进此版本。"""
 
     # ── 三阶段 ──
-    def stage(self, version: str, block_ids: list[str] | None = None) -> StageResult:
-        """block_ids=None 表示 --all；只处理 state=working 的记录。"""
-    def unstage(self, version: str, block_ids: list[str]) -> UnstageResult: ...
+    def stage(self, version: str, chunk_ids: list[str] | None = None) -> StageResult:
+        """chunk_ids=None 表示 --all；只处理 state=working 的记录。"""
+    def unstage(self, version: str, chunk_ids: list[str]) -> UnstageResult: ...
     def commit(self, version: str, message: str, req_id: str | None = None) -> CommitResult:
         """提交所有 staged 块。空 commit → 抛 E1。生成 chg-{id}.yaml。"""
     def status(self, version: str) -> StatusReport: ...
@@ -60,7 +60,7 @@ class VersionManager:
 
 ```
 stage(v, ids):
-  1. 加载版本索引 blocks-index-{v}.yaml
+  1. 加载版本索引 chunks-index-{v}.yaml
   2. 若 ids=None：选所有 state=working 的记录
      否则：按 ids 过滤；不存在的 id 报 E1
   3. 对每条记录：
@@ -120,7 +120,7 @@ merge(v, conflict_policy):
 <!-- @id:impl-version-manager-amends -->
 ## 修订已 committed 块
 
-<!-- @ref:prd/block-system#prd-block-id-naming rel:implements -->
+<!-- @ref:prd/chunk-system#prd-chunk-id-naming rel:implements -->
 
 ```
 当用户对已 committed 的块再次修改时：
@@ -129,7 +129,7 @@ merge(v, conflict_policy):
        id 相同
        action=modify
        state=working
-       amends=c{N}/{block_id}  指向被修订的 commit
+       amends=c{N}/{chunk_id}  指向被修订的 commit
        base_hash=hash(已 committed 版本的内容)
   3. 版本文件中替换该块内容（保留 @id）
   4. 查询规则：同 id 多记录时取最新 committed；含 working amends 时按 stage 显示给用户

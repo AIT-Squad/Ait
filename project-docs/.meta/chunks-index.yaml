@@ -1,0 +1,684 @@
+version: 1
+scope: global
+updated: '2026-06-03T07:49:22.425652+00:00'
+chunks:
+- id: global-schema
+  file: global/schema
+  heading: 数据结构 Schema
+  level: 2
+  summary: null
+- id: version-state
+  file: global/schema
+  heading: version-state
+  level: 2
+  summary: null
+- id: specgraph-store
+  file: global/schema
+  heading: specgraph-store
+  level: 2
+  summary: null
+- id: schema-prd-sections
+  file: global/schema
+  heading: schema-prd-sections
+  level: 2
+  summary: null
+- id: global-index
+  file: global/schema
+  heading: global-index
+  level: 2
+  summary: null
+- id: extract-block
+  file: global/schema
+  heading: extract-block
+  level: 2
+  summary: null
+- id: task-yaml
+  file: global/schema
+  heading: task-yaml
+  level: 2
+  summary: null
+- id: impl-block-parser-overview
+  file: impl/block-parser
+  heading: 概述
+  level: 2
+  summary: null
+- id: impl-block-parser-api
+  file: impl/block-parser
+  heading: 公开 API
+  level: 2
+  summary: null
+- id: impl-block-parser-algorithm
+  file: impl/block-parser
+  heading: 算法
+  level: 2
+  summary: null
+- id: impl-block-parser-edge-cases
+  file: impl/block-parser
+  heading: 边界场景
+  level: 2
+  summary: null
+- id: impl-block-parser-tests
+  file: impl/block-parser
+  heading: 测试要点
+  level: 2
+  summary: null
+- id: impl-core-model-state
+  file: impl/core
+  heading: 核心模型：版本与锁定状态机数据结构
+  level: 2
+  summary: null
+- id: impl-core-model-reset
+  file: impl/core
+  heading: 核心模型：version reset 清空逻辑
+  level: 2
+  summary: null
+- id: impl-core-specgraph-store
+  file: impl/core
+  heading: SpecGraph 分文件存储与环检测
+  level: 2
+  summary: null
+- id: impl-data-chunk-rename
+  file: impl/data-model
+  heading: Chunk 数据模型重命名（Schema + 索引文件 + 一次性迁移）
+  level: 2
+  summary: null
+- id: impl-formats-parser
+  file: impl/formats
+  heading: 格式解析扩展（四段 PRD + chunk 解析）
+  level: 2
+  summary: null
+- id: impl-formats-naming
+  file: impl/formats
+  heading: 派生式命名校验
+  level: 2
+  summary: null
+- id: impl-global-index
+  file: impl/global
+  heading: 全局信息索引与 context 注入
+  level: 2
+  summary: null
+- id: impl-impl-stage-cli
+  file: impl/impl
+  heading: impl 阶段命令实现
+  level: 2
+  summary: null
+- id: impl-impl-stage-extract
+  file: impl/impl
+  heading: '@extract 提取标记解析器'
+  level: 2
+  summary: null
+- id: impl-init-state-detect
+  file: impl/init-incremental
+  heading: init 三态识别与 --check 子命令
+  level: 2
+  summary: null
+- id: impl-init-guide-skill
+  file: impl/init-incremental
+  heading: ait-init-guide 子 skill 升级（差异补全交互）
+  level: 2
+  summary: null
+- id: impl-init-flow
+  file: impl/init
+  heading: 初始化流程与 docs/ 骨架生成
+  level: 2
+  summary: null
+- id: impl-merge-engine-overview
+  file: impl/merge-engine
+  heading: 概述
+  level: 2
+  summary: null
+- id: impl-merge-engine-api
+  file: impl/merge-engine
+  heading: 公开 API
+  level: 2
+  summary: null
+- id: impl-merge-engine-algorithm
+  file: impl/merge-engine
+  heading: 合并算法
+  level: 2
+  summary: null
+- id: impl-merge-engine-conflict-detection
+  file: impl/merge-engine
+  heading: 冲突检测（不在本模块）
+  level: 2
+  summary: null
+- id: impl-merge-engine-edge-cases
+  file: impl/merge-engine
+  heading: 边界场景
+  level: 2
+  summary: null
+- id: impl-merge-engine-serialize
+  file: impl/merge-engine
+  heading: 序列化规则
+  level: 2
+  summary: null
+- id: impl-merge-engine-tests
+  file: impl/merge-engine
+  heading: 测试要点
+  level: 2
+  summary: null
+- id: impl-prd-chunk-atomic-impl-merge-engine
+  file: impl/prd-chunk-atomic-impl-merge
+  heading: PRD chunk 原子规则：confirm 整组替换 impl + commit 覆盖率守卫 + impl inherit
+  level: 2
+  summary: null
+- id: impl-prd-chunk-summary-field
+  file: impl/prd-chunk-summary-index
+  heading: chunks-index 增加 summary 字段 + @summary 注释解析
+  level: 2
+  summary: null
+- id: impl-prd-format-enforcement-gate
+  file: impl/prd-format-enforcement
+  heading: PRD/impl 格式硬约束 + ait lint 命令 + 派生命名校验
+  level: 2
+  summary: null
+- id: impl-prd-global-migrate-script
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — 一次性迁移脚本
+  level: 2
+  summary: null
+- id: impl-prd-global-merge-target-rewrite
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — version confirm 路由收敛
+  level: 2
+  summary: null
+- id: impl-prd-global-parser-compat-check
+  file: impl/prd-global-single-file
+  heading: Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
+  level: 2
+  summary: null
+- id: impl-prd-recursive-modify-discovery-pipeline
+  file: impl/prd-recursive-modify-discovery
+  heading: prd create 递归扫描 baseline + skill 侧 candidates 决议
+  level: 2
+  summary: null
+- id: impl-prd-stage-cli
+  file: impl/prd
+  heading: PRD 阶段命令实现
+  level: 2
+  summary: null
+- id: impl-prd-stage-title
+  file: impl/prd
+  heading: title 抽取与 state.md 写入
+  level: 2
+  summary: null
+- id: impl-project-docs-only-root-resolver
+  file: impl/project-docs-only
+  heading: 项目根解析器（root-resolver）
+  level: 2
+  summary: null
+- id: impl-v13-release-plan
+  file: impl/release
+  heading: v1.3 实现总览
+  level: 1
+  summary: null
+- id: impl-workflow-search-cli
+  file: impl/search
+  heading: Search CLI 实现
+  level: 1
+  summary: null
+- id: impl-workflow-focus-deps-impact
+  file: impl/search
+  heading: 聚焦读取、依赖查询与影响面分析实现
+  level: 1
+  summary: null
+- id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  heading: init 阶段注入 skill 路径并生成项目本地 wrapper
+  level: 2
+  summary: null
+- id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  heading: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  level: 2
+  summary: null
+- id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  heading: wrapper 自定位回归测试
+  level: 2
+  summary: null
+- id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  heading: ENOENT_BIN_AIT 兜底文档
+  level: 2
+  summary: null
+- id: impl-skills-layout
+  file: impl/skills
+  heading: Skill 子目录布局实现
+  level: 1
+  summary: null
+- id: impl-skills-router
+  file: impl/skills
+  heading: 主 SKILL.md Router 改造实现
+  level: 1
+  summary: null
+- id: impl-skills-format-adapt
+  file: impl/skills
+  heading: 子 Skill 格式适配实现
+  level: 1
+  summary: null
+- id: impl-skills-contract
+  file: impl/skills
+  heading: 子 Skill 调用与写入契约实现
+  level: 1
+  summary: null
+- id: impl-skills-mapping
+  file: impl/skills
+  heading: 四个子 Skill 行为映射实现
+  level: 1
+  summary: null
+- id: impl-skills-overview
+  file: impl/skills
+  heading: Micro-skill 总览实现
+  level: 1
+  summary: null
+- id: impl-data-specgraph-model
+  file: impl/specgraph
+  heading: SpecGraph 数据模型实现
+  level: 1
+  summary: null
+- id: impl-workflow-specgraph-cli
+  file: impl/specgraph
+  heading: SpecGraph CLI 与自动维护实现
+  level: 1
+  summary: null
+- id: impl-workflow-state-skill
+  file: impl/state
+  heading: ait-state Skill 与 state.md 实现
+  level: 1
+  summary: null
+- id: impl-subskill-task-execute-add
+  file: impl/subskills-coverage
+  heading: 新增 ait-task-execute 子 skill
+  level: 2
+  summary: null
+- id: impl-subskill-state-merge
+  file: impl/subskills-coverage
+  heading: ait-progress 合入 ait-state
+  level: 2
+  summary: null
+- id: impl-subskill-init-guide-rename
+  file: impl/subskills-coverage
+  heading: ait-init-check → ait-init-guide 目录搬迁
+  level: 2
+  summary: null
+- id: impl-subskill-trigger-audit
+  file: impl/subskills-coverage
+  heading: sub-skill 触发关键词去重 + 四段完整性审计
+  level: 2
+  summary: null
+- id: impl-task-yaml-path
+  file: impl/task-relocation
+  heading: TaskManager 物理路径迁移到版本工作区
+  level: 2
+  summary: null
+- id: impl-task-summary-index
+  file: impl/task-relocation
+  heading: chunks-index-{vX.Y}.yaml 注入 tasks_summary 字段
+  level: 2
+  summary: null
+- id: impl-task-legacy-warn
+  file: impl/task-relocation
+  heading: 旧 .meta/tasks 路径检测告警
+  level: 2
+  summary: null
+- id: impl-task-stage-build
+  file: impl/task
+  heading: task 拆分（task create）
+  level: 2
+  summary: null
+- id: impl-task-stage-schema
+  file: impl/task
+  heading: task YAML Schema
+  level: 2
+  summary: null
+- id: impl-task-stage-execute
+  file: impl/task
+  heading: task 执行与自动收口（task execute）
+  level: 2
+  summary: null
+- id: impl-version-manager-overview
+  file: impl/version-manager
+  heading: 概述
+  level: 2
+  summary: null
+- id: impl-version-manager-state-model
+  file: impl/version-manager
+  heading: 三阶段状态模型
+  level: 2
+  summary: null
+- id: impl-version-manager-api
+  file: impl/version-manager
+  heading: 公开 API
+  level: 2
+  summary: null
+- id: impl-version-manager-stage-commit
+  file: impl/version-manager
+  heading: stage / commit 流程
+  level: 2
+  summary: null
+- id: impl-version-manager-merge
+  file: impl/version-manager
+  heading: merge 流程
+  level: 2
+  summary: null
+- id: impl-version-manager-amends
+  file: impl/version-manager
+  heading: 修订已 committed 块
+  level: 2
+  summary: null
+- id: impl-version-manager-tests
+  file: impl/version-manager
+  heading: 测试要点
+  level: 2
+  summary: null
+- id: impl-version-merge-engine
+  file: impl/version
+  heading: 版本合并引擎（两阶段 + 失败回退）
+  level: 2
+  summary: null
+- id: impl-version-merge-extract
+  file: impl/version
+  heading: impl → 动态 global 提取
+  level: 2
+  summary: null
+- id: impl-workflow-chunk-rename
+  file: impl/workflow
+  heading: Chunk 代码符号与文档术语重命名工作流
+  level: 2
+  summary: null
+- id: impl-workflow-skill-migration
+  file: impl/workflow
+  heading: 参考项目 Skill 功能迁移实现
+  level: 1
+  summary: null
+- id: impl-workflow-init-upgrade
+  file: impl/workflow
+  heading: Init 流程智能识别实现
+  level: 1
+  summary: null
+- id: prd-sections
+  file: prd/global
+  heading: prd-sections
+  level: 2
+  summary: null
+- id: prd-core-model
+  file: prd/global
+  heading: 核心模型与版本原子性
+  level: 2
+  summary: null
+- id: prd-init
+  file: prd/global
+  heading: 项目初始化
+  level: 2
+  summary: null
+- id: prd-prd-stage
+  file: prd/global
+  heading: PRD 阶段
+  level: 2
+  summary: null
+- id: prd-impl-stage
+  file: prd/global
+  heading: impl 阶段
+  level: 2
+  summary: null
+- id: prd-task-stage
+  file: prd/global
+  heading: task 阶段
+  level: 2
+  summary: null
+- id: prd-version-merge
+  file: prd/global
+  heading: 版本合并
+  level: 2
+  summary: null
+- id: prd-global
+  file: prd/global
+  heading: 全局信息层
+  level: 2
+  summary: null
+- id: prd-formats
+  file: prd/global
+  heading: 格式规范
+  level: 2
+  summary: null
+- id: prd-backlog-v12-legacy
+  file: prd/global
+  heading: v1.2 遗留 PRD Chunk 实现清单
+  level: 1
+  summary: null
+- id: prd-block-format
+  file: prd/global
+  heading: Block 标注格式
+  level: 2
+  summary: null
+- id: prd-block-parse-rule
+  file: prd/global
+  heading: 解析规则
+  level: 2
+  summary: null
+- id: prd-block-id-naming
+  file: prd/global
+  heading: ID 命名规范
+  level: 2
+  summary: null
+- id: prd-block-relations
+  file: prd/global
+  heading: Block 关联（@ref）
+  level: 2
+  summary: null
+- id: prd-block-relation-types
+  file: prd/global
+  heading: 关系类型
+  level: 2
+  summary: null
+- id: prd-block-validation
+  file: prd/global
+  heading: 块校验规则
+  level: 2
+  summary: null
+- id: prd-index-baseline
+  file: prd/global
+  heading: 基线索引
+  level: 2
+  summary: null
+- id: prd-index-version
+  file: prd/global
+  heading: 版本增量索引
+  level: 2
+  summary: null
+- id: prd-index-record-fields
+  file: prd/global
+  heading: 索引记录字段
+  level: 2
+  summary: null
+- id: prd-index-isolation
+  file: prd/global
+  heading: 分层隔离
+  level: 2
+  summary: null
+- id: prd-index-links
+  file: prd/global
+  heading: 引用索引
+  level: 2
+  summary: null
+- id: prd-index-atomicity
+  file: prd/global
+  heading: 原子性
+  level: 2
+  summary: null
+- id: prd-scope-non-goals
+  file: prd/global
+  heading: v1.3 非目标（Non-Goals）
+  level: 1
+  summary: null
+- id: prd-overview-mission
+  file: prd/global
+  heading: 使命
+  level: 2
+  summary: null
+- id: prd-overview-target-users
+  file: prd/global
+  heading: 目标用户
+  level: 2
+  summary: null
+- id: prd-overview-scope
+  file: prd/global
+  heading: MVP 范围
+  level: 2
+  summary: null
+- id: prd-overview-roadmap
+  file: prd/global
+  heading: 路线图
+  level: 2
+  summary: null
+- id: prd-overview-terminology
+  file: prd/global
+  heading: 核心术语
+  level: 2
+  summary: null
+- id: prd-overview-design-principles
+  file: prd/global
+  heading: 设计原则
+  level: 2
+  summary: null
+- id: prd-release-v13-overview
+  file: prd/global
+  heading: v1.3 版本概述
+  level: 1
+  summary: null
+- id: prd-project-docs-only-overview
+  file: prd/global
+  heading: 概述
+  level: 2
+  summary: null
+- id: prd-project-docs-only-rules
+  file: prd/global
+  heading: 业务规则
+  level: 2
+  summary: null
+- id: prd-project-docs-only-detection
+  file: prd/global
+  heading: 目录定位
+  level: 2
+  summary: null
+- id: prd-project-docs-only-errors
+  file: prd/global
+  heading: 错误场景
+  level: 2
+  summary: null
+- id: prd-project-docs-only-non-goals
+  file: prd/global
+  heading: 非目标
+  level: 2
+  summary: null
+- id: prd-skills-overview
+  file: prd/global
+  heading: 概述
+  level: 1
+  summary: null
+- id: prd-skills-rename-block-to-chunk
+  file: prd/global
+  heading: Block 到 Chunk 的术语统一重构
+  level: 1
+  summary: null
+- id: prd-skills-layout
+  file: prd/global
+  heading: 嵌套目录布局
+  level: 1
+  summary: null
+- id: prd-skills-format-adapt
+  file: prd/global
+  heading: 子 Skill 格式适配规范
+  level: 1
+  summary: null
+- id: prd-skills-mapping
+  file: prd/global
+  heading: 4 个 Skill 的迁移映射表
+  level: 1
+  summary: null
+- id: prd-skills-router
+  file: prd/global
+  heading: 主 SKILL.md Router 改造
+  level: 1
+  summary: null
+- id: prd-skills-contract
+  file: prd/global
+  heading: 子 Skill 写入与调用契约
+  level: 1
+  summary: null
+- id: prd-skills-non-goals
+  file: prd/global
+  heading: 非目标（本期不做）
+  level: 1
+  summary: null
+- id: prd-skill-state
+  file: prd/global
+  heading: 目标3：ait-state Skill（版本进度面板）
+  level: 1
+  summary: null
+- id: prd-skill-migration
+  file: prd/global
+  heading: 需求1：参考项目 skill 功能迁移
+  level: 1
+  summary: null
+- id: prd-init-upgrade
+  file: prd/global
+  heading: 需求2：init 流程智能识别旧项目
+  level: 1
+  summary: null
+- id: prd-specgraph-index
+  file: prd/global
+  heading: 需求3：links-index.yaml 重构为 SpecGraph
+  level: 1
+  summary: null
+- id: prd-search-cli
+  file: prd/global
+  heading: 需求4：检索/聚焦读取命令行迁移
+  level: 1
+  summary: null
+- id: prd-task-relocation
+  file: prd/global
+  heading: task YAML 目录从 .meta 迁到版本工作区
+  level: 2
+  summary: null
+- id: prd-init-incremental
+  file: prd/global
+  heading: init 改为幂等的基线补全器
+  level: 2
+  summary: null
+- id: prd-skill-cli-resolution
+  file: prd/global
+  heading: bin/ait 路径解析与 SKILL 文档约定修订
+  level: 2
+  summary: null
+- id: prd-subskills-coverage
+  file: prd/global
+  heading: sub-skills 治理：补齐 task 阶段、合并 progress/state、init-check 重定位
+  level: 2
+  summary: null
+- id: prd-prd-global-single-file
+  file: prd/global
+  heading: 'prd-global-single-file: Baseline PRD 单文件化'
+  level: 2
+  summary: null
+- id: prd-prd-chunk-summary-index
+  file: prd/global
+  heading: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
+  level: 2
+  summary: null
+- id: prd-prd-recursive-modify-discovery
+  file: prd/global
+  heading: 'prd-recursive-modify-discovery: prd create 时递归识别 modify 候选'
+  level: 2
+  summary: null
+- id: prd-prd-chunk-atomic-impl-merge
+  file: prd/global
+  heading: 'prd-chunk-atomic-impl-merge: PRD chunk 原子规则与 impl 整组替换'
+  level: 2
+  summary: null
+- id: prd-prd-format-enforcement
+  file: prd/global
+  heading: 'prd-format-enforcement: PRD/impl 格式规范强制化'
+  level: 2
+  summary: null

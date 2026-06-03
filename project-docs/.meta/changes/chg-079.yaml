@@ -1,0 +1,101 @@
+id: chg-079
+version: v1.5
+type: ADD
+target: impl/subskills-coverage#impl-subskill-trigger-audit
+author: system
+date: '2026-06-01T13:08:05.355444+00:00'
+message: 'v1.5: sub-skill trigger lint and section audit'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-subskill-trigger-audit -->
+
+  ## sub-skill 触发关键词去重 + 四段完整性审计
+
+
+  <!-- @ref:prd-subskills-coverage rel:implements -->
+
+  <!-- @ref:impl-subskill-task-execute-add rel:depends-on -->
+
+  <!-- @ref:impl-subskill-state-merge rel:depends-on -->
+
+  <!-- @ref:impl-subskill-init-guide-rename rel:depends-on -->
+
+
+  ### 设计
+
+
+  #### 1. 触发关键词矩阵（人工 review + 自动 lint）
+
+  最终 6 个 sub-skill 的 description 关键词分配：
+
+
+  | Sub-skill | 主关键词 | 触发短语示例 |
+
+  |---|---|---|
+
+  | ait-discuss | `prd create` / 写需求 | `/ait prd "标题"` |
+
+  | ait-impl-discuss | `impl create` / 设计实现 | `/ait impl <prd-id>` |
+
+  | ait-task-execute | `task execute` / 开始编码 | `/ait task execute T-x` |
+
+  | ait-state | `state` / 进度 / 完成度 / chunk 分布 | `/ait state` / "v1.5 进度怎样" |
+
+  | ait-resume | error code / 恢复中断 | CLI 报错时 |
+
+  | ait-init-guide | `init` 补全 / 缺失 global | `init` 返回 incomplete |
+
+
+  #### 2. 自动 lint 脚本
+
+  新增 `skill/ait/scripts/verify-subskill-triggers.sh`：
+
+  - 解析 6 个 SKILL.md 的 frontmatter `description`
+
+  - 提取每个 description 的关键短语（用空格 + 标点切分后取 ≥3 字小写词）
+
+  - 计算两两交集；交集词在白名单（`ait`/`skill`/`/ait`/`when`/`user`）外即报错
+
+  - exit 1 时 stderr 输出冲突词与归属 sub-skill
+
+
+  #### 3. 四段完整性审计
+
+  同脚本扩展：检查每个 SKILL.md 必须包含以下 4 段标题（H2）：
+
+  - `## CLI Dependencies` 或等价 `## Dependencies`
+
+  - `## Artifacts`
+
+  - `## Workflow` 或等价 `## Output Contract` + `## Workflow`
+
+  - `## Common Pitfalls`
+
+
+  任一缺失即 exit 1。
+
+
+  #### 4. 集成入口
+
+  - 加入 `scripts/verify-all.sh` 调用链。
+
+  - CI / 本地 verify 触发该脚本。
+
+
+  ### 验收
+
+  - `bash skill/ait/scripts/verify-subskill-triggers.sh` 退出码 0。
+
+  - 故意把 ait-state 的 description 加入 `prd create` 关键词 → 脚本退出码 1 且报告冲突。
+
+
+  ### 边界
+
+  - 不引入 yaml/json schema 校验（保持 shell 轻量）。
+
+  - 不强制 description 字符长度上限（Anthropic skill 系统未限制）。
+
+  - 不审计正文内容质量（只看结构完整性）。
+
+
+  <!-- @ref:prd/v1-5-roadmap#prd-subskills-coverage rel:implements -->'

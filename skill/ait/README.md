@@ -38,7 +38,7 @@ cp -r skill/ait ~/.claude/skills/
 Copy-Item -Recurse skill\ait $env:USERPROFILE\.claude\skills\
 ```
 
-No system-wide pip install needed. The first time `bin/ait` is invoked it creates an isolated `.venv` inside the skill directory and installs the bundled package + deps into it. Subsequent runs reuse the venv.
+No system-wide pip install needed. The first time the skill wrapper is invoked it creates an isolated `.venv` inside the skill directory and installs the bundled package + deps into it. Subsequent runs reuse the venv.
 
 ## Prerequisites
 
@@ -50,14 +50,18 @@ After the first install, the skill works offline.
 
 ## Usage
 
-`bin/ait` is the entry point. Anything Claude does goes through it:
+After a one-time bootstrap, all commands run via the project-local wrapper that `init` generates inside your project:
 
 ```bash
-~/.claude/skills/ait/bin/ait --version
-~/.claude/skills/ait/bin/ait prd create "需求标题"
+# 1. One-time bootstrap (wrapper not yet generated, use the absolute skill path):
+~/.claude/skills/ait/bin/ait init
+
+# 2. From now on, run from your project root via the generated wrapper:
+project-docs/.ait/ait-cli --version
+project-docs/.ait/ait-cli prd create "需求标题"
 ```
 
-Claude Code invokes this transparently when a user types `/ait prd ...`. See [SKILL.md](SKILL.md) for the command set.
+If you reinstall the skill or move it on disk, run `~/.claude/skills/ait/bin/ait init --refresh-wrapper` to regenerate `project-docs/.ait/ait-cli` and refresh `.meta/config.yaml`. Claude Code invokes the wrapper transparently when a user types `/ait prd ...`. See [SKILL.md](SKILL.md) for the full command set.
 
 ## Uninstall
 

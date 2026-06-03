@@ -62,4 +62,6 @@ project-demo/
 #      bootstrap step after clone and provides diff visibility)
 
 
-
+.codebuddy
+.workbuddy
+.tmp*

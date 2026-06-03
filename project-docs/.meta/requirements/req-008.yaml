@@ -1,0 +1,67 @@
+id: req-008
+title: ait-state Skill（版本进度面板）
+status: prd_confirmed
+created_at: '2026-05-26T07:37:45.363296+00:00'
+updated_at: '2026-05-26T07:39:15.813887+00:00'
+author: system
+assigned_version: v1.3
+confirmed_at: '2026-05-26T07:39:15.813887+00:00'
+prd_draft: "<!-- @id:prd-v13-state-skill -->\n\n# 目标3：ait-state Skill（版本进度面板）\n\n## 需求来源\n\n用户明确要求：\n\n> 有一个版本的完成进度和信息汇总，放到版本下，命名为\
+  \ state.md\n> state.md 由 skill 在 merge 之后驱动生成，做完 impl 之后 merged，然后确认后再生成 state.md\n> state.md 在版本生成时候就产生，然后给用户显示当前的状态，包括\
+  \ prd 规划进度，impl 规划进度，task 拆分后开发的进度\n\n## 核心设计\n\n### state.md 的生命周期\n\n```\nversion create v1.3\n      │\n      ▼\n【生成】state.md\
+  \ 初始版本（仅含版本元信息 + PRD 规划进度 0%）\n      │\n      ▼\n... PRD chunks 逐条 prd save-draft → prd commit ...\n      │\n      ▼\n【刷新】ait-state\
+  \ skill 被调用 → 更新 PRD 规划进度\n      │\n      ▼\n... impl chunks 逐条 impl create → impl commit ...\n      │\n      ▼\n【刷新】ait-state\
+  \ skill 被调用 → 更新 impl 规划进度\n      │\n      ▼\n... （未来 v1.4+）task 拆分 → 开发进度 ...\n      │\n      ▼\n【刷新】ait-state skill 被调用\
+  \ → 更新开发进度\n      │\n      ▼\nversion merge v1.3\n      │\n      ▼\n【最终刷新】ait-state skill 被调用 → 生成最终 state.md（含完整进度汇总）\n\
+  ```\n\n### state.md 的三阶段内容\n\n| 阶段 | 内容 | 数据来源 |\n|---|---|---|\n| Phase 1：PRD 规划中 | 版本元信息 + PRD chunk 三态分布（working/staged/committed）+\
+  \ PRD 完成百分比 | `.meta/versions/<v>.yaml` + `.meta/chunks-index-<v>.yaml` |\n| Phase 2：Impl 规划中 | 上述 + impl chunk 三态分布 + PRD→impl\
+  \ 映射关系 + 未覆盖的 PRD chunk 清单 | 同上 + SpecGraph |\n| Phase 3：Merge 后（最终） | 上述 + 版本变更摘要（from baseline → to merged）+ 需求映射表（PRD\
+  \ chunk ↔ 用户需求）+ 健康度评分 | 同上 + merge commit 记录 |\n\n## state.md 格式规范\n\n### 初始版本（Phase 1）\n\n```markdown\n# 版本状态：v1.3\n\n\
+  > 最后更新：2026-05-26T07:53:00Z | 更新者：ait-state skill | 触发事件：version create\n\n## 元信息\n\n| 字段 | 值 |\n|---|---|\n| 版本号 | v1.3\
+  \ |\n| 基于版本 | v1.2 |\n| 创建时间 | 2026-05-26T07:53:00Z |\n| 状态 | planning-prd |\n| PRD 完成度 | 0 / 8 chunk（0%） |\n| Impl 完成度\
+  \ | —（PRD 未完成） |\n\n## PRD Chunk 三态分布\n\n| 状态 | 数量 | 占比 |\n|---|---|---|\n| ✅ committed | 0 | 0% |\n| \U0001F4DD staged\
+  \ | 0 | 0% |\n| ✏️ working | 8 | 100% |\n| **合计** | **8** | **100%** |\n\n## 当前 working 中的 PRD Chunk\n\n| Chunk ID | 标题\
+  \ | 创建时间 | 状态 |\n|---|---|---|---|\n| `prd-v13-overview` | v1.3 版本概述 | 2026-05-26 | working |\n| `prd-v13-backlog-from-v12`\
+  \ | v1.2 遗留实现清单 | 2026-05-26 | working |\n| ... | ... | ... | ... |\n\n## 需求映射（v1.3 覆盖的需求）\n\n| 需求来源 | 需求描述 | 覆盖的 PRD chunk\
+  \ |\n|---|---|---|\n| v1.2 遗留 | `prd-skills-layout` 未实现 impl | `prd-v13-backlog-from-v12` |\n| `todo.md#1` | 参考项目 skill\
+  \ 功能迁移 | `prd-v13-todo1-skill-migration` |\n| `todo.md#2` | init 流程智能识别旧项目 | `prd-v13-todo2-init-upgrade` |\n| `todo.md#3`\
+  \ | links-index.yaml 重构为 SpecGraph | `prd-v13-todo3-specgraph` |\n| `todo.md#4` | 检索/聚焦读取命令行迁移 | `prd-v13-todo4-search`\
+  \ |\n| 目标3 | state.md 版本进度面板 | `prd-v13-state-skill` |\n| v1.2 遗留 | `prd-skills-router` 等 5 个 chunk 的 impl | `prd-v13-backlog-from-v12`\
+  \ |\n\n## 健康度\n\n- \U0001F7E1 PRD 规划进行中（0% 完成）\n- 无阻塞项\n```\n\n### 中期版本（Phase 2，impl 规划中）\n\n在 Phase 1 基础上增加：\n\n```markdown\n\
+  ## Impl Chunk 三态分布\n\n| 状态 | 数量 | 占比 |\n|---|---|---|\n| ✅ committed | 2 | 20% |\n| \U0001F4DD staged | 1 | 10% |\n| ✏️\
+  \ working | 7 | 70% |\n| **合计** | **10** | **100%** |\n\n## PRD → Impl 覆盖情况\n\n| PRD Chunk | 是否有 Impl | Impl Chunk | 覆盖状态\
+  \ |\n|---|---|---|---|\n| `prd-v13-overview` | ✅ | `impl-v13-overview` | ✅ 已覆盖 |\n| `prd-v13-backlog-from-v12` | ✅ | `impl-v13-backlog`\
+  \ | ✅ 已覆盖 |\n| ... | ... | ... | ... |\n| `prd-v13-state-skill` | ❌ | — | ⚠️ 未覆盖 |\n\n## 未覆盖的 PRD Chunk（需要 impl 规划）\n\n\
+  - `prd-v13-state-skill`（ait-state skill 本身是否需要 impl？→ 需要，对应 `impl-v13-state-skill`）\n```\n\n### 最终版本（Phase 3，merge 后）\n\n\
+  在 Phase 2 基础上增加：\n\n```markdown\n## 版本变更摘要\n\n### 相较于 v1.2 baseline\n\n**PRD 变更**：\n- 新增 7 个 PRD chunk（`prd-v13-*`）\n- 继承\
+  \ v1.2 的 8 个 PRD chunk（通过 `based-on: v1.2`）\n\n**Impl 变更**：\n- 新增 10 个 impl chunk（`impl-v13-*`）\n- v1.2 的 2 个 impl chunk\
+  \ 继续有效（已 committed）\n\n### Merge 信息\n\n| 字段 | 值 |\n|---|---|\n| Merge 时间 | 2026-06-01T10:00:00Z |\n| Merge 触发者 | /ait version\
+  \ merge v1.3 |\n| 冲突解决方式 | 无冲突（baseline 无后续提交） |\n\n## 健康度评分\n\n| 维度 | 评分 | 说明 |\n|---|---|---|\n| PRD 覆盖率 | 100% | 8 /\
+  \ 8 committed |\n| Impl 覆盖率 | 100% | 10 / 10 committed |\n| 需求覆盖率 | 100% | 6 / 6 需求有对应 PRD + impl |\n| **综合评分** | **100%**\
+  \ | ✅ 版本健康 |\n\n## 已知问题（Non-Goals 追踪）\n\n- `ait-progress` / `ait-resume` 子 skill 本期仅占位，未完整实现（留 v1.4）\n- `phases/` + `task/`\
+  \ 体系未引入（留 v1.4+）\n- 语义搜索（embedding）未实现（留 v1.4+）\n```\n\n## ait-state Skill 设计\n\n### 文件位置\n\n`skill/ait/sub-skills/ait-state/SKILL.md`（新增子\
+  \ skill）\n\n### 触发语\n\n```\nINVOKE THIS SKILL when the user types `/ait state` or after any `version merge` operation to\
+  \ display the current version's progress panel (PRD distribution, impl coverage, health score).\n```\n\n### 行为流程\n\n```\n\
+  用户调用 /ait state\n        │\n        ▼\n【Step 1】读取版本元信息\n        └── cat .meta/versions/<current>.yaml\n        │\n     \
+  \   ▼\n【Step 2】读取 chunks-index\n        └── load .meta/chunks-index-<current>.yaml\n        │\n        ▼\n【Step 3】读取 SpecGraph（如有）\n\
+  \        └── load .meta/specgraph.yaml\n        │\n        ▼\n【Step 4】计算三态分布 + 覆盖率 + 健康度\n        │\n        ▼\n【Step 5】渲染\
+  \ state.md 内容（输出到终端 + 可选写入文件）\n        │\n        ▼\n【Step 6】询问用户：是否写入 versions/<v>/state.md？\n        └── y → bin/ait state\
+  \ save（写入文件）\n        └── n → 仅终端显示\n```\n\n### CLI 接口\n\n| 命令 | 用途 |\n|---|---|\n| `bin/ait state` | 显示当前版本状态（终端输出） |\n\
+  | `bin/ait state --save` | 显示并写入 `versions/<v>/state.md` |\n| `bin/ait state --version v1.2` | 查看指定版本状态 |\n| `bin/ait state\
+  \ --format json` | JSON 格式输出（供 AI 解析） |\n\n### 自动触发时机\n\n| 触发事件 | 是否自动调用 ait-state |\n|---|---|\n| `bin/ait prd commit`\
+  \ | ✅ 自动调用（刷新 PRD 分布） |\n| `bin/ait impl commit` | ✅ 自动调用（刷新 PRD + impl 分布） |\n| `bin/ait version merge` | ✅ 自动调用（生成最终 state.md）\
+  \ |\n| 用户手动 `/ait state` | ✅ 手动触发 |\n\n## 与 v1.2 PRD 的关系\n\nv1.2 `prd-skills-contract` 中定义了子 skill 的写入禁令：\n\n> 子 skill 禁止直接写文件，必须通过\
+  \ `bin/ait` CLI\n\n**ait-state 遵守该契约**：\n- `ait-state` 默认只**终端输出**，不写文件\n- 写入 `state.md` 必须通过 `bin/ait state --save`（主 CLI\
+  \ 入口）\n- 符合 v1.2 定义的子 skill 行为边界\n\n## 验收标准\n\n### state.md 内容验收\n\n1. 版本创建后 `versions/v1.3/state.md` 存在（初始版本）\n2. `state.md`\
+  \ 包含三态分布表（working/staged/committed）\n3. `state.md` 包含需求映射表（PRD chunk ↔ 用户需求）\n4. Impl commit 后，`state.md` 自动刷新，显示 impl 覆盖率\n\
+  5. `version merge` 后，`state.md` 显示最终变更摘要 + 健康度评分\n\n### ait-state skill 验收\n\n1. `skill/ait/sub-skills/ait-state/SKILL.md`\
+  \ 存在\n2. frontmatter description 以 `INVOKE THIS SKILL when` 起头\n3. `bin/ait state --help` 显示 4 个子命令\n4. `bin/ait state`\
+  \ 终端输出与 `state.md` 内容一致\n5. `bin/ait state --save` 成功写入 `versions/<v>/state.md`\n6. `bin/ait prd commit` 后自动刷新 `state.md`（验证自动触发）\n\
+  \n## 非目标（本期不做）\n\n| 非目标 | 留给后续 |\n|---|---|\n| state.md 的 Web UI 展示 | 不在 CLI 工具范围内 |\n| 历史版本 state.md 的 diff 对比 | v1.4+\
+  \ |\n| state.md 的 AI 自然语言问答（\"这个版本还差多少完成？\"） | v1.4+（需要 AI 端支持） |\n"
+prd_chunks:
+- id: prd-v13-state-skill
+  heading: 目标3：ait-state Skill（版本进度面板）
+  level: 1
+  impl_status: pending
+impl_drafts: []

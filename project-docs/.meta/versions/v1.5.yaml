@@ -1,0 +1,31 @@
+version: v1.5
+created_at: '2026-06-01T12:15:13.345385+00:00'
+merged_at: '2026-06-02T00:56:19.526341+00:00'
+owner: system
+changes:
+- chg-063
+- chg-064
+- chg-065
+- chg-066
+- chg-067
+- chg-068
+- chg-069
+- chg-070
+- chg-071
+- chg-072
+- chg-073
+- chg-074
+- chg-075
+- chg-076
+- chg-077
+- chg-078
+- chg-079
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: snapshots/v1.5/
+phase: merged
+title: v1.5 — task relocation, init incremental, skill CLI resolution, sub-skills coverage
+prd_locked: true
+impl_locked: true

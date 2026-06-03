@@ -1,0 +1,27 @@
+id: chg-086
+version: v1.6
+type: ADD
+target: impl/prd-global-single-file#impl-prd-global-merge-target-rewrite
+author: system
+date: '2026-06-02T12:36:40.381192+00:00'
+message: 'impl#2: version_manager 路由强制收敛到 prd/global'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-prd-global-merge-target-rewrite -->\n## Baseline PRD 单文件化 — version confirm 路由收敛\n\n<!-- @ref:prd-prd-global-single-file\
+  \ rel:implements -->\n\n### 改动点\n\n#### 1. `ait/version_manager.py`\n\n`_perform_merge_internal`（约第 497~506 行）的 `by_file`\
+  \ 分组逻辑：在循环里追加一段\"PRD chunk 路由强制收敛\"判定，紧跟在 `file_key = r.file` 推断之后、`by_file.setdefault(...)` 之前：\n\n```python\n# v1.6+ :\
+  \ All PRD chunks live in docs/prd/global.md regardless of the\n# version-side file path. Force-route any PRD-category chunk\
+  \ into the\n# single baseline file.\nif file_key and file_key.startswith(\"prd/\") and file_key != \"prd/global\":\n   \
+  \ file_key = \"prd/global\"\n```\n\n判定标准：file_key 当前以 `prd/` 开头（说明是 PRD 类目）但不是 `prd/global` 本身——一律改写为 `prd/global`。delete\
+  \ 记录走 overrides → baseline file 的回查路径，命中同样的判定（这条逻辑前面已经把 file_key 解出来了）。\n\n不得改动：\n- `_merge_one_file` 函数本身（它接到的 file_key\
+  \ 已经被改写为 `prd/global`，按现有逻辑去 `docs/prd/global.md` 读 baseline、写回，无需感知\"全局合并\"语义）。\n- impl 类目（`impl/*`）的路由 —— PRD 改动**不影响\
+  \ impl 多文件**。\n- chunks-index 的 `file` 字段写入逻辑：confirm 完成后由 `rebuild_baseline()` 自动用 `parse_file(global.md)` 重扫，所有 PRD chunk\
+  \ 的 `file` 字段会自然变成 `prd/global`，无需人为干预。\n\n#### 2. `ait/version_manager.py` — version 工作区侧不约束\n\n版本工作区 `versions/{vX.Y}/prd/*.md`\
+  \ 仍允许多文件（人写更舒服），`prd commit` 阶段不做合并、不做路由改写，记录的 `file` 字段仍是版本侧文件名（如 `prd/v1-6-roadmap`）。这条记录只在 `version confirm` 阶段被改写为 `prd/global`。**不**改\
+  \ `prd commit` 任何逻辑。\n\n#### 3. CLI `prd commit` —— 不变\n\n确认无改动：`prd commit` 既不读 baseline 也不写 baseline，路由改写与它无关。\n\n###\
+  \ 单元测试\n- `tests/test_version_confirm.py::test_prd_chunks_force_routed_to_global`：构造 mini project-docs，baseline `docs/prd/global.md`\
+  \ 已存在含 1 个 chunk；版本工作区 `versions/v0.1/prd/foo.md` 加 1 个新 chunk（add）+ 修改 baseline 的 chunk（modify）。confirm 后断言：(a) `docs/prd/global.md`\
+  \ 含 2 个 chunk； (b) `docs/prd/foo.md` 不存在； (c) chunks-index 中所有 PRD chunk 的 `file` == `prd/global`。\n- `tests/test_version_confirm.py::test_impl_chunks_unaffected`：同样场景但版本侧加的是\
+  \ `impl/bar.md` 的 impl chunk，断言 baseline 里 `docs/impl/bar.md` 被正常创建——证明 impl 路由不被牵连。\n- `tests/test_version_confirm.py::test_delete_prd_chunk_routes_to_global`：版本侧\
+  \ delete 一个 baseline 中存在的 PRD chunk，断言它从 `docs/prd/global.md` 中被移除，且 `docs/prd/global.md` 仍是单文件存在。\n\n<!-- @ref:prd/v1-6-roadmap#prd-prd-global-single-file\
+  \ rel:implements -->"

@@ -1,0 +1,326 @@
+version: 1
+scope: version
+version_name: v1.5
+based_on_hash: null
+status: merged
+chunks:
+- id: prd-task-relocation
+  file: prd/v1-5-roadmap
+  heading: task YAML 目录从 .meta 迁到版本工作区
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-015
+  summary: null
+- id: prd-init-incremental
+  file: prd/v1-5-roadmap
+  heading: init 改为幂等的基线补全器
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-015
+  summary: null
+- id: prd-skill-cli-resolution
+  file: prd/v1-5-roadmap
+  heading: bin/ait 路径解析与 SKILL 文档约定修订
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-015
+  summary: null
+- id: prd-subskills-coverage
+  file: prd/v1-5-roadmap
+  heading: sub-skills 治理：补齐 task 阶段、合并 progress/state、init-check 重定位
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-015
+  summary: null
+- id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  heading: init 阶段注入 skill 路径并生成项目本地 wrapper
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  heading: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  level: 2
+  action: add
+  state: committed
+  commit_id: c12
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  heading: wrapper 自定位回归测试
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  heading: ENOENT_BIN_AIT 兜底文档
+  level: 2
+  action: add
+  state: committed
+  commit_id: c13
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-yaml-path
+  file: impl/task-relocation
+  heading: TaskManager 物理路径迁移到版本工作区
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-summary-index
+  file: impl/task-relocation
+  heading: chunks-index-{vX.Y}.yaml 注入 tasks_summary 字段
+  level: 2
+  action: add
+  state: committed
+  commit_id: c9
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-legacy-warn
+  file: impl/task-relocation
+  heading: 旧 .meta/tasks 路径检测告警
+  level: 2
+  action: add
+  state: committed
+  commit_id: c10
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-init-state-detect
+  file: impl/init-incremental
+  heading: init 三态识别与 --check 子命令
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-init-guide-skill
+  file: impl/init-incremental
+  heading: ait-init-guide 子 skill 升级（差异补全交互）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c11
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-subskill-task-execute-add
+  file: impl/subskills-coverage
+  heading: 新增 ait-task-execute 子 skill
+  level: 2
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-subskill-state-merge
+  file: impl/subskills-coverage
+  heading: ait-progress 合入 ait-state
+  level: 2
+  action: add
+  state: committed
+  commit_id: c7
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-subskill-init-guide-rename
+  file: impl/subskills-coverage
+  heading: ait-init-check → ait-init-guide 目录搬迁
+  level: 2
+  action: add
+  state: committed
+  commit_id: c8
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-subskill-trigger-audit
+  file: impl/subskills-coverage
+  heading: sub-skill 触发关键词去重 + 四段完整性审计
+  level: 2
+  action: add
+  state: committed
+  commit_id: c14
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-06-01T12:52:13.743834+00:00'
+  message: 'v1.5 roadmap: task relocation, init incremental, CLI path resolution, sub-skills coverage'
+  chunks:
+  - prd-task-relocation
+  - prd-init-incremental
+  - prd-skill-cli-resolution
+  - prd-subskills-coverage
+  req_id: null
+- id: c2
+  timestamp: '2026-06-01T13:07:51.503100+00:00'
+  message: 'v1.5: TaskManager paths to versions/<v>/tasks/'
+  chunks:
+  - impl-task-yaml-path
+  req_id: null
+- id: c3
+  timestamp: '2026-06-01T13:08:01.723449+00:00'
+  message: 'v1.5: init three-state detection and --check'
+  chunks:
+  - impl-init-state-detect
+  req_id: null
+- id: c4
+  timestamp: '2026-06-01T13:08:02.046027+00:00'
+  message: 'v1.5: inject skill_dir and project-local wrapper at init'
+  chunks:
+  - impl-skill-cli-config-injection
+  req_id: null
+- id: c5
+  timestamp: '2026-06-01T13:08:02.367371+00:00'
+  message: 'v1.5: wrapper self-locate regression script'
+  chunks:
+  - impl-skill-cli-wrapper-verify
+  req_id: null
+- id: c6
+  timestamp: '2026-06-01T13:08:02.697967+00:00'
+  message: 'v1.5: new ait-task-execute sub-skill'
+  chunks:
+  - impl-subskill-task-execute-add
+  req_id: null
+- id: c7
+  timestamp: '2026-06-01T13:08:03.039096+00:00'
+  message: 'v1.5: merge ait-progress into ait-state'
+  chunks:
+  - impl-subskill-state-merge
+  req_id: null
+- id: c8
+  timestamp: '2026-06-01T13:08:03.360595+00:00'
+  message: 'v1.5: rename ait-init-check to ait-init-guide'
+  chunks:
+  - impl-subskill-init-guide-rename
+  req_id: null
+- id: c9
+  timestamp: '2026-06-01T13:08:03.684283+00:00'
+  message: 'v1.5: tasks_summary in chunks-index-{v}.yaml'
+  chunks:
+  - impl-task-summary-index
+  req_id: null
+- id: c10
+  timestamp: '2026-06-01T13:08:04.016882+00:00'
+  message: 'v1.5: warn on legacy .meta/tasks path'
+  chunks:
+  - impl-task-legacy-warn
+  req_id: null
+- id: c11
+  timestamp: '2026-06-01T13:08:04.352356+00:00'
+  message: 'v1.5: ait-init-guide workflow rewrite'
+  chunks:
+  - impl-init-guide-skill
+  req_id: null
+- id: c12
+  timestamp: '2026-06-01T13:08:04.685656+00:00'
+  message: 'v1.5: rewrite all bin/ait references to project-local wrapper'
+  chunks:
+  - impl-skill-cli-doc-rewrite
+  req_id: null
+- id: c13
+  timestamp: '2026-06-01T13:08:05.014096+00:00'
+  message: 'v1.5: ENOENT_BIN_AIT pitfall row'
+  chunks:
+  - impl-skill-cli-pitfall-doc
+  req_id: null
+- id: c14
+  timestamp: '2026-06-01T13:08:05.356675+00:00'
+  message: 'v1.5: sub-skill trigger lint and section audit'
+  chunks:
+  - impl-subskill-trigger-audit
+  req_id: null
+stats:
+  total_chunks: 17
+  by_action:
+    add: 17
+  by_state:
+    committed: 17
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 13
+    failed: 0

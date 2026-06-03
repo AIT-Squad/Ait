@@ -1,0 +1,29 @@
+id: chg-083
+version: v1.6
+type: ADD
+target: prd/v1-6-roadmap#prd-prd-chunk-atomic-impl-merge
+author: system
+date: '2026-06-02T09:16:57.315428+00:00'
+message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:prd-prd-chunk-atomic-impl-merge -->\n## prd-chunk-atomic-impl-merge: PRD chunk 原子规则与 impl 整组替换\n\n\
+  ### 概述\n\n明确 PRD chunk 是规划的原子单位这一核心契约，并把它落到三处可执行规则上：(1) `version confirm` merge 时按 PRD chunk 为分组键整组替换其 impl 集合；(2) `impl\
+  \ commit` pre-merge 强制校验 impl 覆盖完整性；(3) 提供 `ait impl inherit` 工效命令，让\"原样继承 baseline impl 集合\"成为一行命令。\n\n### 业务规则\n\n- 核心\
+  \ merge 规则（`version confirm` 阶段，伪码）：\n  ```\n  for prd_chunk_id in version.changed_prd_chunks:\n      baseline_impls = specgraph.baseline.impls_of(prd_chunk_id)\n\
+  \      version_impls  = specgraph.version.impls_of(prd_chunk_id)\n      baseline.remove_chunks(baseline_impls)\n      baseline.add_chunks(version_impls)\n\
+  \  ```\n  纯查询 + 纯替换，零 LLM、零猜测；复用现有 merge_engine 的 add/delete 操作能力\n- `impl commit` 的 pre-merge 校验扩展：\n  ```\n  for prd_chunk_id\
+  \ in version.changed_prd_chunks:\n      if action in (add, modify):\n          assert (版本工作区有 >= 1 个 impl chunk @ref ->\
+  \ prd_chunk_id)\n                 or (PRD chunk 内含 <!-- @prd-no-impl --> 标记)\n      if action == delete:\n          assert\
+  \ (版本工作区无 impl chunk @ref -> prd_chunk_id)\n  ```\n  失败时报错码 `IMPL_COVERAGE_INCOMPLETE`，列出未覆盖的 PRD chunk id\n- 新命令 `ait impl\
+  \ inherit <prd-chunk-id>`（工效命令）：\n  - 把 baseline 中所有 `@ref -> <prd-chunk-id>` 的 impl chunks 原样 clone 到当前版本工作区\n  - 适用场景：PRD\
+  \ chunk 改的是叙述层、impl 一字不动 → 一行命令完成 impl 集合\"形式上重新声明\"\n  - 实现：读 specgraph + 复制原 chunk content 到 `versions/{vX.Y}/impl/` 下（文件名沿用\
+  \ baseline）\n- `<!-- @prd-no-impl -->` 标记：在 PRD chunk content 里加这一行注释，CLI 把它视为该 chunk 不需要 impl 覆盖；仅用于 PRD overview / non-goals\
+  \ / 项目愿景这类纯叙述 chunk\n- 错误码补充：\n  - `IMPL_COVERAGE_INCOMPLETE`：PRD chunk 缺 impl 覆盖\n  - `IMPL_ON_DELETED_PRD`：被 delete 的\
+  \ PRD chunk 仍有 impl `@ref`\n- specgraph 一致性：merge 完成后 `ait specgraph` 自动 rebuild，断言无 orphan impl（`@ref` 指向已不存在的 PRD）\n\n\
+  ### 验收标准\n\n- [ ] `version confirm` merge 时，对每个版本变动的 PRD chunk，其 baseline impl 集合被版本工作区 impl 集合整组替换\n- [ ] `impl commit`\
+  \ 在 PRD chunk add/modify 但版本工作区未提供任何 impl `@ref` 时报 `IMPL_COVERAGE_INCOMPLETE` 并阻断\n- [ ] `impl commit` 在 PRD chunk delete\
+  \ 但版本工作区仍有 impl `@ref` 时报 `IMPL_ON_DELETED_PRD`\n- [ ] `ait impl inherit prd-xxx` 把 baseline 该 PRD chunk 下所有 impl chunk\
+  \ 原样 clone 到版本工作区\n- [ ] PRD chunk 内 `<!-- @prd-no-impl -->` 标记能让 pre-merge 跳过该 chunk 的 impl 覆盖检查\n- [ ] merge 完成后 specgraph\
+  \ 无 orphan impl（reindex 自检通过）\n- [ ] 现有 v1.5 已 merged 数据不受迁移影响（兼容性回归测试通过）\n\n### 边界与非目标\n\n- 不做 impl 级别的 keep/modify/delete\
+  \ 三选一决议（保持极简语义）\n- 不做惰性继承（PRD chunk 进入版本变动 ⟺ 其 impl 集合在该版本被原子重写，是清晰契约）\n- 不改 specgraph 的 `@ref rel:implements` 语义"

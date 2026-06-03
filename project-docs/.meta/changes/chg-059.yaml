@@ -1,0 +1,22 @@
+id: chg-059
+version: v1.4
+type: ADD
+target: impl/task#impl-task-stage-execute
+author: system
+date: '2026-06-01T07:11:15.238533+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-task-stage-execute -->\n## task 执行与自动收口（task execute）\n\n实现 `task execute`：AI coding 执行，成功自动标\
+  \ done 并回写 code_refs，无单独 confirm。\n\n### 命令\n\n```python\n@task_group.command(\"execute\")\n@click.argument(\"task_or_chunk\"\
+  , required=False)  # 无参 → 逐批交互\ndef task_execute(task_or_chunk):\n    # 解析为一组 task（taskId 单个 / chunkId 该 chunk 全部 / 无参全部\
+  \ pending）\n    for t in resolve_tasks(task_or_chunk):\n        if not deps_satisfied(t):           # depends_on 未全 done\
+  \ → 跳过/blocked\n            continue\n        t.status = \"executing\"; save(t)\n        ctx = assemble_context(t)     \
+  \      # 只取 impl_refs ∪ global_refs，token 聚焦\n        result = ai_coding(ctx, t.steps)    # skill 层驱动 AI 写代码\n        if\
+  \ result.ok:\n            t.status = \"done\"\n            t.code_refs = [{\"commit\": result.commit, \"paths\": result.paths}]\n\
+  \        else:\n            t.status = \"failed\"\n        save(t); refresh_state_md(root, version)\n```\n\n### 状态机\n```\n\
+  created → executing → done（成功，回写 code_refs）\n                  └─→ failed（失败，可重跑 execute）\n```\n\n### 规则\n- execute 成功即收口，无\
+  \ task confirm\n- 依赖未满足（depends_on 有非 done）→ 不执行\n- 上下文严格限定 task 的 refs，不读全局文件树（token 聚焦）\n- 人工审核统一到 version confirm\n\n\
+  ### 状态双存（决策11）\n- **单一真相源 = task YAML 的 `status`**：`save(t)` 持久化到 `T-{源chunk}-NN.yaml`\n- **聚合展示 = state.md**：`refresh_state_md`\
+  \ 每次状态变更后重渲染，汇总本版本所有 task 的 status\n- 读取时以 YAML 为准；state.md 仅供人查看进度，不作为权威数据源\n\n<!-- @ref:prd/ait-redesign#prd-task-stage\
+  \ rel:implements -->"

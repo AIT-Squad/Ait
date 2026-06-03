@@ -129,7 +129,7 @@ prd_draft: '<!-- @id:prd-project-docs-only-overview -->
   - ❌ 不引入 scaffold 行为变化以外的命令语义改动；仅在 root 解析失败时拒绝执行
 
   '
-prd_blocks:
+prd_chunks:
 - id: prd-project-docs-only-overview
   heading: 概述
   level: 2

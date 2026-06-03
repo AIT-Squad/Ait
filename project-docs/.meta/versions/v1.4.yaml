@@ -1,0 +1,38 @@
+version: v1.4
+created_at: '2026-06-01T03:00:38.730584+00:00'
+merged_at: '2026-06-01T07:17:45.921083+00:00'
+owner: system
+changes:
+- chg-039
+- chg-040
+- chg-041
+- chg-042
+- chg-043
+- chg-044
+- chg-045
+- chg-046
+- chg-047
+- chg-048
+- chg-049
+- chg-050
+- chg-051
+- chg-052
+- chg-053
+- chg-054
+- chg-055
+- chg-056
+- chg-057
+- chg-058
+- chg-059
+- chg-060
+- chg-061
+- chg-062
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: snapshots/v1.4/
+phase: merged
+title: AIT 重构设计
+prd_locked: true
+impl_locked: true

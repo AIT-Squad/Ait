@@ -1,0 +1,57 @@
+id: chg-027
+version: v1.3
+type: ADD
+target: impl/skills#impl-skills-format-adapt
+author: system
+date: '2026-05-26T09:27:05.341906+00:00'
+message: Implement v1.3 sub-skill format
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-skills-format-adapt -->
+
+
+  # 子 Skill 格式适配实现
+
+
+  ## 目标
+
+
+  为所有子 skill 的 `SKILL.md` 建立统一格式，确保参考项目迁移内容符合当前项目规范。
+
+
+  ## 强制结构
+
+
+  每个子 skill 文档必须包含：
+
+
+  1. YAML frontmatter：`name` 与以 `INVOKE THIS SKILL when` 起头的 `description`。
+
+  2. Purpose：说明职责边界。
+
+  3. CLI Dependencies：列出会调用的 `bin/ait` 命令。
+
+  4. Artifacts：分 Reads、Writes、Side-effect 三类说明。
+
+  5. Workflow：用户触发后的分步行为。
+
+  6. Output Contract：只复述 JSON 中关键字段，不原样 dump。
+
+  7. Common Pitfalls：列出错误码与恢复建议。
+
+
+  ## 写入规则
+
+
+  子 skill 不直接写 PRD/impl/版本文档；所有持久化必须通过 `bin/ait` CLI 完成。
+
+
+  ## 验收
+
+
+  - 每个子 `SKILL.md` 均包含 `CLI Dependencies`、`Artifacts`、`Common Pitfalls`。
+
+  - frontmatter description 均以 `INVOKE THIS SKILL when` 起头。
+
+
+  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'

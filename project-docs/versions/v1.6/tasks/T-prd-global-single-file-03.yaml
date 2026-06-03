@@ -1,0 +1,20 @@
+id: T-prd-global-single-file-03
+title: 实现 impl-prd-global-parser-compat-check
+source_chunk: prd-prd-global-single-file
+impl_refs:
+- impl-prd-global-parser-compat-check
+global_refs:
+- global-tech-stack
+depends_on:
+- T-prd-global-single-file-02
+order_hint: 3
+steps:
+- 按 impl-prd-global-parser-compat-check 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - tests/test_global_prd_baseline.py
+  - tests/test_chunk_parser_global.py
+  - scripts/verify_prd_global_invariants.py
+  bound_at: '2026-06-03T05:43:00.000000Z'

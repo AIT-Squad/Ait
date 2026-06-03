@@ -1,0 +1,16 @@
+id: chg-057
+version: v1.4
+type: ADD
+target: impl/prd#impl-prd-stage-title
+author: system
+date: '2026-06-01T07:11:14.544866+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-prd-stage-title -->\n## title 抽取与 state.md 写入\n\n实现 discuss 收敛后总结 title，并写入 state.md 独立字段（后续作为\
+  \ git commit message）。\n\n### 数据流\n\n```python\ndef set_version_title(root: Path, version: str, title: str) -> None:\n \
+  \   state = load_version_state(root, version)\n    state.title = title\n    save_version_state(root, state)   # 持久化到版本元数据\n\
+  \    refresh_state_md(root, version)   # 重新渲染 state.md，title 单独成行\n```\n\n### state.md 渲染扩展\n\nstate.md 顶部 Summary 区新增 title\
+  \ 字段：\n\n```markdown\n# AIT State — v1.0\n\n## Summary\n- Title: `宠物建档功能`        ← 新增，来自 prd discuss 总结\n- Version: `v1.0`\n\
+  - ...\n```\n\n### 规则\n- title 仅在 prd 阶段写入；一旦 PRD 锁定，title 随之冻结\n- version confirm 时取该 title 作为 git commit message\n\n<!--\
+  \ @ref:prd/ait-redesign#prd-prd-stage rel:implements -->"

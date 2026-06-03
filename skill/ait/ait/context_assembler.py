@@ -1,13 +1,13 @@
 """AI context assembler — MVP L1+L2 only.
 
 Per project-docs/docs/prd/overview.md (simplified):
-    L1: target block content (mandatory, never trimmed)
-    L2: blocks reachable via @ref (implements, see-also, etc.)
+    L1: target chunk content (mandatory, never trimmed)
+    L2: chunks reachable via @ref (implements, see-also, etc.)
     L3/L4 are placeholders — interfaces present, content empty in MVP.
 
 Scenarios:
-    "prd-to-impl"  — generating impl from a PRD block
-    "impl-edit"    — editing an impl block (rare in MVP; mainly for completeness)
+    "prd-to-impl"  — generating impl from a PRD chunk
+    "impl-edit"    — editing an impl chunk (rare in MVP; mainly for completeness)
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
-from .block_parser import parse_file
+from .chunk_parser import parse_file
 from .index_manager import IndexManager
 from .version_manager import VersionManager
 
@@ -68,46 +68,63 @@ class ContextAssembler:
         self.indexes = IndexManager(self.root)
         self.versions = VersionManager(self.root)
 
-    def assemble(self, target_id: str, scenario: Scenario) -> AssembledContext:
-        l1 = self._locate_block(target_id)
+    def assemble(
+        self,
+        target_id: str,
+        scenario: Scenario,
+        *,
+        focus: bool = False,
+        include_deps: bool = False,
+    ) -> AssembledContext:
+        l1 = self._locate_chunk(target_id)
         if l1 is None:
             raise FileNotFoundError(
-                f"target block {target_id} not found in baseline or current version"
+                f"target chunk {target_id} not found in baseline or current version"
             )
         l2: list[ContextSlice] = []
+        notes: list[str] = []
 
-        if scenario == "prd-to-impl":
+        if focus:
+            notes.append("focus=true: only L1 target chunk returned")
+            return AssembledContext(
+                scenario=scenario, target_id=target_id, l1=l1, l2=l2, notes=notes
+            )
+
+        if include_deps:
+            l2.extend(self._deps_related_to_chunk(target_id))
+            notes.append("deps=true: L2 populated from SpecGraph dependencies")
+        elif scenario == "prd-to-impl":
             l2.extend(self._impl_related_to_prd(target_id))
         elif scenario == "impl-edit":
             l2.extend(self._prd_related_to_impl(target_id))
 
         return AssembledContext(
-            scenario=scenario, target_id=target_id, l1=l1, l2=l2
+            scenario=scenario, target_id=target_id, l1=l1, l2=l2, notes=notes
         )
 
-    # ─────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────
     # Lookup helpers
-    # ─────────────────────────────────────────────────────
+    # ──────────────────────────────────────────────────
 
-    def _locate_block(self, block_id: str) -> ContextSlice | None:
+    def _locate_chunk(self, chunk_id: str) -> ContextSlice | None:
         version = self.versions.current()
         if version:
-            v_entry = self.indexes.query_version(version, block_id)
+            v_entry = self.indexes.query_version(version, chunk_id)
             if v_entry and v_entry.file:
                 path = (
                     self.versions.versions_dir / version / f"{v_entry.file}.md"
                 )
-                slice_ = self._read_block_from(path, block_id, "version")
+                slice_ = self._read_chunk_from(path, chunk_id, "version")
                 if slice_:
                     return slice_
-        base_entry = self.indexes.query_baseline(block_id)
+        base_entry = self.indexes.query_baseline(chunk_id)
         if base_entry:
             path = self.root / "docs" / f"{base_entry.file}.md"
-            return self._read_block_from(path, block_id, "baseline")
+            return self._read_chunk_from(path, chunk_id, "baseline")
         return None
 
-    def _read_block_from(
-        self, path: Path, block_id: str, source: Literal["baseline", "version"]
+    def _read_chunk_from(
+        self, path: Path, chunk_id: str, source: Literal["baseline", "version"]
     ) -> ContextSlice | None:
         if not path.exists():
             return None
@@ -116,14 +133,14 @@ class ContextAssembler:
             parsed = parse_file(path, base_dir)
         except Exception:
             return None
-        for block in parsed.blocks:
-            if block.id == block_id:
+        for chunk in parsed.chunks:
+            if chunk.id == chunk_id:
                 return ContextSlice(
-                    id=block.id,
-                    file=block.file,
-                    heading=block.heading,
-                    level=block.level,
-                    content=block.content,
+                    id=chunk.id,
+                    file=chunk.file,
+                    heading=chunk.heading,
+                    level=chunk.level,
+                    content=chunk.content,
                     source=source,
                 )
         return None
@@ -133,22 +150,45 @@ class ContextAssembler:
     # ─────────────────────────────────────────────────────
 
     def _impl_related_to_prd(self, prd_id: str) -> list[ContextSlice]:
-        """For PRD→impl: include existing impl blocks that implement this PRD as patterns."""
+        """For PRD→impl: include existing impl chunks that implement this PRD as patterns."""
+        from .specgraph import combined_specgraph, resolve_chunk_uri
+
         out: list[ContextSlice] = []
-        links = self.indexes.load_links()
-        for link in links.links:
-            if not link.to.endswith(f"#{prd_id}"):
+        version = self.versions.current()
+        graph = combined_specgraph(self.root, version)
+        prd_uri = resolve_chunk_uri(self.root, prd_id, version, graph=graph)
+        seen: set[str] = set()
+        for edge in graph.implementations(prd_uri):  # impl --implements--> prd (in edges)
+            source_chunk_id = edge.src.split(":", 3)[-1]
+            if source_chunk_id in seen:
                 continue
-            if link.rel != "implements":
-                continue
-            source_block_id = link.from_.split("#", 1)[1]
-            slice_ = self._locate_block(source_block_id)
+            slice_ = self._locate_chunk(source_chunk_id)
             if slice_:
                 out.append(slice_)
+                seen.add(source_chunk_id)
+        return out
+
+    def _deps_related_to_chunk(self, chunk_id: str) -> list[ContextSlice]:
+        """Include chunks connected by outgoing SpecGraph dependencies."""
+        from .specgraph import combined_specgraph, resolve_chunk_uri
+
+        version = self.versions.current()
+        graph = combined_specgraph(self.root, version)
+        uri = resolve_chunk_uri(self.root, chunk_id, version, graph=graph)
+        out: list[ContextSlice] = []
+        seen: set[str] = set()
+        for edge in graph.dependencies(uri):
+            target_chunk_id = edge.dst.split(":", 3)[-1]
+            if target_chunk_id in seen:
+                continue
+            slice_ = self._locate_chunk(target_chunk_id)
+            if slice_:
+                out.append(slice_)
+                seen.add(target_chunk_id)
         return out
 
     def _prd_related_to_impl(self, impl_id: str) -> list[ContextSlice]:
-        """For impl-edit: include the PRD block(s) this impl implements."""
+        """For impl-edit: include the PRD chunk(s) this impl implements."""
         out: list[ContextSlice] = []
         version = self.versions.current()
         # Search refs in version file first, then baseline files.
@@ -173,11 +213,11 @@ class ContextAssembler:
             )
             parsed = parse_file(path, base_dir)
             for ref in parsed.refs:
-                if ref.source_block_id != impl_id:
+                if ref.source_chunk_id != impl_id:
                     continue
                 if ref.rel != "implements":
                     continue
-                slice_ = self._locate_block(ref.target_block_id)
+                slice_ = self._locate_chunk(ref.target_chunk_id)
                 if slice_:
                     out.append(slice_)
             if out:

@@ -1,0 +1,45 @@
+id: req-007
+title: v1.3 非目标
+status: prd_confirmed
+created_at: '2026-05-26T07:37:39.660072+00:00'
+updated_at: '2026-05-26T07:39:09.470708+00:00'
+author: system
+assigned_version: v1.3
+confirmed_at: '2026-05-26T07:39:09.470708+00:00'
+prd_draft: "<!-- @id:prd-v13-non-goals -->\n\n# v1.3 非目标（Non-Goals）\n\n## 原则\n\n本文件列出 **v1.3 明确不做** 的事情，防止需求蔓延（scope creep），确保版本边界清晰。\n\
+  \n---\n\n## Non-Goal 1：不引入 `phases/` + `task/` 体系\n\n**说明**：v1.2 `prd-skills-non-goals` 已明确不引入 `phases/` + `task/` 体系。v1.3\
+  \ **继承该决策**。\n\n**原因**：\n- v1.3 的核心目标是 **v1.2 欠债清零 + todo.md 全量落地**\n- `phases/` + `task/` 是更上层的项目管理概念，引入会显著扩大 scope\n-\
+  \ 留到 v1.4+ 单独规划\n\n**v1.3 的替代方案**：\n- 用 **SpecGraph 的 `depends_on` 关系** 来表达 chunk 之间的依赖，不需要 phases 概念\n- 用 **state.md 的健康度评分**\
+  \ 来追踪版本完成度，不需要 task 体系\n\n---\n\n## Non-Goal 2：不修改 `bin/ait` CLI 的主入口和参数解析\n\n**说明**：v1.2 `prd-skills-non-goals` 已明确不修改\
+  \ `skill/ait/bin/ait` 和 `root.py`。v1.3 **继承该决策**。\n\n**例外（v1.3 允许的最小改动）**：\n\n| 改动 | 是否允许 | 说明 |\n|---|---|---|\n| 新增 `ait/specgraph.py`\
+  \ + `bin/ait specgraph` 子命令 | ✅ 允许 | 新功能，不改动现有命令 |\n| 新增 `ait/search.py` + `bin/ait search` 子命令 | ✅ 允许 | 同上 |\n| 新增 `ait/context.py`\
+  \ 的 `--focus` / `--deps` 参数 | ✅ 允许 | 增强现有命令，不改动接口风格 |\n| 新增 `ait/state.py` + `bin/ait state` 子命令 | ✅ 允许 | 新功能 |\n| 修改 `root.py`\
+  \ 的 `init()` 函数内部逻辑 | ⚠️ 条件允许 | 仅通过 AI_HINT 注释触发子 skill，不改签名 |\n| 修改 `bin/ait` 的参数解析（`argparse` 部分） | ❌ 不允许 | 违反 v1.2 non-goal\
+  \ |\n| 修改现有子命令的 CLI 接口（参数 / 输出格式） | ❌ 不允许 | 向后兼容要求 |\n\n---\n\n## Non-Goal 3：不迁移参考项目中与当前项目规范冲突的功能\n\n**说明**：`todo.md` 需求1\
+  \ 要求\"按照当前项目的规范来重新组织 skills\"。\n\n**具体排除项**：\n\n| 参考项目功能 | 排除原因 |\n|---|---|\n| `ait init` 增强逻辑（参考项目版本） | 当前项目 `init` 流程不动（`todo.md`\
+  \ 需求2 约束） |\n| `.planning/STATE.md` 格式 | 当前项目用 `.meta/versions/<v>.yaml` + `.meta/chunks-index.yaml` |\n| `.planning/ait/progress.json`\
+  \ | 同上，用 chunks-index 代替 |\n| `.planning/ait/issues.md` | v1.2 non-goal，留 v1.4+ |\n| `ait next-up` / `ait build-tasks` /\
+  \ `ait execute` | 需要 `phases/` + `task/` 体系，v1.3 不引入 |\n| 参考项目的 `block` 术语 | v1.2 已完成 block→chunk 重构，统一用 `chunk` |\n\n---\n\
+  \n## Non-Goal 4：不实现语义搜索（Embedding + Vector Store）\n\n**说明**：`prd-v13-todo4-search` 中规划了 `bin/ait search` 命令，但 **v1.3 只实现关键词搜索**。\n\
+  \n**语义搜索留到 v1.4+**：\n- 需要引入 embedding API（OpenAI / 本地模型）\n- 需要向量数据库（Chroma / FAISS）\n- 需要持久化索引（`.meta/search-index/`）\n\
+  - 属于\"高级功能\"，不是 v1.3 的核心目标\n\n**v1.3 的替代方案**：\n- `bin/ait search` 支持正则表达式（`--regexp`）\n- `bin/ait search --field <field>`\
+  \ 支持按 YAML frontmatter 字段过滤\n\n---\n\n## Non-Goal 5：不实现 SpecGraph 的高级查询（Mermaid 渲染 / Web UI）\n\n**说明**：`prd-v13-todo3-specgraph`\
+  \ 中规划了 SpecGraph 数据模型和 CLI 命令。\n\n**v1.3 不做的高级功能**：\n\n| 功能 | 留到 |\n|---|---|\n| 在 AI 对话中自动渲染依赖图（Mermaid） | v1.4+ |\n| SpecGraph\
+  \ 的 Web UI 可视化（D3.js / ECharts） | v1.4+ |\n| 跨版本 dependency conflict 检测 | v1.4+ |\n| SpecGraph 的实时协作编辑 | 不在 roadmap 中 |\n\
+  \n**v1.3 的替代方案**：\n- `bin/ait specgraph export --format dot` 导出 Graphviz DOT（可用 `dot` 命令行渲染为 PNG）\n- state.md 中用 ASCII 表格展示依赖关系\n\
+  \n---\n\n## Non-Goal 6：不修改 v1.2 已 committed 的 impl chunk\n\n**说明**：v1.2 已 committed 的 2 个 impl chunk（`impl-data-chunk-rename`\
+  \ + `impl-workflow-chunk-rename`）**在 v1.3 中不动**。\n\n**原因**：\n- 这两个 impl chunk 已经 merge 到 baseline，属于 v1.2 的交付物\n- v1.3 基于\
+  \ v1.2 baseline 创建，不需要重新实现\n- 如果这两个 impl 有问题，应该走 **hotfix 流程**（v1.2.1），而不是在 v1.3 中修改\n\n**v1.3 的隐含契约**：\n- `bin/ait version\
+  \ create v1.3 --based-on v1.2` 时，v1.2 的 2 个 impl chunk 自动继承\n- v1.3 的 PRD chunk 可以引用这两个 impl chunk 作为前置依赖\n\n---\n\n## Non-Goal\
+  \ 7：不引入多版本并行开发支持\n\n**说明**：v1.3 **不支持** 同时基于 v1.2 创建 v1.3 和 v1.4 并行的场景。\n\n**当前限制**：\n- `bin/ait version create <v>` 只支持基于单个\
+  \ baseline 版本\n- 不支持 `v1.4 based-on v1.2` 和 `v1.3 based-on v1.2` 同时存在时的 merge 冲突解决策略\n- 不支持跨版本 chunk 复用（同一个 PRD chunk 被多个版本引用）\n\
+  \n**留到 v1.4+**：\n- 多版本并行开发的 merge 策略\n- 跨版本 chunk 引用解析\n- 版本分支的可视化（Git 风格）\n\n---\n\n## 总结：v1.3 Scope 边界\n\n```\n✅ 包含（In\
+  \ Scope）:\n  - v1.2 遗留 6 个 PRD chunk 的 impl 规划 + 实现\n  - todo.md 全部 4 个需求的 PRD 规划 + impl 实现\n  - ait-state skill（驱动 state.md\
+  \ 生成）\n  - SpecGraph 数据模型 + 基础 CLI\n  - 检索/聚焦读取命令行（关键词模式）\n\n❌ 不包含（Out of Scope）:\n  - phases / task 体系\n  - 语义搜索（embedding）\n\
+  \  - SpecGraph 高级可视化（Mermaid / Web UI）\n  - 修改 v1.2 已 committed 的 impl\n  - 多版本并行开发\n  - 参考项目中与当前项目规范冲突的功能\n```\n"
+prd_chunks:
+- id: prd-v13-non-goals
+  heading: v1.3 非目标（Non-Goals）
+  level: 1
+  impl_status: pending
+impl_drafts: []

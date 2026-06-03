@@ -1,0 +1,20 @@
+id: T-task-relocation-02
+title: 实现 impl-task-summary-index
+source_chunk: prd-task-relocation
+impl_refs:
+- impl-task-summary-index
+global_refs:
+- global-tech-stack
+depends_on:
+- T-task-relocation-01
+order_hint: 2
+steps:
+- 按 impl-task-summary-index 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/schemas.py
+  - skill/ait/ait/index_manager.py
+  - skill/ait/ait/cli.py
+  bound_at: '2026-06-01T13:45:29.702996Z'

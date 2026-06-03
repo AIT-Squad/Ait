@@ -1,4 +1,4 @@
-"""Multi-level validation: E1 block / E2 warn / E3 info.
+"""Multi-level validation: E1 chunk / E2 warn / E3 info.
 
 Per project-docs/docs/prd/block-system.md#prd-block-validation.
 Validators emit ValidationIssue records; callers decide whether to raise or
@@ -11,106 +11,101 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
-from .block_parser import Block, ParsedFile
+from .chunk_parser import Chunk, ParsedFile
 
 Severity = Literal["E1", "E2", "E3"]
 
 ID_FORMAT = re.compile(r"^(prd|impl)-[a-z0-9]+(-[a-z0-9]+)*$")
-
 
 @dataclass(frozen=True)
 class ValidationIssue:
     severity: Severity
     code: str
     message: str
-    block_id: str | None = None
+    chunk_id: str | None = None
     file: str | None = None
 
 
 class ValidationError(Exception):
     """Raised when an E1 issue blocks the operation."""
 
-    def __init__(self, issues: list[ValidationIssue]):
+    def __init__(self, issues: list[ValidationIssue], details: dict | None = None):
         self.issues = issues
+        self.details = details or {}
         msg = "; ".join(f"{i.code}: {i.message}" for i in issues)
         super().__init__(msg)
 
 
-def validate_id_format(block_id: str) -> ValidationIssue | None:
+def validate_id_format(chunk_id: str) -> ValidationIssue | None:
     """ID must match {type}-{domain}-{name} with lowercase + hyphens."""
-    if not ID_FORMAT.match(block_id):
+    if not ID_FORMAT.match(chunk_id):
         return ValidationIssue(
             severity="E1",
             code="ID_FORMAT",
-            message=f"@id '{block_id}' violates naming rule {{type}}-{{domain}}-{{name}}",
-            block_id=block_id,
+            message=f"@id '{chunk_id}' violates naming rule {{type}}-{{domain}}-{{name}}",
+            chunk_id=chunk_id,
         )
     return None
 
-
-def validate_block_nonempty(block: Block) -> ValidationIssue | None:
-    """A block must have at least a heading."""
-    if not block.heading.strip() and block.level == 0:
+def validate_chunk_nonempty(chunk: Chunk) -> ValidationIssue | None:
+    """A chunk must have at least a heading."""
+    if not chunk.heading.strip() and chunk.level == 0:
         return ValidationIssue(
             severity="E3",
-            code="BLOCK_NO_HEADING",
-            message=f"Block '{block.id}' has no heading after the @id annotation",
-            block_id=block.id,
-            file=block.file,
+            code="CHUNK_NO_HEADING",
+            message=f"Chunk '{chunk.id}' has no heading after the @id annotation",
+            chunk_id=chunk.id,
+            file=chunk.file,
         )
     return None
-
 
 def validate_unique_ids(parsed: ParsedFile) -> list[ValidationIssue]:
     """Within one file, every @id must be unique (the global check happens elsewhere)."""
     seen: dict[str, int] = {}
     issues: list[ValidationIssue] = []
-    for block in parsed.blocks:
-        seen[block.id] = seen.get(block.id, 0) + 1
-    for block_id, count in seen.items():
+    for chunk in parsed.chunks:
+        seen[chunk.id] = seen.get(chunk.id, 0) + 1
+    for chunk_id, count in seen.items():
         if count > 1:
             issues.append(
                 ValidationIssue(
                     severity="E1",
                     code="ID_DUPLICATE_IN_FILE",
-                    message=f"@id '{block_id}' appears {count} times in {parsed.file}",
-                    block_id=block_id,
+                    message=f"@id '{chunk_id}' appears {count} times in {parsed.file}",
+                    chunk_id=chunk_id,
                     file=parsed.file,
                 )
             )
     return issues
 
-
 def validate_baseline_id_unique(
-    new_block_id: str, baseline_ids: set[str]
+    new_chunk_id: str, baseline_ids: set[str]
 ) -> ValidationIssue | None:
-    """When adding a new block at the baseline level, its ID must not already exist."""
-    if new_block_id in baseline_ids:
+    """When adding a new chunk at the baseline level, its ID must not already exist."""
+    if new_chunk_id in baseline_ids:
         return ValidationIssue(
             severity="E1",
             code="ID_CONFLICT_BASELINE",
-            message=f"@id '{new_block_id}' already exists in baseline",
-            block_id=new_block_id,
+            message=f"@id '{new_chunk_id}' already exists in baseline",
+            chunk_id=new_chunk_id,
         )
     return None
 
-
 def validate_ref_target(
     target_file: str,
-    target_block_id: str,
+    target_chunk_id: str,
     baseline_ids: set[str],
     version_ids: set[str],
 ) -> ValidationIssue | None:
     """Verify a @ref points at something known. E2 (warn) when missing."""
-    if target_block_id not in baseline_ids and target_block_id not in version_ids:
+    if target_chunk_id not in baseline_ids and target_chunk_id not in version_ids:
         return ValidationIssue(
             severity="E2",
             code="REF_DANGLING",
-            message=f"@ref target {target_file}#{target_block_id} not found",
-            block_id=target_block_id,
+            message=f"@ref target {target_file}#{target_chunk_id} not found",
+            chunk_id=target_chunk_id,
         )
     return None
-
 
 def validate_parsed_file(
     parsed: ParsedFile, baseline_ids: set[str] | None = None
@@ -118,10 +113,10 @@ def validate_parsed_file(
     """Run per-file checks: ID format, uniqueness, heading present."""
     baseline_ids = baseline_ids or set()
     issues: list[ValidationIssue] = []
-    for block in parsed.blocks:
-        if issue := validate_id_format(block.id):
+    for chunk in parsed.chunks:
+        if issue := validate_id_format(chunk.id):
             issues.append(issue)
-        if issue := validate_block_nonempty(block):
+        if issue := validate_chunk_nonempty(chunk):
             issues.append(issue)
     issues.extend(validate_unique_ids(parsed))
     return issues

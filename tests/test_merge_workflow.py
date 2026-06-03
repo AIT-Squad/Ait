@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from ait.block_parser import Block
-from ait.hash_utils import block_hash
+from ait.chunk_parser import Chunk
+from ait.hash_utils import chunk_hash
 from ait.io_utils import atomic_write_text
 from ait.validator import ValidationError
 from ait.version_manager import VersionManager, VersionManagerError
@@ -20,9 +20,9 @@ def project(tmp_path: Path) -> Path:
     return tmp_path
 
 
-def _make_block(id_: str, heading: str, file: str = "prd/test", level: int = 2) -> Block:
+def _make_chunk(id_: str, heading: str, file: str = "impl/test", level: int = 2) -> Chunk:
     content = f"<!-- @id:{id_} -->\n{'#' * level} {heading}\n\nbody"
-    return Block(
+    return Chunk(
         id=id_, heading=heading, level=level, content=content,
         line_start=1, line_end=4, file=file,
     )
@@ -34,17 +34,19 @@ def _seed_baseline(root: Path, file_rel: str, content: str) -> None:
 
 
 def test_merge_creates_new_file_into_baseline(project: Path):
+    # NOTE: 用 impl 路径承载"新建 baseline 文件"语义；PRD 类目在 v1.6 起被收敛到
+    # docs/prd/global.md，不再以"任意新建多文件"作为合并目标。
     vm = VersionManager(project)
     vm.create("v1.1")
-    vm.add_block("v1.1", block=_make_block("prd-test-new", "New"))
+    vm.add_chunk("v1.1", chunk=_make_chunk("impl-test-new", "New"))
     vm.write_version_file(
         "v1.1",
-        "prd/new-feature",
-        "<!-- @id:prd-test-new -->\n## New\n\nbody\n",
+        "impl/new-feature",
+        "<!-- @id:impl-test-new -->\n## New\n\nbody\n",
     )
-    # Move the block's file pointer to the new file (not prd/test).
+    # Move the block's file pointer to the new file (not impl/test).
     idx = vm.indexes.load_version_index("v1.1")
-    idx.blocks[0].file = "prd/new-feature"
+    idx.chunks[0].file = "impl/new-feature"
     vm.indexes.save_version_index(idx)
 
     vm.stage("v1.1")
@@ -52,41 +54,42 @@ def test_merge_creates_new_file_into_baseline(project: Path):
     result = vm.merge("v1.1")
 
     assert result.status == "completed"
-    assert result.merged_blocks == ["prd-test-new"]
+    assert result.merged_chunks == ["impl-test-new"]
 
-    out = project / "docs" / "prd" / "new-feature.md"
+    out = project / "docs" / "impl" / "new-feature.md"
     assert out.exists()
     text = out.read_text(encoding="utf-8")
-    assert "<!-- @id:prd-test-new -->" in text
+    assert "<!-- @id:impl-test-new -->" in text
     assert "## New" in text
 
 
 def test_merge_modify_existing_block(project: Path):
+    # NOTE: 用 impl 路径承载通用 "modify existing" 语义。
     # Seed baseline with one block.
     _seed_baseline(
         project,
-        "prd/existing",
-        "# Existing doc\n\n<!-- @id:prd-x -->\n## X\n\noriginal body\n",
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
     )
     vm = VersionManager(project)
     vm.indexes.rebuild_baseline()
 
-    base_hash_recorded = block_hash(
-        "<!-- @id:prd-x -->\n## X\n\noriginal body"
+    base_hash_recorded = chunk_hash(
+        "<!-- @id:impl-x -->\n## X\n\noriginal body"
     )
 
     vm.create("v1.1")
     # Write the modified block into the version workspace.
     vm.write_version_file(
         "v1.1",
-        "prd/existing",
-        "<!-- @id:prd-x -->\n## X (updated)\n\nnew body\n",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X (updated)\n\nnew body\n",
     )
-    vm.add_block(
+    vm.add_chunk(
         "v1.1",
-        block=_make_block("prd-x", "X (updated)", file="prd/existing"),
+        chunk=_make_chunk("impl-x", "X (updated)", file="impl/existing"),
         action="modify",
-        overrides="prd-x",
+        overrides="impl-x",
         base_hash=base_hash_recorded,
     )
     vm.stage("v1.1")
@@ -94,16 +97,17 @@ def test_merge_modify_existing_block(project: Path):
     result = vm.merge("v1.1")
 
     assert result.status == "completed"
-    text = (project / "docs" / "prd" / "existing.md").read_text(encoding="utf-8")
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
     assert "X (updated)" in text
     assert "original body" not in text
 
 
 def test_merge_conflict_abort_keeps_baseline(project: Path):
+    # NOTE: 用 impl 路径承载通用 "conflict abort" 语义。
     _seed_baseline(
         project,
-        "prd/existing",
-        "# Existing\n\n<!-- @id:prd-x -->\n## X\n\noriginal\n",
+        "impl/existing",
+        "# Existing\n\n<!-- @id:impl-x -->\n## X\n\noriginal\n",
     )
     vm = VersionManager(project)
     vm.indexes.rebuild_baseline()
@@ -112,14 +116,14 @@ def test_merge_conflict_abort_keeps_baseline(project: Path):
     # Pretend version recorded an outdated base_hash (simulating someone else changed baseline).
     vm.write_version_file(
         "v1.1",
-        "prd/existing",
-        "<!-- @id:prd-x -->\n## X v2\n\nupdated\n",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X v2\n\nupdated\n",
     )
-    vm.add_block(
+    vm.add_chunk(
         "v1.1",
-        block=_make_block("prd-x", "X v2", file="prd/existing"),
+        chunk=_make_chunk("impl-x", "X v2", file="impl/existing"),
         action="modify",
-        overrides="prd-x",
+        overrides="impl-x",
         base_hash="deadbeef",  # wrong hash → conflict
     )
     vm.stage("v1.1")
@@ -129,16 +133,17 @@ def test_merge_conflict_abort_keeps_baseline(project: Path):
     assert result.status == "aborted"
     assert len(result.conflicts) == 1
     # Baseline untouched.
-    text = (project / "docs" / "prd" / "existing.md").read_text(encoding="utf-8")
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
     assert "original" in text
     assert "X v2" not in text
 
 
 def test_merge_conflict_use_version_overwrites(project: Path):
+    # NOTE: 用 impl 路径承载通用 "conflict use-version" 语义。
     _seed_baseline(
         project,
-        "prd/existing",
-        "# Existing\n\n<!-- @id:prd-x -->\n## X\n\noriginal\n",
+        "impl/existing",
+        "# Existing\n\n<!-- @id:impl-x -->\n## X\n\noriginal\n",
     )
     vm = VersionManager(project)
     vm.indexes.rebuild_baseline()
@@ -146,14 +151,14 @@ def test_merge_conflict_use_version_overwrites(project: Path):
     vm.create("v1.1")
     vm.write_version_file(
         "v1.1",
-        "prd/existing",
-        "<!-- @id:prd-x -->\n## X v2\n\nforced\n",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X v2\n\nforced\n",
     )
-    vm.add_block(
+    vm.add_chunk(
         "v1.1",
-        block=_make_block("prd-x", "X v2", file="prd/existing"),
+        chunk=_make_chunk("impl-x", "X v2", file="impl/existing"),
         action="modify",
-        overrides="prd-x",
+        overrides="impl-x",
         base_hash="deadbeef",
     )
     vm.stage("v1.1")
@@ -161,53 +166,56 @@ def test_merge_conflict_use_version_overwrites(project: Path):
 
     result = vm.merge("v1.1", conflict_policy="use-version")
     assert result.status == "completed"
-    text = (project / "docs" / "prd" / "existing.md").read_text(encoding="utf-8")
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
     assert "X v2" in text
 
 
 def test_merge_creates_snapshot(project: Path):
+    # NOTE: 用 impl 路径承载通用 "snapshot 落盘" 语义。
     vm = VersionManager(project)
     vm.create("v1.1")
-    vm.add_block(
-        "v1.1", block=_make_block("prd-test-x", "X", file="prd/snap"),
+    vm.add_chunk(
+        "v1.1", chunk=_make_chunk("impl-test-x", "X", file="impl/snap"),
     )
     vm.write_version_file(
-        "v1.1", "prd/snap", "<!-- @id:prd-test-x -->\n## X\n\nbody\n"
+        "v1.1", "impl/snap", "<!-- @id:impl-test-x -->\n## X\n\nbody\n"
     )
     vm.stage("v1.1")
     vm.commit("v1.1", "x")
     vm.merge("v1.1")
 
-    snap_dir = project / ".meta" / "snapshots" / "v1.1" / "docs" / "prd"
+    snap_dir = project / ".meta" / "snapshots" / "v1.1" / "docs" / "impl"
     assert (snap_dir / "snap.md").exists()
 
 
 def test_merge_updates_baseline_index(project: Path):
+    # NOTE: 用 impl 路径承载通用 "baseline index 更新" 语义。
     vm = VersionManager(project)
     vm.create("v1.1")
-    vm.add_block(
-        "v1.1", block=_make_block("prd-test-y", "Y", file="prd/y"),
+    vm.add_chunk(
+        "v1.1", chunk=_make_chunk("impl-test-y", "Y", file="impl/y"),
     )
     vm.write_version_file(
-        "v1.1", "prd/y", "<!-- @id:prd-test-y -->\n## Y\n\nbody\n"
+        "v1.1", "impl/y", "<!-- @id:impl-test-y -->\n## Y\n\nbody\n"
     )
     vm.stage("v1.1")
     vm.commit("v1.1", "y")
     vm.merge("v1.1")
 
     baseline = vm.indexes.load_baseline()
-    ids = {b.id for b in baseline.blocks}
-    assert "prd-test-y" in ids
+    ids = {b.id for b in baseline.chunks}
+    assert "impl-test-y" in ids
 
 
 def test_merge_already_merged_raises(project: Path):
+    # NOTE: 用 impl 路径承载通用 "重复 merge 报错" 语义。
     vm = VersionManager(project)
     vm.create("v1.1")
-    vm.add_block(
-        "v1.1", block=_make_block("prd-test-z", "Z", file="prd/z"),
+    vm.add_chunk(
+        "v1.1", chunk=_make_chunk("impl-test-z", "Z", file="impl/z"),
     )
     vm.write_version_file(
-        "v1.1", "prd/z", "<!-- @id:prd-test-z -->\n## Z\n\nbody\n"
+        "v1.1", "impl/z", "<!-- @id:impl-test-z -->\n## Z\n\nbody\n"
     )
     vm.stage("v1.1")
     vm.commit("v1.1", "z")
@@ -218,10 +226,11 @@ def test_merge_already_merged_raises(project: Path):
 
 
 def test_merge_no_committed_blocks_raises(project: Path):
+    # NOTE: 用 impl 路径承载通用 "无 committed 报错" 语义。
     vm = VersionManager(project)
     vm.create("v1.1")
-    vm.add_block(
-        "v1.1", block=_make_block("prd-test-w", "W", file="prd/w"),
+    vm.add_chunk(
+        "v1.1", chunk=_make_chunk("impl-test-w", "W", file="impl/w"),
     )
     # Never staged/committed.
     with pytest.raises(ValidationError) as exc:

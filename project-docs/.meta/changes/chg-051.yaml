@@ -1,0 +1,16 @@
+id: chg-051
+version: v1.4
+type: ADD
+target: impl/formats#impl-formats-parser
+author: system
+date: '2026-06-01T07:11:12.454226+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-formats-parser -->\n## 格式解析扩展（四段 PRD + chunk 解析）\n\n扩展现有 chunk 解析器，支持 PRD 四段固定结构识别与 @extract 块。\n\
+  \n### PRD 四段识别\n\nPRD chunk 内的固定四段（`### 概述` / `### 业务规则` / `### 验收标准` / `### 边界与非目标`）作为子结构解析，供 task 拆分时定位\"业务规则\"和\"验收标准\"\
+  。\n\n<!-- @extract:dynamic/schema#prd-sections -->\n```python\n@dataclass(frozen=True)\nclass PrdSections:\n    overview:\
+  \ str        # 概述\n    rules: list[str]     # 业务规则（拆 task 的依据）\n    acceptance: list[str]# 验收标准（task 完成判定）\n    boundary:\
+  \ str        # 边界与非目标\n```\n<!-- @extract-end -->\n\n### 解析规则\n- 四段以 `### ` 三级标题为锚，缺段时对应字段为空 + 校验警告（非阻断）\n- 不破坏现有 chunk\
+  \ 边界规则（chunk 仍由 `@id` 界定，四段是 chunk 内部子结构）\n- @extract 块解析复用 impl-impl-stage-extract 的逻辑\n\n### 兼容\n- 现有非四段格式的 PRD chunk\
+  \ 仍可解析（四段为推荐结构，解析器容错）\n\n<!-- @ref:prd/ait-redesign#prd-formats rel:implements -->"

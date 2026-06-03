@@ -1,0 +1,20 @@
+id: T-init-incremental-02
+title: 实现 impl-init-state-detect
+source_chunk: prd-init-incremental
+impl_refs:
+- impl-init-state-detect
+global_refs:
+- global-tech-stack
+depends_on:
+- T-init-incremental-01
+order_hint: 2
+steps:
+- 按 impl-init-state-detect 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/init_manager.py
+  - skill/ait/ait/cli.py
+  - skill/ait/ait/schemas.py
+  bound_at: '2026-06-01T13:59:50.141281Z'

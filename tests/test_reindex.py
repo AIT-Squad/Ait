@@ -32,16 +32,16 @@ def _run_reindex(runner: CliRunner, root: Path):
 
 
 def test_reindex_empty_docs(project_root: Path):
-    """Empty docs/ → zero blocks, zero links, both index files written."""
+    """Empty docs/ → zero chunks, baseline index + specgraph written (links deprecated)."""
     runner = CliRunner()
     data = _run_reindex(runner, project_root)
 
-    assert data["blocks"] == 0
-    assert data["links"] == 0
-    assert data["baseline_index"] == ".meta/blocks-index.yaml"
-    assert data["links_index"] == ".meta/links-index.yaml"
-    assert (project_root / ".meta" / "blocks-index.yaml").exists()
-    assert (project_root / ".meta" / "links-index.yaml").exists()
+    assert data["chunks"] == 0
+    assert data["specs"] == 0
+    assert data["baseline_index"] == ".meta/chunks-index.yaml"
+    assert data["specgraph_index"] == ".meta/specgraph.yaml"
+    assert (project_root / ".meta" / "chunks-index.yaml").exists()
+    assert (project_root / ".meta" / "specgraph.yaml").exists()
 
 
 def test_reindex_single_file_multiple_blocks(project_root: Path):
@@ -56,12 +56,12 @@ def test_reindex_single_file_multiple_blocks(project_root: Path):
     runner = CliRunner()
     data = _run_reindex(runner, project_root)
 
-    assert data["blocks"] == 2
-    assert data["links"] == 0
+    assert data["chunks"] == 2
+    assert data["specs"] == 2
 
 
 def test_reindex_picks_up_cross_file_refs(project_root: Path):
-    """@ref across PRD and impl files should populate links-index."""
+    """@ref across PRD and impl files should produce an implements edge in specgraph."""
     (project_root / "docs" / "prd" / "demo.md").write_text(
         "<!-- @id:prd-demo-feature -->\n## 功能\n\n描述\n",
         encoding="utf-8",
@@ -75,18 +75,18 @@ def test_reindex_picks_up_cross_file_refs(project_root: Path):
     runner = CliRunner()
     data = _run_reindex(runner, project_root)
 
-    assert data["blocks"] == 2
-    assert data["links"] == 1
+    assert data["chunks"] == 2
+    assert data["edges"] == 1
 
     import yaml
 
-    links = yaml.safe_load(
-        (project_root / ".meta" / "links-index.yaml").read_text(encoding="utf-8")
+    graph = yaml.safe_load(
+        (project_root / ".meta" / "specgraph.yaml").read_text(encoding="utf-8")
     )
-    link = links["links"][0]
-    assert link["from"] == "impl/api#impl-api-demo"
-    assert link["to"] == "prd/demo#prd-demo-feature"
-    assert link["rel"] == "implements"
+    edge = graph["edges"][0]
+    assert edge["src"] == "spec:impl:baseline:impl-api-demo"
+    assert edge["dst"] == "spec:prd:baseline:prd-demo-feature"
+    assert edge["rel"] == "implements"
 
 
 def test_reindex_is_idempotent(project_root: Path):
@@ -98,16 +98,16 @@ def test_reindex_is_idempotent(project_root: Path):
 
     runner = CliRunner()
     _run_reindex(runner, project_root)
-    first = (project_root / ".meta" / "blocks-index.yaml").read_text(encoding="utf-8")
+    first = (project_root / ".meta" / "chunks-index.yaml").read_text(encoding="utf-8")
 
     _run_reindex(runner, project_root)
-    second = (project_root / ".meta" / "blocks-index.yaml").read_text(encoding="utf-8")
+    second = (project_root / ".meta" / "chunks-index.yaml").read_text(encoding="utf-8")
 
     import yaml
 
     a = yaml.safe_load(first)
     b = yaml.safe_load(second)
-    assert a["blocks"] == b["blocks"]
+    assert a["chunks"] == b["chunks"]
 
 
 def test_reindex_overwrites_stale_index(project_root: Path):
@@ -121,11 +121,11 @@ def test_reindex_overwrites_stale_index(project_root: Path):
 
     runner = CliRunner()
     data1 = _run_reindex(runner, project_root)
-    assert data1["blocks"] == 2
+    assert data1["chunks"] == 2
 
     prd.write_text(
         "<!-- @id:prd-demo-a -->\n## A\n\nx\n",
         encoding="utf-8",
     )
     data2 = _run_reindex(runner, project_root)
-    assert data2["blocks"] == 1
+    assert data2["chunks"] == 1

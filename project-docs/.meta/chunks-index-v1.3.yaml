@@ -1,0 +1,436 @@
+version: 1
+scope: version
+version_name: v1.3
+based_on_hash: null
+status: merged
+chunks:
+- id: prd-release-v13-overview
+  file: prd/overview
+  heading: v1.3 版本概述
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-005
+  summary: null
+- id: prd-backlog-v12-legacy
+  file: prd/backlog
+  heading: v1.2 遗留 PRD Chunk 实现清单
+  level: 1
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-006
+  summary: null
+- id: prd-scope-non-goals
+  file: prd/non-goals
+  heading: v1.3 非目标（Non-Goals）
+  level: 1
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-007
+  summary: null
+- id: prd-skill-state
+  file: prd/state-skill
+  heading: 目标3：ait-state Skill（版本进度面板）
+  level: 1
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-008
+  summary: null
+- id: prd-skill-migration
+  file: prd/todo1-skill-migration
+  heading: 需求1：参考项目 skill 功能迁移
+  level: 1
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-009
+  summary: null
+- id: prd-init-upgrade
+  file: prd/todo2-init-upgrade
+  heading: 需求2：init 流程智能识别旧项目
+  level: 1
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-010
+  summary: null
+- id: prd-specgraph-index
+  file: prd/todo3-specgraph
+  heading: 需求3：links-index.yaml 重构为 SpecGraph
+  level: 1
+  action: add
+  state: committed
+  commit_id: c7
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-011
+  summary: null
+- id: prd-search-cli
+  file: prd/todo4-search
+  heading: 需求4：检索/聚焦读取命令行迁移
+  level: 1
+  action: add
+  state: committed
+  commit_id: c8
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-012
+  summary: null
+- id: impl-v13-release-plan
+  file: impl/release
+  heading: v1.3 实现总览
+  level: 1
+  action: add
+  state: committed
+  commit_id: c22
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-layout
+  file: impl/skills
+  heading: Skill 子目录布局实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c9
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-router
+  file: impl/skills
+  heading: 主 SKILL.md Router 改造实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c10
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-format-adapt
+  file: impl/skills
+  heading: 子 Skill 格式适配实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c11
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-contract
+  file: impl/skills
+  heading: 子 Skill 调用与写入契约实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c12
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-mapping
+  file: impl/skills
+  heading: 四个子 Skill 行为映射实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c13
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skills-overview
+  file: impl/skills
+  heading: Micro-skill 总览实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c14
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-skill-migration
+  file: impl/workflow
+  heading: 参考项目 Skill 功能迁移实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c15
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-init-upgrade
+  file: impl/workflow
+  heading: Init 流程智能识别实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c16
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-data-specgraph-model
+  file: impl/specgraph
+  heading: SpecGraph 数据模型实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c17
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-specgraph-cli
+  file: impl/specgraph
+  heading: SpecGraph CLI 与自动维护实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c18
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-search-cli
+  file: impl/search
+  heading: Search CLI 实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c19
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-focus-deps-impact
+  file: impl/search
+  heading: 聚焦读取、依赖查询与影响面分析实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c20
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-workflow-state-skill
+  file: impl/state
+  heading: ait-state Skill 与 state.md 实现
+  level: 1
+  action: add
+  state: committed
+  commit_id: c21
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-05-26T07:39:52.789930+00:00'
+  message: 'v1.3 PRD: 版本概述'
+  chunks:
+  - prd-release-v13-overview
+  req_id: null
+- id: c2
+  timestamp: '2026-05-26T07:39:56.910160+00:00'
+  message: 'v1.3 PRD: v1.2 遗留实现清单'
+  chunks:
+  - prd-backlog-v12-legacy
+  req_id: null
+- id: c3
+  timestamp: '2026-05-26T07:40:07.002163+00:00'
+  message: 'v1.3 PRD: 非目标'
+  chunks:
+  - prd-scope-non-goals
+  req_id: null
+- id: c4
+  timestamp: '2026-05-26T07:40:11.935475+00:00'
+  message: 'v1.3 PRD: ait-state Skill'
+  chunks:
+  - prd-skill-state
+  req_id: null
+- id: c5
+  timestamp: '2026-05-26T07:40:16.176968+00:00'
+  message: 'v1.3 PRD: 参考项目 skill 功能迁移'
+  chunks:
+  - prd-skill-migration
+  req_id: null
+- id: c6
+  timestamp: '2026-05-26T07:40:20.778027+00:00'
+  message: 'v1.3 PRD: init 流程智能识别'
+  chunks:
+  - prd-init-upgrade
+  req_id: null
+- id: c7
+  timestamp: '2026-05-26T07:40:33.960749+00:00'
+  message: 'v1.3 PRD: links-index.yaml 重构为 SpecGraph'
+  chunks:
+  - prd-specgraph-index
+  req_id: null
+- id: c8
+  timestamp: '2026-05-26T07:40:38.420815+00:00'
+  message: 'v1.3 PRD: 检索/聚焦读取命令行迁移'
+  chunks:
+  - prd-search-cli
+  req_id: null
+- id: c9
+  timestamp: '2026-05-26T09:27:04.984648+00:00'
+  message: Implement v1.3 skill sub-skill layout
+  chunks:
+  - impl-skills-layout
+  req_id: null
+- id: c10
+  timestamp: '2026-05-26T09:27:05.184323+00:00'
+  message: Implement v1.3 skill router
+  chunks:
+  - impl-skills-router
+  req_id: null
+- id: c11
+  timestamp: '2026-05-26T09:27:05.342911+00:00'
+  message: Implement v1.3 sub-skill format
+  chunks:
+  - impl-skills-format-adapt
+  req_id: null
+- id: c12
+  timestamp: '2026-05-26T09:27:05.529965+00:00'
+  message: Implement v1.3 sub-skill contract
+  chunks:
+  - impl-skills-contract
+  req_id: null
+- id: c13
+  timestamp: '2026-05-26T09:27:05.718322+00:00'
+  message: Implement v1.3 sub-skill mapping
+  chunks:
+  - impl-skills-mapping
+  req_id: null
+- id: c14
+  timestamp: '2026-05-26T09:27:05.889389+00:00'
+  message: Implement v1.3 micro-skill overview
+  chunks:
+  - impl-skills-overview
+  req_id: null
+- id: c15
+  timestamp: '2026-05-26T09:28:58.683557+00:00'
+  message: Implement v1.3 skill migration
+  chunks:
+  - impl-workflow-skill-migration
+  req_id: null
+- id: c16
+  timestamp: '2026-05-26T09:28:58.853144+00:00'
+  message: Implement v1.3 init guidance
+  chunks:
+  - impl-workflow-init-upgrade
+  req_id: null
+- id: c17
+  timestamp: '2026-05-26T09:32:07.825029+00:00'
+  message: Implement v1.3 SpecGraph model
+  chunks:
+  - impl-data-specgraph-model
+  req_id: null
+- id: c18
+  timestamp: '2026-05-26T09:32:08.039566+00:00'
+  message: Implement v1.3 SpecGraph CLI
+  chunks:
+  - impl-workflow-specgraph-cli
+  req_id: null
+- id: c19
+  timestamp: '2026-05-26T09:33:46.056519+00:00'
+  message: Implement v1.3 search CLI
+  chunks:
+  - impl-workflow-search-cli
+  req_id: null
+- id: c20
+  timestamp: '2026-05-26T09:33:46.354761+00:00'
+  message: Implement v1.3 focus deps impact
+  chunks:
+  - impl-workflow-focus-deps-impact
+  req_id: null
+- id: c21
+  timestamp: '2026-05-26T09:35:35.612894+00:00'
+  message: Implement v1.3 state panel
+  chunks:
+  - impl-workflow-state-skill
+  req_id: null
+- id: c22
+  timestamp: '2026-05-26T09:36:18.793330+00:00'
+  message: Complete v1.3 implementation rollout
+  chunks:
+  - impl-v13-release-plan
+  req_id: null
+stats:
+  total_chunks: 22
+  by_action:
+    add: 22
+  by_state:
+    committed: 22
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

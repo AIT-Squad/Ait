@@ -1,0 +1,32 @@
+id: chg-069
+version: v1.5
+type: ADD
+target: impl/skill-cli-doc-rewrite#impl-skill-cli-config-injection
+author: system
+date: '2026-06-01T13:08:02.044139+00:00'
+message: 'v1.5: inject skill_dir and project-local wrapper at init'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-skill-cli-config-injection -->\n## init 阶段注入 skill 路径并生成项目本地 wrapper\n\n<!-- @ref:prd-skill-cli-resolution\
+  \ rel:implements -->\n\n### 实现要点\n\n#### 1. wrapper 向下传递自身路径\n- `skill/ait/bin/ait`：在 `exec` 之前 `export AIT_SKILL_DIR=\"\
+  $SKILL_DIR\"`，把已解析好的 skill 安装路径透传给 Python 进程。\n- `skill/ait/bin/ait.cmd`：对应增加 `set \"AIT_SKILL_DIR=%SKILL_DIR%\"` 后再调用 `%VENV_PY%`。\n\
+  - 不读 `cwd`、不读 `argv[0]`，CLI 端只信任 `os.environ[\"AIT_SKILL_DIR\"]`；缺失则按 `~/.claude/skills/ait` 兜底。\n\n#### 2. CLI 在 init 时落盘\
+  \ skill_dir / cli_path\n改造点：`skill/ait/ait/init_manager.py` 的 `InitManager._mark_initialized`。\n- 写入字段（追加，不覆盖既有键）：\n  -\
+  \ `skill_dir`: `os.environ.get(\"AIT_SKILL_DIR\", str(Path.home() / \".claude\" / \"skills\" / \"ait\"))`\n  - `cli_path`:\
+  \ `<skill_dir>/bin/ait`（Windows 下为 `<skill_dir>/bin/ait.cmd`，按 `os.name == \"nt\"` 分支）\n  - `wrapper_path`: `project-docs/.ait/ait-cli`（项目本地相对路径，文档统一引用此值）\n\
+  - 已有 `initialized: true` 行为保持不变；新增字段独立于 `initialized` 写入，避免回填阻塞。\n\n#### 3. 生成项目本地薄壳 `project-docs/.ait/ait-cli`\n- 在 `InitManager.run`\
+  \ 末尾、`_mark_initialized` 之后新增 `_write_project_wrapper` 步骤。\n- 目录结构：\n  - 类 Unix：`<root>/.ait/ait-cli`（`chmod 0755`）\n  -\
+  \ Windows：`<root>/.ait/ait-cli.cmd`\n- 内容（Unix）：\n  ```bash\n  #!/usr/bin/env bash\n  # AIT project-local wrapper — generated\
+  \ by `ait init`. Do not edit manually.\n  exec \"{cli_path}\" \"$@\"\n  ```\n- 内容（Windows）：\n  ```bat\n  @echo off\n  \"\
+  {cli_path}\" %*\n  ```\n- `{cli_path}` 由步骤 2 的 `cli_path` 字段渲染。\n- 同时生成 `<root>/.ait/.gitignore`（内容 `*` + `!.gitignore`\
+  \ + `!ait-cli` + `!ait-cli.cmd`），可选；本期默认不写，让 `.ait/` 随项目入库以保证团队成员路径一致——当 skill 安装路径不同时，由 `init --refresh-wrapper` 重写。\n\n\
+  #### 4. 新增 `bin/ait init --refresh-wrapper`\n- 仅重写 `.meta/config.yaml` 的 `skill_dir`/`cli_path`/`wrapper_path` 三个字段与 `project-docs/.ait/ait-cli*`\
+  \ 文件，**不改任何 docs/global/\\***。\n- 适用场景：用户换机 / skill 安装路径变化 / 团队成员从 git 拉取后第一次本地化。\n- 输出：`{\"ok\": true, \"data\": {\"refreshed\"\
+  : true, \"skill_dir\": \"...\", \"wrapper\": \"project-docs/.ait/ait-cli\"}}`。\n- 与 `prd-init-idempotent` 引入的 `init --check`\
+  \ 共存，互不干扰。\n\n#### 5. CLI 入口提示\n`skill/ait/ait/cli.py` 在以下两种情况下追加 stderr 提示（不污染 stdout JSON）：\n- 检测到 `cwd` 含 `project-docs/`\
+  \ 但 `project-docs/.ait/ait-cli` 不存在 → 提示 `tip: run \\`{AIT_SKILL_DIR}/bin/ait init --refresh-wrapper\\` to generate project-local\
+  \ wrapper`。\n- 检测到 `.meta/config.yaml` 中 `skill_dir` 与当前 `AIT_SKILL_DIR` 不一致 → 提示 `tip: skill_dir mismatch detected, run\
+  \ init --refresh-wrapper`。\n\n### 测试要点\n- 单元：`tests/test_init_manager.py` 覆盖 config 字段写入、wrapper 文件生成、refresh-wrapper 不动\
+  \ docs。\n- 集成：在 tmp dir 跑 `bin/ait init` → 断言 `project-docs/.ait/ait-cli` 可执行且 `--version` 输出与 skill 版本一致。\n- 跨平台：mock `os.name\
+  \ == \"nt\"` 分支断言生成 `.cmd` 文件。\n\n### 边界\n- 不修改 wrapper 已有的\"自定位\"逻辑，仅追加 `export AIT_SKILL_DIR`。\n- 不引入 `AIT_HOME` 等用户可配置环境变量（保持显式路径调用哲学）。\n\
+  - 不写 PATH、不创建系统级符号链接。\n\n<!-- @ref:prd/v1-5-roadmap#prd-skill-cli-resolution rel:implements -->"

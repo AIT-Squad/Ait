@@ -1,0 +1,29 @@
+id: chg-085
+version: v1.6
+type: ADD
+target: impl/prd-global-single-file#impl-prd-global-migrate-script
+author: system
+date: '2026-06-02T12:36:40.048528+00:00'
+message: 'impl#1: 一次性迁移脚本 + dry-run/apply + 7 步自检'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-prd-global-migrate-script -->\n## Baseline PRD 单文件化 — 一次性迁移脚本\n\n<!-- @ref:prd-prd-global-single-file\
+  \ rel:implements -->\n\n### 改动点\n\n#### 1. 新建 `scripts/migrate_prd_to_global.py`（仓库根目录 `scripts/` 下）\n\n脚本作为 v1.6 的一次性 task\
+  \ 执行，跑完即弃，不进 ait CLI 永久 surface。\n\n入参：无（默认读 `project-docs/`，可通过 `--root` 覆盖）。\n\n执行步骤（严格顺序，任一失败立即终止并不修改磁盘）：\n1. 加载 baseline\
+  \ `chunks-index.yaml`，过滤出所有 `id` 以 `prd-` 开头的 chunk，按 `file` 分组、再按 chunk 在原文件中的物理顺序聚合，得到 `(file, [chunk_id, ...])` 列表。**保持\
+  \ chunks-index 中的当前顺序作为最终顺序**（chunks-index 是唯一权威 ordering）。\n2. 用 `chunk_parser.parse_file(path, root)` 解析每个原始 PRD 文件，按\
+  \ 1 中顺序取出 chunk 对象（带 raw content / @ref / @extract）。\n3. 拼接所有 chunk 的原始 raw 内容到一个新文件 `docs/prd/global.md`，文件头部写 `# Baseline\
+  \ PRD（merged baseline, edit by chunk only）` 单行 H1，**chunk 之间用单空行分隔**，chunk 内容 **逐字保留**（包含 `<!-- @id -->` / `<!-- @ref -->`\
+  \ / `<!-- @extract -->`，不重写、不规范化、不去 BOM）。\n4. 用 `chunk_parser.parse_file('docs/prd/global.md', root)` 重新解析，断言：解析出的 chunk\
+  \ 数 = 原 14 个 PRD 文件 chunk 总和（52）；chunk id 集合相等；每个 chunk 的 `chunk_hash(content)` 与原文件中同 id chunk 的 hash 完全相等（这是迁移自反性 / 零内容损失契约）。\n\
+  5. 物理删除 `docs/prd/` 下除 `global.md` 外的所有 `.md` 文件（先打印将删除文件清单，--apply 才真正删；默认 dry-run）。\n6. 调用 `ait reindex`（用 `subprocess.run([sys.executable,\
+  \ '-m', 'ait.cli', 'reindex'], cwd=root, check=True)`），重建 baseline `chunks-index.yaml` 和 `specgraph.yaml`。\n7. 跑迁移后自检：\n\
+  \   - `chunks-index.yaml` 中所有 PRD chunk 的 `file` 字段 == `prd/global`。\n   - PRD chunk 总数 == 迁移前快照值（从步骤 1 暂存）。\n   - specgraph\
+  \ 中 PRD chunk 的 `@ref` 出/入边集合 == 迁移前快照（用 `(src, rel, dst)` 三元组集合相等判定）。\n8. 输出 JSON 报告到 stdout：`{ok, prd_chunk_count, deleted_files,\
+  \ specgraph_diff_edges}`。失败任何一步退出码非零，并保留 `--apply` 之前的状态。\n\n参数：`--root`（默认 `project-docs/`）、`--apply`（默认 dry-run，必须显式给才真正落盘）。\n\
+  \n不得改动：\n- 任何 chunk 的 raw 内容（包括尾随空行）。\n- impl 文件、impl chunks-index、versions/* 历史快照。\n- 已 merged 的 v1.1~v1.5 工作区。\n- baseline\
+  \ `chunks-index-{vX.Y}.yaml` 历史文件（仅当前 baseline `chunks-index.yaml` 重建）。\n\n### 单元测试\n- `tests/test_migrate_prd_to_global.py`：在\
+  \ `tmp_path` 构造 mini project-docs（3 个 PRD 文件、共 5 个 chunk + 跨文件 @ref），跑脚本（apply=True），断言 `docs/prd/global.md` 存在、其它 `.md`\
+  \ 不存在、parse_file 重解析出 5 chunk、id 集合相等、每 chunk hash 相等。\n- `tests/test_migrate_prd_to_global.py::test_dry_run_does_not_touch_disk`：默认\
+  \ dry-run 模式断言磁盘零变更（mtime 全等）。\n- `tests/test_migrate_prd_to_global.py::test_specgraph_isomorphic`：迁移前 / 后 specgraph 中 PRD\
+  \ 节点的所有 (src, rel, dst) 三元组集合完全相等。\n\n<!-- @ref:prd/v1-6-roadmap#prd-prd-global-single-file rel:implements -->"

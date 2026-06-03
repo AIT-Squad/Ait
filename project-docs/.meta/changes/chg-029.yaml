@@ -1,0 +1,70 @@
+id: chg-029
+version: v1.3
+type: ADD
+target: impl/skills#impl-skills-mapping
+author: system
+date: '2026-05-26T09:27:05.717301+00:00'
+message: Implement v1.3 sub-skill mapping
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-skills-mapping -->
+
+
+  # 四个子 Skill 行为映射实现
+
+
+  ## 目标
+
+
+  将参考项目的讨论、实现讨论、进度查看和恢复建议能力，映射为当前项目的四个子 skill。
+
+
+  ## ait-discuss
+
+
+  - 负责 `/ait prd <title>` 的三阶段讨论。
+
+  - 调用 `bin/ait prd create`、`save-draft`、`confirm`。
+
+  - 输出 req_id、version、chunk_ids 与目标文件。
+
+
+  ## ait-impl-discuss
+
+
+  - 负责 `/ait impl <prd-chunk-id>` 的实现设计。
+
+  - 调用 `bin/ait context <prd-chunk-id> --scenario prd-to-impl`。
+
+  - 生成 `impl-*` chunk 后调用 `bin/ait impl create`。
+
+
+  ## ait-progress
+
+
+  - 本期作为轻量进度面板。
+
+  - 读取 `.meta/versions/<v>.yaml` 与 `.meta/chunks-index-<v>.yaml`。
+
+  - 输出 PRD/impl 三态统计，不写入文件。
+
+
+  ## ait-resume
+
+
+  - 本期作为错误恢复助手。
+
+  - 根据 CLI JSON 的 `code` 字段给出恢复步骤。
+
+  - 不依赖 `.planning/ait/issues.md`。
+
+
+  ## 验收
+
+
+  - 四个子 skill 触发语不重叠。
+
+  - 每个子 skill 的 CLI 映射均指向当前项目 `bin/ait` 命令。
+
+
+  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'

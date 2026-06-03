@@ -1,0 +1,124 @@
+id: chg-071
+version: v1.5
+type: ADD
+target: impl/subskills-coverage#impl-subskill-task-execute-add
+author: system
+date: '2026-06-01T13:08:02.696591+00:00'
+message: 'v1.5: new ait-task-execute sub-skill'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-subskill-task-execute-add -->
+
+  ## 新增 ait-task-execute 子 skill
+
+
+  <!-- @ref:prd-subskills-coverage rel:implements -->
+
+
+  ### 产出物
+
+  新建 `skill/ait/sub-skills/ait-task-execute/SKILL.md`，frontmatter + 五段结构：
+
+
+  ```markdown
+
+  ---
+
+  name: ait-task-execute
+
+  description: INVOKE THIS SKILL when the user runs /ait task execute or asks to start coding a specific task; orchestrates
+  context bundle → AI coding → task complete/fail.
+
+  ---
+
+
+  # ait-task-execute — drive AI coding for a single task
+
+
+  ## Trigger
+
+  - `/ait task execute T-xxx-01`
+
+  - "帮我跑一下 T-xxx-01" / "开始编码 task T-xxx" 等中文等价请求
+
+
+  ## CLI Dependencies
+
+  - `project-docs/.ait/ait-cli task execute <id>` — 标 executing + 输出 context bundle
+
+  - `project-docs/.ait/ait-cli task complete <id> --commit <hash> --path <files>` — 收口
+
+  - `project-docs/.ait/ait-cli task fail <id>` — 失败回退
+
+  - `project-docs/.ait/ait-cli task show <id>` — 查 steps / impl_refs / global_refs
+
+
+  ## Artifacts
+
+  - Reads: task YAML(`versions/<v>/tasks/T-*.yaml`)、context bundle(impl_refs + global_refs 拼装)
+
+  - Writes: 业务代码（由 AI 编辑工具落盘）；`task complete` 触发的 code_refs 字段更新（CLI 写）
+
+  - 严禁直接编辑 `.meta/`、`versions/`、`docs/global|prd|impl/`
+
+
+  ## Workflow
+
+  1. 解析触发参数得到 `task_id`，调 `task execute <id>` 拿 bundle JSON。
+
+  2. 复述 `task_id` 与 `impl_refs` / `global_refs` 路径列表给用户。
+
+  3. 按 task YAML 的 `steps` 顺序，使用 AI 编辑工具改业务代码。
+
+  4. 让用户/AI 跑 `git add` + `git commit`（commit message 可建议格式 `feat(<task_id>): <heading>`）。
+
+  5. 拿到 commit hash 后调 `task complete <id> --commit <hash> --path <files...>`。
+
+  6. 出错则调 `task fail <id>` 并把控制权移交 `ait-resume`。
+
+
+  ## Output Contract
+
+  每步必须复述：
+
+  - `task_id`
+
+  - 当前 step 序号 / 总数
+
+  - commit hash（步骤 5 之后）
+
+  - code_refs 路径列表（步骤 5 之后）
+
+
+  ## Common Pitfalls
+
+  | Code | Symptom | Recovery |
+
+  |---|---|---|
+
+  | `BLOCKED` | 依赖 task 未 done | 先跑 `depends_on` 的上游 task |
+
+  | `TASK_NOT_FOUND` | id 不存在或路径迁移未生效 | `task list <v>` 核对；必要时 `reindex` |
+
+  | commit 缺失 | `git log` 空或 user 漏 commit | 引导补 commit 后重试 task complete |
+
+  ```
+
+
+  ### 验收
+
+  - `ls skill/ait/sub-skills/ait-task-execute/SKILL.md` 文件存在。
+
+  - 五段（Trigger / CLI Dependencies / Artifacts / Workflow / Output Contract / Common Pitfalls）齐全。
+
+  - description 触发关键词与其他 6 个 sub-skill 不重叠（关键词："task execute" / "start coding"）。
+
+
+  ### 边界
+
+  - 不在 sub-skill 中嵌入具体业务代码模板（只编排流程）。
+
+  - 不引入对 `ait-resume` 的硬性 import；失败时由 AI 根据 `code` 自主切换。
+
+
+  <!-- @ref:prd/v1-5-roadmap#prd-subskills-coverage rel:implements -->'

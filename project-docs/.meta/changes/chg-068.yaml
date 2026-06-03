@@ -1,0 +1,45 @@
+id: chg-068
+version: v1.5
+type: ADD
+target: impl/init-incremental#impl-init-state-detect
+author: system
+date: '2026-06-01T13:08:01.721118+00:00'
+message: 'v1.5: init three-state detection and --check'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-init-state-detect -->\n## init 三态识别与 --check 子命令\n\n<!-- @ref:prd-init-incremental rel:implements\
+  \ -->\n\n### 设计\n\n#### 1. 三态判别函数\n新增 `ait/init_manager.py` 中：\n```python\nGLOBAL_FILES = [\"overview\", \"tech-stack\"\
+  , \"ddl\", \"schema\", \"api\"]\n\ndef _scan_global_state(self) -> dict:\n    \"\"\"返回 {filename: status} 与整体 status。\"\"\
+  \"\n    g = self.root / \"docs\" / \"global\"\n    per_file = {}\n    for name in GLOBAL_FILES:\n        path = g / f\"\
+  {name}.md\"\n        per_file[name] = self._classify_global_file(path)\n    if all(s == \"present\" for s in per_file.values()):\n\
+  \        overall = \"ready\"\n    elif (self.root / \"project-docs\").exists() or g.exists():\n        overall = \"incomplete\"\
+  \n    else:\n        overall = \"fresh\"\n    return {\"overall\": overall, \"files\": per_file}\n\ndef _classify_global_file(self,\
+  \ path: Path) -> str:\n    if not path.exists() or path.stat().st_size == 0:\n        return \"missing\"\n    text = path.read_text(encoding=\"\
+  utf-8\")\n    if not re.search(r\"<!--\\s*@id:global-[\\w-]+\\s*-->\", text):\n        return \"skeleton\"   # 占位骨架视为缺失\n\
+  \    return \"present\"\n```\n注：`skeleton` 与 `missing` 在调用方等价（都触发补全），但分别上报，便于 sub-skill 显示差异。\n\n#### 2. 删除 `ALREADY_MANAGED`\
+  \ 硬拒\n- `InitManager.run()` 移除现有 `if self.has_any_version(): raise InitManagerError(... \"ALREADY_MANAGED\")` 整段。\n- `has_any_version()`\
+  \ 函数保留，仅用于决定是否走\"全新讨论模板\"或\"差异补全\"。\n- 主 SKILL.md 的 Common Pitfalls 表 `ALREADY_MANAGED` 行删除（与 `prd-skill-cli-resolution`\
+  \ 的文档改写动作合并到一个 grep 验收即可）。\n\n#### 3. `run()` 分支改造\n```python\ndef run(self, *, check_only: bool = False) -> InitResult:\n\
+  \    state = self._scan_global_state()\n    if check_only:\n        return InitResult(status=state[\"overall\"], files=state[\"\
+  files\"])\n    if state[\"overall\"] == \"ready\":\n        return InitResult(status=\"ready\", files=state[\"files\"])\n\
+  \    if state[\"overall\"] == \"fresh\":\n        return self._run_full_bootstrap()        # 原 run() 主体提取为此函数\n    return\
+  \ self._run_incremental(state[\"files\"]) # 仅写缺失的 global 文件\n```\n- `InitResult` dataclass 增加：`status: Literal[\"fresh\"\
+  ,\"incomplete\",\"ready\"] = \"fresh\"`，`files: dict[str, str] = field(default_factory=dict)`。\n\n#### 4. `_run_incremental`\
+  \ 实现\n```python\ndef _run_incremental(self, files_state: dict) -> InitResult:\n    created = []\n    g = self.root / \"\
+  docs\" / \"global\"\n    g.mkdir(parents=True, exist_ok=True)\n    for name in GLOBAL_FILES:\n        if files_state[name]\
+  \ == \"present\":\n            continue\n        if name in _STATIC_GLOBALS:\n            chunk_id, heading, body = name_to_static(name)\n\
+  \            content = f\"<!-- @id:global-{name} -->\\n## {heading}\\n\\n{body}\\n\"\n        else:\n            heading\
+  \ = _DYNAMIC_GLOBALS[name]\n            content = (\n                f\"<!-- @id:global-{name} -->\\n## {heading}\\n\\n\"\
+  \n                f\"<!-- 动态 global：内容由 version confirm 从 impl @extract 提取 -->\\n\"\n            )\n        atomic_write_text(g\
+  \ / f\"{name}.md\", content)\n        created.append(self._rel(g / f\"{name}.md\"))\n    self.indexes.rebuild_baseline()\n\
+  \    from .specgraph import sync_specgraph\n    sync_specgraph(self.root)\n    self._mark_initialized()\n    return InitResult(created_files=created,\
+  \ status=\"incomplete\", files=files_state)\n```\n- \"用户拒绝某项跳过\"由 sub-skill 层（`ait-init-guide`）决定要不要在写入前删除占位文件 / 跳过对应 chunk；CLI\
+  \ 收到的就是用户已决策的最终列表（通过未来扩展 `init --only static-overview,api` 的 flag 实现，本期暂不开口子，统一全量补全所有缺失项）。\n\n#### 5. CLI 入口扩展\n- `ait/cli.py`\
+  \ 的 `init` 命令增加 `--check` flag：\n  ```python\n  @click.option(\"--check\", is_flag=True, help=\"Diagnose only, no writes.\"\
+  )\n  def init(check):\n      mgr = InitManager(find_project_root())\n      result = mgr.run(check_only=check)\n      click.echo(json.dumps({\"\
+  ok\": True, \"data\": asdict(result)}, ensure_ascii=False))\n  ```\n- 与 `prd-skill-cli-resolution` 的 `init --refresh-wrapper`\
+  \ 共存（两个 flag 互斥时优先 `--check`）。\n\n### 测试\n- `tests/test_init_manager.py`：\n  - case fresh：空目录跑 init → 5 个文件全部生成。\n  - case\
+  \ incomplete：手工删除 `tech-stack.md` 跑 init → 仅 `tech-stack.md` 重建，其他不变（mtime 不动）。\n  - case ready：完整目录跑 init → `status=ready`\
+  \ 且无文件被写。\n  - case `--check`：返回 `files` 字典 5 项，无文件写入。\n\n### 边界\n- 不在 CLI 层引入交互式 `read -p`（PRD 明确\"逐项确认由 AI 对话完成\"）。\n\
+  - 不引入\"重置某项\"flag（PRD 非目标）。\n- 占位骨架仍写 `<!-- @id:global-* -->`，符合\"动态 global 仅生成空骨架\"约束。\n\n<!-- @ref:prd/v1-5-roadmap#prd-init-incremental\
+  \ rel:implements -->"

@@ -1,0 +1,97 @@
+id: chg-017
+version: v1.3
+type: ADD
+target: prd/overview#prd-v13-overview
+author: system
+date: '2026-05-26T07:39:52.788280+00:00'
+message: 'v1.3 PRD: 版本概述'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v13-overview -->
+
+
+  # v1.3 版本概述
+
+
+  ## 背景
+
+
+  v1.2 完成了 PRD 规划（8 个 PRD chunk 全部 committed），但 **impl 实现严重滞后**：
+
+
+  | v1.2 PRD chunk | 是否有对应 impl | impl 状态 |
+
+  |---|---|---|
+
+  | `prd-skills-rename-block-to-chunk` | ✅ `impl-data-chunk-rename` + `impl-workflow-chunk-rename` | committed |
+
+  | `prd-skills-overview` | ❌ 无 | — |
+
+  | `prd-skills-layout` | ❌ 无 | — |
+
+  | `prd-skills-format-adapt` | ❌ 无 | — |
+
+  | `prd-skills-mapping` | ❌ 无 | — |
+
+  | `prd-skills-router` | ❌ 无 | — |
+
+  | `prd-skills-contract` | ❌ 无 | — |
+
+  | `prd-skills-non-goals` | N/A（非目标，不需 impl） | — |
+
+
+  **结论**：v1.2 有 **6 个 PRD chunk 未实现 impl**，需要在 v1.3 中补全。
+
+
+  ## 三大目标
+
+
+  ### 目标 1：v1.2 欠债清零
+
+  将 v1.2 中已 committed 但未实现 impl 的 6 个 PRD chunk，逐一规划并实现 impl chunk，确保 v1.2 PRD 的功能意图完整落地。
+
+
+  ### 目标 2：todo.md 需求全量落地
+
+  实现 `todo.md` 中列出的 4 个需求：
+
+  1. 参考项目 skill 功能迁移（按当前项目规范重新组织）
+
+  2. init 流程智能识别旧项目
+
+  3. links-index.yaml 重构为 specgraph 格式
+
+  4. 检索/聚焦读取命令行迁移
+
+
+  ### 目标 3：引入 state.md 版本进度面板
+
+  在每个 version 目录下新增 `state.md`，由 **ait-state skill** 在 `version merge` 之后驱动生成，记录版本完成进度、chunk 三态分布、需求映射关系，支持 AI 和用户快速了解版本健康度。
+
+
+  ## 与 v1.2 的关系
+
+
+  - v1.3 **基于 v1.2 创建**（`bin/ait version create v1.3 --based-on v1.2`）
+
+  - v1.3 不是全新版本，而是 v1.2 的 **功能补全 + todo 需求追加**
+
+  - v1.2 已 committed 的 8 个 PRD chunk 全部继承到 v1.3，不需要重新讨论
+
+  - v1.3 新增的 PRD chunk 仅来自 `todo.md` 的 4 个需求 + `prd-v13-state-skill`
+
+
+  ## 版本边界
+
+
+  | 包含 | 不包含 |
+
+  |---|---|
+
+  | v1.2 遗留 6 个 PRD chunk 的 impl 规划 | v1.2 已实现的 2 个 impl chunk（已 committed，不动） |
+
+  | todo.md 全部 4 个需求的 PRD + impl | 新的 phase/task 体系（留 v1.4+） |
+
+  | ait-state skill（驱动 state.md 生成） | ait-progress / ait-resume 等其它子 skill 的实现（v1.2 non-goals，留后） |
+
+  | specgraph 引入（links-index.yaml 重构） | specgraph 的高级查询能力（留后） |'

@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-05-24T10:04:47.612941+00:00'
+updated: '2026-06-01T03:00:18.946600+00:00'
 links:
 - from: impl/block-parser#impl-block-parser-overview
   to: prd/block-system#prd-block-format
@@ -9,6 +9,15 @@ links:
   rel: implements
 - from: impl/block-parser#impl-block-parser-algorithm
   to: prd/block-system#prd-block-parse-rule
+  rel: implements
+- from: impl/data-model#impl-data-chunk-rename
+  to: file#id
+  rel: type
+- from: impl/data-model#impl-data-chunk-rename
+  to: f#id
+  rel: t
+- from: impl/data-model#impl-data-chunk-rename
+  to: prd/skills#prd-skills-rename-block-to-chunk
   rel: implements
 - from: impl/merge-engine#impl-merge-engine-overview
   to: prd/index-system#prd-index-baseline
@@ -22,6 +31,42 @@ links:
 - from: impl/project-docs-only#impl-project-docs-only-root-resolver
   to: prd/project-docs-only#prd-project-docs-only-detection
   rel: implements
+- from: impl/release#impl-v13-release-plan
+  to: prd/overview#prd-release-v13-overview
+  rel: implements
+- from: impl/search#impl-workflow-search-cli
+  to: prd/todo4-search#prd-search-cli
+  rel: implements
+- from: impl/search#impl-workflow-focus-deps-impact
+  to: prd/todo4-search#prd-search-cli
+  rel: implements
+- from: impl/skills#impl-skills-layout
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/skills#impl-skills-router
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/skills#impl-skills-format-adapt
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/skills#impl-skills-contract
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/skills#impl-skills-mapping
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/skills#impl-skills-overview
+  to: prd/backlog#prd-backlog-v12-legacy
+  rel: implements
+- from: impl/specgraph#impl-data-specgraph-model
+  to: prd/todo3-specgraph#prd-specgraph-index
+  rel: implements
+- from: impl/specgraph#impl-workflow-specgraph-cli
+  to: prd/todo3-specgraph#prd-specgraph-index
+  rel: implements
+- from: impl/state#impl-workflow-state-skill
+  to: prd/state-skill#prd-skill-state
+  rel: implements
 - from: impl/version-manager#impl-version-manager-overview
   to: prd/index-system#prd-index-version
   rel: implements
@@ -33,6 +78,15 @@ links:
   rel: implements
 - from: impl/version-manager#impl-version-manager-amends
   to: prd/block-system#prd-block-id-naming
+  rel: implements
+- from: impl/workflow#impl-workflow-chunk-rename
+  to: prd/skills#prd-skills-rename-block-to-chunk
+  rel: implements
+- from: impl/workflow#impl-workflow-skill-migration
+  to: prd/todo1-skill-migration#prd-skill-migration
+  rel: implements
+- from: impl/workflow#impl-workflow-init-upgrade
+  to: prd/todo2-init-upgrade#prd-init-upgrade
   rel: implements
 - from: prd/overview#prd-overview-terminology
   to: file#block-id

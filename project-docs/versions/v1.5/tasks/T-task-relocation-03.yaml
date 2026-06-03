@@ -1,0 +1,21 @@
+id: T-task-relocation-03
+title: 实现 impl-task-yaml-path
+source_chunk: prd-task-relocation
+impl_refs:
+- impl-task-yaml-path
+global_refs:
+- global-tech-stack
+depends_on:
+- T-task-relocation-02
+order_hint: 3
+steps:
+- 按 impl-task-yaml-path 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/task_manager.py
+  - skill/ait/ait/state.py
+  - skill/ait/ait/version_manager.py
+  - skill/ait/ait/schemas.py
+  bound_at: '2026-06-01T13:48:31.081420Z'

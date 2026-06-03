@@ -1,0 +1,439 @@
+version: 1
+scope: version
+version_name: v1.4
+based_on_hash: null
+status: merged
+chunks:
+- id: prd-core-model
+  file: prd/ait-redesign
+  heading: 核心模型与版本原子性
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-init
+  file: prd/ait-redesign
+  heading: 项目初始化
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-prd-stage
+  file: prd/ait-redesign
+  heading: PRD 阶段
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-impl-stage
+  file: prd/ait-redesign
+  heading: impl 阶段
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-task-stage
+  file: prd/ait-redesign
+  heading: task 阶段
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-version-merge
+  file: prd/ait-redesign
+  heading: 版本合并
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-global
+  file: prd/ait-redesign
+  heading: 全局信息层
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: prd-formats
+  file: prd/ait-redesign
+  heading: 格式规范
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-013
+  summary: null
+- id: impl-core-model-state
+  file: impl/core
+  heading: 核心模型：版本与锁定状态机数据结构
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-core-model-reset
+  file: impl/core
+  heading: 核心模型：version reset 清空逻辑
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-init-flow
+  file: impl/init
+  heading: 初始化流程与 docs/ 骨架生成
+  level: 2
+  action: add
+  state: committed
+  commit_id: c10
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-stage-cli
+  file: impl/prd
+  heading: PRD 阶段命令实现
+  level: 2
+  action: add
+  state: committed
+  commit_id: c11
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-prd-stage-title
+  file: impl/prd
+  heading: title 抽取与 state.md 写入
+  level: 2
+  action: add
+  state: committed
+  commit_id: c12
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-impl-stage-cli
+  file: impl/impl
+  heading: impl 阶段命令实现
+  level: 2
+  action: add
+  state: committed
+  commit_id: c8
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-impl-stage-extract
+  file: impl/impl
+  heading: '@extract 提取标记解析器'
+  level: 2
+  action: add
+  state: committed
+  commit_id: c9
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-stage-build
+  file: impl/task
+  heading: task 拆分（task create）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c13
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-stage-schema
+  file: impl/task
+  heading: task YAML Schema
+  level: 2
+  action: add
+  state: committed
+  commit_id: c15
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-task-stage-execute
+  file: impl/task
+  heading: task 执行与自动收口（task execute）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c14
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-version-merge-engine
+  file: impl/version
+  heading: 版本合并引擎（两阶段 + 失败回退）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c16
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-version-merge-extract
+  file: impl/version
+  heading: impl → 动态 global 提取
+  level: 2
+  action: add
+  state: committed
+  commit_id: c17
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-global-index
+  file: impl/global
+  heading: 全局信息索引与 context 注入
+  level: 2
+  action: add
+  state: committed
+  commit_id: c7
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-formats-parser
+  file: impl/formats
+  heading: 格式解析扩展（四段 PRD + chunk 解析）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-formats-naming
+  file: impl/formats
+  heading: 派生式命名校验
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-core-specgraph-store
+  file: impl/core
+  heading: SpecGraph 分文件存储与环检测
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-06-01T03:03:46.381600+00:00'
+  message: AIT 重构设计 PRD 定稿（8块）
+  chunks:
+  - prd-core-model
+  - prd-init
+  - prd-prd-stage
+  - prd-impl-stage
+  - prd-task-stage
+  - prd-version-merge
+  - prd-global
+  - prd-formats
+  req_id: null
+- id: c2
+  timestamp: '2026-06-01T07:11:11.090512+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-core-model-reset
+  req_id: null
+- id: c3
+  timestamp: '2026-06-01T07:11:11.435077+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-core-model-state
+  req_id: null
+- id: c4
+  timestamp: '2026-06-01T07:11:11.775219+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-core-specgraph-store
+  req_id: null
+- id: c5
+  timestamp: '2026-06-01T07:11:12.113457+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-formats-naming
+  req_id: null
+- id: c6
+  timestamp: '2026-06-01T07:11:12.455215+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-formats-parser
+  req_id: null
+- id: c7
+  timestamp: '2026-06-01T07:11:12.786733+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-global-index
+  req_id: null
+- id: c8
+  timestamp: '2026-06-01T07:11:13.120855+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-impl-stage-cli
+  req_id: null
+- id: c9
+  timestamp: '2026-06-01T07:11:13.450613+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-impl-stage-extract
+  req_id: null
+- id: c10
+  timestamp: '2026-06-01T07:11:13.798380+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-init-flow
+  req_id: null
+- id: c11
+  timestamp: '2026-06-01T07:11:14.204362+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-prd-stage-cli
+  req_id: null
+- id: c12
+  timestamp: '2026-06-01T07:11:14.545728+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-prd-stage-title
+  req_id: null
+- id: c13
+  timestamp: '2026-06-01T07:11:14.890039+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-task-stage-build
+  req_id: null
+- id: c14
+  timestamp: '2026-06-01T07:11:15.239656+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-task-stage-execute
+  req_id: null
+- id: c15
+  timestamp: '2026-06-01T07:11:15.581713+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-task-stage-schema
+  req_id: null
+- id: c16
+  timestamp: '2026-06-01T07:11:15.922266+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-version-merge-engine
+  req_id: null
+- id: c17
+  timestamp: '2026-06-01T07:11:16.269281+00:00'
+  message: v1.4 impl 设计定稿
+  chunks:
+  - impl-version-merge-extract
+  req_id: null
+stats:
+  total_chunks: 24
+  by_action:
+    add: 24
+  by_state:
+    committed: 24
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

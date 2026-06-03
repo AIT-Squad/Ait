@@ -1,0 +1,30 @@
+id: T-prd-chunk-summary-index-01
+title: 实现 impl-prd-chunk-summary-field
+source_chunk: prd-prd-chunk-summary-index
+impl_refs:
+- impl-prd-chunk-summary-field
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-chunk-summary-field 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: 19b275d
+  paths:
+  - skill/ait/ait/schemas.py
+  - skill/ait/ait/chunk_parser.py
+  - skill/ait/ait/index_manager.py
+  - skill/ait/ait/version_manager.py
+  - skill/ait/ait/prd_manager.py
+  - skill/ait/ait/impl_manager.py
+  - skill/ait/ait/cli.py
+  - tests/test_chunk_parser_summary.py
+  - tests/test_index_manager_summary.py
+  - tests/test_prd_commit_summary.py
+  - tests/test_baseline_summary_cmd.py
+  - tests/test_e2e_cli.py
+  - tests/test_impl_commit_coverage.py
+  - tests/test_prd_impl_context.py
+  bound_at: '2026-06-03T04:02:27.863256Z'

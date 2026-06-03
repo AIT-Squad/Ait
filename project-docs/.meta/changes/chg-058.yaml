@@ -1,0 +1,18 @@
+id: chg-058
+version: v1.4
+type: ADD
+target: impl/task#impl-task-stage-build
+author: system
+date: '2026-06-01T07:11:14.888892+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-task-stage-build -->\n## task 拆分（task create）\n\n实现 `task create`：从锁定的 PRD+impl 拆分出 AI coding\
+  \ 任务 YAML。一个 PRD chunk 可拆多个 task。\n\n### 命令\n\n```python\n@task_group.command(\"create\")\n@click.argument(\"chunk_id\"\
+  , required=False)  # 无 id → 逐批交互\ndef task_create(chunk_id):\n    if chunk_id is None:\n        return _interactive_task_loop(root)\
+  \  # 遍历无 task 的 committed chunk\n    # 1. 从 specgraph（version 维度）收集 PRD chunk 的 impl_refs + global_refs\n    # 2. 依据 impl\
+  \ 的步骤性内容切分为 1~N 个 task\n    # 3. 生成 .meta/tasks/{v}/T-{源chunk}-NN.yaml\n    ...\n```\n\n### 拆分规则\n- task 命名 `T-{源chunk去前缀}-NN`（NN\
+  \ 两位序号，同 chunk 内递增）\n- `impl_refs`：查 **specgraph（version 维度）** 中 `rel:implements` 指向该 PRD chunk 的所有 impl chunk（数据源是 specgraph，不是\
+  \ links-index）\n- `global_refs`：impl 中 @ref 指向的 global chunk + 项目级默认（tech-stack）\n- `depends_on`：依据 specgraph 中 impl 间 `depends-on`\
+  \ 边推导上游 task\n- `order_hint`：同 chunk 内 task 的执行序\n\n### 前置\n- 本版本 PRD 与 impl 均须 committed/locked，否则拒绝拆分\n\n<!-- @ref:prd/ait-redesign#prd-task-stage\
+  \ rel:implements -->"

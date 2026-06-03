@@ -1,0 +1,36 @@
+id: chg-084
+version: v1.6
+type: ADD
+target: prd/v1-6-roadmap#prd-prd-format-enforcement
+author: system
+date: '2026-06-02T09:16:57.317234+00:00'
+message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:prd-prd-format-enforcement -->\n## prd-format-enforcement: PRD/impl 格式规范强制化\n\n### 概述\n\nv1.5 已通过 `prd-formats`\
+  \ chunk 规范了 PRD 四段（`概述` / `业务规则` / `验收标准` / `边界与非目标`）、impl chunk `@extract` 标记、task YAML 字段、派生命名（`impl-{源chunk}-{名}` / `T-{源chunk}-NN`）、chunk\
+  \ id 命名（`{type}-{domain}-{name}` 小写短横线）。但当前 `impl-formats-parser` 仅给出告警、不阻断 commit，导致 v1.6 PRD 草稿曾用英文四段（Goal/Non-Goals/Approach/Acceptance）也通过了\
+  \ `prd save-draft` / `prd confirm`。本期把规范从\"软提示\"升级为\"硬约束\"：在 commit 闸门强制阻断违规，并提供 `ait lint` 离线扫描+机械修复命令；同时 v1.6 的本期重写已自纠为合规（dogfood）。\n\
+  \n### 业务规则\n\n- **`prd commit` 闸门**：所有 PRD chunk 必须包含且仅包含中文四段三级标题：`### 概述` / `### 业务规则` / `### 验收标准` / `### 边界与非目标`；缺段、英文段名、段名顺序错乱\
+  \ → 报错码 `PRD_FORMAT_VIOLATION`，错误体含违规 chunk id 与缺段/错段清单，阻断提交\n- **`impl commit` 闸门**：impl chunk 含代码块（` ``` ` 围栏）时必须用 `<!--\
+  \ @extract:dynamic/{type}#{chunk} -->` ... `<!-- @extract-end -->` 包裹该代码块；纯说明性 impl chunk（无代码块）不强制要求 @extract；违规 → `IMPL_FORMAT_VIOLATION`\n\
+  - **chunk id 命名校验**：`{type}-{domain}-{name}`，`type ∈ {prd, impl, task, global}`，全小写短横线（仅允许 `[a-z0-9-]`）；违规 → `CHUNK_ID_FORMAT_VIOLATION`\n\
+  - **派生命名校验**：\n  - impl chunk id 必须形如 `impl-{源 PRD chunk 去掉 prd- 前缀}-{名}`，且其 `@ref ... rel:implements` 指向的 PRD chunk id\
+  \ 必须存在\n  - task YAML id 必须形如 `T-{源 chunk}-NN`（NN 为 2 位数字）\n  - 违规 → `DERIVED_NAME_VIOLATION`\n- **新命令 `ait lint [--scope\
+  \ baseline|version|<vX.Y>] [--fix]`**：\n  - 离线扫描指定 scope 内所有 chunk，输出违规清单（JSON 数组，含 `chunk_id` / `code` / `message` / `fixable`）\n\
+  \  - `--fix` 仅修可机械修复的项：四段标题英文 → 中文映射（Goal→概述、Non-Goals→边界与非目标、Approach→业务规则、Acceptance→验收标准）、缺段填空骨架（`### <段名>\\n\\n_TODO_\\\
+  n`）；不可机械修复的违规仅报告不修改\n  - 默认 scope 为 `baseline`；`--scope version` 等价于扫描所有未 merged 版本工作区\n- **错误码退出策略**：违规时 CLI 退出码非零；stdout\
+  \ 仍输出 `{\"ok\": false, \"error\": {...}}` 契约 JSON；错误体包含违规清单数组，每项含 `chunk_id` / `file` / `line` / `code` / `message`\n- **v1.6\
+  \ 自我修复（dogfood）**：本版本 PRD 重写时 4 个原 chunk 已手工改为中文四段并保持 chunk id 不变；不再依赖 `--fix`（避免鸡生蛋）；新增的 `prd-prd-format-enforcement` 也以中文四段交付\n\
+  - **闸门生效时机**：`prd commit` / `impl commit` 闸门在本期 impl 落地后立即生效，对 v1.6 自身及后续所有版本均强制；baseline 的存量历史 chunk 不做回溯校验（仅在 `ait lint\
+  \ --scope baseline` 主动扫描时报告）\n\n### 验收标准\n\n- [ ] `ait prd commit` 在含英文四段（Goal/Non-Goals/Approach/Acceptance）的 PRD chunk\
+  \ 上报 `PRD_FORMAT_VIOLATION` 并阻断\n- [ ] `ait prd commit` 在缺任一中文四段时报 `PRD_FORMAT_VIOLATION` 并列出缺段名\n- [ ] `ait impl commit`\
+  \ 在 impl chunk 含裸代码块（无 `@extract` 包裹）时报 `IMPL_FORMAT_VIOLATION`\n- [ ] `ait lint --scope v1.6` 列出 v1.6 所有 5 个 chunk 的格式违规（重写后应为\
+  \ 0 条违规）\n- [ ] `ait lint --scope baseline --fix` 在 baseline 历史 chunk 上能机械修复英文四段（若存在），且修复后 `ait lint --scope baseline` 通过\n\
+  - [ ] 派生命名违规（如出现 `impl-foo-bar` 但 baseline 与所有版本都不存在 `prd-foo`）报 `DERIVED_NAME_VIOLATION`\n- [ ] chunk id 含大写、下划线、空格时报 `CHUNK_ID_FORMAT_VIOLATION`\n\
+  - [ ] task YAML id 不符合 `T-{源 chunk}-NN` 格式时报 `DERIVED_NAME_VIOLATION`\n- [ ] 所有违规错误码退出非零，stdout 输出合法 `{\"ok\": false, \"\
+  error\": {...}}` JSON\n- [ ] v1.6 本身 5 个 chunk 在本版本 impl 落地后跑 `ait prd commit` 不触发任何格式违规（dogfood 自洽）\n\n### 边界与非目标\n\n-\
+  \ 不做语义级 lint（不判断\"验收标准\"是否覆盖\"概述\"目标、不查\"边界与非目标\"是否合理）\n- 不自动改写 chunk 正文内容；`--fix` 仅做机械的标题映射 / 缺段空骨架填充\n- 不改 chunk id 命名规则本身（沿用\
+  \ v1.5 `prd-formats` 已定的派生式 + 三段式）\n- 不强制 task YAML 字段级 lint（task 由 `task create/execute` 内置 schema 校验，已足够）\n- 不对历史已 merged\
+  \ 版本（v1.1 ~ v1.5）做强制回溯阻断（仅 `ait lint --scope baseline` 主动扫描时报告，不阻断任何写操作）\n- 不引入新的格式（如 YAML frontmatter、JSON Schema 文件），保持\
+  \ HTML 注释元数据哲学\n\n<!-- @ref:prd/ait-redesign#prd-formats rel:refines -->"

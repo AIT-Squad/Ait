@@ -1,0 +1,19 @@
+id: T-init-incremental-01
+title: 实现 impl-init-guide-skill
+source_chunk: prd-init-incremental
+impl_refs:
+- impl-init-guide-skill
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-init-guide-skill 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-init-guide/SKILL.md
+  - skill/ait/ait/init_manager.py
+  - skill/ait/ait/cli.py
+  bound_at: '2026-06-01T13:59:49.700655Z'

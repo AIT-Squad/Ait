@@ -1,0 +1,23 @@
+id: chg-054
+version: v1.4
+type: ADD
+target: impl/impl#impl-impl-stage-extract
+author: system
+date: '2026-06-01T07:11:13.449310+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-impl-stage-extract -->\n## @extract 提取标记解析器\n\n解析 impl chunk 内的 `@extract` 注释块，识别可提取到动态 global\
+  \ 的片段。\n\n### 标记格式\n\n```\n<!-- @extract:dynamic/{type}#{chunk} -->\n...任意内容（代码块或纯文本）...\n<!-- @extract-end -->\n```\n\n\
+  ### 解析数据结构\n\n<!-- @extract:dynamic/schema#extract-block -->\n```python\n@dataclass(frozen=True)\nclass ExtractBlock:\n\
+  \    source_impl_id: str   # @extract 所在的 impl chunk id\n    target_type: str      # dynamic/ddl | dynamic/schema | dynamic/api\n\
+  \    target_chunk: str     # 提取后在动态 global 中的 chunk id\n    content: str          # @extract 与 @extract-end 之间的原文（去注释行）\n\
+  \    line_start: int\n    line_end: int\n```\n<!-- @extract-end -->\n\n### 解析算法\n1. 扫描 impl chunk 正文，配对 `@extract:` 与 `@extract-end`\n\
+  2. 解析 target：`dynamic/{type}#{chunk}` → target_type + target_chunk\n3. 抽取中间内容（保留代码块围栏，便于动态 global 直接渲染）\n4. 未配对的 `@extract`（缺\
+  \ end）→ 校验错误 `EXTRACT_UNCLOSED`\n\n### 规则\n- 一个 impl chunk 可含多个 @extract 块\n- @extract 块嵌套不允许（与 @id 一致）\n- 提取动作发生在 version\
+  \ confirm（见 impl-version-merge-extract），此处只负责解析\n\n### 版本内重复检测（detect_intra_version_dup）\n供 impl confirm 的 pre-merge 校验调用，检测同一开发中版本内的自相矛盾：\n\
+  \n```python\ndef detect_intra_version_dup(version) -> list[str]:\n    issues = []\n    # 形态A：同 @id 在本版本多处定义\n    ids = collect_chunk_ids(version)\n\
+  \    issues += [f\"重复 @id: {i}\" for i in find_duplicates(ids)]\n    # 形态B：多个 impl 抢同一 @extract 目标（同 target_chunk）\n   \
+  \ targets = [b.target_chunk for b in all_extract_blocks(version)]\n    issues += [f\"@extract 目标冲突: {t}\" for t in find_duplicates(targets)]\n\
+  \    return issues\n```\n\n- 形态A：同 @id 重复 → `DUP_CHUNK_ID`\n- 形态B：同版本内两个 impl 提取到同一 target_chunk → `EXTRACT_TARGET_CONFLICT`\n\
+  - 注意：跨版本同 target_chunk 是合法演进（version confirm 时替换），不在此拦截\n\n<!-- @ref:prd/ait-redesign#prd-impl-stage rel:implements -->"

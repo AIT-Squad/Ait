@@ -1,0 +1,19 @@
+id: T-prd-global-single-file-02
+title: 实现 impl-prd-global-migrate-script
+source_chunk: prd-prd-global-single-file
+impl_refs:
+- impl-prd-global-migrate-script
+global_refs:
+- global-tech-stack
+depends_on:
+- T-prd-global-single-file-01
+order_hint: 2
+steps:
+- 按 impl-prd-global-migrate-script 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - scripts/migrate_prd_to_global.py
+  - tests/test_migrate_prd_to_global.py
+  bound_at: '2026-06-03T05:42:30.000000Z'

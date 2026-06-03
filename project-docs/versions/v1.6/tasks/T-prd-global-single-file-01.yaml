@@ -1,0 +1,21 @@
+id: T-prd-global-single-file-01
+title: 实现 impl-prd-global-merge-target-rewrite
+source_chunk: prd-prd-global-single-file
+impl_refs:
+- impl-prd-global-merge-target-rewrite
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-global-merge-target-rewrite 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/version_manager.py
+  - tests/test_version_confirm.py
+  - tests/test_version_confirm_atomic.py
+  - tests/test_merge_workflow.py
+  - tests/test_e2e_cli.py
+  bound_at: '2026-06-03T05:42:00.000000Z'

@@ -1,0 +1,26 @@
+id: T-prd-chunk-atomic-impl-merge-01
+title: 实现 impl-prd-chunk-atomic-impl-merge-engine
+source_chunk: prd-prd-chunk-atomic-impl-merge
+impl_refs:
+- impl-prd-chunk-atomic-impl-merge-engine
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-chunk-atomic-impl-merge-engine 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: 22651dc
+  paths:
+  - skill/ait/ait/chunk_parser.py
+  - skill/ait/ait/cli.py
+  - skill/ait/ait/impl_manager.py
+  - skill/ait/ait/version_manager.py
+  - tests/test_chunk_parser_no_impl.py
+  - tests/test_impl_commit_coverage.py
+  - tests/test_impl_inherit.py
+  - tests/test_specgraph_orphan_guard.py
+  - tests/test_version_confirm_atomic.py
+  - tests/test_e2e_cli.py
+  bound_at: '2026-06-03T03:45:51.077069Z'

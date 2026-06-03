@@ -1,0 +1,287 @@
+version: 1
+updated: '2026-06-02T00:56:19.515676+00:00'
+specs:
+- uri: spec:impl:v1.5:impl-init-guide-skill
+  title: ait-init-guide 子 skill 升级（差异补全交互）
+  type: impl
+  version: v1.5
+  chunk_id: impl-init-guide-skill
+  file: impl/init-incremental
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c11
+- uri: spec:impl:v1.5:impl-init-state-detect
+  title: init 三态识别与 --check 子命令
+  type: impl
+  version: v1.5
+  chunk_id: impl-init-state-detect
+  file: impl/init-incremental
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v1.5:impl-skill-cli-config-injection
+  title: init 阶段注入 skill 路径并生成项目本地 wrapper
+  type: impl
+  version: v1.5
+  chunk_id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v1.5:impl-skill-cli-doc-rewrite
+  title: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  type: impl
+  version: v1.5
+  chunk_id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c12
+- uri: spec:impl:v1.5:impl-skill-cli-pitfall-doc
+  title: ENOENT_BIN_AIT 兜底文档
+  type: impl
+  version: v1.5
+  chunk_id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c13
+- uri: spec:impl:v1.5:impl-skill-cli-wrapper-verify
+  title: wrapper 自定位回归测试
+  type: impl
+  version: v1.5
+  chunk_id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v1.5:impl-subskill-init-guide-rename
+  title: ait-init-check → ait-init-guide 目录搬迁
+  type: impl
+  version: v1.5
+  chunk_id: impl-subskill-init-guide-rename
+  file: impl/subskills-coverage
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c8
+- uri: spec:impl:v1.5:impl-subskill-state-merge
+  title: ait-progress 合入 ait-state
+  type: impl
+  version: v1.5
+  chunk_id: impl-subskill-state-merge
+  file: impl/subskills-coverage
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c7
+- uri: spec:impl:v1.5:impl-subskill-task-execute-add
+  title: 新增 ait-task-execute 子 skill
+  type: impl
+  version: v1.5
+  chunk_id: impl-subskill-task-execute-add
+  file: impl/subskills-coverage
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:impl:v1.5:impl-subskill-trigger-audit
+  title: sub-skill 触发关键词去重 + 四段完整性审计
+  type: impl
+  version: v1.5
+  chunk_id: impl-subskill-trigger-audit
+  file: impl/subskills-coverage
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c14
+- uri: spec:impl:v1.5:impl-task-legacy-warn
+  title: 旧 .meta/tasks 路径检测告警
+  type: impl
+  version: v1.5
+  chunk_id: impl-task-legacy-warn
+  file: impl/task-relocation
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c10
+- uri: spec:impl:v1.5:impl-task-summary-index
+  title: chunks-index-{vX.Y}.yaml 注入 tasks_summary 字段
+  type: impl
+  version: v1.5
+  chunk_id: impl-task-summary-index
+  file: impl/task-relocation
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c9
+- uri: spec:impl:v1.5:impl-task-yaml-path
+  title: TaskManager 物理路径迁移到版本工作区
+  type: impl
+  version: v1.5
+  chunk_id: impl-task-yaml-path
+  file: impl/task-relocation
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:prd:v1.5:prd-init-incremental
+  title: init 改为幂等的基线补全器
+  type: prd
+  version: v1.5
+  chunk_id: prd-init-incremental
+  file: prd/v1-5-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.5:prd-skill-cli-resolution
+  title: bin/ait 路径解析与 SKILL 文档约定修订
+  type: prd
+  version: v1.5
+  chunk_id: prd-skill-cli-resolution
+  file: prd/v1-5-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.5:prd-subskills-coverage
+  title: sub-skills 治理：补齐 task 阶段、合并 progress/state、init-check 重定位
+  type: prd
+  version: v1.5
+  chunk_id: prd-subskills-coverage
+  file: prd/v1-5-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v1.5:prd-task-relocation
+  title: task YAML 目录从 .meta 迁到版本工作区
+  type: prd
+  version: v1.5
+  chunk_id: prd-task-relocation
+  file: prd/v1-5-roadmap
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v1.5:impl-init-state-detect
+  dst: spec:prd:v1.5:prd-init-incremental
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-init-guide-skill
+  dst: spec:prd:v1.5:prd-init-incremental
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-skill-cli-config-injection
+  dst: spec:prd:v1.5:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-skill-cli-doc-rewrite
+  dst: spec:prd:v1.5:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-skill-cli-wrapper-verify
+  dst: spec:prd:v1.5:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-skill-cli-pitfall-doc
+  dst: spec:prd:v1.5:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-subskill-task-execute-add
+  dst: spec:prd:v1.5:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-subskill-state-merge
+  dst: spec:prd:v1.5:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-subskill-init-guide-rename
+  dst: spec:prd:v1.5:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-subskill-trigger-audit
+  dst: spec:prd:v1.5:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-task-yaml-path
+  dst: spec:prd:v1.5:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-task-summary-index
+  dst: spec:prd:v1.5:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.5:impl-task-legacy-warn
+  dst: spec:prd:v1.5:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:prd:v1.5:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-task-stage
+  rel: supersedes-path
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:prd:v1.5:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-init
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:prd:v1.5:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-skills-overview
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: version-ref

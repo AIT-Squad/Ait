@@ -1,0 +1,66 @@
+id: chg-038
+version: v1.3
+type: ADD
+target: impl/release#impl-v13-release-plan
+author: system
+date: '2026-05-26T09:36:18.791991+00:00'
+message: Complete v1.3 implementation rollout
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-v13-release-plan -->
+
+
+  # v1.3 实现总览
+
+
+  ## 实现目标
+
+
+  v1.3 的实现以补齐 v1.2 skill impl 欠债为第一优先级，同时落地 `todo.md` 的四项新增能力，并新增 `state.md` 版本进度面板。
+
+
+  ## 实现分组
+
+
+  | 分组 | 覆盖 PRD | 交付物 |
+
+  |---|---|---|
+
+  | Skill 架构补齐 | `prd-backlog-v12-legacy` | `impl-skills-*` 六个欠债实现 chunk |
+
+  | Skill 迁移 | `prd-skill-migration` | `skill/ait/sub-skills/*/SKILL.md` 与主 router 改造 |
+
+  | Init 增强 | `prd-init-upgrade` | `ait-init-check` 子 skill 与 `root.py` AI_HINT |
+
+  | SpecGraph | `prd-specgraph-index` | `ait/specgraph.py`、`.meta/specgraph.yaml`、`specgraph` CLI |
+
+  | Search/Focus | `prd-search-cli` | `ait/search.py`、`ait/deps.py`、`ait/impact.py` 与 `context --focus/--deps` |
+
+  | State 面板 | `prd-skill-state` | `ait/state.py`、`ait-state` 子 skill、`versions/<v>/state.md` |
+
+
+  ## 推荐实现顺序
+
+
+  1. 先完成 `impl-skills-layout` 与 `impl-skills-router`，建立子 skill 目录和主入口分工。
+
+  2. 再完成 `impl-skills-format-adapt`、`impl-skills-contract`、`impl-skills-mapping`，确保子 skill 的行为契约稳定。
+
+  3. 然后实现 `impl-skills-migration`、`impl-workflow-init-upgrade`、`impl-workflow-state-skill`。
+
+  4. 最后落地 `impl-data-specgraph`、`impl-workflow-specgraph-cli`、`impl-workflow-search-cli`、`impl-workflow-focus-deps-impact`。
+
+
+  ## 统一验收
+
+
+  - 所有新增 CLI 仍保持单 JSON 输出契约。
+
+  - 子 skill 禁止直接写业务文档，所有持久化通过 `bin/ait` CLI 完成。
+
+  - `links-index.yaml` 保留兼容，新增能力写入 `specgraph.yaml`。
+
+  - v1.2 已 committed 的 `impl-data-chunk-rename` 与 `impl-workflow-chunk-rename` 不修改。
+
+
+  <!-- @ref:prd/overview#prd-release-v13-overview rel:implements -->'

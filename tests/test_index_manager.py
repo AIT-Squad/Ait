@@ -9,7 +9,7 @@ import pytest
 
 from ait.index_manager import IndexManager
 from ait.schemas import (
-    VersionBlockEntry,
+    VersionChunkEntry,
     VersionIndex,
 )
 
@@ -28,9 +28,9 @@ def test_build_baseline_matches_demo(demo_root: Path):
     """Rebuilding baseline from demo files should produce the same block set."""
     mgr = IndexManager(demo_root)
     baseline = mgr.build_baseline()
-    ids = {b.id for b in baseline.blocks}
+    ids = {b.id for b in baseline.chunks}
 
-    # The demo's hand-maintained blocks-index.yaml lists these blocks.
+    # The demo's hand-maintained chunks-index.yaml lists these chunks.
     must_have = {
         "prd-book-mgmt-overview",
         "prd-book-entry",
@@ -49,7 +49,7 @@ def test_rebuild_baseline_writes_files(demo_root: Path):
     baseline, links = mgr.rebuild_baseline()
     assert mgr.baseline_index_path().exists()
     assert mgr.links_index_path().exists()
-    assert baseline.blocks, "baseline must not be empty"
+    assert baseline.chunks, "baseline must not be empty"
     assert any(link.rel == "implements" for link in links.links)
 
 
@@ -70,7 +70,7 @@ def test_load_baseline_returns_empty_when_missing(tmp_path: Path):
     (tmp_path / ".meta").mkdir()
     mgr = IndexManager(tmp_path)
     baseline = mgr.load_baseline()
-    assert baseline.blocks == []
+    assert baseline.chunks == []
 
 
 def test_version_index_save_and_load(tmp_path: Path):
@@ -79,8 +79,8 @@ def test_version_index_save_and_load(tmp_path: Path):
     mgr = IndexManager(tmp_path)
     idx = VersionIndex(
         version_name="v1.1",
-        blocks=[
-            VersionBlockEntry(
+        chunks=[
+            VersionChunkEntry(
                 id="prd-test-x",
                 file="prd/test",
                 heading="X",
@@ -93,9 +93,9 @@ def test_version_index_save_and_load(tmp_path: Path):
     mgr.save_version_index(idx)
 
     loaded = mgr.load_version_index("v1.1")
-    assert len(loaded.blocks) == 1
-    assert loaded.blocks[0].id == "prd-test-x"
-    assert loaded.stats.total_blocks == 1
+    assert len(loaded.chunks) == 1
+    assert loaded.chunks[0].id == "prd-test-x"
+    assert loaded.stats.total_chunks == 1
     assert loaded.stats.by_action == {"add": 1}
     assert loaded.stats.by_state == {"working": 1}
 
@@ -106,8 +106,8 @@ def test_query_version_picks_latest_committed(tmp_path: Path):
     mgr = IndexManager(tmp_path)
     idx = VersionIndex(
         version_name="v1.1",
-        blocks=[
-            VersionBlockEntry(
+        chunks=[
+            VersionChunkEntry(
                 id="prd-x",
                 file="prd/x",
                 heading="X",
@@ -116,7 +116,7 @@ def test_query_version_picks_latest_committed(tmp_path: Path):
                 state="committed",
                 commit_id="c1",
             ),
-            VersionBlockEntry(
+            VersionChunkEntry(
                 id="prd-x",
                 file="prd/x",
                 heading="X v2",

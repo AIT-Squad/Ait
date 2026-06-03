@@ -59,8 +59,8 @@ uv run ait prd save-draft req-001 --content-file /tmp/recommend-prd.md
 
 ```json
 {"ok": true, "data": {"req_id": "req-001", "status": "prd_draft",
-                       "block_count": 2,
-                       "block_ids": ["prd-recommend-overview", "prd-recommend-rules"]}}
+                       "chunk_count": 2,
+                       "chunk_ids": ["prd-recommend-overview", "prd-recommend-rules"]}}
 ```
 
 PRD 草稿存进了 `project-docs/.meta/requirements/req-001.yaml`，状态推进到 `prd_draft`。
@@ -74,13 +74,13 @@ uv run ait prd confirm req-001 --file prd/recommend
 ```json
 {"ok": true, "data": {"req_id": "req-001", "version": "v1.0",
                        "file": "prd/recommend",
-                       "block_ids": ["prd-recommend-overview", "prd-recommend-rules"]}}
+                       "chunk_ids": ["prd-recommend-overview", "prd-recommend-rules"]}}
 ```
 
 现在：
 
 - `project-docs/versions/v1.0/prd/recommend.md` 已经写入完整 PRD markdown
-- `project-docs/.meta/blocks-index-v1.0.yaml` 注册了 2 个 block，`state=working`，`action=add`
+- `project-docs/.meta/chunks-index-v1.0.yaml` 注册了 2 个 chunk，`state=working`，`action=add`
 - requirement 状态推进到 `prd_confirmed`
 
 ## Step 3 — `/ait prd commit` 提交 PRD
@@ -98,7 +98,7 @@ uv run ait prd commit prd/recommend -m "首版推荐 PRD" --req-id req-001
 
 `project-docs/.meta/changes/chg-001.yaml` 和 `chg-002.yaml` 已生成，记录了每个块的 ADD 操作和完整内容。
 
-## Step 4 — `/ait impl <block-id>` 生成 impl
+## Step 4 — `/ait impl <chunk-id>` 生成 impl
 
 先看一下 AI 上下文（这是 `/ait impl` 真正驱动 AI 之前的一步）：
 
@@ -106,7 +106,7 @@ uv run ait prd commit prd/recommend -m "首版推荐 PRD" --req-id req-001
 uv run ait context prd-recommend-overview --scenario prd-to-impl
 ```
 
-返回 L1 (PRD block) + L2 (已有 impl 模式，本例为空)。AI 据此生成 impl。这里直接给出 impl markdown：
+返回 L1 (PRD chunk) + L2 (已有 impl 模式，本例为空)。AI 据此生成 impl。这里直接给出 impl markdown：
 
 ```bash
 cat > /tmp/recommend-impl.md <<'EOF'
@@ -130,7 +130,7 @@ uv run ait impl create prd-recommend-overview \
 ```json
 {"ok": true, "data": {"version": "v1.0",
                        "file": "impl/api-contracts",
-                       "block_ids": ["impl-api-recommend"]}}
+                       "chunk_ids": ["impl-api-recommend"]}}
 ```
 
 `project-docs/versions/v1.0/impl/api-contracts.md` 已经写入，并自动追加了：
@@ -162,7 +162,7 @@ uv run ait version merge v1.0
 ```
 
 ```json
-{"ok": true, "data": {"merged_blocks": ["prd-recommend-overview",
+{"ok": true, "data": {"merged_chunks": ["prd-recommend-overview",
                                           "prd-recommend-rules",
                                           "impl-api-recommend"],
                        "conflicts": [], "skipped": [], "status": "completed"}}
@@ -173,7 +173,7 @@ uv run ait version merge v1.0
 ```
 /tmp/ait-demo/project-docs/docs/prd/recommend.md          # ← 新建，含两个 PRD 块
 /tmp/ait-demo/project-docs/docs/impl/api-contracts.md     # ← 新建，含 impl 块 + @ref
-/tmp/ait-demo/project-docs/.meta/blocks-index.yaml        # ← 重建，包含 3 个块
+/tmp/ait-demo/project-docs/.meta/chunks-index.yaml        # ← 重建，包含 3 个 chunk
 /tmp/ait-demo/project-docs/.meta/links-index.yaml         # ← 包含 implements 关联
 /tmp/ait-demo/project-docs/.meta/snapshots/v1.0/docs/     # ← 合并快照
 ```
@@ -195,8 +195,8 @@ uv run ait version merge v1.0
     │       ├── prd/recommend.md
     │       └── impl/api-contracts.md
     └── .meta/
-        ├── blocks-index.yaml
-        ├── blocks-index-v1.0.yaml
+        ├── chunks-index.yaml
+        ├── chunks-index-v1.0.yaml
         ├── links-index.yaml
         ├── changes/{chg-001,chg-002,chg-003}.yaml
         ├── requirements/req-001.yaml
@@ -210,7 +210,7 @@ uv run ait version merge v1.0
 
 ```bash
 # 人工编辑 project-docs/docs/prd/recommend.md 制造分歧（更新 prd-recommend-overview 内容）
-# 然后再创建新版本 v1.1，对同一个 block 做 modify
+# 然后再创建新版本 v1.1，对同一个 chunk 做 modify
 
 uv run ait version merge v1.1 --conflict-policy abort
 ```
@@ -218,8 +218,8 @@ uv run ait version merge v1.1 --conflict-policy abort
 输出：
 
 ```json
-{"ok": true, "data": {"merged_blocks": [],
-                       "conflicts": [{"block_id": "prd-recommend-overview",
+{"ok": true, "data": {"merged_chunks": [],
+                       "conflicts": [{"chunk_id": "prd-recommend-overview",
                                        "reason": "hash_mismatch", ...}],
                        "status": "aborted"}}
 ```
@@ -235,4 +235,4 @@ uv run ait version merge v1.1 --conflict-policy abort
 - 跑 `uv run pytest` 看完整测试套件（66 个用例）
 - 把 `skill/ait/` 复制到 `~/.claude/skills/ait/` 启用 Claude Code Skill 形态
 - 在 Claude Code 里直接输入 `/ait prd 新功能` 触发 Skill 工作流
-- 阅读 [project-docs/docs/prd/block-system.md](../project-docs/docs/prd/block-system.md) 了解 Block 格式规范
+- 阅读 [project-docs/docs/prd/chunk-system.md](../project-docs/docs/prd/chunk-system.md) 了解 Chunk 格式规范

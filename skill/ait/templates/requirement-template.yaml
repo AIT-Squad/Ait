@@ -26,7 +26,7 @@ prd_draft: |
   # 功能描述...
 
 # PRD 块列表（从 prd_draft 解析得出，确认时自动填充）
-prd_blocks: []
+prd_chunks: []
   # - id: prd-feature-name
   #   heading: "功能名称"
   #   level: 2
@@ -36,7 +36,7 @@ prd_blocks: []
 # 状态 impl_progress 时使用
 impl_drafts: []
   # - prd_id: prd-feature-name
-  #   impl_blocks:
+  #   impl_chunks:
   #     - id: impl-api-feature
   #       file: impl/api-contracts
   #       heading: "功能接口"
@@ -60,10 +60,10 @@ discussion_log: []
   # - phase: prd                   # prd | impl
   #   timestamp: ""
   #   summary: "讨论结论"
-  #   blocks_affected: []
+  #   chunks_affected: []
 
 # ═══ 同步状态 ═══
 sync_status: null                      # null | stale | synced
 stale_since: null
-stale_impl_blocks: []
+stale_impl_chunks: []
 stale_files: []

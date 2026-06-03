@@ -1,0 +1,16 @@
+id: chg-050
+version: v1.4
+type: ADD
+target: impl/formats#impl-formats-naming
+author: system
+date: '2026-06-01T07:11:12.112413+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-formats-naming -->\n## 派生式命名校验\n\n校验 impl / task 的派生式命名规则，保证血缘可反推。\n\n### 规则\n\n```python\ndef\
+  \ validate_derived_name(chunk_id: str, source_chunk: str) -> bool:\n    # impl: impl-{源chunk去prd前缀}-{名}\n    # task: T-{源chunk去prd前缀}-NN\n\
+  \    stem = source_chunk.removeprefix(\"prd-\")\n    if chunk_id.startswith(\"impl-\"):\n        return chunk_id.startswith(f\"\
+  impl-{stem}\")\n    if chunk_id.startswith(\"T-\"):\n        return re.match(rf\"^T-{stem}-\\d{{2}}$\", chunk_id) is not\
+  \ None\n    return False\n```\n\n### 校验点\n- `impl create`：校验生成的 impl id 以 `impl-{源stem}` 开头\n- `task create`：校验 task id\
+  \ 匹配 `T-{源stem}-NN`\n- 违反 → 校验错误 `NAMING_VIOLATION`（阻断）\n\n### 价值\n- 名字自带血缘，AI 在 execute 时看 task id 即知源 chunk 与该读的 impl，减少查索引开销（呼应\
+  \ token 聚焦）\n- chunk id 仍遵守全局唯一 + 小写短横线规则\n\n<!-- @ref:prd/ait-redesign#prd-formats rel:implements -->"

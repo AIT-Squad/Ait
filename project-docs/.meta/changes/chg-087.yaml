@@ -1,0 +1,89 @@
+id: chg-087
+version: v1.6
+type: ADD
+target: impl/prd-global-single-file#impl-prd-global-parser-compat-check
+author: system
+date: '2026-06-02T12:36:40.699465+00:00'
+message: 'impl#3: 单文件 baseline 兼容性回归测试网'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-prd-global-parser-compat-check -->
+
+  ## Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
+
+
+  <!-- @ref:prd-prd-global-single-file rel:implements -->
+
+
+  ### 改动点
+
+
+  本 chunk 不改产品代码，只新增**回归测试**与**自检脚本**，确保单文件 baseline 下整套 chunk 索引 / specgraph / context / deps / impact 仍正常工作。
+
+
+  #### 1. 新建 `tests/test_global_prd_baseline.py`
+
+
+  构造一个 fixture：mini project-docs，baseline 仅含 `docs/prd/global.md`（手工写入 3 个 PRD chunk + 跨 chunk @ref），跑 `IndexManager.rebuild_baseline()`
+  后断言：
+
+  - `chunks-index.yaml` 中 3 个 chunk 的 `file` 字段全为 `prd/global`、`id` 字段与文件内 @id 一一对应、顺序与文件内物理顺序一致。
+
+  - `specgraph.yaml` 中三元组集合 == 手工写入的 @ref 关系集合。
+
+  - `ait context <chunk_id>` 对每个 chunk 都能命中 L1/L2，不返回空。
+
+  - `ait deps <chunk_id>` / `ait impact <chunk_id>` 输出与多文件等价构造下完全一致（用同一组 @ref 在多文件版下作为 oracle 对比）。
+
+
+  #### 2. 新建 `tests/test_chunk_parser_global.py::test_large_single_file_parses_full`
+
+
+  直接读真实 baseline（`project-docs/docs/prd/global.md`，迁移完成后才会存在；测试用 `pytest.importorskip` + 文件存在判定守卫，避免在迁移前的 CI 上误失败），断言：
+
+  - `parse_file` 解析出的 chunk 数 ≥ 52（v1.6 基线 52，未来增不退）。
+
+  - 所有 chunk 的 @id 唯一。
+
+  - 所有 @ref 的 dst 要么在本文件内、要么在 `docs/impl/*.md` 中能找到（用 chunks-index 验证）。
+
+
+  #### 3. 新建一次性自检脚本 `scripts/verify_prd_global_invariants.py`
+
+
+  不进 CLI，作为迁移完成后的人工触发自检（`python scripts/verify_prd_global_invariants.py`），打印：
+
+  - `docs/prd/` 是否仅有 `global.md` 一个文件。
+
+  - baseline chunks-index 中 PRD chunk 总数、file 字段唯一值集合（应只有 `{"prd/global"}`）。
+
+  - specgraph PRD 节点 / 边数。
+
+  - `ait state` / `ait specgraph` / `ait deps prd-prd-global-single-file` / `ait impact prd-prd-global-single-file` 的 ok 状态（用
+  subprocess 跑、断 returncode）。
+
+
+  #### 4. 不得改动
+
+
+  - `chunk_parser.py` 任何代码（PRD 单文件解析仅是数据规模变化，不是语义变化，原解析器已具备能力）。
+
+  - `IndexManager.rebuild_baseline()` 任何代码（同理）。
+
+  - `specgraph.py` 任何代码。
+
+  - `context_builder.py` / `deps.py` / `impact.py` 任何代码。
+
+
+  如以上任一测试失败，说明此前隐藏的"单文件下假设多文件 file 字段差异化"耦合，需要回到 impl#1 / impl#2 修补，**不在本 chunk 中改产品代码**。
+
+
+  ### 单元测试
+
+  - 上述 #1、#2 即测试本身；本 chunk 没有"产品代码 + 配套测试"的二元结构，整体就是一组回归保护网。
+
+  - 验收：跑 `pytest tests/test_global_prd_baseline.py tests/test_chunk_parser_global.py -q` 全绿，且 `python scripts/verify_prd_global_invariants.py`
+  退出码 0。
+
+
+  <!-- @ref:prd/v1-6-roadmap#prd-prd-global-single-file rel:implements -->'

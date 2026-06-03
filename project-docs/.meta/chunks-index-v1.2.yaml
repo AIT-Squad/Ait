@@ -1,0 +1,173 @@
+version: 1
+scope: version
+version_name: v1.2
+based_on_hash: null
+status: merged
+chunks:
+- id: prd-skills-overview
+  file: prd/skills
+  heading: 概述
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-rename-block-to-chunk
+  file: prd/skills
+  heading: Block 到 Chunk 的术语统一重构
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-layout
+  file: prd/skills
+  heading: 嵌套目录布局
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-format-adapt
+  file: prd/skills
+  heading: 子 Skill 格式适配规范
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-mapping
+  file: prd/skills
+  heading: 4 个 Skill 的迁移映射表
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-router
+  file: prd/skills
+  heading: 主 SKILL.md Router 改造
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-contract
+  file: prd/skills
+  heading: 子 Skill 写入与调用契约
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: prd-skills-non-goals
+  file: prd/skills
+  heading: 非目标（本期不做）
+  level: 1
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: impl-data-chunk-rename
+  file: impl/data-model
+  heading: Chunk 数据模型重命名（Schema + 索引文件 + 一次性迁移）
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+- id: impl-workflow-chunk-rename
+  file: impl/workflow
+  heading: Chunk 代码符号与文档术语重命名工作流
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-002
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-05-25T05:45:35.980232+00:00'
+  message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+  chunks:
+  - prd-skills-overview
+  - prd-skills-rename-block-to-chunk
+  - prd-skills-layout
+  - prd-skills-format-adapt
+  - prd-skills-mapping
+  - prd-skills-router
+  - prd-skills-contract
+  - prd-skills-non-goals
+  req_id: null
+- id: c2
+  timestamp: '2026-05-25T05:57:12.276559+00:00'
+  message: 'impl(data): chunk rename — schema + index file constants + one-shot migration script'
+  chunks:
+  - impl-data-chunk-rename
+  req_id: req-002
+- id: c3
+  timestamp: '2026-05-25T05:57:12.437435+00:00'
+  message: 'impl(workflow): chunk rename — code symbols + docs + dual verification scripts'
+  chunks:
+  - impl-workflow-chunk-rename
+  req_id: req-002
+stats:
+  total_chunks: 10
+  by_action:
+    add: 10
+  by_state:
+    committed: 10
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
