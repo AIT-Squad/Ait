@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T07:52:00.005624+00:00'
+updated: '2026-06-06T08:22:38.618312+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -459,6 +459,17 @@ specs:
   file: impl/task-relocation
   metadata:
     source: baseline
+- uri: spec:impl:baseline:impl-test-spec-alignment-failures
+  title: Test Failure Alignment Implementation
+  type: impl
+  version: baseline
+  chunk_id: impl-test-spec-alignment-failures
+  file: impl/test-spec-alignment
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c2
 - uri: spec:impl:baseline:impl-v13-release-plan
   title: v1.3 实现总览
   type: impl
@@ -1083,6 +1094,17 @@ specs:
   file: prd/global
   metadata:
     source: baseline
+- uri: spec:prd:baseline:prd-test-spec-alignment
+  title: Test and Spec Alignment
+  type: prd
+  version: baseline
+  chunk_id: prd-test-spec-alignment
+  file: prd/v1-7-test-spec-alignment
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:prd:baseline:prd-version-merge
   title: 版本合并
   type: prd
@@ -1412,6 +1434,12 @@ edges:
     source: baseline-ref
 - src: spec:impl:baseline:impl-task-stage-execute
   dst: spec:prd:baseline:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-test-spec-alignment-failures
+  dst: spec:prd:baseline:prd-test-spec-alignment
   rel: implements
   weight: 1.0
   metadata:

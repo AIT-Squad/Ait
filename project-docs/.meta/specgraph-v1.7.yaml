@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T07:52:00.113285+00:00'
+updated: '2026-06-06T08:22:38.459984+00:00'
 specs:
 - uri: spec:impl:v1.7:impl-test-spec-alignment-failures
   title: Test Failure Alignment Implementation

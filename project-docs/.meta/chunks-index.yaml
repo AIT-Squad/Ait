@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-04T12:59:53.969196+00:00'
+updated: '2026-06-06T08:22:38.292331+00:00'
 chunks:
 - id: global-schema
   file: global/schema
@@ -335,6 +335,11 @@ chunks:
 - id: impl-task-stage-execute
   file: impl/task
   heading: task 执行与自动收口（task execute）
+  level: 2
+  summary: null
+- id: impl-test-spec-alignment-failures
+  file: impl/test-spec-alignment
+  heading: Test Failure Alignment Implementation
   level: 2
   summary: null
 - id: impl-version-manager-overview
@@ -680,5 +685,10 @@ chunks:
 - id: prd-prd-format-enforcement
   file: prd/global
   heading: 'prd-format-enforcement: PRD/impl 格式规范强制化'
+  level: 2
+  summary: null
+- id: prd-test-spec-alignment
+  file: prd/global
+  heading: Test and Spec Alignment
   level: 2
   summary: null
