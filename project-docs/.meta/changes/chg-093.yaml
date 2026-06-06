@@ -1,0 +1,85 @@
+id: chg-093
+version: v1.7
+type: ADD
+target: impl/test-spec-alignment#impl-test-spec-alignment-failures
+author: system
+date: '2026-06-06T07:51:59.937682+00:00'
+message: v1.7 测试与规范收口 impl
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-test-spec-alignment-failures -->
+
+  ## Test Failure Alignment Implementation
+
+
+  <!-- @ref:prd/v1-7-test-spec-alignment#prd-test-spec-alignment rel:implements -->
+
+
+  This implementation keeps the parser contract unchanged and fixes the two known failures at their sources.
+
+
+  ### Failure 1: literal ref example in global PRD
+
+
+  The failing `test_chunk_parser_global.py::test_large_single_file_parses_full` is caused by a documentation table that contains
+  a literal relation target shaped like a real ref target: `file#block-id`.
+
+
+  Implementation rule:
+
+  - Do not loosen `REF_PATTERN`.
+
+  - Do not make parser behavior context-dependent for tables or prose.
+
+  - Update the baseline PRD example so it no longer contains a parseable dangling target.
+
+  - Prefer wording such as `file path plus chunk id` or an escaped placeholder that does not match the parser target grammar.
+
+
+  Verification:
+
+  - The large single-file parser regression test must no longer report dangling target `block-id`.
+
+  - Existing parser tests for real refs must continue to pass.
+
+
+  ### Failure 2: links-index expectation after specgraph migration
+
+
+  The failing `test_index_manager.py::test_rebuild_baseline_writes_files` still asserts legacy `links-index` behavior. The
+  current design intentionally deprecates `links-index` and moves relationship queries to `specgraph`.
+
+
+  Implementation rule:
+
+  - Keep `IndexManager.rebuild_baseline()` focused on writing `.meta/chunks-index.yaml`.
+
+  - Do not restore `links-index.yaml` writes as a compatibility workaround.
+
+  - Adjust the test to assert chunk-index output from `rebuild_baseline()`.
+
+  - Add or update a specgraph-focused assertion by calling `sync_specgraph()` and checking that an `implements` edge exists
+  in the generated graph.
+
+
+  Verification:
+
+  - The rebuilt baseline index file exists and contains expected chunks.
+
+  - The generated specgraph contains at least one `implements` edge for demo data.
+
+  - The updated test no longer requires `links.links` to contain relation data.
+
+
+  ### Test scope
+
+
+  Run the two previously failing tests first, then the full suite.
+
+
+  Expected commands:
+
+  - python -m pytest tests/test_chunk_parser_global.py::test_large_single_file_parses_full tests/test_index_manager.py::test_rebuild_baseline_writes_files
+  -q
+
+  - python -m pytest -q'

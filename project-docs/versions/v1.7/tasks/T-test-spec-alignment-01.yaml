@@ -1,0 +1,18 @@
+id: T-test-spec-alignment-01
+title: 实现 impl-test-spec-alignment-failures
+source_chunk: prd-test-spec-alignment
+impl_refs:
+- impl-test-spec-alignment-failures
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-test-spec-alignment-failures 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - project-docs/docs/prd/global.md
+  - tests/test_index_manager.py
+  bound_at: '2026-06-06T07:57:36.798587Z'

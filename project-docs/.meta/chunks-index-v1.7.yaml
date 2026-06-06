@@ -1,0 +1,56 @@
+version: 1
+scope: version
+version_name: v1.7
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-test-spec-alignment
+  file: prd/v1-7-test-spec-alignment
+  heading: Test and Spec Alignment
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-017
+  summary: Fix current failing tests and align relation-index expectations with specgraph.
+- id: impl-test-spec-alignment-failures
+  file: impl/test-spec-alignment
+  heading: Test Failure Alignment Implementation
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: Align failing tests with specgraph and prevent literal @ref examples from becoming dangling refs.
+commits:
+- id: c1
+  timestamp: '2026-06-06T07:09:56.134586+00:00'
+  message: v1.7 测试与规范收口 PRD
+  chunks:
+  - prd-test-spec-alignment
+  req_id: null
+- id: c2
+  timestamp: '2026-06-06T07:51:59.939245+00:00'
+  message: v1.7 测试与规范收口 impl
+  chunks:
+  - impl-test-spec-alignment-failures
+  req_id: null
+stats:
+  total_chunks: 2
+  by_action:
+    add: 2
+  by_state:
+    committed: 2
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

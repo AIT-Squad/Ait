@@ -12,6 +12,7 @@ from ait.schemas import (
     VersionChunkEntry,
     VersionIndex,
 )
+from ait.specgraph import sync_specgraph
 
 DEMO_ROOT = Path(__file__).parent.parent / "project-demo"
 
@@ -48,9 +49,11 @@ def test_rebuild_baseline_writes_files(demo_root: Path):
     mgr = IndexManager(demo_root)
     baseline, links = mgr.rebuild_baseline()
     assert mgr.baseline_index_path().exists()
-    assert mgr.links_index_path().exists()
     assert baseline.chunks, "baseline must not be empty"
-    assert any(link.rel == "implements" for link in links.links)
+    assert links.links == []
+
+    graph = sync_specgraph(demo_root)
+    assert any(edge.rel == "implements" for edge in graph.edges)
 
 
 def test_query_baseline(demo_root: Path):

@@ -1,0 +1,32 @@
+version: 1
+updated: '2026-06-06T07:52:00.113285+00:00'
+specs:
+- uri: spec:impl:v1.7:impl-test-spec-alignment-failures
+  title: Test Failure Alignment Implementation
+  type: impl
+  version: v1.7
+  chunk_id: impl-test-spec-alignment-failures
+  file: impl/test-spec-alignment
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:prd:v1.7:prd-test-spec-alignment
+  title: Test and Spec Alignment
+  type: prd
+  version: v1.7
+  chunk_id: prd-test-spec-alignment
+  file: prd/v1-7-test-spec-alignment
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v1.7:impl-test-spec-alignment-failures
+  dst: spec:prd:v1.7:prd-test-spec-alignment
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

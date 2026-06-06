@@ -725,7 +725,7 @@ MVP 不包含：代码生成、反向同步、多人协作、AI 改 block、IDE 
 | 基线（baseline） | `docs/` 目录，所有版本合并后的真实状态 |
 | 版本（version） | `versions/{vX.Y}/` 下的增量工作区 |
 | 三阶段 | working → staged → committed |
-| @ref | 跨 Block 引用，形如 `<!-- @ref:file#block-id rel:type -->` |
+| @ref | 跨 Block 引用，形如 `<!-- @ref:<file>#<chunk-id> rel:<type> -->` |
 | L1~L4 | AI 上下文的四层模型 |
 | Skill | Claude Code 等 AI IDE 的可加载能力包，包含 SKILL.md + 脚本 |
 

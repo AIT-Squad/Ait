@@ -1,0 +1,58 @@
+id: chg-092
+version: v1.7
+type: ADD
+target: prd/v1-7-test-spec-alignment#prd-test-spec-alignment
+author: system
+date: '2026-06-06T07:09:56.129151+00:00'
+message: v1.7 测试与规范收口 PRD
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-test-spec-alignment -->
+
+  ## Test and Spec Alignment
+
+
+  ### 概述
+
+  v1.7 的首要目标是让当前测试套件重新回到全绿状态，并把测试、文档示例和代码中的关系索引预期统一到现行设计。
+
+
+  当前已知失败集中在两处：`docs/prd/global.md` 中的示例 `@ref:file#block-id` 被解析成真实引用并形成 dangling target；`test_index_manager.py` 仍断言已废弃的 `links-index`
+  包含 `implements` 关系。
+
+
+  ### 业务规则
+
+  - AIT 的关系真相源是 `specgraph`，新测试和主路径文档不再把 `links-index.yaml` 作为主要关系索引。
+
+  - 文档中展示字面量 `@ref` 语法时，示例不得被真实解析器误识别为跨 chunk 引用，除非示例目标确实存在。
+
+  - `IndexManager.rebuild_baseline()` 的回归测试只校验 baseline chunk index 写入；关系断言应改为通过 `sync_specgraph()` 或 `SpecGraph` 查询完成。
+
+  - 真实 Markdown 中位于代码块外的有效 `@ref` 仍必须被解析并进入 specgraph。
+
+  - 本版本范围只覆盖当前失败测试和相关规范收口，不引入新的用户命令。
+
+
+  ### 验收标准
+
+  - [ ] `python -m pytest -q` 全部通过。
+
+  - [ ] `test_chunk_parser_global.py::test_large_single_file_parses_full` 不再报告 dangling target `block-id`。
+
+  - [ ] `test_index_manager.py::test_rebuild_baseline_writes_files` 或其替代测试不再依赖 `links-index` 的 `implements` 返回值。
+
+  - [ ] 测试和主路径文档中的关系索引描述统一指向 `specgraph`。
+
+  - [ ] 如果修改解析行为，必须补充聚焦测试，证明真实 `@ref` 仍会被解析，示例片段不会误入关系图。
+
+
+  ### 边界与非目标
+
+  - 不处理 baseline 历史文档的大规模 `lint --scope baseline` 格式债务。
+
+  - 不实现 `ait doctor`。
+
+  - 不调整 task、version confirm 或动态 global 的业务流程。
+
+  - 不做全局 Codex skill 安装策略变更。'
