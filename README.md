@@ -4,7 +4,7 @@
 
 AIT is the document-side complement to Git: it treats Markdown chunks (`<!-- @id:xxx -->`) as the version-control unit, supports three-stage commit (`working → staged → committed`), chunk-level merge, structured AI context assembly, and — as of the redesign — a complete AI-coding pipeline that turns locked PRD+impl into executable task YAML.
 
-**Status**: Redesign (the `prd-impl-task` three-state pipeline) implemented and dogfooded through v1.6 (latest: baseline PRD single-file + format enforcement; v1.5: task relocation, init incremental, skill/CLI resolution, sub-skills coverage). Single-user, Claude Code Skill. Slash commands invoked as `/ait <subcommand>` (space-separated). Multi-user collaboration and marketplace publication remain future work.
+**Status**: Redesign (the `prd-impl-task` three-state pipeline) implemented and dogfooded through v1.7 (latest: test/spec alignment and specgraph-first test expectations; v1.6: baseline PRD single-file + format enforcement; v1.5: task relocation, init incremental, skill/CLI resolution, sub-skills coverage). Single-user, Claude Code Skill. Slash commands invoked as `/ait <subcommand>` (space-separated). Multi-user collaboration and marketplace publication remain future work.
 
 > **CLI invocation (v1.5+)**: every `ait ...` example below means the project-local wrapper `project-docs/.ait/ait-cli`, generated automatically by `ait init`. The only place you call the system-level entry `~/.claude/skills/ait/bin/ait` is the very first `init` (or `init --refresh-wrapper` after the skill is reinstalled to a different path). Do **not** use a relative `bin/ait` from the project root — it does not exist there.
 
@@ -33,6 +33,92 @@ AIT is the document-side complement to Git: it treats Markdown chunks (`<!-- @id
 ```
 
 The whole version is an **atomic unit**: once a PRD/impl is committed it is immutable. The only escape hatch is `/ait version reset <vX.Y>` — wipe the version workspace and start over (no partial undo).
+
+## Development State Machine
+
+This is the current implementation state machine. `coding` exists in the schema for compatibility, but the current code does not transition the version phase to `coding`; task progress is tracked only in task YAML.
+
+```mermaid
+stateDiagram-v2
+    [*] --> NoActiveVersion
+
+    NoActiveVersion --> VersionEmpty: ait prd create <title>\nauto-create vX.Y
+
+    VersionEmpty --> ReqDraft: prd create
+    ReqDraft --> PrdDraft: prd save-draft
+    PrdDraft --> PrdConfirmed: prd confirm\nwrite versions/<v>/prd/*.md\nchunk state=working
+    PrdConfirmed --> PrdLocked: prd commit\nstage+commit PRD chunks\nphase=prd_locked
+
+    PrdLocked --> ImplWorking: impl create <prd-chunk>\nwrite versions/<v>/impl/*.md\nchunk state=working
+    ImplWorking --> ImplCommitted: impl commit <impl-chunk>\nstage+commit impl chunk\npre_merge_check
+    ImplCommitted --> ImplWorking: more impl chunks
+    ImplCommitted --> ImplLocked: impl lock\nphase=impl_locked
+
+    ImplLocked --> TaskCreated: task create <prd-chunk>\nwrite versions/<v>/tasks/T-*.yaml
+    TaskCreated --> TaskExecuting: task execute <task-id>
+    TaskExecuting --> TaskDone: task complete\nstatus=done + code_refs
+    TaskExecuting --> TaskFailed: task fail
+    TaskFailed --> TaskExecuting: task execute retry
+    TaskDone --> AllTasksDone: all tasks done
+
+    AllTasksDone --> ConfirmPrecheck: version confirm <v>
+    ConfirmPrecheck --> MergeRollback: merge/extract/git failure\nrestore docs/
+    MergeRollback --> AllTasksDone: fix and retry
+    ConfirmPrecheck --> Merged: precheck ok\nmerge docs/\nextract dynamic global\npromote specgraph\ngit commit\nphase=merged
+    Merged --> [*]
+
+    PrdLocked --> Reset: version reset <v> --confirm
+    ImplWorking --> Reset
+    ImplCommitted --> Reset
+    ImplLocked --> Reset
+    TaskCreated --> Reset
+    TaskExecuting --> Reset
+    TaskFailed --> Reset
+    TaskDone --> Reset
+    Reset --> NoActiveVersion: delete version workspace/meta/tasks/specgraph
+
+    Merged --> ResetBlocked: reset refused\nmerged versions cannot reset
+```
+
+Chunk state:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Working: prd confirm / impl create
+    Working --> Staged: stage
+    Staged --> Committed: commit
+    Committed --> Baseline: version confirm / merge
+```
+
+Task state:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: task create
+    Created --> Executing: task execute
+    Executing --> Done: task complete
+    Executing --> Failed: task fail
+    Failed --> Executing: retry execute
+    Done --> [*]
+```
+
+Version phase:
+
+```mermaid
+stateDiagram-v2
+    [*] --> empty: version created
+    empty --> prd_locked: prd commit
+    prd_locked --> impl_locked: impl lock
+    impl_locked --> merged: version confirm
+```
+
+## Latest Changes
+
+### v1.7 - Test/spec alignment
+
+- Fixed the baseline PRD literal `@ref` example so parser regression tests no longer see a dangling `block-id` reference.
+- Updated index-manager tests to assert relationship behavior through `specgraph` instead of deprecated `links-index`.
+- Confirmed the full test suite is green after the v1.7 baseline merge (`126 passed`).
 
 ## Why AIT
 
@@ -147,6 +233,22 @@ ait version confirm v1.0
 # docs/ gets the chunks, docs/global/ddl.md gets the extracted `pet` table,
 # and a git commit lands with message = the version title.
 ```
+
+## Supported Commands
+
+Current CLI surface:
+
+| Area | Commands |
+|---|---|
+| lifecycle | `init`, `reindex`, `state`, `lint`, `baseline-summary`, `migrate-block-to-chunk` |
+| PRD | `prd create`, `prd save-draft`, `prd resolve-candidates`, `prd confirm`, `prd show`, `prd commit` |
+| impl | `impl create`, `impl show`, `impl commit`, `impl inherit`, `impl lock` |
+| task | `task create`, `task list`, `task show`, `task execute`, `task complete`, `task fail` |
+| version | `version status`, `version merge`, `version confirm`, `version reset` |
+| query/context | `context`, `search`, `deps`, `impact` |
+| specgraph | `specgraph sync`, `specgraph add-edge`, `specgraph query`, `specgraph export` |
+
+All commands must run from the parent directory that contains `project-docs/`. After `init`, use the project-local wrapper (`project-docs/.ait/ait-cli` or `project-docs/.ait/ait-cli.cmd`) for project-side invocations.
 
 ## Command Reference
 
