@@ -4,7 +4,7 @@
 
 - Title: `-`
 - Version: `v1.9`
-- Phase: `impl_locked`
+- Phase: `merged`
 - PRD locked: `true`
 - Impl locked: `true`
 - Merged: `true`
