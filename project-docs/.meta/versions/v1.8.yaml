@@ -12,7 +12,7 @@ dependencies:
   conflicts_with: []
   merge_after: []
 snapshot: snapshots/v1.8/
-phase: impl_locked
+phase: merged
 title: null
 prd_locked: true
 impl_locked: true
