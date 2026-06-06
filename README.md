@@ -4,7 +4,7 @@
 
 AIT is the document-side complement to Git: it treats Markdown chunks (`<!-- @id:xxx -->`) as the version-control unit, supports three-stage commit (`working → staged → committed`), chunk-level merge, structured AI context assembly, and — as of the redesign — a complete AI-coding pipeline that turns locked PRD+impl into executable task YAML.
 
-**Status**: Redesign (the `prd-impl-task` three-state pipeline) implemented and dogfooded through v1.5 (skill/CLI resolution, sub-skills coverage, task relocation, init incremental). Single-user, Claude Code Skill. Slash commands invoked as `/ait <subcommand>` (space-separated). Multi-user collaboration and marketplace publication remain future work.
+**Status**: Redesign (the `prd-impl-task` three-state pipeline) implemented and dogfooded through v1.6 (latest: baseline PRD single-file + format enforcement; v1.5: task relocation, init incremental, skill/CLI resolution, sub-skills coverage). Single-user, Claude Code Skill. Slash commands invoked as `/ait <subcommand>` (space-separated). Multi-user collaboration and marketplace publication remain future work.
 
 > **CLI invocation (v1.5+)**: every `ait ...` example below means the project-local wrapper `project-docs/.ait/ait-cli`, generated automatically by `ait init`. The only place you call the system-level entry `~/.claude/skills/ait/bin/ait` is the very first `init` (or `init --refresh-wrapper` after the skill is reinstalled to a different path). Do **not** use a relative `bin/ait` from the project root — it does not exist there.
 

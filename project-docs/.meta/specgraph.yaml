@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-03T07:49:22.637535+00:00'
+updated: '2026-06-06T07:52:00.005624+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -227,9 +227,6 @@ specs:
   file: impl/prd-chunk-atomic-impl-merge
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c7
 - uri: spec:impl:baseline:impl-prd-chunk-summary-field
   title: chunks-index 增加 summary 字段 + @summary 注释解析
   type: impl
@@ -238,9 +235,6 @@ specs:
   file: impl/prd-chunk-summary-index
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c5
 - uri: spec:impl:baseline:impl-prd-format-enforcement-gate
   title: PRD/impl 格式硬约束 + ait lint 命令 + 派生命名校验
   type: impl
@@ -249,9 +243,6 @@ specs:
   file: impl/prd-format-enforcement
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c8
 - uri: spec:impl:baseline:impl-prd-global-merge-target-rewrite
   title: Baseline PRD 单文件化 — version confirm 路由收敛
   type: impl
@@ -260,9 +251,6 @@ specs:
   file: impl/prd-global-single-file
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c3
 - uri: spec:impl:baseline:impl-prd-global-migrate-script
   title: Baseline PRD 单文件化 — 一次性迁移脚本
   type: impl
@@ -271,9 +259,6 @@ specs:
   file: impl/prd-global-single-file
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-prd-global-parser-compat-check
   title: Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
   type: impl
@@ -282,9 +267,6 @@ specs:
   file: impl/prd-global-single-file
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c4
 - uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-pipeline
   title: prd create 递归扫描 baseline + skill 侧 candidates 决议
   type: impl
@@ -293,9 +275,6 @@ specs:
   file: impl/prd-recursive-modify-discovery
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c6
 - uri: spec:impl:baseline:impl-prd-stage-cli
   title: PRD 阶段命令实现
   type: impl
@@ -869,56 +848,41 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-prd-chunk-atomic-impl-merge
-  file: prd/v1-6-roadmap
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-chunk-summary-index
   title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
   type: prd
   version: baseline
   chunk_id: prd-prd-chunk-summary-index
-  file: prd/v1-6-roadmap
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-format-enforcement
   title: 'prd-format-enforcement: PRD/impl 格式规范强制化'
   type: prd
   version: baseline
   chunk_id: prd-prd-format-enforcement
-  file: prd/v1-6-roadmap
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-global-single-file
   title: 'prd-global-single-file: Baseline PRD 单文件化'
   type: prd
   version: baseline
   chunk_id: prd-prd-global-single-file
-  file: prd/v1-6-roadmap
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-recursive-modify-discovery
   title: 'prd-recursive-modify-discovery: prd create 时递归识别 modify 候选'
   type: prd
   version: baseline
   chunk_id: prd-prd-recursive-modify-discovery
-  file: prd/v1-6-roadmap
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-stage
   title: PRD 阶段
   type: prd
