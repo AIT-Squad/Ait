@@ -148,16 +148,19 @@ This copies `skill/ait/` into `~/.claude/skills/ait/` and pre-warms the bundled 
 
 > **macOS note**: if the bundled venv fails to load native wheels (`dlopen ... different Team IDs`), rebuild the venv with Homebrew Python (`/opt/homebrew/bin/python3.13 -m venv ...`) instead of a hardened-runtime Python.
 
-**Upgrade** (preserves `.venv`):
+**Upgrade** (refreshes `.venv` by default):
 
 ```bash
 cd ait && git pull && python install.py update
 ```
 
+Use `python install.py update --skip-venv` only when you want to copy files without refreshing the installed venv.
+
 | Command | Effect |
 |---------|--------|
 | `python install.py install` | Full install — wipes target (including `.venv`), copies fresh, re-runs pip install. |
-| `python install.py update` | In-place upgrade — overwrites files, keeps `.venv`. Use after `git pull`. |
+| `python install.py update` | In-place upgrade — overwrites files and refreshes the installed `.venv`. Use after `git pull`. |
+| `python install.py update --skip-venv` | Fast file-only upgrade — overwrites files and leaves `.venv` untouched. |
 | `python install.py uninstall` | Remove the installed skill. |
 | `--prefix PATH` | Install to a custom directory. |
 | `--force` | Skip confirmation prompts. |

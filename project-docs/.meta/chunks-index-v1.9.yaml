@@ -1,0 +1,133 @@
+version: 1
+scope: version
+version_name: v1.9
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-skill-cli-resolution
+  file: prd/install-update-venv
+  heading: bin/ait 路径解析与 SKILL 文档约定修订
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-skill-cli-resolution
+  amends: null
+  insert_after: null
+  base_hash: f454f901
+  source_req: req-019
+  summary: Make install.py update refresh venv by default while keeping --skip-venv opt-out
+- id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  heading: init 阶段注入 skill 路径并生成项目本地 wrapper
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  heading: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  heading: ENOENT_BIN_AIT 兜底文档
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  heading: wrapper 自定位回归测试
+  level: 2
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+- id: impl-skill-cli-install-update-venv
+  file: impl/install-update-venv
+  heading: install.py update refreshes venv by default
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-019
+  summary: Refresh installer venv by default on update and add --skip-venv opt-out
+commits:
+- id: c1
+  timestamp: '2026-06-06T11:08:19.843453+00:00'
+  message: 'prd: install update refreshes venv by default'
+  chunks:
+  - prd-skill-cli-resolution
+  req_id: req-019
+- id: c2
+  timestamp: '2026-06-06T11:22:37.395423+00:00'
+  message: 'impl: install update refreshes venv by default'
+  chunks:
+  - impl-skill-cli-install-update-venv
+  req_id: req-019
+- id: c3
+  timestamp: '2026-06-06T11:25:38.751697+00:00'
+  message: 'impl: inherit skill cli config injection'
+  chunks:
+  - impl-skill-cli-config-injection
+  req_id: req-019
+- id: c4
+  timestamp: '2026-06-06T11:25:52.111091+00:00'
+  message: 'impl: inherit skill cli doc rewrite'
+  chunks:
+  - impl-skill-cli-doc-rewrite
+  req_id: req-019
+- id: c5
+  timestamp: '2026-06-06T11:26:02.310780+00:00'
+  message: 'impl: inherit skill cli pitfall doc'
+  chunks:
+  - impl-skill-cli-pitfall-doc
+  req_id: req-019
+- id: c6
+  timestamp: '2026-06-06T11:26:16.357844+00:00'
+  message: 'impl: inherit wrapper self locate verification'
+  chunks:
+  - impl-skill-cli-wrapper-verify
+  req_id: req-019
+stats:
+  total_chunks: 6
+  by_action:
+    modify: 1
+    add: 5
+  by_state:
+    committed: 6
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

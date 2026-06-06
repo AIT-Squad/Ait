@@ -1,0 +1,140 @@
+id: chg-098
+version: v1.9
+type: MODIFY
+target: prd/install-update-venv#prd-skill-cli-resolution
+author: system
+date: '2026-06-06T11:08:19.836632+00:00'
+message: 'prd: install update refreshes venv by default'
+base_hash: f454f901
+base_content: '<!-- @id:prd-skill-cli-resolution -->
+
+  ## bin/ait 路径解析与 SKILL 文档约定修订
+
+
+  ### 概述
+
+  SKILL.md 与 sub-skills 中所有 CLI 调用使用相对路径 `bin/ait ...`，AI 在用户项目根（cwd 不在 skill 安装目录）执行时直接抛 `zsh:1: no such file or directory:
+  bin/ait`。本期通过"文档约定 + 入口脚本自定位 + 错误码兜底"三层解决：让 AI 不论从哪个 cwd 触发都能正确调用 CLI。
+
+
+  ### 业务规则
+
+  - **文档层约定**：SKILL.md / 所有 sub-skill SKILL.md / references/* 中的 CLI 调用统一改为占位符 `${SKILL_DIR}/bin/ait`，并在 Global Contract 增加一条：*"调用
+  CLI 时使用 skill 安装目录下的绝对路径（默认 `~/.claude/skills/ait/bin/ait`）；不要在用户项目根使用相对路径 `bin/ait`"*
+
+  - **入口脚本自定位**：`bin/ait` shell wrapper 与 `bin/ait.cmd` 在执行前用脚本自身路径（`$(dirname "$0")` 等价）解析 venv 位置，不依赖 cwd；保证用户即便手动从绝对路径调用也能找到
+  venv 与 ait 包
+
+  - **CLI cwd 校验**：`bin/ait` 子命令保持原有"必须从含 `project-docs/` 的目录运行"约束（这指的是用户业务 cwd，与 wrapper 自定位无关）
+
+  - **错误码兜底**：当 shell 抛出 `command not found` 类错误时（不在 CLI 控制内），sub-skill 必须能识别症状并给出修正命令；主 SKILL.md 的 Common Pitfalls 增加一条 `ENOENT_BIN_AIT`（虚拟代码，不是
+  CLI 真实返回）
+
+  - **install.py 行为不变**：仍把 skill 拷贝到 `~/.claude/skills/ait/`，仍预热 venv
+
+
+  ### 验收标准
+
+  - [ ] `grep -rn "bin/ait" skill/ait/SKILL.md skill/ait/sub-skills/` 命中数为 0（除非紧跟在 `${SKILL_DIR}/` 之后）
+
+  - [ ] 主 SKILL.md 的 Global Contract 含路径绝对化条款
+
+  - [ ] 用户在任意 cwd（如用户项目根）执行 `~/.claude/skills/ait/bin/ait --version` 都能正常输出版本号
+
+  - [ ] `bin/ait` wrapper 不再依赖 `cd` 到特定目录才能找到 venv
+
+  - [ ] Common Pitfalls 表新增 `ENOENT_BIN_AIT` 行：症状 = `no such file or directory: bin/ait`，恢复 = 改用绝对路径
+
+  - [ ] 现有 sub-skill（ait-discuss / ait-impl-discuss / ait-progress / ait-resume / ait-init-check / ait-state）的 CLI Dependencies
+  段全部更新
+
+
+  ### 边界与非目标
+
+  - 不引入系统级全局 `ait` 命令（PATH 注入），保持当前"显式路径调用"哲学
+
+  - 不修改 `install.py` 拷贝逻辑与 venv 机制
+
+  - 不改变 CLI 子命令名与参数
+
+  - 不引入环境变量 `AIT_HOME` 之类的可配置 skill 路径（保持默认 `~/.claude/skills/ait/`）'
+new_content: '<!-- @id:prd-skill-cli-resolution -->
+
+  ## bin/ait 路径解析与 SKILL 文档约定修订
+
+
+  ### 概述
+
+
+  SKILL.md 与 sub-skills 中所有 CLI 调用使用相对路径 `bin/ait ...`，AI 在用户项目根执行时可能因 cwd 不在 skill 安装目录而无法找到入口。本能力通过“文档约定 + 入口脚本自定位 + 项目本地
+  wrapper + 错误码兜底”保证 AI 从用户项目根也能正确调用 AIT。
+
+
+  v1.9 进一步修订安装更新行为：`install.py update` 应在更新 skill 文件后默认刷新安装目录内的 venv，使用户更新工具代码后无需额外手动重装；当用户明确传入 `--skip-venv` 时，才保留旧的“只更新文件、不刷新
+  venv”快速路径。
+
+
+  ### 业务规则
+
+
+  - **文档层约定**：SKILL.md / 所有 sub-skill SKILL.md / references/* 中的业务 CLI 调用统一使用项目本地 wrapper `project-docs/.ait/ait-cli <subcmd>`；首次
+  init 引导命令仍使用 skill 安装目录下的绝对路径。
+
+  - **入口脚本自定位**：`bin/ait` shell wrapper 与 `bin/ait.cmd` 在执行前用脚本自身路径解析 venv 位置，不依赖 cwd；保证用户即便手动从绝对路径调用也能找到 venv 与 ait 包。
+
+  - **项目本地 wrapper**：`ait init` 负责生成 `project-docs/.ait/ait-cli` 或 `project-docs/.ait/ait-cli.cmd`，后续 PRD / impl / task /
+  version 命令都从用户项目根通过该 wrapper 调用。
+
+  - **CLI cwd 校验**：AIT 子命令保持原有“必须从含 `project-docs/` 的用户项目目录运行”约束；该约束只校验用户业务 cwd，与 wrapper 自定位无关。
+
+  - **错误码兜底**：当 shell 抛出 `command not found` 或 `no such file or directory: bin/ait` 类错误时，sub-skill 必须能识别症状并提示用户改用 `project-docs/.ait/ait-cli`
+  或重新执行 `init --refresh-wrapper`。
+
+  - **install.py 更新默认刷新 venv**：`python install.py update` 在把仓库内 `skill/ait/` 文件同步到用户 skill 安装目录后，默认刷新该安装目录内 `.venv` 里的 AIT
+  包，使新代码在下一次 wrapper 调用时生效。
+
+  - **install.py 更新可跳过 venv**：`python install.py update --skip-venv` 只同步 skill 文件与文档，不刷新、不重建、不重新安装 `.venv` 内的 AIT 包；该选项用于用户明确需要快速文件更新或保留当前
+  venv 状态的场景。
+
+  - **命名约束**：跳过选项命名固定为 `--skip-venv`；不得改成 `--no-venv-warmup`、`--no-install` 或其他同义参数。
+
+  - **文档同步**：项目根 README 与 `skill/ait/README.md` 必须说明 `install.py update` 默认刷新 venv，以及 `--skip-venv` 的适用场景。
+
+
+  ### 验收标准
+
+
+  - [ ] `grep -rn "bin/ait" skill/ait/SKILL.md skill/ait/sub-skills/` 命中数为 0（除非紧跟在 `${SKILL_DIR}/`、`~/.claude/skills/ait/`
+  或 wrapper 实现说明之后）。
+
+  - [ ] 主 SKILL.md 的 Global Contract 含项目本地 wrapper 入口约定。
+
+  - [ ] 用户在任意 cwd 执行 skill 安装目录下的 `bin/ait --version` 都能正常输出版本号。
+
+  - [ ] `bin/ait` wrapper 不依赖 `cd` 到特定目录才能找到 venv。
+
+  - [ ] Common Pitfalls 表包含 `ENOENT_BIN_AIT` 行：症状为 `no such file or directory: bin/ait`，恢复方式为改用项目本地 wrapper。
+
+  - [ ] 现有 sub-skill 的 CLI Dependencies 段全部使用项目本地 wrapper。
+
+  - [ ] `python install.py update` 默认会刷新安装目录 `.venv` 中的 AIT 包，更新后 wrapper 使用的是最新代码。
+
+  - [ ] `python install.py update --skip-venv` 不刷新 `.venv`，但仍同步 skill 文件与文档。
+
+  - [ ] 安装更新相关测试覆盖默认刷新 venv 与 `--skip-venv` 跳过路径。
+
+  - [ ] README 与 `skill/ait/README.md` 均记录新的 update 行为与参数。
+
+
+  ### 边界与非目标
+
+
+  - 不引入系统级全局 `ait` 命令或 PATH 注入，保持显式路径调用哲学。
+
+  - 不改变 skill 默认安装目标，仍使用 `~/.claude/skills/ait/`。
+
+  - 不改变 CLI 子命令名与既有业务参数。
+
+  - 不引入环境变量 `AIT_HOME` 等可配置 skill 路径。
+
+  - 不要求 `install.py update --skip-venv` 修复已损坏的 venv；需要修复时用户应使用默认 update 或重新 install。'

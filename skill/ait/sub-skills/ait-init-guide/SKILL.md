@@ -1,13 +1,13 @@
 ---
 name: ait-init-guide
-description: INVOKE THIS SKILL when bin/ait init returns status=incomplete and the user needs to fill missing docs/global/* files interactively
+description: INVOKE THIS SKILL when /ait init returns status=incomplete and the user needs to fill missing docs/global/* files interactively
 ---
 
 # ait-init-guide — diff-fill the docs/global baseline interactively
 
 ## Trigger
 
-- `bin/ait init` 返回 `status=incomplete`，CLI 提示需要补 global 文件
+- `/ait init` 返回 `status=incomplete`，CLI 提示需要补 global 文件
 - 用户主动询问"global 还有哪些没补"/"项目接入 ait 需要做什么"
 - 在已 init 过的项目上再次跑 `init`，CLI 进入差异补全分支
 

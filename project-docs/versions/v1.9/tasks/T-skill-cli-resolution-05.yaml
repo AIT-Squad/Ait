@@ -1,0 +1,24 @@
+id: T-skill-cli-resolution-05
+title: 实现 impl-skill-cli-wrapper-verify
+source_chunk: prd-skill-cli-resolution
+impl_refs:
+- impl-skill-cli-wrapper-verify
+global_refs:
+- global-tech-stack
+depends_on:
+- T-skill-cli-resolution-04
+order_hint: 5
+steps:
+- 按 impl-skill-cli-wrapper-verify 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/scripts/verify-wrapper-self-locate.sh
+  - skill/ait/scripts/verify-all.sh
+  - skill/ait/bin/ait
+  - skill/ait/bin/ait.cmd
+  - skill/ait/ait/init_manager.py
+  - tests/test_e2e_cli.py
+  - tests/test_root_resolution.py
+  bound_at: '2026-06-06T12:17:39.433325Z'

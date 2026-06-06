@@ -98,7 +98,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 | `ait-impl-discuss` | `/ait impl <prd-chunk-id>` 规划/生成 impl | 读上下文、生成 impl chunk（含 @extract）、CLI 注册到版本工作区。 |
 | `ait-state` | 查看/刷新 `state.md`、询问版本进度、chunk 三态、impl 覆盖、task 状态 | 调用 `state [--save]` 渲染面板，并兼任进度查询、未完成项叙述。 |
 | `ait-resume` | CLI 返回错误或要求恢复中断流程 | 根据 JSON `code` 给恢复步骤（含 version reset 指引）。 |
-| `ait-init-guide` | bin/ait init 进入差异补全模式时使用 | init 进入差异补全模式时，逐项确认 global 文件是否补齐；不再做新/旧项目判别（CLI 自识别）。 |
+| `ait-init-guide` | `/ait init` 进入差异补全模式时使用 | init 进入差异补全模式时，逐项确认 global 文件是否补齐；不再做新/旧项目判别（CLI 自识别）。 |
 
 ## Required Knowledge
 

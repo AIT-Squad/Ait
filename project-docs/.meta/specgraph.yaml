@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T10:35:30.015785+00:00'
+updated: '2026-06-06T11:26:16.438875+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -227,9 +227,6 @@ specs:
   file: impl/baseline-aware-confirmation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c3
 - uri: spec:impl:baseline:impl-prd-chunk-summary-field
   title: chunks-index 增加 summary 字段 + @summary 注释解析
   type: impl
@@ -278,9 +275,6 @@ specs:
   file: impl/baseline-aware-confirmation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-prd-stage-cli
   title: PRD 阶段命令实现
   type: impl
@@ -862,12 +856,9 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-prd-chunk-atomic-impl-merge
-  file: prd/baseline-aware-confirmation
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-chunk-summary-index
   title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
   type: prd
@@ -897,12 +888,9 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-prd-recursive-modify-discovery
-  file: prd/baseline-aware-confirmation
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-stage
   title: PRD 阶段
   type: prd

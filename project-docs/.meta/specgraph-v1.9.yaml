@@ -1,0 +1,100 @@
+version: 1
+updated: '2026-06-06T11:26:16.564814+00:00'
+specs:
+- uri: spec:impl:v1.9:impl-skill-cli-config-injection
+  title: init 阶段注入 skill 路径并生成项目本地 wrapper
+  type: impl
+  version: v1.9
+  chunk_id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v1.9:impl-skill-cli-doc-rewrite
+  title: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  type: impl
+  version: v1.9
+  chunk_id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v1.9:impl-skill-cli-install-update-venv
+  title: install.py update refreshes venv by default
+  type: impl
+  version: v1.9
+  chunk_id: impl-skill-cli-install-update-venv
+  file: impl/install-update-venv
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v1.9:impl-skill-cli-pitfall-doc
+  title: ENOENT_BIN_AIT 兜底文档
+  type: impl
+  version: v1.9
+  chunk_id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v1.9:impl-skill-cli-wrapper-verify
+  title: wrapper 自定位回归测试
+  type: impl
+  version: v1.9
+  chunk_id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:prd:v1.9:prd-skill-cli-resolution
+  title: bin/ait 路径解析与 SKILL 文档约定修订
+  type: prd
+  version: v1.9
+  chunk_id: prd-skill-cli-resolution
+  file: prd/install-update-venv
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges:
+- src: spec:impl:v1.9:impl-skill-cli-install-update-venv
+  dst: spec:prd:v1.9:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.9:impl-skill-cli-config-injection
+  dst: spec:prd:v1.9:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.9:impl-skill-cli-doc-rewrite
+  dst: spec:prd:v1.9:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.9:impl-skill-cli-pitfall-doc
+  dst: spec:prd:v1.9:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.9:impl-skill-cli-wrapper-verify
+  dst: spec:prd:v1.9:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

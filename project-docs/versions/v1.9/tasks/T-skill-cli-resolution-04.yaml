@@ -1,0 +1,19 @@
+id: T-skill-cli-resolution-04
+title: 实现 impl-skill-cli-pitfall-doc
+source_chunk: prd-skill-cli-resolution
+impl_refs:
+- impl-skill-cli-pitfall-doc
+global_refs:
+- global-tech-stack
+depends_on:
+- T-skill-cli-resolution-03
+order_hint: 4
+steps:
+- 按 impl-skill-cli-pitfall-doc 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/SKILL.md
+  - README.md
+  bound_at: '2026-06-06T12:06:07.844078Z'

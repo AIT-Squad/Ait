@@ -4,13 +4,15 @@
 Usage:
     python install.py                  # install (or update if already present)
     python install.py install          # full install: removes existing including .venv
-    python install.py update           # update files in place, preserves .venv (fast)
+    python install.py update           # update files, then refresh installed .venv
+    python install.py update --skip-venv  # update files only, leave .venv untouched
     python install.py uninstall        # remove the installed skill
 
 Common options:
     --prefix PATH                      # custom install location
     --force                            # skip confirmation prompts
     --no-venv-warmup                   # (install only) skip first-run pip install
+    --skip-venv                        # (update only) skip refreshing .venv
 """
 
 from __future__ import annotations
@@ -104,6 +106,63 @@ def warmup_venv(dest: Path) -> None:
             print(result.stderr.strip(), file=sys.stderr)
 
 
+def find_venv_python(dest: Path) -> Path | None:
+    """Return the installed skill venv Python if it exists."""
+    candidates = (
+        [
+            dest / ".venv" / "Scripts" / "python.exe",
+            dest / ".venv" / "bin" / "python",
+        ]
+        if sys.platform == "win32"
+        else [
+            dest / ".venv" / "bin" / "python",
+            dest / ".venv" / "Scripts" / "python.exe",
+        ]
+    )
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def refresh_venv(dest: Path) -> None:
+    """Refresh the ait package installed in the target skill venv."""
+    venv_py = find_venv_python(dest)
+    if venv_py is None:
+        log("no venv python found; warming up venv via wrapper...")
+        warmup_venv(dest)
+        return
+
+    log("refreshing venv package...")
+    try:
+        result = subprocess.run(
+            [
+                str(venv_py),
+                "-m",
+                "pip",
+                "install",
+                "--quiet",
+                "--disable-pip-version-check",
+                "--upgrade",
+                str(dest),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        sys.exit(f"error: could not refresh venv with {venv_py}: {exc}")
+
+    if result.returncode != 0:
+        if result.stderr:
+            print(result.stderr.strip(), file=sys.stderr)
+        sys.exit(
+            "error: venv refresh failed. Re-run `python install.py update --skip-venv` "
+            "to update files without touching the venv."
+        )
+    log("venv refreshed")
+
+
 def do_install(source: Path, dest: Path, force: bool, warmup: bool) -> None:
     """Full install: wipes the entire dest (including .venv) and copies fresh."""
     log(f"source: {source}")
@@ -127,8 +186,8 @@ def do_install(source: Path, dest: Path, force: bool, warmup: bool) -> None:
     log("done. Restart Claude Code, then type /ait <subcommand> in any project.")
 
 
-def do_update(source: Path, dest: Path) -> None:
-    """In-place update: overwrites code & docs but keeps .venv intact."""
+def do_update(source: Path, dest: Path, skip_venv: bool = False) -> None:
+    """In-place update: overwrites code & docs, then refreshes .venv by default."""
     log(f"source: {source}")
     log(f"target: {dest}")
 
@@ -158,11 +217,11 @@ def do_update(source: Path, dest: Path) -> None:
             shutil.copy2(child, target)
 
     log(f"updated {dest}" + (" (kept .venv)" if venv_preserved else ""))
-    if not venv_preserved:
-        log(
-            "note: no .venv found — first /ait call will trigger a ~30s pip install. "
-            "Use `install` instead to warm it up now."
-        )
+    if skip_venv:
+        log("skipped venv refresh (--skip-venv)")
+        return
+
+    refresh_venv(dest)
 
 
 def do_uninstall(dest: Path, force: bool) -> None:
@@ -187,7 +246,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  python install.py                  # install (default)\n"
             "  python install.py install --force  # full reinstall, no prompts\n"
-            "  python install.py update           # fast upgrade, keeps .venv\n"
+            "  python install.py update           # upgrade files and refresh .venv\n"
+            "  python install.py update --skip-venv  # upgrade files only\n"
             "  python install.py uninstall        # remove\n"
         ),
     )
@@ -211,9 +271,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Skip first-run pip install (runs on first /ait call instead).",
     )
 
-    sub.add_parser(
+    p_update = sub.add_parser(
         "update",
-        help="Upgrade in place — overwrites files but preserves .venv (fast).",
+        help="Upgrade in place — overwrites files and refreshes .venv by default.",
+    )
+    p_update.add_argument(
+        "--skip-venv",
+        action="store_true",
+        help="Copy files only; do not refresh the installed .venv.",
     )
 
     p_uninstall = sub.add_parser("uninstall", help="Remove the installed skill.")
@@ -245,7 +310,7 @@ def main() -> None:
         )
     elif action == "update":
         source = find_skill_source()
-        do_update(source, dest)
+        do_update(source, dest, skip_venv=getattr(args, "skip_venv", False))
     elif action == "uninstall":
         do_uninstall(dest, force=getattr(args, "force", False))
     else:

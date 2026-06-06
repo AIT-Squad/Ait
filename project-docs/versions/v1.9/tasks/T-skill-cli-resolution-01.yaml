@@ -1,0 +1,22 @@
+id: T-skill-cli-resolution-01
+title: 实现 impl-skill-cli-config-injection
+source_chunk: prd-skill-cli-resolution
+impl_refs:
+- impl-skill-cli-config-injection
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-skill-cli-config-injection 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/bin/ait
+  - skill/ait/bin/ait.cmd
+  - skill/ait/ait/init_manager.py
+  - skill/ait/ait/cli.py
+  - tests/test_e2e_cli.py
+  - tests/test_root_resolution.py
+  bound_at: '2026-06-06T11:46:35.886289Z'

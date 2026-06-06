@@ -1,0 +1,21 @@
+id: T-skill-cli-resolution-03
+title: 实现 impl-skill-cli-install-update-venv
+source_chunk: prd-skill-cli-resolution
+impl_refs:
+- impl-skill-cli-install-update-venv
+global_refs:
+- global-tech-stack
+depends_on:
+- T-skill-cli-resolution-02
+order_hint: 3
+steps:
+- 按 impl-skill-cli-install-update-venv 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - install.py
+  - README.md
+  - skill/ait/README.md
+  - tests/test_install_py.py
+  bound_at: '2026-06-06T12:03:10.248027Z'

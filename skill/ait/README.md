@@ -22,11 +22,12 @@ From the repository root:
 ```bash
 python install.py             # fresh install (default)
 python install.py install     # same, explicit
-python install.py update      # in-place upgrade (preserves .venv, <1s)
+python install.py update      # in-place upgrade + venv refresh
+python install.py update --skip-venv  # file-only upgrade, leave .venv untouched
 python install.py uninstall   # remove
 ```
 
-`install` copies the contents of `skill/ait/` (this directory) into `~/.claude/skills/ait/` and pre-warms the bundled venv. `update` is what you want after `git pull` — it overwrites code/docs but keeps the warmed-up venv. See [`install.py --help`](../../install.py) for `--prefix`, `--force`, and `--no-venv-warmup`.
+`install` copies the contents of `skill/ait/` (this directory) into `~/.claude/skills/ait/` and pre-warms the bundled venv. `update` is what you want after `git pull`: it overwrites code/docs and refreshes the installed venv so the next wrapper call uses the new package. Use `update --skip-venv` only for a fast file-only update that leaves the current venv untouched. See [`install.py --help`](../../install.py) for `--prefix`, `--force`, `--no-venv-warmup`, and `--skip-venv`.
 
 ### Manual install (no installer)
 
