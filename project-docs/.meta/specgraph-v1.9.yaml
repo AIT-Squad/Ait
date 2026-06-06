@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T11:26:16.564814+00:00'
+updated: '2026-06-06T12:23:50.021477+00:00'
 specs:
 - uri: spec:impl:v1.9:impl-skill-cli-config-injection
   title: init 阶段注入 skill 路径并生成项目本地 wrapper

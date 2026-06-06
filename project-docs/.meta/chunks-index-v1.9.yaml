@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v1.9
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-skill-cli-resolution
   file: prd/install-update-venv
@@ -129,5 +129,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 5
     failed: 0
