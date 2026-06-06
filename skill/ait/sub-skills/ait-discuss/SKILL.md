@@ -7,7 +7,7 @@ description: INVOKE THIS SKILL when the user asks to write or discuss a product 
 
 ## Purpose
 
-驱动 PRD 的 Clarify → Design → Generate 三阶段讨论，并将结果通过 `project-docs/.ait/ait-cli prd` 命令保存为 AIT 管理的版本 PRD。
+Drive PRD Clarify -> Design -> Generate discussion and persist the confirmed result through `project-docs/.ait/ait-cli prd` commands.
 
 ## CLI Dependencies
 
@@ -21,35 +21,39 @@ description: INVOKE THIS SKILL when the user asks to write or discuss a product 
 
 ## Artifacts
 
-- **Reads**：用户需求、`project-docs/.meta/requirements/*.yaml`、PRD 草稿状态。
-- **Writes**：只通过 `project-docs/.ait/ait-cli prd save-draft` 与 `project-docs/.ait/ait-cli prd confirm` 写入。
-- **Side-effect**：版本目录中产生 `prd/*.md`，版本 index 注册 `working` chunk。
+- **Reads**: user requirement, baseline PRD summaries, optional old PRD chunk context, requirement metadata, PRD draft state.
+- **Writes**: only through `project-docs/.ait/ait-cli prd save-draft`, `prd resolve-candidates`, and `prd confirm`.
+- **Side-effect**: version workspace gets `prd/*.md`; version index registers working chunks.
 
 ## Workflow
 
-1. 确认当前目录是包含 `project-docs/` 的项目根。
-2. 调用 `project-docs/.ait/ait-cli prd create <title>`，记录 `req_id` 与 `version`。
-3. **Phase 0: scan-baseline**：在 Clarify/Design 前识别 add/modify 决议。
-   - 调用 `project-docs/.ait/ait-cli baseline-summary --scope prd --format yaml` 获取 baseline PRD 的 `id + heading + summary` 列表。
-   - 将“用户原始需求 + baseline 摘要列表”喂给 LLM，要求输出严格 YAML：`modify_candidates`、`delete_candidates`、`adds`。其中 `delete_candidates` 默认保持空，除非用户显式声明删除。
-   - LLM 输入上限 **≤ 5 KB**。若摘要列表超限，按用户需求关键词匹配 `id/heading/summary`，只保留最相关的前 N 条，逐步缩小 N 直到总输入不超过 5 KB。
-   - 对 `modify_candidates` 中 `confidence < 0.8` 的候选最多取 3 条，逐个调用 `project-docs/.ait/ait-cli context <overrides>` 拉取全文并让 LLM 二次精判；二次判断后要么提高/降低 confidence，要么降级为 `adds`。
-   - 将最终 candidates 渲染为 Markdown 表格供用户确认，列为 `new_id` / `action` / `overrides` / `confidence` / `reason`。用户可把某条 `action` 改为 `add` 以拒绝 modify。
-   - 将用户确认后的 YAML 写入临时文件，并调用 `project-docs/.ait/ait-cli prd resolve-candidates --from-file <file>` 落盘到 `versions/<v>/.candidates.yaml`。
-4. Clarify：提出 2-4 个聚焦问题，补齐边界、用户、验收标准和非目标。
-5. Design：给出 3-6 个 PRD chunk，chunk ID 使用 `prd-<domain>-<name>`；若 Phase 0 判定为 modify，保留对应 `new_id` 并确保后续 `save-draft` 能与 candidates 对齐。
-6. Generate：生成完整 Markdown，所有业务语义位于 chunk 内。
-7. 调用 `project-docs/.ait/ait-cli prd save-draft` 保存草稿；若已存在 `.candidates.yaml`，CLI 会把 `action` / `overrides` 同步进版本 chunks-index。
-8. 调用 `project-docs/.ait/ait-cli prd confirm` materialize 到 `versions/<v>/prd/`。
-9. 向用户汇报 `req_id`、`version`、文件路径和 chunk ID。
+1. Confirm the current directory is the project root containing `project-docs/`.
+2. Call `project-docs/.ait/ait-cli prd create <title>` and record `req_id` and `version`.
+3. Read baseline PRD context with `project-docs/.ait/ait-cli baseline-summary --scope prd --format yaml`.
+4. Treat the baseline summary as discussion context only. AI suggestions are not persisted decisions.
+5. If the baseline summary exceeds 5 KB, filter by keywords from the user request across `id`, `heading`, and `summary` until the input fits the budget.
+6. Clarify: ask focused questions to settle boundaries, users, acceptance criteria, and non-goals.
+7. Design: propose 3-6 PRD chunks and label each as `add` or a possible `modify`.
+8. For every possible `modify`, render a confirmation table with `new_id`, `action`, `overrides`, `confidence`, and `reason`.
+9. For low-confidence modify candidates, call `project-docs/.ait/ait-cli context <overrides>` for full-text inspection, then re-render the confirmation table.
+10. Wait for explicit user confirmation before calling `project-docs/.ait/ait-cli prd resolve-candidates --from-file <file>`.
+11. If the user rejects a modify candidate, record it as `add`. If the user adjusts `overrides`, use the adjusted baseline chunk id.
+12. Keep `delete_candidates` empty unless the user explicitly asks to delete a PRD chunk.
+13. Do not introduce a change plan concept, file, schema, or command. Confirmed decisions still use the existing `.candidates.yaml` flow.
+14. Generate the final Markdown draft. If a chunk uses an existing baseline id, CLI may register it as `action: modify, overrides: <same-id>`; if a new id modifies an old chunk, the confirmed candidates YAML must provide `overrides`.
+15. Call `project-docs/.ait/ait-cli prd save-draft <req_id> --content-file <file>`.
+16. Call `project-docs/.ait/ait-cli prd confirm <req_id> --file prd/<slug>`.
+17. Report `req_id`, `version`, file path, chunk ids, and any confirmed modify mappings.
 
 ## Output Contract
 
-只摘要 CLI JSON 的关键字段：`req_id`、`version`、`file`、`chunk_ids`。如果 `ok=false`，复述 `error` 与 `code`，不要伪造成功状态。
+Summarize only key CLI JSON fields: `req_id`, `version`, `file`, `chunk_ids`, and confirmed `action/overrides` decisions. If `ok=false`, repeat `error` and `code`; do not invent successful state.
 
 ## Common Pitfalls
 
-- `ID_FORMAT`：要求用户确认或改写 chunk ID。
-- `CONFIRM_FAILED`：检查草稿是否为空、文件路径是否不含 `.md`。
-- `NOT_AT_PROJECT_ROOT`：提示切回项目根。
-- `CWD_INSIDE_PROJECT_DOCS`：提示退出 `project-docs/`。
+- `ID_FORMAT`: ask the user to confirm or rewrite the chunk id.
+- `CHUNK_ID_COLLISION`: do not use a baseline id as a candidate `new_id`; either keep the same id in the draft or choose a new id with confirmed `overrides`.
+- `OVERRIDES_NOT_IN_BASELINE`: ask the user to choose a valid baseline PRD chunk.
+- `CONFIRM_FAILED`: check that the draft is non-empty and the file path has no `.md` suffix.
+- `NOT_AT_PROJECT_ROOT`: return to the project root.
+- `CWD_INSIDE_PROJECT_DOCS`: leave `project-docs/` and run from its parent.

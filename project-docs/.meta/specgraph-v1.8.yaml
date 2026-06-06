@@ -1,0 +1,60 @@
+version: 1
+updated: '2026-06-06T09:37:56.061077+00:00'
+specs:
+- uri: spec:impl:v1.8:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  title: impl baseline-aware confirmation and explicit overrides
+  type: impl
+  version: v1.8
+  chunk_id: impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  file: impl/baseline-aware-confirmation
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v1.8:impl-prd-recursive-modify-discovery-confirmation-skill
+  title: ait-discuss baseline-aware confirmation flow
+  type: impl
+  version: v1.8
+  chunk_id: impl-prd-recursive-modify-discovery-confirmation-skill
+  file: impl/baseline-aware-confirmation
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:prd:v1.8:prd-prd-chunk-atomic-impl-merge
+  title: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
+  type: prd
+  version: v1.8
+  chunk_id: prd-prd-chunk-atomic-impl-merge
+  file: prd/baseline-aware-confirmation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:v1.8:prd-prd-recursive-modify-discovery
+  title: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
+  type: prd
+  version: v1.8
+  chunk_id: prd-prd-recursive-modify-discovery
+  file: prd/baseline-aware-confirmation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges:
+- src: spec:impl:v1.8:impl-prd-recursive-modify-discovery-confirmation-skill
+  dst: spec:prd:v1.8:prd-prd-recursive-modify-discovery
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.8:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  dst: spec:prd:v1.8:prd-prd-chunk-atomic-impl-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

@@ -1,0 +1,18 @@
+id: T-prd-recursive-modify-discovery-01
+title: 实现 impl-prd-recursive-modify-discovery-confirmation-skill
+source_chunk: prd-prd-recursive-modify-discovery
+impl_refs:
+- impl-prd-recursive-modify-discovery-confirmation-skill
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-recursive-modify-discovery-confirmation-skill 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - tests/test_impl_create_modify.py
+  bound_at: '2026-06-06T09:44:54.450200Z'

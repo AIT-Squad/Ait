@@ -27,6 +27,7 @@ from .format_validator import (
     violations_to_details,
 )
 from .index_manager import IndexManager
+from .schemas import Action
 from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
 
@@ -78,6 +79,8 @@ class ImplManager:
         impl_file: str | None = None,
         req_id: str | None = None,
         prd_file: str | None = None,
+        action: Action = "add",
+        overrides: str | None = None,
     ) -> ImplCreateResult:
         """Add an impl chunk (or several) into the version workspace.
 
@@ -118,6 +121,7 @@ class ImplManager:
                     message="impl content has no @id-annotated chunks",
                 )
             ])
+        base_hash = self._validate_create_action(action, overrides, len(parsed.chunks))
 
         # Inject @ref into any chunk that doesn't already reference the PRD.
         ref_line = f"<!-- @ref:{prd_resolved_file}#{prd_chunk_id} rel:implements -->"
@@ -144,7 +148,9 @@ class ImplManager:
             self.versions.add_chunk(
                 version,
                 chunk=chunk,
-                action="add",
+                action=action,
+                overrides=overrides if action == "modify" else None,
+                base_hash=base_hash if action == "modify" else None,
                 source_req=req_id,
             )
             registered.append(chunk.id)
@@ -184,6 +190,80 @@ class ImplManager:
                         "chunk": _chunk_dict(chunk),
                     }
         raise FileNotFoundError(f"impl chunk {impl_chunk_id} not found")
+
+    def _validate_create_action(
+        self, action: str, overrides: str | None, chunk_count: int
+    ) -> str | None:
+        issues: list[ValidationIssue] = []
+        base_hash: str | None = None
+
+        if action == "add":
+            if overrides:
+                issues.append(
+                    ValidationIssue(
+                        severity="E1",
+                        code="OVERRIDES_NOT_ALLOWED",
+                        message="--overrides is only valid with --action modify",
+                        chunk_id=overrides,
+                    )
+                )
+        elif action == "modify":
+            if chunk_count != 1:
+                issues.append(
+                    ValidationIssue(
+                        severity="E1",
+                        code="MODIFY_REQUIRES_SINGLE_CHUNK",
+                        message="--action modify requires exactly one impl chunk",
+                    )
+                )
+            if not overrides:
+                issues.append(
+                    ValidationIssue(
+                        severity="E1",
+                        code="OVERRIDES_REQUIRED",
+                        message="--action modify requires --overrides <baseline-impl-id>",
+                    )
+                )
+            else:
+                base_entry = self.indexes.query_baseline(overrides)
+                if base_entry is None or not overrides.startswith("impl-"):
+                    issues.append(
+                        ValidationIssue(
+                            severity="E1",
+                            code="OVERRIDES_NOT_IN_BASELINE",
+                            message=f"overrides impl chunk '{overrides}' is not in baseline",
+                            chunk_id=overrides,
+                        )
+                    )
+                else:
+                    base_hash = self._baseline_chunk_hash(overrides)
+        else:
+            issues.append(
+                ValidationIssue(
+                    severity="E1",
+                    code="ACTION_UNSUPPORTED",
+                    message=f"impl create action '{action}' is not supported",
+                )
+            )
+
+        if issues:
+            raise ValidationError(issues)
+        return base_hash
+
+    def _baseline_chunk_hash(self, chunk_id: str) -> str | None:
+        base_entry = self.indexes.query_baseline(chunk_id)
+        if base_entry is None:
+            return None
+        base_path = self.root / "docs" / f"{base_entry.file}.md"
+        if not base_path.exists():
+            return None
+        parsed = parse_file(base_path, self.root / "docs")
+        for chunk in parsed.chunks:
+            if chunk.id == chunk_id:
+                from .hash_utils import chunk_hash
+
+                return chunk_hash(chunk.content)
+        return None
 
     def commit(
         self, impl_chunk_id: str, message: str, req_id: str | None = None

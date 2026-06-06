@@ -375,6 +375,14 @@ def impl_group() -> None:
 @click.option("--impl-file", default=None, help="impl/{name} target file (auto-detected if absent).")
 @click.option("--req-id", default=None)
 @click.option("--prd-file", default=None)
+@click.option(
+    "--action",
+    type=click.Choice(["add", "modify"]),
+    default="add",
+    show_default=True,
+    help="Version index action for created impl chunk(s).",
+)
+@click.option("--overrides", default=None, help="Baseline impl chunk id when --action modify.")
 @click.pass_context
 def impl_create(
     ctx,
@@ -384,6 +392,8 @@ def impl_create(
     impl_file: str | None,
     req_id: str | None,
     prd_file: str | None,
+    action: str,
+    overrides: str | None,
 ) -> None:
     if content is None and content_file is None:
         fail("Provide --content or --content-file", code="ARG_MISSING")
@@ -400,6 +410,8 @@ def impl_create(
             impl_file=impl_file,
             req_id=req_id,
             prd_file=prd_file,
+            action=action,  # type: ignore[arg-type]
+            overrides=overrides,
         )
         ok(
             {

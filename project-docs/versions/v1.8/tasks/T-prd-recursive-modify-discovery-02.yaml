@@ -1,0 +1,18 @@
+id: T-prd-recursive-modify-discovery-02
+title: 实现 impl-prd-recursive-modify-discovery-pipeline
+source_chunk: prd-prd-recursive-modify-discovery
+impl_refs:
+- impl-prd-recursive-modify-discovery-pipeline
+global_refs:
+- global-tech-stack
+depends_on:
+- T-prd-recursive-modify-discovery-01
+order_hint: 2
+steps:
+- 按 impl-prd-recursive-modify-discovery-pipeline 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - project-docs/docs/impl/prd-recursive-modify-discovery.md
+  bound_at: '2026-06-06T09:45:27.692758Z'

@@ -1,0 +1,76 @@
+id: chg-096
+version: v1.8
+type: ADD
+target: impl/baseline-aware-confirmation#impl-prd-recursive-modify-discovery-confirmation-skill
+author: system
+date: '2026-06-06T09:37:26.536496+00:00'
+message: ait-discuss user-confirmed baseline candidates
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-prd-recursive-modify-discovery-confirmation-skill -->
+
+  ## ait-discuss baseline-aware confirmation flow
+
+
+  <!-- @ref:prd/global#prd-prd-recursive-modify-discovery rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. `skill/ait/sub-skills/ait-discuss/SKILL.md`
+
+
+  Update the current Phase 0 wording from "AI produces candidates and skill persists them" to a stricter discussion gate:
+
+
+  1. `prd create` still starts by creating the requirement/version and reading `baseline-summary --scope prd --format yaml`.
+
+  2. The baseline summary is treated as discussion context, not as an automatic write source.
+
+  3. After Clarify/Design produces the final PRD chunk split, the skill labels chunks as add or modify candidates.
+
+  4. Any modify candidate must be rendered to the user with `new_id`, `action`, `overrides`, `confidence`, and `reason`.
+
+  5. The skill must wait for explicit user confirmation before calling `prd resolve-candidates`.
+
+  6. If the user rejects a modify candidate, the skill records it as add.
+
+  7. No new change-plan file, schema, or command is introduced.
+
+
+  #### 2. Prompting and safeguards
+
+
+  - The skill must state that AI suggestions are not persisted decisions.
+
+  - `delete_candidates` remains empty unless the user explicitly asks to delete a PRD chunk.
+
+  - If baseline summary exceeds the 5 KB budget, keep the existing keyword filtering rule before giving context to the AI.
+
+  - Low-confidence modify candidates may still use `context <overrides>` for full-text inspection, but the final decision
+  is still user-confirmed.
+
+
+  #### 3. Regression coverage
+
+
+  Add a focused test or verification script assertion that the ait-discuss skill text contains:
+
+
+  - a requirement to wait for user confirmation before `prd resolve-candidates`;
+
+  - the statement that no change plan concept is introduced;
+
+  - the baseline summary input step.
+
+
+  ### Acceptance
+
+
+  - `skill/ait/sub-skills/ait-discuss/SKILL.md` no longer implies that AI-generated candidates may be persisted before user
+  confirmation.
+
+  - PRD candidates still use the existing `.candidates.yaml` flow after confirmation.
+
+  - Existing `prd resolve-candidates` tests continue to pass unchanged.'

@@ -1,0 +1,90 @@
+version: 1
+scope: version
+version_name: v1.8
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-prd-recursive-modify-discovery
+  file: prd/baseline-aware-confirmation
+  heading: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-prd-recursive-modify-discovery
+  amends: null
+  insert_after: null
+  base_hash: 826817b5
+  source_req: req-018
+  summary: Make prd create baseline-aware while requiring user-confirmed modify candidates
+- id: prd-prd-chunk-atomic-impl-merge
+  file: prd/baseline-aware-confirmation
+  heading: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-prd-chunk-atomic-impl-merge
+  amends: null
+  insert_after: null
+  base_hash: a3a9aa19
+  source_req: req-018
+  summary: Require user confirmation for impl modify/inherit and add explicit impl overrides support
+- id: impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  file: impl/baseline-aware-confirmation
+  heading: impl baseline-aware confirmation and explicit overrides
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-018
+  summary: Add impl create modify overrides support and require user-confirmed impl modify/inherit in skill flow
+- id: impl-prd-recursive-modify-discovery-confirmation-skill
+  file: impl/baseline-aware-confirmation
+  heading: ait-discuss baseline-aware confirmation flow
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-018
+  summary: Revise ait-discuss so baseline modify candidates are user-confirmed before persistence
+commits:
+- id: c1
+  timestamp: '2026-06-06T09:34:00.424948+00:00'
+  message: baseline-aware PRD and impl confirmation
+  chunks:
+  - prd-prd-recursive-modify-discovery
+  - prd-prd-chunk-atomic-impl-merge
+  req_id: req-018
+- id: c2
+  timestamp: '2026-06-06T09:37:26.536496+00:00'
+  message: ait-discuss user-confirmed baseline candidates
+  chunks:
+  - impl-prd-recursive-modify-discovery-confirmation-skill
+  req_id: req-018
+- id: c3
+  timestamp: '2026-06-06T09:37:55.886094+00:00'
+  message: impl create explicit modify overrides
+  chunks:
+  - impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  req_id: req-018
+stats:
+  total_chunks: 4
+  by_action:
+    modify: 2
+    add: 2
+  by_state:
+    committed: 4
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
