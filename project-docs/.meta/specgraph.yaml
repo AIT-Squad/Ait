@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T08:22:38.618312+00:00'
+updated: '2026-06-06T10:35:30.015785+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -219,14 +219,17 @@ specs:
   file: impl/merge-engine
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-engine
-  title: PRD chunk 原子规则：confirm 整组替换 impl + commit 覆盖率守卫 + impl inherit
+- uri: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  title: impl baseline-aware confirmation and explicit overrides
   type: impl
   version: baseline
-  chunk_id: impl-prd-chunk-atomic-impl-merge-engine
-  file: impl/prd-chunk-atomic-impl-merge
+  chunk_id: impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  file: impl/baseline-aware-confirmation
   metadata:
     source: baseline
+    state: committed
+    action: add
+    commit_id: c3
 - uri: spec:impl:baseline:impl-prd-chunk-summary-field
   title: chunks-index 增加 summary 字段 + @summary 注释解析
   type: impl
@@ -267,14 +270,17 @@ specs:
   file: impl/prd-global-single-file
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-pipeline
-  title: prd create 递归扫描 baseline + skill 侧 candidates 决议
+- uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-confirmation-skill
+  title: ait-discuss baseline-aware confirmation flow
   type: impl
   version: baseline
-  chunk_id: impl-prd-recursive-modify-discovery-pipeline
-  file: impl/prd-recursive-modify-discovery
+  chunk_id: impl-prd-recursive-modify-discovery-confirmation-skill
+  file: impl/baseline-aware-confirmation
   metadata:
     source: baseline
+    state: committed
+    action: add
+    commit_id: c2
 - uri: spec:impl:baseline:impl-prd-stage-cli
   title: PRD 阶段命令实现
   type: impl
@@ -467,9 +473,6 @@ specs:
   file: impl/test-spec-alignment
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-v13-release-plan
   title: v1.3 实现总览
   type: impl
@@ -855,13 +858,16 @@ specs:
   metadata:
     source: baseline
 - uri: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
-  title: 'prd-chunk-atomic-impl-merge: PRD chunk 原子规则与 impl 整组替换'
+  title: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
   type: prd
   version: baseline
   chunk_id: prd-prd-chunk-atomic-impl-merge
-  file: prd/global
+  file: prd/baseline-aware-confirmation
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-chunk-summary-index
   title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
   type: prd
@@ -887,13 +893,16 @@ specs:
   metadata:
     source: baseline
 - uri: spec:prd:baseline:prd-prd-recursive-modify-discovery
-  title: 'prd-recursive-modify-discovery: prd create 时递归识别 modify 候选'
+  title: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
   type: prd
   version: baseline
   chunk_id: prd-prd-recursive-modify-discovery
-  file: prd/global
+  file: prd/baseline-aware-confirmation
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-stage
   title: PRD 阶段
   type: prd
@@ -1099,12 +1108,9 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-test-spec-alignment
-  file: prd/v1-7-test-spec-alignment
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-version-merge
   title: 版本合并
   type: prd
@@ -1114,6 +1120,18 @@ specs:
   metadata:
     source: baseline
 edges:
+- src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  dst: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-recursive-modify-discovery-confirmation-skill
+  dst: spec:prd:baseline:prd-prd-recursive-modify-discovery
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
 - src: spec:impl:baseline:impl-block-parser-overview
   dst: spec:prd:baseline:prd-block-format
   rel: implements
@@ -1222,12 +1240,6 @@ edges:
   weight: 1.0
   metadata:
     source: baseline-ref
-- src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-engine
-  dst: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
-  rel: implements
-  weight: 1.0
-  metadata:
-    source: baseline-ref
 - src: spec:impl:baseline:impl-prd-chunk-summary-field
   dst: spec:prd:baseline:prd-prd-chunk-summary-index
   rel: implements
@@ -1254,12 +1266,6 @@ edges:
     source: baseline-ref
 - src: spec:impl:baseline:impl-prd-global-parser-compat-check
   dst: spec:prd:baseline:prd-prd-global-single-file
-  rel: implements
-  weight: 1.0
-  metadata:
-    source: baseline-ref
-- src: spec:impl:baseline:impl-prd-recursive-modify-discovery-pipeline
-  dst: spec:prd:baseline:prd-prd-recursive-modify-discovery
   rel: implements
   weight: 1.0
   metadata:

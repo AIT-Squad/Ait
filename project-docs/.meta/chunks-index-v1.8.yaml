@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v1.8
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-prd-recursive-modify-discovery
   file: prd/baseline-aware-confirmation
@@ -86,5 +86,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 4
     failed: 0
