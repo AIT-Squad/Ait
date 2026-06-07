@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-07T08:16:30.114220+00:00'
+updated: '2026-06-07T08:53:28.748432+00:00'
 specs:
 - uri: spec:impl:v1.10:impl-prd-chunk-atomic-impl-merge-inherit-noop
   title: impl inherit no longer appends baseline chunks during merge

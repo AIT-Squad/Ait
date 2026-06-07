@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v1.10
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-version-merge
   file: prd/merge-inherit-noop
@@ -116,7 +116,7 @@ stats:
   by_state:
     committed: 6
   tasks_summary:
-    created: 4
-    executing: 3
-    done: 0
+    created: 0
+    executing: 0
+    done: 7
     failed: 0
