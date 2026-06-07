@@ -1,0 +1,25 @@
+id: T-prd-chunk-atomic-impl-merge-02
+title: 实现 impl-prd-chunk-atomic-impl-merge-inherit-noop
+source_chunk: prd-prd-chunk-atomic-impl-merge
+impl_refs:
+- impl-prd-chunk-atomic-impl-merge-inherit-noop
+global_refs:
+- global-tech-stack
+depends_on:
+- T-prd-chunk-atomic-impl-merge-01
+order_hint: 2
+steps:
+- 按 impl-prd-chunk-atomic-impl-merge-inherit-noop 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/impl_manager.py
+  - skill/ait/ait/version_manager.py
+  - tests/test_impl_inherit.py
+  - tests/test_merge_workflow.py
+  - tests/test_version_confirm_atomic.py
+  - project-docs/docs/impl/skill-cli-doc-rewrite.md
+  - project-docs/.meta/chunks-index.yaml
+  - project-docs/.meta/specgraph.yaml
+  bound_at: '2026-06-07T08:24:19.466456Z'

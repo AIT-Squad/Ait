@@ -42,8 +42,11 @@ def test_inherit_clones_baseline_impls(tmp_path: Path):
     assert "<!-- @id:impl-a-1 -->" in text
     assert "<!-- @id:impl-a-2 -->" in text
     assert "@ref:prd/feature#prd-a rel:implements" in text
-    idx_ids = [c.id for c in vm.indexes.load_version_index("v1.1").chunks]
-    assert idx_ids == ["impl-a-1", "impl-a-2"]
+    entries = vm.indexes.load_version_index("v1.1").chunks
+    assert [c.id for c in entries] == ["impl-a-1", "impl-a-2"]
+    assert [c.action for c in entries] == ["modify", "modify"]
+    assert [c.overrides for c in entries] == ["impl-a-1", "impl-a-2"]
+    assert all(c.base_hash for c in entries)
 
 
 def test_inherit_idempotent(tmp_path: Path):
@@ -56,3 +59,19 @@ def test_inherit_idempotent(tmp_path: Path):
     assert first.inherited == ["impl-a-1", "impl-a-2"]
     assert second.inherited == []
     assert second.skipped == ["impl-a-1", "impl-a-2"]
+
+
+def test_inherited_impl_confirm_does_not_duplicate_baseline(tmp_path: Path):
+    vm = _init_project(tmp_path)
+    ImplManager(tmp_path).inherit("prd-a")
+
+    vm.stage("v1.1")
+    vm.commit("v1.1", "inherit impl")
+    vm.confirm("v1.1")
+
+    text = (tmp_path / "docs" / "impl" / "feature.md").read_text(encoding="utf-8")
+    assert text.count("<!-- @id:impl-a-1 -->") == 1
+    assert text.count("<!-- @id:impl-a-2 -->") == 1
+    baseline_ids = [c.id for c in vm.indexes.load_baseline().chunks]
+    assert baseline_ids.count("impl-a-1") == 1
+    assert baseline_ids.count("impl-a-2") == 1

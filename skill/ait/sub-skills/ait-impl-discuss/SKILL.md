@@ -37,7 +37,7 @@ Assemble focused context for a committed PRD chunk, discuss baseline implementat
 6. Before calling `impl inherit`, show the baseline impl chunk list to the user and wait for explicit confirmation.
 7. Before creating an impl modify, show `new_id`, `overrides`, and `reason`, then wait for explicit user confirmation.
 8. Do not introduce a change plan concept, file, schema, or command. Confirmed decisions are executed directly with existing commands.
-9. For inherited impl, call `project-docs/.ait/ait-cli impl inherit <prd-chunk-id>` only after confirmation.
+9. For inherited impl, call `project-docs/.ait/ait-cli impl inherit <prd-chunk-id>` only after confirmation. Inherit means the baseline impl remains valid for this version; it must be available for context and task coverage, but it must not be treated as a new baseline chunk during merge.
 10. For new impl, call `project-docs/.ait/ait-cli impl create <prd-chunk-id> --content-file <file>`.
 11. For modified impl, call `project-docs/.ait/ait-cli impl create <prd-chunk-id> --content-file <file> --action modify --overrides <baseline-impl-id>`.
 12. Report generated files, chunk ids, and confirmed modify/inherit mappings.
@@ -54,5 +54,6 @@ On success, summarize `version`, `file`, `chunk_ids`, and confirmed `action/over
 - `OVERRIDES_REQUIRED`: `--action modify` needs `--overrides <baseline-impl-id>`.
 - `OVERRIDES_NOT_ALLOWED`: remove `--overrides` for add operations.
 - `OVERRIDES_NOT_IN_BASELINE`: choose an existing baseline impl chunk id.
+- `DUPLICATE_BASELINE_CHUNK`: an existing baseline impl was treated as `add`; use `impl inherit` for unchanged old impl or `impl create --action modify --overrides <id>` for changed old impl.
 - `IMPL_NO_CHUNKS`: generated content needs `<!-- @id:impl-... -->`.
 - `CHUNK_NOT_IN_VERSION`: do not bypass `impl create` by writing files directly.

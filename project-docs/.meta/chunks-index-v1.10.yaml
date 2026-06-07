@@ -1,0 +1,122 @@
+version: 1
+scope: version
+version_name: v1.10
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-version-merge
+  file: prd/merge-inherit-noop
+  heading: 版本合并
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-version-merge
+  amends: null
+  insert_after: null
+  base_hash: cbe9b44e
+  source_req: req-020
+  summary: Enforce chunk action semantics during merge and prevent duplicate baseline writes
+- id: prd-prd-recursive-modify-discovery
+  file: prd/merge-inherit-noop
+  heading: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-prd-recursive-modify-discovery
+  amends: null
+  insert_after: null
+  base_hash: 8a679f3f
+  source_req: req-020
+  summary: Require user-confirmed PRD modify chunks to be full replacement chunks
+- id: prd-prd-chunk-atomic-impl-merge
+  file: prd/merge-inherit-noop
+  heading: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-prd-chunk-atomic-impl-merge
+  amends: null
+  insert_after: null
+  base_hash: 77566d2b
+  source_req: req-020
+  summary: Make inherited impl chunks no-op for baseline merge while preserving coverage context
+- id: impl-version-merge-duplicate-add-guard
+  file: impl/merge-inherit-noop
+  heading: version merge duplicate-add guard and inherited impl no-op semantics
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c2
+  overrides: impl-version-merge-engine
+  amends: null
+  insert_after: null
+  base_hash: f6463272
+  source_req: req-020
+  summary: Reject add records for existing baseline chunks and keep inherited impl from appending
+- id: impl-prd-recursive-modify-discovery-full-replacement-skill
+  file: impl/merge-inherit-noop
+  heading: ait-discuss requires full replacement PRD modify chunks
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c3
+  overrides: impl-prd-recursive-modify-discovery-confirmation-skill
+  amends: null
+  insert_after: null
+  base_hash: 2b62eb18
+  source_req: req-020
+  summary: Document and verify full replacement content requirements for PRD modify flow
+- id: impl-prd-chunk-atomic-impl-merge-inherit-noop
+  file: impl/merge-inherit-noop
+  heading: impl inherit no longer appends baseline chunks during merge
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c4
+  overrides: impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+  amends: null
+  insert_after: null
+  base_hash: ef30524c
+  source_req: req-020
+  summary: Keep inherited impl for coverage and tasks without duplicating baseline content
+commits:
+- id: c1
+  timestamp: '2026-06-07T08:06:49.471692+00:00'
+  message: 修复 inherit merge 重复写入 baseline
+  chunks:
+  - prd-version-merge
+  - prd-prd-recursive-modify-discovery
+  - prd-prd-chunk-atomic-impl-merge
+  req_id: req-020
+- id: c2
+  timestamp: '2026-06-07T08:09:35.168302+00:00'
+  message: 'impl: guard duplicate add during merge'
+  chunks:
+  - impl-version-merge-duplicate-add-guard
+  req_id: req-020
+- id: c3
+  timestamp: '2026-06-07T08:09:47.288557+00:00'
+  message: 'impl: require full replacement PRD modify chunks'
+  chunks:
+  - impl-prd-recursive-modify-discovery-full-replacement-skill
+  req_id: req-020
+- id: c4
+  timestamp: '2026-06-07T08:09:58.168896+00:00'
+  message: 'impl: make inherited impl no-op for baseline merge'
+  chunks:
+  - impl-prd-chunk-atomic-impl-merge-inherit-noop
+  req_id: req-020
+stats:
+  total_chunks: 6
+  by_action:
+    modify: 6
+  by_state:
+    committed: 6
+  tasks_summary:
+    created: 4
+    executing: 3
+    done: 0
+    failed: 0

@@ -1,0 +1,142 @@
+id: chg-105
+version: v1.10
+type: MODIFY
+target: prd/merge-inherit-noop#prd-prd-recursive-modify-discovery
+author: system
+date: '2026-06-07T08:06:49.427006+00:00'
+message: 修复 inherit merge 重复写入 baseline
+base_hash: 8a679f3f
+base_content: '<!-- @id:prd-prd-recursive-modify-discovery -->
+
+  ## prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify
+
+
+  ### 概述
+
+
+  `/ait prd create "<title>"` 必须把当前 baseline PRD chunk 摘要作为讨论输入交给 AI，用于辅助识别本次需求可能涉及的旧 PRD chunk。AI 只能提出 add/modify 建议，不能直接把
+  modify 决议写入版本工作区；任何修改旧 chunk 的决议都必须先展示给用户确认。
+
+
+  ### 业务规则
+
+
+  - ait-discuss 在 PRD 讨论开始时调用 `project-docs/.ait/ait-cli baseline-summary --scope prd --format yaml`，把 baseline 的 `id + heading
+  + summary` 作为讨论上下文。
+
+  - AI 与用户完成需求讨论后，再根据最终 PRD 拆分结果标出每个 PRD chunk 是新增还是修改旧 chunk。
+
+  - 所有 `modify` 候选必须展示给用户确认，展示字段至少包含 `new_id`、`action`、`overrides`、`confidence`、`reason`。
+
+  - 用户确认前，skill 不得调用 `prd resolve-candidates`，也不得把 AI 原始判断写入 `.candidates.yaml`。
+
+  - 用户可以拒绝某个 modify，将其改为 add；也可以手工调整 `overrides` 指向的 baseline chunk。
+
+  - 用户确认后，skill 沿用现有 `prd resolve-candidates --from-file <file>` 落盘确认后的 candidates，不新增 change plan 文件、schema 或命令。
+
+  - 如果最终 PRD chunk 使用 baseline 已有 id，CLI 可按现有规则将其登记为 `action: modify, overrides: <same-id>`；如果使用新 id 修改旧 chunk，则必须通过确认后的 candidates
+  提供 `overrides`。
+
+  - `delete_candidates` 默认为空；删除旧 PRD chunk 仍要求用户显式声明，不由 AI 自动提出。
+
+
+  ### 验收标准
+
+
+  - [ ] ait-discuss 的工作流明确要求先读取 baseline summary 并用于 PRD 讨论。
+
+  - [ ] ait-discuss 明确区分 AI 建议与用户确认后的 candidates。
+
+  - [ ] skill 文档中写明：未获得用户确认前不得调用 `prd resolve-candidates`。
+
+  - [ ] 用户确认后的 PRD modify 仍使用现有 `.candidates.yaml` / `action` / `overrides` 机制。
+
+  - [ ] 未新增 change plan 概念、文件或 CLI 命令。
+
+  - [ ] 既有 `prd resolve-candidates`、`prd save-draft`、`prd commit` 的校验语义保持兼容。
+
+
+  ### 边界与非目标
+
+
+  - 不让 CLI 自行做语义判断；语义识别仍由 skill 侧 AI 讨论完成。
+
+  - 不把 AI 原始候选视为用户确认结果。
+
+  - 不新增独立的 change plan 抽象。
+
+  - 不做语义 diff 或 patch；modify 仍是 chunk 级完整替换。'
+new_content: '<!-- @id:prd-prd-recursive-modify-discovery -->
+
+  ## prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify
+
+
+  ### 概述
+
+
+  `/ait prd create "<title>"` 必须把当前 baseline PRD chunk 摘要作为讨论输入交给 AI，用于辅助识别本次需求可能涉及的旧 PRD chunk。AI 只能提出 add/modify 建议，不能直接把
+  modify 决议写入版本工作区；任何修改旧 chunk 的决议都必须先展示给用户确认。
+
+
+  v1.10 明确 PRD modify 的内容契约：版本侧 modify chunk 是完整替换块，不是 patch。用户确认某个 baseline chunk 被 modify 后，写入 `versions/<v>/prd/*.md` 的新
+  chunk 必须包含该 chunk 合并后的完整内容，包括旧 chunk 中仍然有效的全部信息和本次新增/修改的信息。merge 时直接用该完整 chunk 替换 `overrides` 指向的 baseline chunk。
+
+
+  ### 业务规则
+
+
+  - ait-discuss 在 PRD 讨论开始时调用 `project-docs/.ait/ait-cli baseline-summary --scope prd --format yaml`，把 baseline 的 `id + heading
+  + summary` 作为讨论上下文。
+
+  - AI 与用户完成需求讨论后，再根据最终 PRD 拆分结果标出每个 PRD chunk 是新增还是修改旧 chunk。
+
+  - 所有 `modify` 候选必须展示给用户确认，展示字段至少包含 `new_id`、`action`、`overrides`、`confidence`、`reason`。
+
+  - 对每个被确认的 `modify` 候选，ait-discuss 必须读取 `overrides` 指向的旧 chunk 全文，并在生成新 PRD chunk 时保留旧 chunk 中仍然有效的信息。
+
+  - 用户确认后的版本侧 modify chunk 必须是完整替换块。它不能只写新增段落、差异片段、补丁说明或“沿用旧内容”的引用。
+
+  - merge 层不做旧内容补全；若版本侧 modify chunk 缺少应保留的信息，merge 后这些信息会丢失，责任在 PRD 讨论/确认阶段完成。
+
+  - 用户确认前，skill 不得调用 `prd resolve-candidates`，也不得把 AI 原始判断写入 `.candidates.yaml`。
+
+  - 用户可以拒绝某个 modify，将其改为 add；也可以手工调整 `overrides` 指向的 baseline chunk。
+
+  - 用户确认后，skill 沿用现有 `prd resolve-candidates --from-file <file>` 落盘确认后的 candidates，不新增 change plan 文件、schema 或命令。
+
+  - 如果最终 PRD chunk 使用 baseline 已有 id，CLI 可按现有规则将其登记为 `action: modify, overrides: <same-id>`；如果使用新 id 修改旧 chunk，则必须通过确认后的 candidates
+  提供 `overrides`。
+
+  - `delete_candidates` 默认为空；删除旧 PRD chunk 仍要求用户显式声明，不由 AI 自动提出。
+
+
+  ### 验收标准
+
+
+  - [ ] ait-discuss 的工作流明确要求先读取 baseline summary 并用于 PRD 讨论。
+
+  - [ ] ait-discuss 明确区分 AI 建议与用户确认后的 candidates。
+
+  - [ ] skill 文档中写明：未获得用户确认前不得调用 `prd resolve-candidates`。
+
+  - [ ] skill 文档中写明：PRD modify chunk 必须包含旧 chunk 中仍然有效的全部信息，是完整替换块。
+
+  - [ ] 用户确认后的 PRD modify 仍使用现有 `.candidates.yaml` / `action` / `overrides` 机制。
+
+  - [ ] 未新增 change plan 概念、文件或 CLI 命令。
+
+  - [ ] 既有 `prd resolve-candidates`、`prd save-draft`、`prd commit` 的校验语义保持兼容。
+
+
+  ### 边界与非目标
+
+
+  - 不让 CLI 自行做语义判断；语义识别仍由 skill 侧 AI 讨论完成。
+
+  - 不把 AI 原始候选视为用户确认结果。
+
+  - 不新增独立的 change plan 抽象。
+
+  - 不做语义 diff 或 patch；modify 仍是 chunk 级完整替换。
+
+  - 不要求 merge 层从旧 chunk 自动补全缺失内容。'

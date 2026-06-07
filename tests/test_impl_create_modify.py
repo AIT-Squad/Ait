@@ -170,6 +170,9 @@ def test_subskills_require_user_confirmation_before_persisting():
     assert "Wait for explicit user confirmation before calling" in discuss
     assert "Do not introduce a change plan concept" in discuss
     assert "baseline-summary --scope prd --format yaml" in discuss
+    assert "inspect the old chunk content with `context <overrides>`" in discuss
+    assert "A modify chunk is a full replacement chunk, not a patch" in discuss
+    assert "merge does not backfill old content" in discuss
     assert "Before calling `impl inherit`" in impl
     assert "Before creating an impl modify" in impl
     assert "--action modify --overrides" in impl

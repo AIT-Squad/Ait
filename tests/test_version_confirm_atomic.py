@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from ait.chunk_parser import parse_file
+from ait.hash_utils import chunk_hash
 from ait.schemas import VersionChunkEntry
 from ait.specgraph import sync_specgraph
 from ait.version_manager import VersionManager
@@ -44,7 +45,9 @@ def _commit_records(vm: VersionManager, *records: VersionChunkEntry) -> None:
     sync_specgraph(vm.root)
 
 
-def _committed(chunk, action: str, *, overrides: str | None = None) -> VersionChunkEntry:
+def _committed(
+    chunk, action: str, *, overrides: str | None = None, base_hash: str | None = None
+) -> VersionChunkEntry:
     return VersionChunkEntry(
         id=chunk.id,
         file=chunk.file,
@@ -54,6 +57,7 @@ def _committed(chunk, action: str, *, overrides: str | None = None) -> VersionCh
         state="committed",
         commit_id="c1",
         overrides=overrides,
+        base_hash=base_hash,
     )
 
 
@@ -89,7 +93,16 @@ def test_modify_prd_keeps_impl_when_inherited(tmp_path: Path):
         "<!-- @id:impl-old-1 -->\n## Old 1\n\n<!-- @ref:prd/global#prd-a rel:implements -->\n\nold 1\n",
         "impl-old-1",
     )
-    _commit_records(vm, _committed(prd, "modify", overrides="prd-a"), _committed(inherited, "add"))
+    _commit_records(
+        vm,
+        _committed(prd, "modify", overrides="prd-a"),
+        _committed(
+            inherited,
+            "modify",
+            overrides="impl-old-1",
+            base_hash=chunk_hash(inherited.content),
+        ),
+    )
 
     vm.merge("v1.1", conflict_policy="use-version")
 

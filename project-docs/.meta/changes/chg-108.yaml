@@ -1,0 +1,138 @@
+id: chg-108
+version: v1.10
+type: MODIFY
+target: impl/merge-inherit-noop#impl-prd-recursive-modify-discovery-full-replacement-skill
+author: system
+date: '2026-06-07T08:09:47.282030+00:00'
+message: 'impl: require full replacement PRD modify chunks'
+base_hash: 2b62eb18
+base_content: '<!-- @id:impl-prd-recursive-modify-discovery-confirmation-skill -->
+
+  ## ait-discuss baseline-aware confirmation flow
+
+
+  <!-- @ref:prd/global#prd-prd-recursive-modify-discovery rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. `skill/ait/sub-skills/ait-discuss/SKILL.md`
+
+
+  Update the current Phase 0 wording from "AI produces candidates and skill persists them" to a stricter discussion gate:
+
+
+  1. `prd create` still starts by creating the requirement/version and reading `baseline-summary --scope prd --format yaml`.
+
+  2. The baseline summary is treated as discussion context, not as an automatic write source.
+
+  3. After Clarify/Design produces the final PRD chunk split, the skill labels chunks as add or modify candidates.
+
+  4. Any modify candidate must be rendered to the user with `new_id`, `action`, `overrides`, `confidence`, and `reason`.
+
+  5. The skill must wait for explicit user confirmation before calling `prd resolve-candidates`.
+
+  6. If the user rejects a modify candidate, the skill records it as add.
+
+  7. No new change-plan file, schema, or command is introduced.
+
+
+  #### 2. Prompting and safeguards
+
+
+  - The skill must state that AI suggestions are not persisted decisions.
+
+  - `delete_candidates` remains empty unless the user explicitly asks to delete a PRD chunk.
+
+  - If baseline summary exceeds the 5 KB budget, keep the existing keyword filtering rule before giving context to the AI.
+
+  - Low-confidence modify candidates may still use `context <overrides>` for full-text inspection, but the final decision
+  is still user-confirmed.
+
+
+  #### 3. Regression coverage
+
+
+  Add a focused test or verification script assertion that the ait-discuss skill text contains:
+
+
+  - a requirement to wait for user confirmation before `prd resolve-candidates`;
+
+  - the statement that no change plan concept is introduced;
+
+  - the baseline summary input step.
+
+
+  ### Acceptance
+
+
+  - `skill/ait/sub-skills/ait-discuss/SKILL.md` no longer implies that AI-generated candidates may be persisted before user
+  confirmation.
+
+  - PRD candidates still use the existing `.candidates.yaml` flow after confirmation.
+
+  - Existing `prd resolve-candidates` tests continue to pass unchanged.'
+new_content: '<!-- @id:impl-prd-recursive-modify-discovery-full-replacement-skill -->
+
+  ## ait-discuss requires full replacement PRD modify chunks
+
+
+  <!-- @ref:prd/merge-inherit-noop#prd-prd-recursive-modify-discovery rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. Skill workflow text
+
+
+  Update `skill/ait/sub-skills/ait-discuss/SKILL.md` so the PRD modify flow is explicit.
+
+
+  - A modify candidate is not a patch.
+
+  - After the user confirms a modify candidate, the skill must inspect the old chunk content, not only the baseline summary.
+
+  - The generated version-side PRD chunk must include all old information that remains valid plus the new information.
+
+  - The skill must not persist a modify draft that says old content is implicit, inherited, or unchanged without restating
+  the retained content.
+
+
+  #### 2. Existing candidate flow stays
+
+
+  Keep the existing candidate persistence path.
+
+
+  - User-confirmed decisions still use `prd resolve-candidates`.
+
+  - Same-id modifications still become `action=modify, overrides=<same-id>`.
+
+  - New-id modifications still require explicit `overrides` from confirmed candidates.
+
+  - No change-plan artifact is introduced.
+
+
+  #### 3. Verification
+
+
+  Add or update focused tests or documentation assertions so the skill text includes:
+
+
+  - a full replacement requirement for modify chunks;
+
+  - an instruction to read old chunk content before generating a modify draft;
+
+  - an instruction that merge does not backfill missing old content.
+
+
+  ### Boundaries
+
+
+  - Do not add semantic diff or patch support.
+
+  - Do not make CLI infer which old content should be retained.
+
+  - Do not change `prd resolve-candidates` storage format.'

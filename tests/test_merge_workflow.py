@@ -9,6 +9,7 @@ import pytest
 from ait.chunk_parser import Chunk
 from ait.hash_utils import chunk_hash
 from ait.io_utils import atomic_write_text
+from ait.schemas import VersionChunkEntry
 from ait.validator import ValidationError
 from ait.version_manager import VersionManager, VersionManagerError
 
@@ -100,6 +101,125 @@ def test_merge_modify_existing_block(project: Path):
     text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
     assert "X (updated)" in text
     assert "original body" not in text
+
+
+def test_merge_rejects_add_when_chunk_exists_in_baseline(project: Path):
+    _seed_baseline(
+        project,
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
+    )
+    vm = VersionManager(project)
+    vm.indexes.rebuild_baseline()
+
+    vm.create("v1.1")
+    vm.write_version_file(
+        "v1.1",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X duplicate\n\nnew body\n",
+    )
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("impl-x", "X duplicate", file="impl/existing"),
+        action="add",
+    )
+    vm.stage("v1.1")
+    vm.commit("v1.1", "bad duplicate add")
+
+    with pytest.raises(ValidationError) as exc:
+        vm.merge("v1.1")
+
+    assert exc.value.issues[0].code == "DUPLICATE_BASELINE_CHUNK"
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
+    assert text.count("<!-- @id:impl-x -->") == 1
+    assert "original body" in text
+    assert "new body" not in text
+
+
+def test_merge_latest_record_uses_index_order_not_commit_id_text(project: Path):
+    _seed_baseline(
+        project,
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
+    )
+    vm = VersionManager(project)
+    vm.indexes.rebuild_baseline()
+
+    vm.create("v1.1")
+    vm.write_version_file(
+        "v1.1",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X updated\n\nnew body\n",
+    )
+    idx = vm.indexes.load_version_index("v1.1")
+    idx.chunks.extend(
+        [
+            VersionChunkEntry(
+                id="impl-x",
+                file="impl/existing",
+                heading="X duplicate",
+                level=2,
+                action="add",
+                state="committed",
+                commit_id="c9",
+            ),
+            VersionChunkEntry(
+                id="impl-x",
+                file="impl/existing",
+                heading="X updated",
+                level=2,
+                action="modify",
+                state="committed",
+                commit_id="c10",
+                overrides="impl-x",
+                base_hash=chunk_hash(
+                    "<!-- @id:impl-x -->\n## X\n\noriginal body\n"
+                ),
+            ),
+        ]
+    )
+    vm.indexes.save_version_index(idx)
+
+    result = vm.merge("v1.1")
+
+    assert result.status == "completed"
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
+    assert text.count("<!-- @id:impl-x -->") == 1
+    assert "X updated" in text
+    assert "new body" in text
+
+
+def test_confirm_surfaces_duplicate_add_before_merge_rollback(project: Path):
+    _seed_baseline(
+        project,
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
+    )
+    vm = VersionManager(project)
+    vm.indexes.rebuild_baseline()
+
+    vm.create("v1.1")
+    vm.write_version_file(
+        "v1.1",
+        "impl/existing",
+        "<!-- @id:impl-x -->\n## X duplicate\n\nnew body\n",
+    )
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("impl-x", "X duplicate", file="impl/existing"),
+        action="add",
+    )
+    vm.stage("v1.1")
+    vm.commit("v1.1", "bad duplicate add")
+
+    with pytest.raises(ValidationError) as exc:
+        vm.confirm("v1.1")
+
+    assert exc.value.issues[0].code == "DUPLICATE_BASELINE_CHUNK"
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
+    assert text.count("<!-- @id:impl-x -->") == 1
+    assert "original body" in text
+    assert "new body" not in text
 
 
 def test_merge_conflict_abort_keeps_baseline(project: Path):

@@ -1,0 +1,19 @@
+id: T-prd-recursive-modify-discovery-02
+title: 实现 impl-prd-recursive-modify-discovery-full-replacement-skill
+source_chunk: prd-prd-recursive-modify-discovery
+impl_refs:
+- impl-prd-recursive-modify-discovery-full-replacement-skill
+global_refs:
+- global-tech-stack
+depends_on:
+- T-prd-recursive-modify-discovery-01
+order_hint: 2
+steps:
+- 按 impl-prd-recursive-modify-discovery-full-replacement-skill 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - tests/test_impl_create_modify.py
+  bound_at: '2026-06-07T08:19:31.191134Z'

@@ -1,0 +1,168 @@
+id: chg-109
+version: v1.10
+type: MODIFY
+target: impl/merge-inherit-noop#impl-prd-chunk-atomic-impl-merge-inherit-noop
+author: system
+date: '2026-06-07T08:09:58.162057+00:00'
+message: 'impl: make inherited impl no-op for baseline merge'
+base_hash: ef30524c
+base_content: '<!-- @id:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill -->
+
+  ## impl baseline-aware confirmation and explicit overrides
+
+
+  <!-- @ref:prd/global#prd-prd-chunk-atomic-impl-merge rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. `skill/ait/sub-skills/ait-impl-discuss/SKILL.md`
+
+
+  Revise the impl discussion workflow so it is baseline-aware:
+
+
+  1. Load the current PRD context with `context <prd-chunk-id> --scenario prd-to-impl`.
+
+  2. If the current PRD chunk is a version-side modify, inspect its `overrides` value from `chunks-index-{version}.yaml`.
+
+  3. Read the old PRD chunk through `context <overrides>` where possible.
+
+  4. Use specgraph to list baseline impl chunks implementing the old PRD chunk.
+
+  5. Discuss whether each old impl should be inherited, modified, or replaced by new impl chunks.
+
+  6. Before calling `impl inherit`, show the baseline impl list and require explicit user confirmation.
+
+  7. Before creating a modifying impl, show `new_id`, `overrides`, and `reason`, then require explicit user confirmation.
+
+  8. Do not introduce a change-plan artifact; confirmed decisions are executed through existing commands.
+
+
+  #### 2. `ait impl create --action modify --overrides <impl-id>`
+
+
+  Extend the impl create CLI with deterministic modify metadata:
+
+
+  Command form: `ait impl create <prd-chunk-id> --content-file <file> --action modify --overrides <baseline-impl-id>`.
+
+
+  Implementation details:
+
+
+  - Add `--action` with choices `add` and `modify`; default is `add`.
+
+  - Add `--overrides <impl-id>`.
+
+  - `--action add` must reject `--overrides`.
+
+  - `--action modify` must require `--overrides`.
+
+  - `overrides` must exist in baseline `chunks-index.yaml`.
+
+  - `ImplManager.create()` passes `action` and `overrides` into `VersionManager.add_chunk()`.
+
+  - For modify records, compute and store `base_hash` for the overridden baseline impl chunk so existing merge conflict detection
+  applies.
+
+
+  #### 3. Tests
+
+
+  Add or update tests for:
+
+
+  - default `impl create` still writes `action: add`;
+
+  - `impl create --action modify --overrides impl-old` writes `action: modify` and `overrides: impl-old`;
+
+  - `--action modify` without `--overrides` fails with `OVERRIDES_REQUIRED`;
+
+  - `--action add --overrides impl-old` fails with `OVERRIDES_NOT_ALLOWED`;
+
+  - unknown overrides fail with `OVERRIDES_NOT_IN_BASELINE`;
+
+  - ait-impl-discuss skill text requires user confirmation before modify/inherit.
+
+
+  ### Acceptance
+
+
+  - Existing impl create behavior is backward compatible when `--action` is omitted.
+
+  - Confirmed impl modify decisions can be represented directly in the version index.
+
+  - Existing `ait impl inherit <prd-chunk-id>` behavior is unchanged.
+
+  - No `action: inherit` is added to the schema.'
+new_content: '<!-- @id:impl-prd-chunk-atomic-impl-merge-inherit-noop -->
+
+  ## impl inherit no longer appends baseline chunks during merge
+
+
+  <!-- @ref:prd/merge-inherit-noop#prd-prd-chunk-atomic-impl-merge rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. `ImplManager.inherit()`
+
+
+  Change inherit registration while keeping the user-facing command stable.
+
+
+  - Continue to find baseline impl chunks through specgraph.
+
+  - Continue to copy each inherited baseline impl chunk into the version workspace.
+
+  - Register each inherited chunk as `action=modify`, `overrides=<impl-id>`, and `base_hash=<baseline hash>`.
+
+  - Preserve idempotency: a second inherit call skips chunks already present in the version index.
+
+  - Do not introduce `action=inherit`.
+
+
+  #### 2. Task and coverage behavior
+
+
+  Inherited impl chunks must still count as version-side impl coverage.
+
+
+  - `task create` should continue to see inherited impl refs in the version graph.
+
+  - `_with_atomic_impl_deletes()` should not synthesize delete records for inherited impl chunks, because they remain implemented
+  in the version graph.
+
+  - The inherited chunk stays available for `task execute` context.
+
+
+  #### 3. Merge behavior
+
+
+  Inherited chunks must not produce duplicate baseline chunks.
+
+
+  - Same-id modify records replace the existing baseline chunk with equivalent content.
+
+  - If an inherited or manually edited record is mistakenly marked `action=add` while baseline already has that id, the duplicate-add
+  guard blocks merge.
+
+
+  #### 4. Baseline cleanup
+
+
+  Remove the duplicate inherited impl chunks that v1.9 appended into `project-docs/docs/impl/skill-cli-doc-rewrite.md`, then
+  rebuild baseline indexes.
+
+
+  ### Boundaries
+
+
+  - Do not add a new schema action.
+
+  - Do not remove inherited chunks from the version workspace, because task context needs them.
+
+  - Do not change explicit impl modify behavior.'

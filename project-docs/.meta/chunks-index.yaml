@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-06T12:23:49.838148+00:00'
+updated: '2026-06-07T08:16:29.996179+00:00'
 chunks:
 - id: global-schema
   file: global/schema
@@ -245,26 +245,6 @@ chunks:
 - id: impl-skill-cli-pitfall-doc
   file: impl/skill-cli-doc-rewrite
   heading: ENOENT_BIN_AIT 兜底文档
-  level: 2
-  summary: null
-- id: impl-skill-cli-config-injection
-  file: impl/skill-cli-doc-rewrite
-  heading: init 阶段注入 skill 路径并生成项目本地 wrapper
-  level: 2
-  summary: null
-- id: impl-skill-cli-doc-rewrite
-  file: impl/skill-cli-doc-rewrite
-  heading: SKILL/sub-skills/references 全量改写为项目本地 wrapper
-  level: 2
-  summary: null
-- id: impl-skill-cli-pitfall-doc
-  file: impl/skill-cli-doc-rewrite
-  heading: ENOENT_BIN_AIT 兜底文档
-  level: 2
-  summary: null
-- id: impl-skill-cli-wrapper-verify
-  file: impl/skill-cli-doc-rewrite
-  heading: wrapper 自定位回归测试
   level: 2
   summary: null
 - id: impl-skills-layout

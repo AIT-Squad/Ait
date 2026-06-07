@@ -1,0 +1,17 @@
+id: T-prd-chunk-atomic-impl-merge-01
+title: 实现 impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+source_chunk: prd-prd-chunk-atomic-impl-merge
+impl_refs:
+- impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/sub-skills/ait-impl-discuss/SKILL.md
+  bound_at: '2026-06-07T08:18:10.206500Z'

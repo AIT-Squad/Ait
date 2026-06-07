@@ -1,0 +1,21 @@
+id: T-version-merge-01
+title: 实现 impl-version-merge-duplicate-add-guard
+source_chunk: prd-version-merge
+impl_refs:
+- impl-version-merge-duplicate-add-guard
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-version-merge-duplicate-add-guard 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/version_manager.py
+  - skill/ait/ait/impl_manager.py
+  - tests/test_merge_workflow.py
+  - tests/test_impl_inherit.py
+  - tests/test_version_confirm_atomic.py
+  bound_at: '2026-06-07T08:24:09.209546Z'

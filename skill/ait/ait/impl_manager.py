@@ -435,7 +435,14 @@ class ImplManager:
             target_path = version_dir / f"{target_file}.md"
             final_parsed = parse_file(target_path, version_dir)
             inherited_chunk = next(c for c in final_parsed.chunks if c.id == impl_id)
-            self.versions.add_chunk(version, chunk=inherited_chunk, action="add", source_req=None)
+            self.versions.add_chunk(
+                version,
+                chunk=inherited_chunk,
+                action="modify",
+                overrides=impl_id,
+                base_hash=self._baseline_chunk_hash(impl_id),
+                source_req=None,
+            )
             existing_version_ids.add(impl_id)
             inherited.append(impl_id)
             rel_path = str(target_path.relative_to(self.root)).replace("\\", "/")

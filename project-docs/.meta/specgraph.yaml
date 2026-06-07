@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-06T12:23:50.200999+00:00'
+updated: '2026-06-07T08:16:30.063419+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -307,9 +307,6 @@ specs:
   file: impl/skill-cli-doc-rewrite
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c3
 - uri: spec:impl:baseline:impl-skill-cli-doc-rewrite
   title: SKILL/sub-skills/references 全量改写为项目本地 wrapper
   type: impl
@@ -318,9 +315,6 @@ specs:
   file: impl/skill-cli-doc-rewrite
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c4
 - uri: spec:impl:baseline:impl-skill-cli-install-update-venv
   title: install.py update refreshes venv by default
   type: impl
@@ -329,9 +323,6 @@ specs:
   file: impl/install-update-venv
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-skill-cli-pitfall-doc
   title: ENOENT_BIN_AIT 兜底文档
   type: impl
@@ -340,9 +331,6 @@ specs:
   file: impl/skill-cli-doc-rewrite
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c5
 - uri: spec:impl:baseline:impl-skill-cli-wrapper-verify
   title: wrapper 自定位回归测试
   type: impl
@@ -351,9 +339,6 @@ specs:
   file: impl/skill-cli-doc-rewrite
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c6
 - uri: spec:impl:baseline:impl-skills-contract
   title: 子 Skill 调用与写入契约实现
   type: impl
@@ -999,12 +984,9 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-skill-cli-resolution
-  file: prd/install-update-venv
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:prd-skill-migration
   title: 需求1：参考项目 skill 功能迁移
   type: prd

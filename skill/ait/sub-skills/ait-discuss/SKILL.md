@@ -40,10 +40,12 @@ Drive PRD Clarify -> Design -> Generate discussion and persist the confirmed res
 11. If the user rejects a modify candidate, record it as `add`. If the user adjusts `overrides`, use the adjusted baseline chunk id.
 12. Keep `delete_candidates` empty unless the user explicitly asks to delete a PRD chunk.
 13. Do not introduce a change plan concept, file, schema, or command. Confirmed decisions still use the existing `.candidates.yaml` flow.
-14. Generate the final Markdown draft. If a chunk uses an existing baseline id, CLI may register it as `action: modify, overrides: <same-id>`; if a new id modifies an old chunk, the confirmed candidates YAML must provide `overrides`.
-15. Call `project-docs/.ait/ait-cli prd save-draft <req_id> --content-file <file>`.
-16. Call `project-docs/.ait/ait-cli prd confirm <req_id> --file prd/<slug>`.
-17. Report `req_id`, `version`, file path, chunk ids, and any confirmed modify mappings.
+14. For each confirmed modify, inspect the old chunk content with `context <overrides>` before generating the final draft.
+15. Generate the final Markdown draft. A modify chunk is a full replacement chunk, not a patch: it must restate all old information that remains valid plus the new information. Do not write placeholders like "old content unchanged" or only the changed paragraphs.
+16. If a chunk uses an existing baseline id, CLI may register it as `action: modify, overrides: <same-id>`; if a new id modifies an old chunk, the confirmed candidates YAML must provide `overrides`.
+17. Call `project-docs/.ait/ait-cli prd save-draft <req_id> --content-file <file>`.
+18. Call `project-docs/.ait/ait-cli prd confirm <req_id> --file prd/<slug>`.
+19. Report `req_id`, `version`, file path, chunk ids, and any confirmed modify mappings.
 
 ## Output Contract
 
@@ -55,5 +57,6 @@ Summarize only key CLI JSON fields: `req_id`, `version`, `file`, `chunk_ids`, an
 - `CHUNK_ID_COLLISION`: do not use a baseline id as a candidate `new_id`; either keep the same id in the draft or choose a new id with confirmed `overrides`.
 - `OVERRIDES_NOT_IN_BASELINE`: ask the user to choose a valid baseline PRD chunk.
 - `CONFIRM_FAILED`: check that the draft is non-empty and the file path has no `.md` suffix.
+- Information loss on modify: merge does not backfill old content. Regenerate the modify chunk as a complete replacement before saving the draft.
 - `NOT_AT_PROJECT_ROOT`: return to the project root.
 - `CWD_INSIDE_PROJECT_DOCS`: leave `project-docs/` and run from its parent.

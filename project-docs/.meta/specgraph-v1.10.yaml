@@ -1,0 +1,88 @@
+version: 1
+updated: '2026-06-07T08:16:30.114220+00:00'
+specs:
+- uri: spec:impl:v1.10:impl-prd-chunk-atomic-impl-merge-inherit-noop
+  title: impl inherit no longer appends baseline chunks during merge
+  type: impl
+  version: v1.10
+  chunk_id: impl-prd-chunk-atomic-impl-merge-inherit-noop
+  file: impl/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c4
+- uri: spec:impl:v1.10:impl-prd-recursive-modify-discovery-full-replacement-skill
+  title: ait-discuss requires full replacement PRD modify chunks
+  type: impl
+  version: v1.10
+  chunk_id: impl-prd-recursive-modify-discovery-full-replacement-skill
+  file: impl/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c3
+- uri: spec:impl:v1.10:impl-version-merge-duplicate-add-guard
+  title: version merge duplicate-add guard and inherited impl no-op semantics
+  type: impl
+  version: v1.10
+  chunk_id: impl-version-merge-duplicate-add-guard
+  file: impl/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c2
+- uri: spec:prd:v1.10:prd-prd-chunk-atomic-impl-merge
+  title: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
+  type: prd
+  version: v1.10
+  chunk_id: prd-prd-chunk-atomic-impl-merge
+  file: prd/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:v1.10:prd-prd-recursive-modify-discovery
+  title: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
+  type: prd
+  version: v1.10
+  chunk_id: prd-prd-recursive-modify-discovery
+  file: prd/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:v1.10:prd-version-merge
+  title: 版本合并
+  type: prd
+  version: v1.10
+  chunk_id: prd-version-merge
+  file: prd/merge-inherit-noop
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges:
+- src: spec:impl:v1.10:impl-version-merge-duplicate-add-guard
+  dst: spec:prd:v1.10:prd-version-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.10:impl-prd-recursive-modify-discovery-full-replacement-skill
+  dst: spec:prd:v1.10:prd-prd-recursive-modify-discovery
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v1.10:impl-prd-chunk-atomic-impl-merge-inherit-noop
+  dst: spec:prd:v1.10:prd-prd-chunk-atomic-impl-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

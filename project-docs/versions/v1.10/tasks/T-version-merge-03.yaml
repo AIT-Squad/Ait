@@ -1,0 +1,18 @@
+id: T-version-merge-03
+title: 实现 impl-version-merge-extract
+source_chunk: prd-version-merge
+impl_refs:
+- impl-version-merge-extract
+global_refs:
+- global-tech-stack
+depends_on:
+- T-version-merge-02
+order_hint: 3
+steps:
+- 按 impl-version-merge-extract 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/version_manager.py
+  bound_at: '2026-06-07T08:20:03.199275Z'

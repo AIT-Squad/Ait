@@ -496,13 +496,9 @@ class VersionManager:
             # E2: warn caller — surface via the result; CLI is the one that prompts.
             pass
 
-        # Deduplicate: latest committed per id wins (largest commit_id).
-        latest: dict[str, VersionChunkEntry] = {}
-        for r in records:
-            existing = latest.get(r.id)
-            if existing is None or (r.commit_id or "") > (existing.commit_id or ""):
-                latest[r.id] = r
-        effective_records = list(latest.values())
+        # Deduplicate: later committed records in the version index win.
+        effective_records = self._latest_by_chunk_id(records)
+        self._assert_no_duplicate_adds(effective_records)
 
         # Conflict detection: compare base_hash to current baseline-chunk hash.
         conflicts: list[ConflictReport] = []
@@ -631,6 +627,10 @@ class VersionManager:
                 "git 工作区不干净，请先提交或暂存改动（或加 --allow-dirty-git）",
                 code="GIT_DIRTY",
             )
+
+        idx = self.indexes.load_version_index(version)
+        records = [c for c in idx.chunks if c.state == "committed"]
+        self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
 
         # ── Phase 2: merge (mutates docs/, fully reversible) ──
         backup = self._backup_docs()
@@ -770,6 +770,39 @@ class VersionManager:
         if missing:
             detail = ", ".join(f"{impl}->{prd}" for impl, prd in missing)
             raise VersionManagerError(f"orphan impl @refs after merge: {detail}")
+
+    @staticmethod
+    def _latest_by_chunk_id(records: list[VersionChunkEntry]) -> list[VersionChunkEntry]:
+        """Return the last committed record for each chunk id."""
+        latest: dict[str, VersionChunkEntry] = {}
+        for record in records:
+            latest.pop(record.id, None)
+            latest[record.id] = record
+        return list(latest.values())
+
+    def _assert_no_duplicate_adds(self, records: list[VersionChunkEntry]) -> None:
+        """Reject add records that would append an already-existing baseline chunk."""
+        baseline_by_id = {entry.id: entry for entry in self.indexes.load_baseline().chunks}
+        issues: list[ValidationIssue] = []
+        for record in records:
+            if record.action != "add" or record.id not in baseline_by_id:
+                continue
+            baseline_entry = baseline_by_id[record.id]
+            issues.append(
+                ValidationIssue(
+                    severity="E1",
+                    code="DUPLICATE_BASELINE_CHUNK",
+                    message=(
+                        f"chunk '{record.id}' is action=add but already exists in "
+                        f"baseline file '{baseline_entry.file}'. Use action=modify "
+                        "with overrides, or skip inherited/no-op chunks."
+                    ),
+                    chunk_id=record.id,
+                    file=record.file or baseline_entry.file,
+                )
+            )
+        if issues:
+            raise ValidationError(issues)
 
     def _with_atomic_impl_deletes(
         self, version: str, records: list[VersionChunkEntry]
