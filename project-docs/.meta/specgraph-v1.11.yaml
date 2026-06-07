@@ -1,0 +1,32 @@
+version: 1
+updated: '2026-06-07T10:14:16.395580+00:00'
+specs:
+- uri: spec:impl:v1.11:impl-version-merge-single-commit-state
+  title: version confirm commits final merged state in one commit
+  type: impl
+  version: v1.11
+  chunk_id: impl-version-merge-single-commit-state
+  file: version
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c2
+- uri: spec:prd:v1.11:prd-version-merge
+  title: 版本合并
+  type: prd
+  version: v1.11
+  chunk_id: prd-version-merge
+  file: merge-single-commit
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges:
+- src: spec:impl:v1.11:impl-version-merge-single-commit-state
+  dst: spec:prd:v1.11:prd-version-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

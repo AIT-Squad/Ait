@@ -587,6 +587,7 @@ class VersionManager:
         # Update version meta.
         meta.merged_at = datetime.now(timezone.utc)
         meta.snapshot = f"snapshots/{version}/"
+        meta.phase = "merged"
         self.save_version_meta(meta)
         idx.status = "merged"
         self.indexes.save_version_index(idx)
@@ -656,12 +657,6 @@ class VersionManager:
             raise VersionManagerError(
                 f"merge/commit 失败已回退: {exc}", code="MERGE_ROLLBACK"
             )
-
-        # mark merged phase on meta (merge() already set merged_at)
-        meta = self.load_version_meta(version)
-        meta.phase = "merged"
-        self.save_version_meta(meta)
-        self._refresh_state(version)
 
         return {
             "version": version,

@@ -1,0 +1,19 @@
+id: T-version-merge-02
+title: 实现 impl-version-merge-single-commit-state
+source_chunk: prd-version-merge
+impl_refs:
+- impl-version-merge-single-commit-state
+global_refs:
+- global-tech-stack
+depends_on:
+- T-version-merge-01
+order_hint: 2
+steps:
+- 按 impl-version-merge-single-commit-state 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/version_manager.py
+  - tests/test_merge_workflow.py
+  bound_at: '2026-06-07T10:17:15.734461Z'

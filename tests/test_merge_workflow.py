@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -32,6 +33,21 @@ def _make_chunk(id_: str, heading: str, file: str = "impl/test", level: int = 2)
 def _seed_baseline(root: Path, file_rel: str, content: str) -> None:
     path = root / "docs" / f"{file_rel}.md"
     atomic_write_text(path, content)
+
+
+def _git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    try:
+        return subprocess.run(
+            ["git", *args],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except FileNotFoundError:
+        pytest.skip("git is not available")
+    except subprocess.CalledProcessError as exc:
+        pytest.fail(f"git {' '.join(args)} failed: {exc.stderr}")
 
 
 def test_merge_creates_new_file_into_baseline(project: Path):
@@ -260,6 +276,47 @@ def test_confirm_surfaces_duplicate_add_before_merge_rollback(project: Path):
     assert text.count("<!-- @id:impl-x -->") == 1
     assert "original body" in text
     assert "new body" not in text
+
+
+def test_confirm_commits_final_merged_state_without_dirty_tail(project: Path):
+    _seed_baseline(
+        project,
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
+    )
+    vm = VersionManager(project)
+    vm.indexes.rebuild_baseline()
+
+    vm.create("v1.1")
+    vm.write_version_file(
+        "v1.1",
+        "impl/new-feature",
+        "<!-- @id:impl-y -->\n## Y\n\nnew body\n",
+    )
+    vm.add_chunk(
+        "v1.1",
+        chunk=_make_chunk("impl-y", "Y", file="impl/new-feature"),
+        action="add",
+    )
+    vm.stage("v1.1")
+    vm.commit("v1.1", "add y")
+
+    _git(project, "init")
+    _git(project, "config", "user.email", "ait@example.com")
+    _git(project, "config", "user.name", "AIT Tests")
+    _git(project, "add", "-A")
+    _git(project, "commit", "-m", "before confirm")
+
+    result = vm.confirm("v1.1")
+
+    assert result["commit"]
+    assert _git(project, "status", "--porcelain").stdout.strip() == ""
+    assert "phase: merged" in (project / ".meta" / "versions" / "v1.1.yaml").read_text(
+        encoding="utf-8"
+    )
+    assert "- Phase: `merged`" in (
+        project / "versions" / "v1.1" / "state.md"
+    ).read_text(encoding="utf-8")
 
 
 def test_merge_conflict_abort_keeps_baseline(project: Path):

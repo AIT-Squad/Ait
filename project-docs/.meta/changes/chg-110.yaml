@@ -1,0 +1,154 @@
+id: chg-110
+version: v1.11
+type: MODIFY
+target: merge-single-commit#prd-version-merge
+author: system
+date: '2026-06-07T10:11:57.639882+00:00'
+message: 'prd: require single merge commit'
+base_hash: 776dbe6f
+base_content: '<!-- @id:prd-version-merge -->
+
+  ## 版本合并
+
+
+  ### 概述
+
+
+  `/ait version confirm` 是版本的终点：守卫检查 -> 合并版本 prd/impl 到全局 -> 从 impl 提取动态 global -> 一次 git commit。采用两阶段+失败回退保证原子性。
+
+
+  v1.10 明确合并动作的边界：merge 只按版本索引中的 `action` 语义处理完整 chunk，不做语义 diff 或局部 patch。`modify` 是完整替换，`add` 只能新增 baseline 中不存在的 chunk，`delete`
+  删除指定 baseline chunk。任何把已存在 baseline chunk 作为 `add` 写入的情况都必须在 merge 前阻断，避免同 ID chunk 被追加到 baseline。
+
+
+  ### 业务规则
+
+
+  - 前置守卫：本版本所有 task 必须为 done，且 git 工作区干净；否则拦截并提示。
+
+  - 合并以 chunk 为维度：同名或 `overrides` 指向的 chunk 用本版本内容完整替换，其他 chunk 不动。
+
+  - `action=modify` 表示完整替换 `overrides` 指向的 baseline chunk。版本侧 markdown 中的该 chunk 必须已经包含最终希望保留的全部信息，merge 不从旧 chunk 自动搬运遗漏内容。
+
+  - `action=add` 只能用于 baseline 中不存在的新 chunk id。若 baseline 已存在同 ID chunk，merge 必须在写入前失败，错误码为 `DUPLICATE_BASELINE_CHUNK`，不得追加第二份同
+  ID chunk。
+
+  - `action=delete` 删除 `overrides` 指向的 baseline chunk。
+
+  - 继承来的 impl chunk 只用于当前版本的上下文、任务拆分和 impl 覆盖判断；不得作为 `add` 追加到 baseline。实现可以把 inherited chunk 表示为 no-op 记录，或表示为同 ID `modify`
+  替换，但最终 baseline 不得出现重复 chunk。
+
+  - 从本版本 impl 提取 `@extract` 标记的 DDL/schema/api 片段，按 chunk 合并进动态 global。
+
+  - 两阶段执行：1. 预检；2. merge 写入 docs/；3. git commit（message = state.md 的 title）。
+
+  - 失败回退：若 merge 或 git commit 失败，回退 merge（恢复 docs/ 到 merge 前），报错；要么全成要么全不动。
+
+
+  ### 验收标准
+
+
+  - [ ] 有 task 非 done 时 version confirm 被拦截。
+
+  - [ ] 合并按 chunk 替换，不影响无关全局 chunk。
+
+  - [ ] `action=modify` 替换 `overrides` 指向的 baseline chunk，不追加同 ID chunk。
+
+  - [ ] `action=add` 且 baseline 已有同 ID chunk 时，merge 报 `DUPLICATE_BASELINE_CHUNK` 并且 baseline 不变。
+
+  - [ ] inherited impl chunk 在 version confirm 后不会向 baseline 追加重复 chunk。
+
+  - [ ] 动态 global 由 impl 的 @extract 片段提取生成。
+
+  - [ ] commit message 等于 title。
+
+  - [ ] commit 失败时 docs/ 回退到合并前状态。
+
+
+  ### 边界与非目标
+
+
+  - 不在 version confirm 之外提供合并入口。
+
+  - 不做字段级、段落级或语义级 merge；modify 仍是 chunk 级完整替换。
+
+  - 不引入系统级全局 `ait` 命令或 PATH 注入。'
+new_content: '<!-- @id:prd-version-merge -->
+
+  ## 版本合并
+
+
+  ### 概述
+
+
+  `/ait version confirm` 是版本的终点：守卫检查 -> 合并版本 prd/impl 到全局 -> 从 impl 提取动态 global -> 一次 git commit。采用两阶段+失败回退保证原子性。
+
+
+  v1.10 明确合并动作的边界：merge 只按版本索引中的 `action` 语义处理完整 chunk，不做语义 diff 或局部 patch。`modify` 是完整替换，`add` 只能新增 baseline 中不存在的 chunk，`delete`
+  删除指定 baseline chunk。任何把已存在 baseline chunk 作为 `add` 写入的情况都必须在 merge 前阻断，避免同 ID chunk 被追加到 baseline。
+
+
+  v1.11 明确 merge commit 的边界：`version confirm` 必须把最终 merged 状态文件一起纳入同一个 merge commit。confirm 返回成功后，git 工作区不得因为 `.meta/versions/<version>.yaml`
+  或 `versions/<version>/state.md` 的状态刷新而再次变脏，也不应要求用户再做第二个 “mark merged” commit。
+
+
+  ### 业务规则
+
+
+  - 前置守卫：本版本所有 task 必须为 done，且 git 工作区干净；否则拦截并提示。
+
+  - 合并以 chunk 为维度：同名或 `overrides` 指向的 chunk 用本版本内容完整替换，其他 chunk 不动。
+
+  - `action=modify` 表示完整替换 `overrides` 指向的 baseline chunk。版本侧 markdown 中的该 chunk 必须已经包含最终希望保留的全部信息，merge 不从旧 chunk 自动搬运遗漏内容。
+
+  - `action=add` 只能用于 baseline 中不存在的新 chunk id。若 baseline 已存在同 ID chunk，merge 必须在写入前失败，错误码为 `DUPLICATE_BASELINE_CHUNK`，不得追加第二份同
+  ID chunk。
+
+  - `action=delete` 删除 `overrides` 指向的 baseline chunk。
+
+  - 继承来的 impl chunk 只用于当前版本的上下文、任务拆分和 impl 覆盖判断；不得作为 `add` 追加到 baseline。实现可以把 inherited chunk 表示为 no-op 记录，或表示为同 ID `modify`
+  替换，但最终 baseline 不得出现重复 chunk。
+
+  - 从本版本 impl 提取 `@extract` 标记的 DDL/schema/api 片段，按 chunk 合并进动态 global。
+
+  - 两阶段执行：1. 预检；2. merge 写入 docs/、baseline index/specgraph、snapshot 和最终 version/state 元数据；3. git commit（message = state.md
+  的 title）。
+
+  - `version confirm` 成功返回后必须没有未提交的状态尾巴；`phase: merged`、`merged_at`、`snapshot`、version index `status: merged`、`state.md` 中的
+  merged 展示都必须已经包含在同一个 merge commit 中。
+
+  - 失败回退：若 merge 或 git commit 失败，回退 merge（恢复 docs/ 到 merge 前），报错；要么全成要么全不动。
+
+
+  ### 验收标准
+
+
+  - [ ] 有 task 非 done 时 version confirm 被拦截。
+
+  - [ ] 合并按 chunk 替换，不影响无关全局 chunk。
+
+  - [ ] `action=modify` 替换 `overrides` 指向的 baseline chunk，不追加同 ID chunk。
+
+  - [ ] `action=add` 且 baseline 已有同 ID chunk 时，merge 报 `DUPLICATE_BASELINE_CHUNK` 并且 baseline 不变。
+
+  - [ ] inherited impl chunk 在 version confirm 后不会向 baseline 追加重复 chunk。
+
+  - [ ] 动态 global 由 impl 的 @extract 片段提取生成。
+
+  - [ ] commit message 等于 title。
+
+  - [ ] commit 失败时 docs/ 回退到合并前状态。
+
+  - [ ] version confirm 成功后 git 工作区保持干净，不会留下 `.meta/versions/<version>.yaml` 或 `versions/<version>/state.md` 的二次提交。
+
+
+  ### 边界与非目标
+
+
+  - 不在 version confirm 之外提供合并入口。
+
+  - 不做字段级、段落级或语义级 merge；modify 仍是 chunk 级完整替换。
+
+  - 不改变 task/PRD/impl 的提交前置要求；confirm 前仍要求用户把当前开发改动提交干净。
+
+  - 不引入系统级全局 `ait` 命令或 PATH 注入。'

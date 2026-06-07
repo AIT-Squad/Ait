@@ -1,0 +1,64 @@
+<!-- @id:impl-version-merge-single-commit-state -->
+## version confirm commits final merged state in one commit
+
+<!-- @summary: version confirm 在 git commit 前写完 merged 状态，成功后工作区保持干净 -->
+
+<!-- @ref:merge-single-commit#prd-version-merge rel:implements -->
+
+### Change points
+
+#### 1. Duplicate add guard
+
+Keep the merge precheck in `VersionManager` that inspects effective committed records before any docs write.
+
+- Build the current baseline chunk id set from `IndexManager.load_baseline()`.
+- For every effective record with `action == add`, if `record.id` already exists in baseline, raise `ValidationError` with code `DUPLICATE_BASELINE_CHUNK`.
+- The error must include the duplicate chunk id and file where possible.
+- Run the same guard from `confirm()` before the rollback phase starts, so `version confirm` returns `DUPLICATE_BASELINE_CHUNK` instead of wrapping it as `MERGE_ROLLBACK`.
+
+#### 2. Inherited impl representation
+
+Keep `ImplManager.inherit()` registration for inherited baseline impl chunks as non-append operations.
+
+- Keep copying the baseline impl chunk into the version workspace so task/context assembly can read it.
+- Register inherited chunks as `action=modify`, `overrides=<same impl id>`, and `base_hash=<baseline chunk hash>`.
+- The chunk content is identical to baseline, so merge replaces the existing chunk with equivalent content instead of appending a duplicate.
+- This preserves the existing schema and does not add `action=inherit`.
+
+#### 3. Merge behavior
+
+`merge_engine.merge_file()` already replaces `overrides` for `modify`; keep that behavior unchanged.
+
+- `action=modify` plus `overrides` replaces the baseline chunk.
+- `action=add` appends only when the id is truly new.
+- `action=delete` removes `overrides`.
+- Modify/delete routing continues to target the overridden baseline file, even when the version-side markdown lives in a different file.
+- Atomic impl delete synthesis must treat both record ids and `overrides` ids as explicitly handled, so a replacement impl is not immediately deleted as stale baseline coverage.
+
+#### 4. Final merged state before git commit
+
+Move final version state writes before the merge git commit.
+
+- `merge()` already writes `merged_at`, `snapshot`, version index `status: merged`, and refreshes `state.md` before returning.
+- Set `meta.phase = merged` in that same pre-commit metadata update, before `confirm()` calls `_git_commit()`.
+- Remove the post-commit block in `confirm()` that reloads meta, sets `phase = merged`, saves meta, and refreshes state.
+- After `confirm()` calls `_git_commit()`, it must not mutate any files.
+- If `_git_commit()` fails, the existing rollback path remains responsible for restoring docs; no extra post-commit cleanup path is introduced.
+
+#### 5. Tests
+
+Add focused regression tests in `tests/test_merge_workflow.py` and `tests/test_impl_inherit.py`.
+
+- `VersionManager.merge()` rejects an `action=add` record whose id already exists in baseline.
+- `VersionManager.confirm()` surfaces the same error code before docs mutation.
+- `ImplManager.inherit()` records inherited chunks as same-id modify records.
+- Inheriting baseline impl chunks and confirming the version leaves only one copy of each inherited chunk in baseline.
+- `VersionManager.confirm()` in a real temporary git repository creates its merge commit and returns with `git status --porcelain` empty.
+- The same regression asserts `.meta/versions/<version>.yaml` contains `phase: merged` and `versions/<version>/state.md` displays `Phase: merged` in that single merge commit.
+
+### Boundaries
+
+- Do not add `action=inherit` to schemas.
+- Do not change `merge_engine.merge_file()` replacement semantics.
+- Do not make merge perform semantic or partial-content patching.
+- Do not weaken the pre-confirm clean git guard; current development changes must still be committed before confirm starts.

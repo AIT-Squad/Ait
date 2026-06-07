@@ -1,0 +1,56 @@
+version: 1
+scope: version
+version_name: v1.11
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-version-merge
+  file: merge-single-commit
+  heading: 版本合并
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: prd-version-merge
+  amends: null
+  insert_after: null
+  base_hash: 776dbe6f
+  source_req: req-021
+  summary: version confirm 将最终 merged 状态纳入同一个 merge commit，成功后不留二次提交
+- id: impl-version-merge-single-commit-state
+  file: version
+  heading: version confirm commits final merged state in one commit
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c2
+  overrides: impl-version-merge-duplicate-add-guard
+  amends: null
+  insert_after: null
+  base_hash: 056e35ab
+  source_req: req-021
+  summary: null
+commits:
+- id: c1
+  timestamp: '2026-06-07T10:11:57.648239+00:00'
+  message: 'prd: require single merge commit'
+  chunks:
+  - prd-version-merge
+  req_id: req-021
+- id: c2
+  timestamp: '2026-06-07T10:14:16.270560+00:00'
+  message: 'impl: commit final merged state before git commit'
+  chunks:
+  - impl-version-merge-single-commit-state
+  req_id: req-021
+stats:
+  total_chunks: 2
+  by_action:
+    modify: 2
+  by_state:
+    committed: 2
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
