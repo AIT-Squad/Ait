@@ -548,12 +548,14 @@ class VersionManager:
 
         ok_records = self._with_atomic_impl_deletes(version, ok_records)
 
-        # Group by file. Delete records carry no file → use overrides for routing.
+        # Group by merge target file. Modify/delete records route through the
+        # baseline chunk they override; their version-side draft may live in a
+        # different version file.
         by_file: dict[str, list[VersionChunkEntry]] = {}
         for r in ok_records:
             file_key = r.file
-            if file_key is None and r.overrides:
-                base_entry = self.indexes.query_baseline(r.overrides)
+            if r.action in ("modify", "delete"):
+                base_entry = self.indexes.query_baseline(r.overrides or r.id)
                 if base_entry:
                     file_key = base_entry.file
             if file_key is None:
@@ -931,18 +933,21 @@ class VersionManager:
             pf = parse_file(version_path, self.versions_dir / version)
             version_chunks_by_id = {c.id: c for c in pf.chunks}
 
-        # PRD baseline 单文件化：版本工作区允许多文件 (versions/<v>/prd/*.md)，
-        # 但 baseline 唯一文件是 prd/global.md。当合并目标是 prd/global 时，
-        # 额外汇总版本侧 prd/ 目录下所有 .md，使每条 record.id 都能在工作区找到 chunk。
-        if file_key == "prd/global":
-            prd_version_dir = self.versions_dir / version / "prd"
-            if prd_version_dir.is_dir():
-                for md_path in sorted(prd_version_dir.glob("*.md")):
-                    if md_path == version_path:
-                        continue
-                    pf = parse_file(md_path, self.versions_dir / version)
-                    for c in pf.chunks:
+        needed_ids = {
+            r.id for r in records if r.action in ("add", "modify")
+        } - set(version_chunks_by_id)
+        if needed_ids:
+            version_root = self.versions_dir / version
+            for md_path in sorted(version_root.rglob("*.md")):
+                if md_path == version_path:
+                    continue
+                pf = parse_file(md_path, version_root)
+                for c in pf.chunks:
+                    if c.id in needed_ids:
                         version_chunks_by_id.setdefault(c.id, c)
+                        needed_ids.discard(c.id)
+                if not needed_ids:
+                    break
 
         ops: list[VersionChunkOp] = []
         for r in records:

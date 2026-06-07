@@ -189,6 +189,46 @@ def test_merge_latest_record_uses_index_order_not_commit_id_text(project: Path):
     assert "new body" in text
 
 
+def test_modify_record_routes_to_overridden_baseline_file(project: Path):
+    _seed_baseline(
+        project,
+        "impl/existing",
+        "# Existing doc\n\n<!-- @id:impl-x -->\n## X\n\noriginal body\n",
+    )
+    vm = VersionManager(project)
+    vm.indexes.rebuild_baseline()
+
+    vm.create("v1.1")
+    vm.write_version_file(
+        "v1.1",
+        "impl/update-bundle",
+        "<!-- @id:impl-x -->\n## X updated\n\nnew body\n",
+    )
+    idx = vm.indexes.load_version_index("v1.1")
+    idx.chunks.append(
+        VersionChunkEntry(
+            id="impl-x",
+            file="impl/update-bundle",
+            heading="X updated",
+            level=2,
+            action="modify",
+            state="committed",
+            commit_id="c1",
+            overrides="impl-x",
+            base_hash=chunk_hash("<!-- @id:impl-x -->\n## X\n\noriginal body\n"),
+        )
+    )
+    vm.indexes.save_version_index(idx)
+
+    result = vm.merge("v1.1")
+
+    assert result.status == "completed"
+    text = (project / "docs" / "impl" / "existing.md").read_text(encoding="utf-8")
+    assert "X updated" in text
+    assert "new body" in text
+    assert not (project / "docs" / "impl" / "update-bundle.md").exists()
+
+
 def test_confirm_surfaces_duplicate_add_before_merge_rollback(project: Path):
     _seed_baseline(
         project,
