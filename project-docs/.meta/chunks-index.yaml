@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-07T09:28:04.049830+00:00'
+updated: '2026-06-07T10:23:26.869232+00:00'
 chunks:
 - id: global-schema
   file: global/schema
@@ -382,9 +382,9 @@ chunks:
   heading: 测试要点
   level: 2
   summary: null
-- id: impl-version-merge-duplicate-add-guard
+- id: impl-version-merge-single-commit-state
   file: impl/version
-  heading: version merge duplicate-add guard and inherited impl no-op semantics
+  heading: version confirm commits final merged state in one commit
   level: 2
   summary: null
 - id: impl-workflow-chunk-rename

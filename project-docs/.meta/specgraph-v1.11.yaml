@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-07T10:14:16.395580+00:00'
+updated: '2026-06-07T10:23:26.993000+00:00'
 specs:
 - uri: spec:impl:v1.11:impl-version-merge-single-commit-state
   title: version confirm commits final merged state in one commit

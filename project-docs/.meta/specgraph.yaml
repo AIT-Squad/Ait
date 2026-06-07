@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-07T10:14:16.337292+00:00'
+updated: '2026-06-07T10:23:27.217490+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -539,14 +539,17 @@ specs:
   file: impl/version-manager
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-version-merge-duplicate-add-guard
-  title: version merge duplicate-add guard and inherited impl no-op semantics
+- uri: spec:impl:baseline:impl-version-merge-single-commit-state
+  title: version confirm commits final merged state in one commit
   type: impl
   version: baseline
-  chunk_id: impl-version-merge-duplicate-add-guard
-  file: impl/version
+  chunk_id: impl-version-merge-single-commit-state
+  file: version
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c2
 - uri: spec:impl:baseline:impl-workflow-chunk-rename
   title: Chunk 代码符号与文档术语重命名工作流
   type: impl
@@ -1104,9 +1107,12 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-version-merge
-  file: prd/global
+  file: merge-single-commit
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 edges:
 - src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-inherit-noop
   dst: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
@@ -1468,7 +1474,7 @@ edges:
   weight: 1.0
   metadata:
     source: baseline-ref
-- src: spec:impl:baseline:impl-version-merge-duplicate-add-guard
+- src: spec:impl:baseline:impl-version-merge-single-commit-state
   dst: spec:prd:baseline:prd-version-merge
   rel: implements
   weight: 1.0

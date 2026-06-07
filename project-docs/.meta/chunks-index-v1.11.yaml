@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v1.11
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-version-merge
   file: merge-single-commit
@@ -52,5 +52,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 2
     failed: 0
