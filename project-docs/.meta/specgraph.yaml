@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-07T08:16:30.063419+00:00'
+updated: '2026-06-07T09:28:04.399580+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -219,14 +219,17 @@ specs:
   file: impl/merge-engine
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
-  title: impl baseline-aware confirmation and explicit overrides
+- uri: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-inherit-noop
+  title: impl inherit no longer appends baseline chunks during merge
   type: impl
   version: baseline
-  chunk_id: impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
-  file: impl/baseline-aware-confirmation
+  chunk_id: impl-prd-chunk-atomic-impl-merge-inherit-noop
+  file: impl/merge-inherit-noop
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c4
 - uri: spec:impl:baseline:impl-prd-chunk-summary-field
   title: chunks-index 增加 summary 字段 + @summary 注释解析
   type: impl
@@ -267,14 +270,17 @@ specs:
   file: impl/prd-global-single-file
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-confirmation-skill
-  title: ait-discuss baseline-aware confirmation flow
+- uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-full-replacement-skill
+  title: ait-discuss requires full replacement PRD modify chunks
   type: impl
   version: baseline
-  chunk_id: impl-prd-recursive-modify-discovery-confirmation-skill
-  file: impl/baseline-aware-confirmation
+  chunk_id: impl-prd-recursive-modify-discovery-full-replacement-skill
+  file: impl/merge-inherit-noop
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c3
 - uri: spec:impl:baseline:impl-prd-stage-cli
   title: PRD 阶段命令实现
   type: impl
@@ -539,22 +545,17 @@ specs:
   file: impl/version-manager
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-version-merge-engine
-  title: 版本合并引擎（两阶段 + 失败回退）
+- uri: spec:impl:baseline:impl-version-merge-duplicate-add-guard
+  title: version merge duplicate-add guard and inherited impl no-op semantics
   type: impl
   version: baseline
-  chunk_id: impl-version-merge-engine
-  file: impl/version
+  chunk_id: impl-version-merge-duplicate-add-guard
+  file: impl/merge-inherit-noop
   metadata:
     source: baseline
-- uri: spec:impl:baseline:impl-version-merge-extract
-  title: impl → 动态 global 提取
-  type: impl
-  version: baseline
-  chunk_id: impl-version-merge-extract
-  file: impl/version
-  metadata:
-    source: baseline
+    state: committed
+    action: modify
+    commit_id: c2
 - uri: spec:impl:baseline:impl-workflow-chunk-rename
   title: Chunk 代码符号与文档术语重命名工作流
   type: impl
@@ -864,9 +865,12 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-prd-chunk-atomic-impl-merge
-  file: prd/global
+  file: prd/merge-inherit-noop
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-chunk-summary-index
   title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
   type: prd
@@ -896,9 +900,12 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-prd-recursive-modify-discovery
-  file: prd/global
+  file: prd/merge-inherit-noop
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:prd-prd-stage
   title: PRD 阶段
   type: prd
@@ -1112,17 +1119,20 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-version-merge
-  file: prd/global
+  file: prd/merge-inherit-noop
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 edges:
-- src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-confirmation-cli-skill
+- src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-inherit-noop
   dst: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
   rel: implements
   weight: 1.0
   metadata:
     source: baseline-ref
-- src: spec:impl:baseline:impl-prd-recursive-modify-discovery-confirmation-skill
+- src: spec:impl:baseline:impl-prd-recursive-modify-discovery-full-replacement-skill
   dst: spec:prd:baseline:prd-prd-recursive-modify-discovery
   rel: implements
   weight: 1.0
@@ -1476,13 +1486,7 @@ edges:
   weight: 1.0
   metadata:
     source: baseline-ref
-- src: spec:impl:baseline:impl-version-merge-engine
-  dst: spec:prd:baseline:prd-version-merge
-  rel: implements
-  weight: 1.0
-  metadata:
-    source: baseline-ref
-- src: spec:impl:baseline:impl-version-merge-extract
+- src: spec:impl:baseline:impl-version-merge-duplicate-add-guard
   dst: spec:prd:baseline:prd-version-merge
   rel: implements
   weight: 1.0

@@ -7,7 +7,7 @@
 - Phase: `impl_locked`
 - PRD locked: `true`
 - Impl locked: `true`
-- Merged: `false`
+- Merged: `true`
 - PRD chunks: `3`
 - Impl chunks: `3`
 - Working: `0`
