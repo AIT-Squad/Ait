@@ -817,8 +817,15 @@ class VersionManager:
 
         baseline_graph = load_specgraph(self.root, "baseline")
         version_graph = load_specgraph(self.root, version)
-        explicit_deletes = {r.id for r in records if r.action == "delete"}
+        explicit_deletes = {
+            r.overrides or r.id for r in records if r.action == "delete"
+        }
         existing_ids = {r.id for r in records}
+        existing_ids.update(
+            r.overrides
+            for r in records
+            if r.action in ("modify", "delete") and r.overrides is not None
+        )
         synthetic: list[VersionChunkEntry] = []
 
         for prd_id in changed_prd_ids:

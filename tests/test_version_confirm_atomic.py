@@ -111,6 +111,38 @@ def test_modify_prd_keeps_impl_when_inherited(tmp_path: Path):
     assert "impl-old-2" not in text
 
 
+def test_modify_prd_replaces_impl_by_modify_override(tmp_path: Path):
+    vm = _init_project(tmp_path)
+    prd = _parse_version_chunk(vm, "v1.1", "prd/global", "<!-- @id:prd-a -->\n## A new\n\nnew\n", "prd-a")
+    impl = _parse_version_chunk(
+        vm,
+        "v1.1",
+        "impl/update-bundle",
+        "<!-- @id:impl-new-1 -->\n## New 1\n\n<!-- @ref:prd/global#prd-a rel:implements -->\n\nnew impl\n",
+        "impl-new-1",
+    )
+    _commit_records(
+        vm,
+        _committed(prd, "modify", overrides="prd-a"),
+        _committed(
+            impl,
+            "modify",
+            overrides="impl-old-1",
+            base_hash=chunk_hash(
+                "<!-- @id:impl-old-1 -->\n## Old 1\n\n<!-- @ref:prd/global#prd-a rel:implements -->\n\nold 1"
+            ),
+        ),
+    )
+
+    vm.merge("v1.1", conflict_policy="use-version")
+
+    text = (tmp_path / "docs" / "impl" / "feature.md").read_text(encoding="utf-8")
+    assert "impl-new-1" in text
+    assert "new impl" in text
+    assert "impl-old-1" not in text
+    assert "impl-old-2" not in text
+
+
 def test_delete_prd_removes_all_impls(tmp_path: Path):
     vm = _init_project(tmp_path)
     _commit_records(
