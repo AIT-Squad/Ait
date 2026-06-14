@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-14T05:28:41.708361+00:00'
+updated: '2026-06-14T06:04:36.685956+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -59,6 +59,17 @@ specs:
   file: impl/block-parser
   metadata:
     source: baseline
+- uri: spec:impl:baseline:impl-cli-file-option-names-normalization
+  title: CLI file option normalization
+  type: impl
+  version: baseline
+  chunk_id: impl-cli-file-option-names-normalization
+  file: impl/cli-file-options
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c2
 - uri: spec:impl:baseline:impl-core-model-reset
   title: 核心模型：version reset 清空逻辑
   type: impl
@@ -699,6 +710,17 @@ specs:
   file: prd/global
   metadata:
     source: baseline
+- uri: spec:prd:baseline:prd-cli-file-option-names
+  title: CLI file options accept file names only
+  type: prd
+  version: baseline
+  chunk_id: prd-cli-file-option-names
+  file: prd/cli-file-options
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:prd:baseline:prd-core-model
   title: 核心模型与版本原子性
   type: prd
@@ -1134,6 +1156,12 @@ edges:
     source: baseline-ref
 - src: spec:impl:baseline:impl-block-parser-algorithm
   dst: spec:prd:baseline:prd-block-parse-rule
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-cli-file-option-names-normalization
+  dst: spec:prd:baseline:prd-cli-file-option-names
   rel: implements
   weight: 1.0
   metadata:

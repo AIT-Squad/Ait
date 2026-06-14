@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v1.12
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-cli-file-option-names
   file: prd/cli-file-options
@@ -52,5 +52,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 1
     failed: 0
