@@ -11,7 +11,7 @@ steps:
 - 按 impl-cli-file-option-names-normalization 的设计实现对应代码并自检
 status: done
 code_refs:
-- commit: null
+- commit: 135e41bdfc7d390fc26c9110b72974467bacbb2d
   paths:
   - skill/ait/ait/cli.py
   - tests/test_e2e_cli.py
@@ -25,4 +25,4 @@ code_refs:
   - DESIGN.md
   - examples/walkthrough.md
   - project-docs/docs/prd/global.md
-  bound_at: '2026-06-14T05:41:08.357793Z'
+  bound_at: '2026-06-14T06:02:59.367652Z'
