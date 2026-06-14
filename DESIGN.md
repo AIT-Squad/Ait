@@ -350,7 +350,7 @@ AIT 命令分为 6 组（redesign 后）：
 | `ait prd create <title>` | 创建需求；自动创建版本（如无活跃版本） |
 | `ait prd save-draft <req-id> --content-file <path>` | 保存 AI 讨论的 PRD 草稿 |
 | `ait prd resolve-candidates --from-file <yaml>` | 持久化 AI 生成的 PRD 候选决策到版本工作区 |
-| `ait prd confirm <req-id> --file prd/<slug>` | 将草稿固化到版本工作区 |
+| `ait prd confirm <req-id> --file <slug>` | 将草稿固化到版本工作区的 `prd/<slug>.md` |
 | `ait prd show <prd-file> [chunk-id]` | 查看 PRD 文件大纲或单个块 |
 | `ait prd commit <prd-file> -m <msg>` | 提交 PRD 块并**锁定 PRD**（本版本不可再改） |
 

@@ -16,7 +16,7 @@ Assemble focused context for a committed PRD chunk, discuss baseline implementat
 - `project-docs/.ait/ait-cli context <prd-chunk-id> --deps`
 - `project-docs/.ait/ait-cli specgraph query <prd-chunk-id> --implements`
 - `project-docs/.ait/ait-cli impl inherit <prd-chunk-id>`
-- `project-docs/.ait/ait-cli impl create <prd-chunk-id> --content-file <file> --impl-file impl/<name>`
+- `project-docs/.ait/ait-cli impl create <prd-chunk-id> --content-file <file> --impl-file <name>`
 - `project-docs/.ait/ait-cli impl create <prd-chunk-id> --content-file <file> --action modify --overrides <baseline-impl-id>`
 - `project-docs/.ait/ait-cli impl show <impl-chunk-id>`
 - `project-docs/.ait/ait-cli impl commit <impl-chunk-id> -m <message>`
@@ -56,4 +56,5 @@ On success, summarize `version`, `file`, `chunk_ids`, and confirmed `action/over
 - `OVERRIDES_NOT_IN_BASELINE`: choose an existing baseline impl chunk id.
 - `DUPLICATE_BASELINE_CHUNK`: an existing baseline impl was treated as `add`; use `impl inherit` for unchanged old impl or `impl create --action modify --overrides <id>` for changed old impl.
 - `IMPL_NO_CHUNKS`: generated content needs `<!-- @id:impl-... -->`.
+- `INVALID_FILE_NAME`: `--impl-file` and `--prd-file` accept only file names, without path or `.md` suffix.
 - `CHUNK_NOT_IN_VERSION`: do not bypass `impl create` by writing files directly.

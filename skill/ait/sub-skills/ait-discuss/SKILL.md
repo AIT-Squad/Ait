@@ -16,7 +16,7 @@ Drive PRD Clarify -> Design -> Generate discussion and persist the confirmed res
 - `project-docs/.ait/ait-cli context <overrides>`
 - `project-docs/.ait/ait-cli prd resolve-candidates --from-file <file>`
 - `project-docs/.ait/ait-cli prd save-draft <req_id> --content-file <file>`
-- `project-docs/.ait/ait-cli prd confirm <req_id> --file prd/<slug>`
+- `project-docs/.ait/ait-cli prd confirm <req_id> --file <slug>`
 - `project-docs/.ait/ait-cli prd show <prd-file> [chunk-id]`
 
 ## Artifacts
@@ -44,7 +44,7 @@ Drive PRD Clarify -> Design -> Generate discussion and persist the confirmed res
 15. Generate the final Markdown draft. A modify chunk is a full replacement chunk, not a patch: it must restate all old information that remains valid plus the new information. Do not write placeholders like "old content unchanged" or only the changed paragraphs.
 16. If a chunk uses an existing baseline id, CLI may register it as `action: modify, overrides: <same-id>`; if a new id modifies an old chunk, the confirmed candidates YAML must provide `overrides`.
 17. Call `project-docs/.ait/ait-cli prd save-draft <req_id> --content-file <file>`.
-18. Call `project-docs/.ait/ait-cli prd confirm <req_id> --file prd/<slug>`.
+18. Call `project-docs/.ait/ait-cli prd confirm <req_id> --file <slug>`.
 19. Report `req_id`, `version`, file path, chunk ids, and any confirmed modify mappings.
 
 ## Output Contract
@@ -56,7 +56,8 @@ Summarize only key CLI JSON fields: `req_id`, `version`, `file`, `chunk_ids`, an
 - `ID_FORMAT`: ask the user to confirm or rewrite the chunk id.
 - `CHUNK_ID_COLLISION`: do not use a baseline id as a candidate `new_id`; either keep the same id in the draft or choose a new id with confirmed `overrides`.
 - `OVERRIDES_NOT_IN_BASELINE`: ask the user to choose a valid baseline PRD chunk.
-- `CONFIRM_FAILED`: check that the draft is non-empty and the file path has no `.md` suffix.
+- `INVALID_FILE_NAME`: `--file` accepts only a file name, without path or `.md` suffix.
+- `CONFIRM_FAILED`: check that the draft is non-empty.
 - Information loss on modify: merge does not backfill old content. Regenerate the modify chunk as a complete replacement before saving the draft.
 - `NOT_AT_PROJECT_ROOT`: return to the project root.
 - `CWD_INSIDE_PROJECT_DOCS`: leave `project-docs/` and run from its parent.

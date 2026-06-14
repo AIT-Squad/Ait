@@ -1,0 +1,32 @@
+version: 1
+updated: '2026-06-14T05:28:41.756611+00:00'
+specs:
+- uri: spec:impl:v1.12:impl-cli-file-option-names-normalization
+  title: CLI file option normalization
+  type: impl
+  version: v1.12
+  chunk_id: impl-cli-file-option-names-normalization
+  file: impl/cli-file-options
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:prd:v1.12:prd-cli-file-option-names
+  title: CLI file options accept file names only
+  type: prd
+  version: v1.12
+  chunk_id: prd-cli-file-option-names
+  file: prd/cli-file-options
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v1.12:impl-cli-file-option-names-normalization
+  dst: spec:prd:v1.12:prd-cli-file-option-names
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

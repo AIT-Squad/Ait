@@ -1033,7 +1033,7 @@ skill/ait/                          ← 主 skill（router 角色，扩充能力
 | `ait list` | 列出已有 chunk | → `bin/ait reindex` 后读 `.meta/chunks-index.yaml`（v0.2 引入 `bin/ait chunk list` 单独 PRD 处理） |
 | `ait draft new --op ADD` | 产 ADD draft | → `bin/ait prd create "<title>"` + `bin/ait prd save-draft <req_id>` |
 | `ait draft new --op MODIFY` | 产 MODIFY draft（带 base-hash） | → `bin/ait prd save-draft <req_id>`（覆盖，base_hash 由 confirm 阶段校验） |
-| `ait draft confirm` + `ait draft merge` | confirmed → merged | → `bin/ait prd confirm <req_id> --file prd/<slug>` + `bin/ait prd commit prd/<slug> -m ...` |
+| `ait draft confirm` + `ait draft merge` | confirmed → merged | → `bin/ait prd confirm <req_id> --file <slug>` + `bin/ait prd commit prd/<slug> -m ...` |
 | 删除策略 | DELETE draft | 本期不支持（当前 CLI 无 delete；写入 PRD non-goals） |
 | 工作目录 | 任意 | 必须在 `project-docs/` 父目录 |
 

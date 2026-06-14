@@ -79,6 +79,25 @@ def fail(message: str, code: str = "ERROR", exit_code: int = 1, details: dict | 
     sys.exit(exit_code)
 
 
+def _scoped_filename(value: str | None, *, scope: str, option: str) -> str | None:
+    if value is None:
+        return None
+    name = value.strip()
+    if (
+        not name
+        or name in {".", ".."}
+        or "/" in name
+        or "\\" in name
+        or ":" in name
+        or name.lower().endswith(".md")
+    ):
+        fail(
+            f"{option} only accepts a file name without path or .md suffix",
+            code="INVALID_FILE_NAME",
+        )
+    return f"{scope}/{name}"
+
+
 def _root(ctx: click.Context) -> Path:
     return ctx.obj["root"]
 
@@ -307,13 +326,16 @@ def prd_resolve_candidates(ctx, from_file: Path) -> None:
 
 @prd_group.command("confirm")
 @click.argument("req_id")
-@click.option("--file", "prd_file", default=None, help="prd/{name} path (no .md)")
+@click.option("--file", "prd_file", default=None, help="PRD file name under prd/ (no path, no .md)")
 @click.pass_context
 def prd_confirm(ctx, req_id: str, prd_file: str | None) -> None:
     """Materialize the prd_draft into the version workspace."""
     mgr = PrdManager(_root(ctx))
     try:
-        result = mgr.write_to_version(req_id, prd_file=prd_file)
+        result = mgr.write_to_version(
+            req_id,
+            prd_file=_scoped_filename(prd_file, scope="prd", option="--file"),
+        )
         ok(
             {
                 "req_id": req_id,
@@ -372,9 +394,9 @@ def impl_group() -> None:
     help="File containing the impl markdown (use - for stdin).",
 )
 @click.option("--content", default=None, help="Inline impl markdown content.")
-@click.option("--impl-file", default=None, help="impl/{name} target file (auto-detected if absent).")
+@click.option("--impl-file", default=None, help="Impl file name under impl/ (no path, no .md).")
 @click.option("--req-id", default=None)
-@click.option("--prd-file", default=None)
+@click.option("--prd-file", default=None, help="PRD file name under prd/ (no path, no .md).")
 @click.option(
     "--action",
     type=click.Choice(["add", "modify"]),
@@ -407,9 +429,9 @@ def impl_create(
         result = mgr.create(
             prd_chunk_id,
             content,
-            impl_file=impl_file,
+            impl_file=_scoped_filename(impl_file, scope="impl", option="--impl-file"),
             req_id=req_id,
-            prd_file=prd_file,
+            prd_file=_scoped_filename(prd_file, scope="prd", option="--prd-file"),
             action=action,  # type: ignore[arg-type]
             overrides=overrides,
         )

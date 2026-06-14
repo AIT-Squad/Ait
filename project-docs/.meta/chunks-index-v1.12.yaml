@@ -1,0 +1,56 @@
+version: 1
+scope: version
+version_name: v1.12
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-cli-file-option-names
+  file: prd/cli-file-options
+  heading: CLI file options accept file names only
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-022
+  summary: PRD/Impl file options accept bare file names and map to scoped directories
+- id: impl-cli-file-option-names-normalization
+  file: impl/cli-file-options
+  heading: CLI file option normalization
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-022
+  summary: Normalize CLI file-name options into PRD/Impl scoped file keys
+commits:
+- id: c1
+  timestamp: '2026-06-14T05:27:43.996668+00:00'
+  message: 'prd: restrict create file options to names'
+  chunks:
+  - prd-cli-file-option-names
+  req_id: req-022
+- id: c2
+  timestamp: '2026-06-14T05:28:41.648584+00:00'
+  message: 'impl: normalize cli file options'
+  chunks:
+  - impl-cli-file-option-names-normalization
+  req_id: req-022
+stats:
+  total_chunks: 2
+  by_action:
+    add: 2
+  by_state:
+    committed: 2
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

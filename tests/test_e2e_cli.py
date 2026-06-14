@@ -96,7 +96,7 @@ def test_end_to_end_happy_path(cli_project: Path):
         "confirm",
         req_id,
         "--file",
-        "prd/recommend",
+        "recommend",
     )
     parsed = _parse(res.output)["data"]
     assert parsed["version"] == version
@@ -205,7 +205,7 @@ def test_show_returns_block_after_merge(cli_project: Path):
         "--content",
         "<!-- @id:prd-test-overview -->\n## 概述\n\nbody",
     )
-    _run(runner, root, "prd", "confirm", req_id, "--file", "prd/testing")
+    _run(runner, root, "prd", "confirm", req_id, "--file", "testing")
 
     res = _run(runner, root, "prd", "show", "prd/testing")
     parsed = _parse(res.output)["data"]
@@ -216,6 +216,96 @@ def test_show_returns_block_after_merge(cli_project: Path):
     res = _run(runner, root, "prd", "show", "prd/testing", "prd-test-overview")
     parsed = _parse(res.output)["data"]
     assert parsed["chunk"]["heading"] == "概述"
+
+
+def test_file_options_accept_names_not_paths(cli_project: Path):
+    runner = CliRunner()
+    root = cli_project
+
+    data = _parse(_run(runner, root, "prd", "create", "path-check").output)
+    req_id = data["data"]["req_id"]
+    version = data["data"]["version"]
+
+    _run(
+        runner,
+        root,
+        "prd",
+        "save-draft",
+        req_id,
+        "--content",
+        _prd_chunk("prd-path-check", "Overview", "path check", "body"),
+    )
+
+    res = _run(runner, root, "prd", "confirm", req_id, "--file", "prd/path-check")
+    payload = _parse(res.output)
+    assert res.exit_code == 1
+    assert payload["code"] == "INVALID_FILE_NAME"
+
+    res = _run(runner, root, "prd", "confirm", req_id, "--file", "path-check")
+    payload = _parse(res.output)["data"]
+    assert payload["file"] == "prd/path-check"
+    assert (root / "versions" / version / "prd" / "path-check.md").exists()
+    assert not (root / "versions" / version / "path-check.md").exists()
+
+    _run(runner, root, "prd", "commit", "prd/path-check", "-m", "msg", "--req-id", req_id)
+
+    impl_content = (
+        "<!-- @id:impl-path-check-version -->\n"
+        "## Impl\n\n<!-- @summary: impl path check -->\n\nBody"
+    )
+    res = _run(
+        runner,
+        root,
+        "impl",
+        "create",
+        "prd-path-check",
+        "--content",
+        impl_content,
+        "--impl-file",
+        "impl/version",
+        "--req-id",
+        req_id,
+    )
+    payload = _parse(res.output)
+    assert res.exit_code == 1
+    assert payload["code"] == "INVALID_FILE_NAME"
+
+    res = _run(
+        runner,
+        root,
+        "impl",
+        "create",
+        "prd-path-check",
+        "--content",
+        impl_content,
+        "--impl-file",
+        "version",
+        "--prd-file",
+        "prd/path-check",
+        "--req-id",
+        req_id,
+    )
+    payload = _parse(res.output)
+    assert res.exit_code == 1
+    assert payload["code"] == "INVALID_FILE_NAME"
+
+    res = _run(
+        runner,
+        root,
+        "impl",
+        "create",
+        "prd-path-check",
+        "--content",
+        impl_content,
+        "--impl-file",
+        "version",
+        "--req-id",
+        req_id,
+    )
+    payload = _parse(res.output)["data"]
+    assert payload["file"] == "impl/version"
+    assert (root / "versions" / version / "impl" / "version.md").exists()
+    assert not (root / "versions" / version / "version.md").exists()
 
 
 def test_context_command_returns_l1_only_when_no_links(cli_project: Path):
@@ -235,7 +325,7 @@ def test_context_command_returns_l1_only_when_no_links(cli_project: Path):
         "--content",
         _prd_chunk("prd-ctxtest-overview", "概述", "context 测试概述", "body"),
     )
-    _run(runner, root, "prd", "confirm", req_id, "--file", "prd/ctxtest")
+    _run(runner, root, "prd", "confirm", req_id, "--file", "ctxtest")
     _run(runner, root, "prd", "commit", "prd/ctxtest", "-m", "msg", "--req-id", req_id)
 
     res = _run(runner, root, "context", "prd-ctxtest-overview")

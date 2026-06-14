@@ -47,7 +47,7 @@ def _prd_body(summary: str = "") -> str:
 def _prepare_prd(runner: CliRunner, draft: str) -> str:
     req = _parse(_run(runner, "prd", "create", "summary").output)["data"]["req_id"]
     assert _run(runner, "prd", "save-draft", req, "--content", draft).exit_code == 0
-    assert _run(runner, "prd", "confirm", req, "--file", "prd/summary").exit_code == 0
+    assert _run(runner, "prd", "confirm", req, "--file", "summary").exit_code == 0
     return req
 
 

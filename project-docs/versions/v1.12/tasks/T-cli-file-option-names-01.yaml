@@ -1,0 +1,28 @@
+id: T-cli-file-option-names-01
+title: 实现 impl-cli-file-option-names-normalization
+source_chunk: prd-cli-file-option-names
+impl_refs:
+- impl-cli-file-option-names-normalization
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-cli-file-option-names-normalization 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/cli.py
+  - tests/test_e2e_cli.py
+  - tests/test_prd_commit_summary.py
+  - tests/test_prd_commit_modify.py
+  - tests/test_prd_save_draft_sync.py
+  - skill/ait/sub-skills/ait-discuss/SKILL.md
+  - skill/ait/sub-skills/ait-impl-discuss/SKILL.md
+  - README.md
+  - USER_GUIDE.md
+  - DESIGN.md
+  - examples/walkthrough.md
+  - project-docs/docs/prd/global.md
+  bound_at: '2026-06-14T05:41:08.357793Z'

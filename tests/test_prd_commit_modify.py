@@ -56,7 +56,7 @@ def _prepare_version_prd(runner: CliRunner, chunk_ids: list[str]) -> str:
     req = _parse(_run(runner, "prd", "create", "modify-test").output)["data"]["req_id"]
     draft = "\n\n".join(_prd_chunk(chunk_id, chunk_id, f"{chunk_id} summary") for chunk_id in chunk_ids)
     assert _run(runner, "prd", "save-draft", req, "--content", draft).exit_code == 0
-    assert _run(runner, "prd", "confirm", req, "--file", "prd/modify-test").exit_code == 0
+    assert _run(runner, "prd", "confirm", req, "--file", "modify-test").exit_code == 0
     return req
 
 

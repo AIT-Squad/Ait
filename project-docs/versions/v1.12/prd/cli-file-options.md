@@ -1,0 +1,31 @@
+<!-- @id:prd-cli-file-option-names -->
+## CLI file options accept file names only
+
+<!-- @summary: PRD/Impl file options accept bare file names and map to scoped directories -->
+
+### 概述
+
+AIT CLI file options for creating version-side PRD and Impl markdown must accept only a file name. The command layer owns the domain directory mapping so callers cannot accidentally write files at the version root or into arbitrary subpaths.
+
+### 业务规则
+
+- `ait prd confirm <req-id> --file <name>` writes `versions/<v>/prd/<name>.md` and reports the canonical file key `prd/<name>`.
+- `ait impl create <prd-chunk-id> --impl-file <name>` writes `versions/<v>/impl/<name>.md` and reports the canonical file key `impl/<name>`.
+- `ait impl create ... --prd-file <name>` resolves the explicit PRD file as `prd/<name>`.
+- File option values must be rejected with `INVALID_FILE_NAME` when empty, equal to `.` or `..`, contain `/`, `\`, or `:`, or end with `.md`.
+- Commands that read or commit already-materialized files continue to use canonical file keys such as `prd/<name>` and `impl/<name>`.
+- AIT skill instructions and user-facing command examples must show bare file names for these create/confirm options.
+
+### 验收标准
+
+- A CLI regression proves `--file path-check` writes `versions/<v>/prd/path-check.md` and does not create `versions/<v>/path-check.md`.
+- A CLI regression proves `--impl-file version` writes `versions/<v>/impl/version.md` and does not create `versions/<v>/version.md`.
+- CLI regressions reject `--file prd/path-check`, `--impl-file impl/version`, and `--prd-file prd/path-check` with `INVALID_FILE_NAME`.
+- Existing PRD show/commit and impl commit flows continue to operate on canonical file keys.
+- The full test suite passes.
+
+### 边界与非目标
+
+- Do not migrate already-merged historical version workspaces in this change.
+- Do not change the persisted index format; it continues to store canonical file keys with `prd/` and `impl/` prefixes.
+- Do not change automatic impl file detection, except that explicit CLI file options are normalized before reaching the manager layer.

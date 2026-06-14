@@ -76,7 +76,7 @@ def test_save_draft_propagates_action_overrides(cli_project: Path, tmp_path: Pat
 
     assert _run(runner, "prd", "resolve-candidates", "--from-file", str(source)).exit_code == 0
     assert _run(runner, "prd", "save-draft", req_id, "--content", _prd_chunk("prd-new-foo")).exit_code == 0
-    assert _run(runner, "prd", "confirm", req_id, "--file", "prd/candidate-sync").exit_code == 0
+    assert _run(runner, "prd", "confirm", req_id, "--file", "candidate-sync").exit_code == 0
 
     index = yaml.safe_load((cli_project / ".meta" / "chunks-index-v1.0.yaml").read_text(encoding="utf-8"))
     entry = next(chunk for chunk in index["chunks"] if chunk["id"] == "prd-new-foo")

@@ -203,7 +203,7 @@ cat > /tmp/pet-prd.md <<'EOF'
 - 不做跨用户共享
 EOF
 ait prd save-draft req-001 --content-file /tmp/pet-prd.md
-ait prd confirm req-001 --file prd/pet
+ait prd confirm req-001 --file pet
 ait prd commit  prd/pet -m "宠物建档 PRD"      # ← locks the PRD
 
 # 2. impl — design implementation, mark extractable fragments, lock.
@@ -269,7 +269,7 @@ All commands must run from the parent directory that contains `project-docs/`. A
 |---------|--------|
 | `ait prd create <title>` | Create a requirement; auto-creates a version if none is active. |
 | `ait prd save-draft <req-id> --content-file <path\|->` | Save AI-discussed PRD markdown into `.meta/requirements/`. |
-| `ait prd confirm <req-id> --file prd/<slug>` | Materialize the draft into the version workspace (writes + refreshes `state.md`). |
+| `ait prd confirm <req-id> --file <slug>` | Materialize the draft into `versions/<v>/prd/<slug>.md` (writes + refreshes `state.md`). |
 | `ait prd show <prd-file> [chunk-id]` | View a PRD file outline or one chunk. |
 | `ait prd commit <prd-file> -m <msg>` | Stage + commit PRD chunks **and lock the PRD** for this version. |
 
