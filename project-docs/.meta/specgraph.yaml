@@ -1,6 +1,15 @@
 version: 1
-updated: '2026-06-20T12:51:15.870663+00:00'
+updated: '2026-06-20T15:43:32.516352+00:00'
 specs:
+- uri: spec:global:baseline:extract-block
+  title: extract-block
+  type: global
+  version: baseline
+  chunk_id: extract-block
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
 - uri: spec:global:baseline:global-index
   title: global-index
   type: global
@@ -15,6 +24,42 @@ specs:
   type: global
   version: baseline
   chunk_id: global-schema
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:schema-prd-sections
+  title: schema-prd-sections
+  type: global
+  version: baseline
+  chunk_id: schema-prd-sections
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:specgraph-store
+  title: specgraph-store
+  type: global
+  version: baseline
+  chunk_id: specgraph-store
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:task-yaml
+  title: task-yaml
+  type: global
+  version: baseline
+  chunk_id: task-yaml
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:version-state
+  title: version-state
+  type: global
+  version: baseline
+  chunk_id: version-state
   file: global/schema
   metadata:
     source: baseline
@@ -491,6 +536,72 @@ specs:
   file: impl/release
   metadata:
     source: baseline
+- uri: spec:impl:baseline:impl-v2-codegen-tdd-context-assembler
+  title: TDD codegen context assembler
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-codegen-tdd-context-assembler
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:impl:baseline:impl-v2-fsd-tdd-commands-cli-managers
+  title: FSD, TDD, and codegen command groups
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-fsd-tdd-commands-cli-managers
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:baseline:impl-v2-fsd-tdd-structure-rules-validator
+  title: PRD/FSD/TDD structure validator
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-fsd-tdd-structure-rules-validator
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:baseline:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  title: PRD/FSD/TDD compatibility layer
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:baseline:impl-v2-prd-fsd-tdd-template-contracts-files
+  title: PRD/FSD/TDD template contract files
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-prd-fsd-tdd-template-contracts-files
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:baseline:impl-v2-version-merge-compatibility-lifecycle
+  title: Version lifecycle and merge compatibility
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-version-merge-compatibility-lifecycle
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c7
 - uri: spec:impl:baseline:impl-version-manager-amends
   title: 修订已 committed 块
   type: impl
@@ -609,46 +720,6 @@ specs:
   version: baseline
   chunk_id: impl-workflow-state-skill
   file: impl/state
-  metadata:
-    source: baseline
-- uri: spec:other:baseline:extract-block
-  title: extract-block
-  type: other
-  version: baseline
-  chunk_id: extract-block
-  file: global/schema
-  metadata:
-    source: baseline
-- uri: spec:other:baseline:schema-prd-sections
-  title: schema-prd-sections
-  type: other
-  version: baseline
-  chunk_id: schema-prd-sections
-  file: global/schema
-  metadata:
-    source: baseline
-- uri: spec:other:baseline:specgraph-store
-  title: specgraph-store
-  type: other
-  version: baseline
-  chunk_id: specgraph-store
-  file: global/schema
-  metadata:
-    source: baseline
-- uri: spec:other:baseline:task-yaml
-  title: task-yaml
-  type: other
-  version: baseline
-  chunk_id: task-yaml
-  file: global/schema
-  metadata:
-    source: baseline
-- uri: spec:other:baseline:version-state
-  title: version-state
-  type: other
-  version: baseline
-  chunk_id: version-state
-  file: global/schema
   metadata:
     source: baseline
 - uri: spec:prd:baseline:prd-backlog-v12-legacy
@@ -1115,6 +1186,72 @@ specs:
   file: prd/global
   metadata:
     source: baseline
+- uri: spec:prd:baseline:prd-v2-codegen-tdd-context
+  title: TDD-based code generation context
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-codegen-tdd-context
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v2-fsd-tdd-commands
+  title: Parallel FSD, TDD, and codegen commands
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-fsd-tdd-commands
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v2-fsd-tdd-structure-rules
+  title: PRD/FSD/TDD structure and graph rules
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-fsd-tdd-structure-rules
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v2-prd-fsd-tdd-parallel-model
+  title: v2.0 introduces parallel PRD/FSD/TDD model
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-prd-fsd-tdd-parallel-model
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v2-prd-fsd-tdd-template-contracts
+  title: PRD/FSD/TDD template contracts
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-prd-fsd-tdd-template-contracts
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v2-version-merge-compatibility
+  title: Version and merge compatibility
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-version-merge-compatibility
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:prd:baseline:prd-version-merge
   title: 版本合并
   type: prd
@@ -1462,6 +1599,42 @@ edges:
     source: baseline-ref
 - src: spec:impl:baseline:impl-test-spec-alignment-failures
   dst: spec:prd:baseline:prd-test-spec-alignment
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  dst: spec:prd:baseline:prd-v2-prd-fsd-tdd-parallel-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-fsd-tdd-structure-rules-validator
+  dst: spec:prd:baseline:prd-v2-fsd-tdd-structure-rules
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-prd-fsd-tdd-template-contracts-files
+  dst: spec:prd:baseline:prd-v2-prd-fsd-tdd-template-contracts
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-fsd-tdd-commands-cli-managers
+  dst: spec:prd:baseline:prd-v2-fsd-tdd-commands
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-codegen-tdd-context-assembler
+  dst: spec:prd:baseline:prd-v2-codegen-tdd-context
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-version-merge-compatibility-lifecycle
+  dst: spec:prd:baseline:prd-v2-version-merge-compatibility
   rel: implements
   weight: 1.0
   metadata:

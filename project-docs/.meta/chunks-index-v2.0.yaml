@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.0
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-v2-prd-fsd-tdd-parallel-model
   file: prd/v2-prd-fsd-tdd
@@ -17,6 +17,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: v2.0 adds PRD/FSD/TDD as a parallel document model while keeping the old workflow available
+  metadata: {}
 - id: prd-v2-fsd-tdd-structure-rules
   file: prd/v2-prd-fsd-tdd
   heading: PRD/FSD/TDD structure and graph rules
@@ -30,6 +31,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: The new model must enforce chunk-level PRD/FSD/TDD hierarchy, naming, and dependency rules
+  metadata: {}
 - id: prd-v2-prd-fsd-tdd-template-contracts
   file: prd/v2-prd-fsd-tdd
   heading: PRD/FSD/TDD template contracts
@@ -43,6 +45,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: v2.0 must deliver explicit PRD, FSD, and TDD template files matching the new document model
+  metadata: {}
 - id: prd-v2-fsd-tdd-commands
   file: prd/v2-prd-fsd-tdd
   heading: Parallel FSD, TDD, and codegen commands
@@ -56,6 +59,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: v2.0 adds ait fsd, ait tdd, and ait codegen while preserving existing commands
+  metadata: {}
 - id: prd-v2-codegen-tdd-context
   file: prd/v2-prd-fsd-tdd
   heading: TDD-based code generation context
@@ -69,6 +73,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Code generation starts from a TDD root chunk and gathers upstream and dependency context through specgraph
+  metadata: {}
 - id: prd-v2-version-merge-compatibility
   file: prd/v2-prd-fsd-tdd
   heading: Version and merge compatibility
@@ -82,6 +87,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: v2.0 must merge new PRD/FSD/TDD documents at chunk level while preserving old baseline behavior
+  metadata: {}
 - id: impl-v2-prd-fsd-tdd-parallel-model-compat-layer
   file: impl/v2-prd-fsd-tdd
   heading: PRD/FSD/TDD compatibility layer
@@ -95,6 +101,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Add parser, index, and specgraph compatibility for parallel PRD/FSD/TDD documents
+  metadata: {}
 - id: impl-v2-fsd-tdd-structure-rules-validator
   file: impl/v2-prd-fsd-tdd
   heading: PRD/FSD/TDD structure validator
@@ -108,6 +115,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Validate PRD/FSD/TDD graph rules and same-parent dependency constraints
+  metadata: {}
 - id: impl-v2-prd-fsd-tdd-template-contracts-files
   file: impl/v2-prd-fsd-tdd
   heading: PRD/FSD/TDD template contract files
@@ -121,6 +129,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Implement and validate target PRD FSD TDD markdown templates as v2.0 deliverables
+  metadata: {}
 - id: impl-v2-fsd-tdd-commands-cli-managers
   file: impl/v2-prd-fsd-tdd
   heading: FSD, TDD, and codegen command groups
@@ -134,6 +143,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Add parallel ait fsd, ait tdd, and ait codegen command groups
+  metadata: {}
 - id: impl-v2-codegen-tdd-context-assembler
   file: impl/v2-prd-fsd-tdd
   heading: TDD codegen context assembler
@@ -147,6 +157,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Assemble code generation context from TDD root chunks and upstream specgraph relationships
+  metadata: {}
 - id: impl-v2-version-merge-compatibility-lifecycle
   file: impl/v2-prd-fsd-tdd
   heading: Version lifecycle and merge compatibility
@@ -160,6 +171,7 @@ chunks:
   base_hash: null
   source_req: req-023
   summary: Preserve legacy lifecycle while allowing FSD/TDD chunks to merge as normal baseline documents
+  metadata: {}
 commits:
 - id: c1
   timestamp: '2026-06-20T12:47:28.691318+00:00'
@@ -217,5 +229,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 6
     failed: 0

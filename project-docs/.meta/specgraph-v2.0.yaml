@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-20T12:51:16.074589+00:00'
+updated: '2026-06-20T15:43:32.317928+00:00'
 specs:
 - uri: spec:impl:v2.0:impl-v2-codegen-tdd-context-assembler
   title: TDD codegen context assembler
