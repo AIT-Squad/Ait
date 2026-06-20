@@ -1,0 +1,66 @@
+id: chg-118
+version: v2.0
+type: ADD
+target: prd/v2-prd-fsd-tdd#prd-v2-codegen-tdd-context
+author: system
+date: '2026-06-20T12:47:28.680520+00:00'
+message: Add complete v2.0 PRD FSD TDD contracts
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v2-codegen-tdd-context -->
+
+  ## TDD-based code generation context
+
+
+  ### 概述
+
+
+  The target model removes task as the new code generation unit. A TDD root chunk represents the implementation instruction
+  for one concrete target code file. The code generation context must be assembled by traversing chunk-level relationships
+  from that TDD root.
+
+
+  ### 业务规则
+
+
+  - Each TDD maps to exactly one target code file.
+
+  - TDD markdown must specify `target_file`; metadata may redundantly index it, but markdown is the source of truth.
+
+  - TDD must include unit test requirements with passing and failing conditions.
+
+  - TDD context assembly starts from the TDD root chunk.
+
+  - Context assembly includes the TDD file''s internal implementation chunks.
+
+  - Context assembly recursively collects upstream FSD and PRD chunks needed to understand requirements and functional contracts.
+
+  - Context assembly follows the parent internal split chunk to find sibling `depends_on` edges.
+
+  - Dependency context is collected through sibling split chunks and their downstream root chunks.
+
+  - TDD context assembly must not infer dependencies from names.
+
+
+  ### 验收标准
+
+
+  - Given a valid TDD root chunk, `ait codegen` returns the target file path.
+
+  - Given a valid TDD root chunk, `ait codegen` returns the TDD root and internal implementation chunks.
+
+  - Given a valid TDD root chunk, `ait codegen` returns relevant upstream FSD/PRD chunks.
+
+  - Given sibling `depends_on` relationships, `ait codegen` includes dependency contracts required by the target TDD.
+
+  - Unit tests cover at least one multi-level FSD to TDD context traversal.
+
+
+  ### 边界与非目标
+
+
+  - v2.0 does not require the CLI to edit source code directly.
+
+  - v2.0 does not make task YAML the source of truth for new-model code generation.
+
+  - v2.0 does not allow one TDD to target multiple code files.'

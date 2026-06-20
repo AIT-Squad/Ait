@@ -1,0 +1,75 @@
+id: chg-123
+version: v2.0
+type: ADD
+target: impl/v2-prd-fsd-tdd#impl-v2-fsd-tdd-commands-cli-managers
+author: system
+date: '2026-06-20T12:51:00.206160+00:00'
+message: Add v2.0 FSD TDD command impl
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-v2-fsd-tdd-commands-cli-managers -->
+
+  ## FSD, TDD, and codegen command groups
+
+
+  <!-- @ref:prd/v2-prd-fsd-tdd#prd-v2-fsd-tdd-commands rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. FSD manager and CLI group
+
+
+  Add an FSD management path parallel to the existing PRD and impl managers.
+
+
+  - Create or update version-side FSD markdown under `versions/<version>/fsd`.
+
+  - Register FSD chunks in the version chunks-index.
+
+  - Support root chunks and internal split chunks.
+
+  - Create specgraph edges explicitly when downstream FSD or TDD relationships are generated.
+
+
+  #### 2. TDD manager and CLI group
+
+
+  Add a TDD management path for file-level technical implementation documents.
+
+
+  - Create or update version-side TDD markdown under `versions/<version>/tdd`.
+
+  - Register TDD chunks in the version chunks-index.
+
+  - Require a TDD root chunk.
+
+  - Require `target_file` in TDD markdown.
+
+  - Keep each TDD mapped to one target code file.
+
+
+  #### 3. Codegen CLI group
+
+
+  Add `ait codegen` as the new-model code generation preparation entry point.
+
+
+  - Accept a TDD root chunk id.
+
+  - Resolve the target TDD document from version or baseline indexes.
+
+  - Return a focused context bundle for the AI coding layer.
+
+  - Do not remove or rename `ait task`.
+
+
+  ### Boundaries
+
+
+  - Do not remove current `ait prd`, `ait impl`, or `ait task` commands.
+
+  - Do not migrate legacy impl documents to TDD.
+
+  - Do not execute source-code edits directly from these command groups in v2.0.'

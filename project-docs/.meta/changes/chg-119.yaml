@@ -1,0 +1,61 @@
+id: chg-119
+version: v2.0
+type: ADD
+target: prd/v2-prd-fsd-tdd#prd-v2-version-merge-compatibility
+author: system
+date: '2026-06-20T12:47:28.686658+00:00'
+message: Add complete v2.0 PRD FSD TDD contracts
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v2-version-merge-compatibility -->
+
+  ## Version and merge compatibility
+
+
+  ### 概述
+
+
+  AIT must continue to provide versioned document development and baseline merge. The new PRD/FSD/TDD model should participate
+  in the same chunk-level add/modify/delete lifecycle without breaking existing historical data.
+
+
+  ### 业务规则
+
+
+  - New PRD/FSD/TDD files in a version are not one-off drafts.
+
+  - After confirm and merge, new-model documents must update the global baseline current state.
+
+  - Merge must remain chunk-based.
+
+  - chunks-index and specgraph must be rebuilt or updated after merge.
+
+  - v1.x PRD baseline single-file behavior must not accidentally swallow FSD/TDD files.
+
+  - New-model PRD/FSD/TDD baseline files should preserve their intended file containers.
+
+  - Backward compatibility must allow old baseline chunks and new-model chunks to coexist.
+
+
+  ### 验收标准
+
+
+  - Version merge can promote FSD and TDD chunks into baseline docs without forcing them into `docs/prd/global.md`.
+
+  - Version merge can preserve specgraph edges for `decomposes`, `details`, and `depends_on`.
+
+  - Legacy confirm behavior still passes existing tests.
+
+  - New tests cover merge of at least one FSD file and one TDD file.
+
+  - New tests cover mixed legacy baseline data and new-model version data.
+
+
+  ### 边界与非目标
+
+
+  - v2.0 does not rewrite historical `.meta` files except through normal version operations.
+
+  - v2.0 does not delete old task metadata.
+
+  - v2.0 does not require all projects to switch to new-model confirm rules immediately.'

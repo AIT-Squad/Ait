@@ -1,0 +1,18 @@
+id: T-v2-codegen-tdd-context-01
+title: 实现 impl-v2-codegen-tdd-context-assembler
+source_chunk: prd-v2-codegen-tdd-context
+impl_refs:
+- impl-v2-codegen-tdd-context-assembler
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v2-codegen-tdd-context-assembler 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/new_model_manager.py
+  - tests/test_new_model_commands.py
+  bound_at: '2026-06-20T13:28:33.474609Z'

@@ -65,4 +65,9 @@ project-demo/
 .codebuddy
 .workbuddy
 .tmp*
+tmp/
+TEMPLATE-FSD-AIT-DRAFT.md
+TEMPLATE-PRD-AIT-DRAFT.md
+TEMPLATE-TDD-AIT-DRAFT.md
+prd-fsd-tdd-discussion-notes.md
 CLAUDE.md

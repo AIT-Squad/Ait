@@ -59,6 +59,7 @@ class BaselineChunkEntry(StrictModel):
     heading: str
     level: int
     summary: str | None = None
+    metadata: dict = Field(default_factory=dict)
 
     @field_validator("summary")
     @classmethod
@@ -111,6 +112,7 @@ class VersionChunkEntry(StrictModel):
     base_hash: str | None = None
     source_req: str | None = None
     summary: str | None = None
+    metadata: dict = Field(default_factory=dict)
 
     @field_validator("summary")
     @classmethod

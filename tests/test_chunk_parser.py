@@ -125,3 +125,32 @@ Body.
     assert all(r.source_chunk_id == "impl-x" for r in pf.refs)
     rels = {r.rel for r in pf.refs}
     assert rels == {"implements", "see-also"}
+
+
+def test_new_model_chunk_ids_and_refs_parse():
+    text = """<!-- @id:[FSD]-book_management -->
+## Book Management
+
+<!-- @ref:fsd/[FSD]-book_management-book_catalog#[FSD]-book_management:book_catalog rel:depends_on -->
+
+<!-- @id:[FSD]-book_management:book_catalog -->
+## Book Catalog
+
+Catalog split.
+
+<!-- @id:[TDD]-loan_workflow-loan_service -->
+## Loan Service
+"""
+    pf = parse_text(text, "fsd/[FSD]-book_management")
+
+    assert [chunk.id for chunk in pf.chunks] == [
+        "[FSD]-book_management",
+        "[FSD]-book_management:book_catalog",
+        "[TDD]-loan_workflow-loan_service",
+    ]
+    assert len(pf.refs) == 1
+    ref = pf.refs[0]
+    assert ref.source_chunk_id == "[FSD]-book_management"
+    assert ref.target_file == "fsd/[FSD]-book_management-book_catalog"
+    assert ref.target_chunk_id == "[FSD]-book_management:book_catalog"
+    assert ref.rel == "depends_on"

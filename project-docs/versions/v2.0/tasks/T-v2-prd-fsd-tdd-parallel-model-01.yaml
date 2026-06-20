@@ -1,0 +1,21 @@
+id: T-v2-prd-fsd-tdd-parallel-model-01
+title: 实现 impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+source_chunk: prd-v2-prd-fsd-tdd-parallel-model
+impl_refs:
+- impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v2-prd-fsd-tdd-parallel-model-compat-layer 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/chunk_parser.py
+  - skill/ait/ait/schemas.py
+  - skill/ait/ait/specgraph.py
+  - tests/test_chunk_parser.py
+  - tests/test_reindex.py
+  bound_at: '2026-06-20T13:02:34.105691Z'

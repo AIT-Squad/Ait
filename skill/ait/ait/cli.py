@@ -33,6 +33,9 @@ from .impact import analyze_impact
 from .impl_manager import ImplManager
 from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
+from .new_model_validator import validate_prd_fsd_tdd_graph
+from .new_model_validator import violations_to_details as new_model_violations_to_details
+from .new_model_manager import NewModelManager
 from .prd_manager import PrdManager
 from .search import search_chunks
 from .root import RootResolutionError, resolve_project_root
@@ -77,6 +80,17 @@ def fail(message: str, code: str = "ERROR", exit_code: int = 1, details: dict | 
         payload["details"] = _json_safe(details)
     click.echo(json.dumps(payload, ensure_ascii=False))
     sys.exit(exit_code)
+
+
+def _read_content(content_file: Path | None, content: str | None) -> str:
+    if content is None and content_file is None:
+        fail("Provide --content or --content-file", code="ARG_MISSING")
+    if content is not None:
+        return content
+    assert content_file is not None
+    if str(content_file) == "-":
+        return sys.stdin.read()
+    return content_file.read_text(encoding="utf-8")
 
 
 def _scoped_filename(value: str | None, *, scope: str, option: str) -> str | None:
@@ -752,6 +766,127 @@ def task_fail(ctx, task_id: str, version_opt: str | None) -> None:
 # ═══════════════════════════════════════════════════════════
 
 
+@main.group("fsd")
+def fsd_group() -> None:
+    """Manage new-model FSD documents."""
+
+
+@fsd_group.command("create")
+@click.argument("root_chunk_id")
+@click.option("--version", "version_opt", default=None)
+@click.option("--file", "file_opt", default=None, help="FSD file under fsd/ or explicit index path, no .md.")
+@click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
+@click.option("--content", default=None)
+@click.option("--action", type=click.Choice(["add", "modify"]), default="add")
+@click.option("--overrides", default=None)
+@click.pass_context
+def fsd_create(
+    ctx,
+    root_chunk_id: str,
+    version_opt: str | None,
+    file_opt: str | None,
+    content_file: Path | None,
+    content: str | None,
+    action: str,
+    overrides: str | None,
+) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        result = mgr.create_fsd(
+            version,
+            root_chunk_id,
+            _read_content(content_file, content),
+            file=file_opt,
+            action=action,
+            overrides=overrides,
+        )
+        ok(_json_safe(result))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
+@fsd_group.command("link")
+@click.argument("src_chunk_id")
+@click.argument("dst_chunk_id")
+@click.option("--rel", type=click.Choice(["decomposes", "details", "depends_on"]), required=True)
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def fsd_link(ctx, src_chunk_id: str, dst_chunk_id: str, rel: str, version_opt: str | None) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(_json_safe(mgr.add_edge(version, src_chunk_id, dst_chunk_id, rel)))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
+@main.group("tdd")
+def tdd_group() -> None:
+    """Manage new-model TDD documents."""
+
+
+@tdd_group.command("create")
+@click.argument("root_chunk_id")
+@click.option("--version", "version_opt", default=None)
+@click.option("--file", "file_opt", default=None, help="TDD file under tdd/ or explicit index path, no .md.")
+@click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
+@click.option("--content", default=None)
+@click.option("--action", type=click.Choice(["add", "modify"]), default="add")
+@click.option("--overrides", default=None)
+@click.pass_context
+def tdd_create(
+    ctx,
+    root_chunk_id: str,
+    version_opt: str | None,
+    file_opt: str | None,
+    content_file: Path | None,
+    content: str | None,
+    action: str,
+    overrides: str | None,
+) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        result = mgr.create_tdd(
+            version,
+            root_chunk_id,
+            _read_content(content_file, content),
+            file=file_opt,
+            action=action,
+            overrides=overrides,
+        )
+        ok(_json_safe(result))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
+@main.group("codegen")
+def codegen_group() -> None:
+    """Prepare new-model TDD code generation context."""
+
+
+@codegen_group.command("prepare")
+@click.argument("tdd_root_chunk_id")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(_json_safe(mgr.prepare_codegen(version, tdd_root_chunk_id)))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
 @main.command("context")
 @click.argument("target_id")
 @click.option(
@@ -1053,6 +1188,29 @@ def specgraph_export(ctx, fmt: str) -> None:
     graph = combined_specgraph(root, VersionManager(root).current())
     if fmt == "dot":
         ok({"format": "dot", "content": graph.export_dot()})
+
+
+@specgraph_group.command("validate-new-model")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
+    """Validate PRD/FSD/TDD specgraph rules without applying rewrites."""
+    root = _root(ctx)
+    version = version_opt
+    if version is None:
+        try:
+            version = VersionManager(root).current()
+        except VersionManagerError:
+            version = None
+    graph = combined_specgraph(root, version) if version else load_specgraph(root, "baseline")
+    violations = validate_prd_fsd_tdd_graph(graph)
+    payload = {
+        "ok": not violations,
+        "version": version or "baseline",
+        "violations": new_model_violations_to_details(violations),
+    }
+    click.echo(json.dumps(_json_safe(payload), ensure_ascii=False))
+    sys.exit(0 if not violations else 1)
 
 # ═══════════════════════════════════════════════════════════
 # /ait:migrate-block-to-chunk — v1.1 → v1.2 one-shot data migration

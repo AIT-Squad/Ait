@@ -1,0 +1,19 @@
+id: T-v2-fsd-tdd-commands-01
+title: 实现 impl-v2-fsd-tdd-commands-cli-managers
+source_chunk: prd-v2-fsd-tdd-commands
+impl_refs:
+- impl-v2-fsd-tdd-commands-cli-managers
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v2-fsd-tdd-commands-cli-managers 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/new_model_manager.py
+  - skill/ait/ait/cli.py
+  - tests/test_new_model_commands.py
+  bound_at: '2026-06-20T13:21:07.656698Z'

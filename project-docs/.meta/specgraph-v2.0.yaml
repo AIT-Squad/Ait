@@ -1,0 +1,172 @@
+version: 1
+updated: '2026-06-20T12:51:16.074589+00:00'
+specs:
+- uri: spec:impl:v2.0:impl-v2-codegen-tdd-context-assembler
+  title: TDD codegen context assembler
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-codegen-tdd-context-assembler
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c6
+- uri: spec:impl:v2.0:impl-v2-fsd-tdd-commands-cli-managers
+  title: FSD, TDD, and codegen command groups
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-fsd-tdd-commands-cli-managers
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v2.0:impl-v2-fsd-tdd-structure-rules-validator
+  title: PRD/FSD/TDD structure validator
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-fsd-tdd-structure-rules-validator
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v2.0:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  title: PRD/FSD/TDD compatibility layer
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v2.0:impl-v2-prd-fsd-tdd-template-contracts-files
+  title: PRD/FSD/TDD template contract files
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-prd-fsd-tdd-template-contracts-files
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v2.0:impl-v2-version-merge-compatibility-lifecycle
+  title: Version lifecycle and merge compatibility
+  type: impl
+  version: v2.0
+  chunk_id: impl-v2-version-merge-compatibility-lifecycle
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c7
+- uri: spec:prd:v2.0:prd-v2-codegen-tdd-context
+  title: TDD-based code generation context
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-codegen-tdd-context
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.0:prd-v2-fsd-tdd-commands
+  title: Parallel FSD, TDD, and codegen commands
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-fsd-tdd-commands
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.0:prd-v2-fsd-tdd-structure-rules
+  title: PRD/FSD/TDD structure and graph rules
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-fsd-tdd-structure-rules
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.0:prd-v2-prd-fsd-tdd-parallel-model
+  title: v2.0 introduces parallel PRD/FSD/TDD model
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-prd-fsd-tdd-parallel-model
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.0:prd-v2-prd-fsd-tdd-template-contracts
+  title: PRD/FSD/TDD template contracts
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-prd-fsd-tdd-template-contracts
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.0:prd-v2-version-merge-compatibility
+  title: Version and merge compatibility
+  type: prd
+  version: v2.0
+  chunk_id: prd-v2-version-merge-compatibility
+  file: prd/v2-prd-fsd-tdd
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v2.0:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  dst: spec:prd:v2.0:prd-v2-prd-fsd-tdd-parallel-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.0:impl-v2-fsd-tdd-structure-rules-validator
+  dst: spec:prd:v2.0:prd-v2-fsd-tdd-structure-rules
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.0:impl-v2-prd-fsd-tdd-template-contracts-files
+  dst: spec:prd:v2.0:prd-v2-prd-fsd-tdd-template-contracts
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.0:impl-v2-fsd-tdd-commands-cli-managers
+  dst: spec:prd:v2.0:prd-v2-fsd-tdd-commands
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.0:impl-v2-codegen-tdd-context-assembler
+  dst: spec:prd:v2.0:prd-v2-codegen-tdd-context
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.0:impl-v2-version-merge-compatibility-lifecycle
+  dst: spec:prd:v2.0:prd-v2-version-merge-compatibility
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

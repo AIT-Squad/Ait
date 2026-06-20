@@ -1,0 +1,19 @@
+id: T-v2-prd-fsd-tdd-template-contracts-01
+title: 实现 impl-v2-prd-fsd-tdd-template-contracts-files
+source_chunk: prd-v2-prd-fsd-tdd-template-contracts
+impl_refs:
+- impl-v2-prd-fsd-tdd-template-contracts-files
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v2-prd-fsd-tdd-template-contracts-files 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - TEMPLATE-PRD-AIT-DRAFT.md
+  - TEMPLATE-FSD-AIT-DRAFT.md
+  - TEMPLATE-TDD-AIT-DRAFT.md
+  bound_at: '2026-06-20T13:10:15.903426Z'

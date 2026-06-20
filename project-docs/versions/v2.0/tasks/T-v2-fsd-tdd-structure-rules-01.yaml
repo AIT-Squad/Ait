@@ -1,0 +1,19 @@
+id: T-v2-fsd-tdd-structure-rules-01
+title: 实现 impl-v2-fsd-tdd-structure-rules-validator
+source_chunk: prd-v2-fsd-tdd-structure-rules
+impl_refs:
+- impl-v2-fsd-tdd-structure-rules-validator
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v2-fsd-tdd-structure-rules-validator 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/new_model_validator.py
+  - skill/ait/ait/cli.py
+  - tests/test_new_model_validator.py
+  bound_at: '2026-06-20T13:09:16.443681Z'

@@ -13,7 +13,7 @@ from .chunk_parser import parse_file
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
 
-SpecType = Literal["prd", "impl", "global", "other"]
+SpecType = Literal["prd", "impl", "fsd", "tdd", "global", "other"]
 
 
 @dataclass
@@ -270,18 +270,40 @@ class SpecGraph:
         return "\n".join(lines) + "\n"
 
 
-def spec_type(chunk_id: str) -> SpecType:
+def spec_type(
+    chunk_id: str,
+    file: str | None = None,
+    metadata: dict | None = None,
+) -> SpecType:
+    doc_type = (metadata or {}).get("doc_type") or (metadata or {}).get("type")
+    if isinstance(doc_type, str) and doc_type.lower() in {"prd", "impl", "fsd", "tdd", "global"}:
+        return doc_type.lower()  # type: ignore[return-value]
+    if file:
+        first_segment = file.split("/", 1)[0].lower()
+        if first_segment in {"prd", "impl", "fsd", "tdd", "global"}:
+            return first_segment  # type: ignore[return-value]
     if chunk_id.startswith("prd-"):
         return "prd"
     if chunk_id.startswith("impl-"):
         return "impl"
     if chunk_id.startswith("global-"):
         return "global"
+    if chunk_id.startswith("[PRD]-"):
+        return "prd"
+    if chunk_id.startswith("[FSD]-"):
+        return "fsd"
+    if chunk_id.startswith("[TDD]-"):
+        return "tdd"
     return "other"
 
 
-def make_uri(chunk_id: str, version: str = "baseline") -> str:
-    return f"spec:{spec_type(chunk_id)}:{version}:{chunk_id}"
+def make_uri(
+    chunk_id: str,
+    version: str = "baseline",
+    file: str | None = None,
+    metadata: dict | None = None,
+) -> str:
+    return f"spec:{spec_type(chunk_id, file, metadata)}:{version}:{chunk_id}"
 
 
 def parse_uri(uri: str) -> tuple[str, str, str]:
@@ -308,7 +330,7 @@ def load_specgraph(project_root: Path, version: str = "baseline") -> SpecGraph:
 
 def _global_category(chunk_id: str, file: str) -> str | None:
     """static vs dynamic for global-* chunks; None for non-global."""
-    if spec_type(chunk_id) != "global":
+    if spec_type(chunk_id, file) != "global":
         return None
     stem = (file or "").rsplit("/", 1)[-1]
     if stem in {"ddl", "schema", "api"} or any(
@@ -330,18 +352,19 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
     """
     root = project_root.resolve()
     indexes = IndexManager(root)
+    previous_base = load_specgraph(root, "baseline")
 
     # ── Baseline graph ──
     base = SpecGraph()
     base_known: dict[str, str] = {}  # chunk_id -> baseline uri
     for entry in indexes.load_baseline().chunks:
-        uri = make_uri(entry.id, "baseline")
-        meta: dict = {"source": "baseline"}
+        uri = make_uri(entry.id, "baseline", entry.file, entry.metadata)
+        meta: dict = {"source": "baseline", **entry.metadata}
         cat = _global_category(entry.id, entry.file)
         if cat:
             meta["category"] = cat
         base.add_spec(
-            Spec(uri=uri, title=entry.heading, type=spec_type(entry.id),
+            Spec(uri=uri, title=entry.heading, type=spec_type(entry.id, entry.file, entry.metadata),
                  version="baseline", chunk_id=entry.id, file=entry.file, metadata=meta)
         )
         base_known[entry.id] = uri
@@ -352,6 +375,7 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
             dst = base_known.get(ref.target_chunk_id)
             if src and dst:
                 base.add_edge(src, dst, ref.rel, metadata={"source": "baseline-ref"})
+    _preserve_explicit_edges(previous_base, base)
     base.save(specgraph_path(root, "baseline"))
 
     # ── Per-version graphs ──
@@ -359,17 +383,18 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
         vmeta = indexes.load_version_index(version)
         if vmeta.status == "merged":
             continue  # merged versions live in baseline now
+        previous_vg = load_specgraph(root, version)
         vg = SpecGraph()
         v_known: dict[str, str] = {}
         for entry in vmeta.chunks:
-            uri = make_uri(entry.id, version)
+            uri = make_uri(entry.id, version, entry.file or "", entry.metadata)
             meta = {"source": "version", "state": entry.state,
-                    "action": entry.action, "commit_id": entry.commit_id}
+                    "action": entry.action, "commit_id": entry.commit_id, **entry.metadata}
             cat = _global_category(entry.id, entry.file or "")
             if cat:
                 meta["category"] = cat
             vg.add_spec(
-                Spec(uri=uri, title=entry.heading or "", type=spec_type(entry.id),
+                Spec(uri=uri, title=entry.heading or "", type=spec_type(entry.id, entry.file or "", entry.metadata),
                      version=version, chunk_id=entry.id, file=entry.file or "", metadata=meta)
             )
             v_known[entry.id] = uri
@@ -383,9 +408,18 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
                     dst = v_known.get(ref.target_chunk_id) or base_known.get(ref.target_chunk_id)
                     if src and dst:
                         vg.add_edge(src, dst, ref.rel, metadata={"source": "version-ref"})
+        _preserve_explicit_edges(previous_vg, vg)
         vg.save(specgraph_path(root, version))
 
     return base
+
+
+def _preserve_explicit_edges(previous: SpecGraph, current: SpecGraph) -> None:
+    """Carry explicit graph edges across scan-based sync."""
+    for edge in previous.edges:
+        if edge.metadata.get("source") not in {"manual", "new-model-cli"}:
+            continue
+        current.add_edge(edge.src, edge.dst, edge.rel, weight=edge.weight, metadata=dict(edge.metadata))
 
 
 def combined_specgraph(project_root: Path, version: str | None = None) -> SpecGraph:

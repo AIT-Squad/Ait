@@ -1,0 +1,122 @@
+id: chg-122
+version: v2.0
+type: ADD
+target: impl/v2-prd-fsd-tdd#impl-v2-prd-fsd-tdd-template-contracts-files
+author: system
+date: '2026-06-20T12:50:52.288377+00:00'
+message: Add v2.0 template contract impl
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-v2-prd-fsd-tdd-template-contracts-files -->
+
+  ## PRD/FSD/TDD template contract files
+
+
+  <!-- @ref:prd/v2-prd-fsd-tdd#prd-v2-prd-fsd-tdd-template-contracts rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. Template files
+
+
+  Update or create the target template files used by the new PRD/FSD/TDD model.
+
+
+  - `TEMPLATE-PRD-AIT-DRAFT.md`
+
+  - `TEMPLATE-FSD-AIT-DRAFT.md`
+
+  - `TEMPLATE-TDD-AIT-DRAFT.md`
+
+
+  The templates are v2.0 deliverables and must reflect the current agreed document model.
+
+
+  #### 2. PRD template structure
+
+
+  The PRD template must describe requirements without implementation design.
+
+
+  - Root chunk id uses `[PRD]-{semantic_name}`.
+
+  - Internal requirement chunk id uses `[PRD]-{semantic_name}-{requirement_name}`.
+
+  - Root sections include background/problem, goals/measurement, scope, users/roles, assumptions/constraints, and overall
+  acceptance criteria.
+
+  - Requirement sections include user story, requirement description, business rules, user-visible flow, exception scenarios,
+  acceptance criteria, and open questions.
+
+
+  #### 3. FSD template structure
+
+
+  The FSD template must describe functional decomposition and interaction contracts.
+
+
+  - Root chunk id uses `[FSD]-{semantic_name}`.
+
+  - Internal split chunk id uses `[FSD]-{semantic_name}:{split_name}`.
+
+  - The template must not use literal `:split`.
+
+  - Root sections include functional scope, feature overview, common business rules, common definitions, interaction contract
+  overview, data model contract, and non-functional requirements.
+
+  - Split sections include functional description, boundary, business flow, business rules, provided interaction contracts,
+  input/output fields, failure codes or exceptions, call constraints, and data contracts.
+
+
+  #### 4. TDD template structure
+
+
+  The TDD template must describe one code file implementation.
+
+
+  - Root chunk id uses `[TDD]-{semantic_name}`.
+
+  - Root chunk includes `target_file: path/to/target_file.ext`.
+
+  - Optional implementation detail chunk id uses `[TDD]-{semantic_name}-{detail_name}`.
+
+  - Root sections include technology stack, implementation constraints, file responsibility, code structure, core logic, key
+  data structures, algorithms and flow, error handling, boundary conditions, and unit test requirements.
+
+  - Unit test requirements include test file path, framework, normal path, boundary conditions, error path, mocks/fixtures,
+  independent run command, passing standards, and failing conditions.
+
+
+  #### 5. Template exclusion checks
+
+
+  Templates must not include AIT-managed relationship or lifecycle fields.
+
+
+  - No document state fields.
+
+  - No change log fields.
+
+  - No version metadata fields.
+
+  - No hierarchy type fields.
+
+  - No manual downstream-link fields.
+
+  - No manual linked-FSD/TDD fields.
+
+  - No specgraph hint fields.
+
+  - No task layer.
+
+
+  ### Boundaries
+
+
+  - Do not make v2.0''s own PRD/impl use these new templates.
+
+  - Do not encode concrete downstream specgraph edges in the templates.
+
+  - Do not infer graph relationships from template file names or chunk ids.'

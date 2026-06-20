@@ -1,0 +1,63 @@
+id: chg-117
+version: v2.0
+type: ADD
+target: prd/v2-prd-fsd-tdd#prd-v2-fsd-tdd-commands
+author: system
+date: '2026-06-20T12:47:28.674794+00:00'
+message: Add complete v2.0 PRD FSD TDD contracts
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v2-fsd-tdd-commands -->
+
+  ## Parallel FSD, TDD, and codegen commands
+
+
+  ### 概述
+
+
+  Users need first-class commands to create and manage FSD and TDD documents without overloading the old impl/task concepts.
+  The new commands should coexist with the existing workflow so v1.x projects remain usable while v2.x projects can start
+  adopting the new model.
+
+
+  ### 业务规则
+
+
+  - `ait fsd` manages FSD documents and FSD decomposition.
+
+  - `ait tdd` manages TDD documents and target file implementation instructions.
+
+  - `ait codegen` prepares code generation context from a TDD root chunk.
+
+  - New commands must write version-side files under `versions/<version>/fsd` and `versions/<version>/tdd` for new-model work.
+
+  - New commands must create chunk records in version chunks-index.
+
+  - New commands must create or update specgraph edges explicitly as documents are generated.
+
+  - New commands must not remove or change the behavior of `ait prd`, `ait impl`, or `ait task`.
+
+
+  ### 验收标准
+
+
+  - CLI help exposes `fsd`, `tdd`, and `codegen` command groups.
+
+  - FSD command flow can create or update an FSD markdown file with a root chunk and internal split chunks.
+
+  - TDD command flow can create or update a TDD markdown file with a root chunk and target file declaration.
+
+  - Codegen command flow accepts a TDD root chunk id and returns a focused context bundle.
+
+  - Existing end-to-end PRD/impl/task tests continue to pass.
+
+
+  ### 边界与非目标
+
+
+  - v2.0 does not remove the existing task YAML implementation.
+
+  - v2.0 does not require old impl documents to be rewritten as TDD documents.
+
+  - v2.0 does not execute AI code generation directly inside the CLI unless an existing AIT pattern already supports that
+  safely.'

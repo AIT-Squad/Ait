@@ -1,0 +1,77 @@
+id: chg-120
+version: v2.0
+type: ADD
+target: impl/v2-prd-fsd-tdd#impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+author: system
+date: '2026-06-20T12:50:36.182938+00:00'
+message: Add v2.0 compatibility layer impl
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-v2-prd-fsd-tdd-parallel-model-compat-layer -->
+
+  ## PRD/FSD/TDD compatibility layer
+
+
+  <!-- @ref:prd/v2-prd-fsd-tdd#prd-v2-prd-fsd-tdd-parallel-model rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. Chunk parser id compatibility
+
+
+  Extend the markdown parser so it can parse both legacy ids and future PRD/FSD/TDD ids.
+
+
+  - Keep existing support for `prd-*`, `impl-*`, `task-*`, and `global-*`.
+
+  - Add support for bracketed document prefixes such as `[PRD]-...`, `[FSD]-...`, and `[TDD]-...`.
+
+  - Add support for underscores inside semantic names.
+
+  - Add support for internal chunk ids that use `:` between the parent root chunk id and the local split chunk name.
+
+  - Apply the same id pattern to `@ref` targets.
+
+  - Keep code-fence masking behavior unchanged.
+
+
+  #### 2. Index metadata compatibility
+
+
+  Allow chunks-index records to carry optional new-model metadata without breaking historical records.
+
+
+  - Add optional metadata fields only when needed.
+
+  - Preserve existing required fields and default behavior.
+
+  - Do not require old index files to be migrated.
+
+  - Allow TDD target file metadata to be indexed later while keeping markdown as source of truth.
+
+
+  #### 3. SpecGraph type compatibility
+
+
+  Update specgraph construction so document type is no longer limited to legacy `prd`, `impl`, and `global` assumptions.
+
+
+  - Preserve existing legacy URI behavior for existing chunks.
+
+  - Add type support for `fsd` and `tdd`.
+
+  - Prefer explicit file location or metadata when determining new-model type.
+
+  - Do not infer semantic relationships from file name hierarchy.
+
+
+  ### Boundaries
+
+
+  - Do not remove legacy PRD/impl/task parsing.
+
+  - Do not rewrite historical `.meta` files.
+
+  - Do not change merge behavior in this chunk beyond metadata compatibility needed by later chunks.'

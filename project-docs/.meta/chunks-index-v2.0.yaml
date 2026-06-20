@@ -1,0 +1,221 @@
+version: 1
+scope: version
+version_name: v2.0
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-v2-prd-fsd-tdd-parallel-model
+  file: prd/v2-prd-fsd-tdd
+  heading: v2.0 introduces parallel PRD/FSD/TDD model
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: v2.0 adds PRD/FSD/TDD as a parallel document model while keeping the old workflow available
+- id: prd-v2-fsd-tdd-structure-rules
+  file: prd/v2-prd-fsd-tdd
+  heading: PRD/FSD/TDD structure and graph rules
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: The new model must enforce chunk-level PRD/FSD/TDD hierarchy, naming, and dependency rules
+- id: prd-v2-prd-fsd-tdd-template-contracts
+  file: prd/v2-prd-fsd-tdd
+  heading: PRD/FSD/TDD template contracts
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: v2.0 must deliver explicit PRD, FSD, and TDD template files matching the new document model
+- id: prd-v2-fsd-tdd-commands
+  file: prd/v2-prd-fsd-tdd
+  heading: Parallel FSD, TDD, and codegen commands
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: v2.0 adds ait fsd, ait tdd, and ait codegen while preserving existing commands
+- id: prd-v2-codegen-tdd-context
+  file: prd/v2-prd-fsd-tdd
+  heading: TDD-based code generation context
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Code generation starts from a TDD root chunk and gathers upstream and dependency context through specgraph
+- id: prd-v2-version-merge-compatibility
+  file: prd/v2-prd-fsd-tdd
+  heading: Version and merge compatibility
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: v2.0 must merge new PRD/FSD/TDD documents at chunk level while preserving old baseline behavior
+- id: impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  file: impl/v2-prd-fsd-tdd
+  heading: PRD/FSD/TDD compatibility layer
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Add parser, index, and specgraph compatibility for parallel PRD/FSD/TDD documents
+- id: impl-v2-fsd-tdd-structure-rules-validator
+  file: impl/v2-prd-fsd-tdd
+  heading: PRD/FSD/TDD structure validator
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Validate PRD/FSD/TDD graph rules and same-parent dependency constraints
+- id: impl-v2-prd-fsd-tdd-template-contracts-files
+  file: impl/v2-prd-fsd-tdd
+  heading: PRD/FSD/TDD template contract files
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Implement and validate target PRD FSD TDD markdown templates as v2.0 deliverables
+- id: impl-v2-fsd-tdd-commands-cli-managers
+  file: impl/v2-prd-fsd-tdd
+  heading: FSD, TDD, and codegen command groups
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Add parallel ait fsd, ait tdd, and ait codegen command groups
+- id: impl-v2-codegen-tdd-context-assembler
+  file: impl/v2-prd-fsd-tdd
+  heading: TDD codegen context assembler
+  level: 2
+  action: add
+  state: committed
+  commit_id: c6
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Assemble code generation context from TDD root chunks and upstream specgraph relationships
+- id: impl-v2-version-merge-compatibility-lifecycle
+  file: impl/v2-prd-fsd-tdd
+  heading: Version lifecycle and merge compatibility
+  level: 2
+  action: add
+  state: committed
+  commit_id: c7
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-023
+  summary: Preserve legacy lifecycle while allowing FSD/TDD chunks to merge as normal baseline documents
+commits:
+- id: c1
+  timestamp: '2026-06-20T12:47:28.691318+00:00'
+  message: Add complete v2.0 PRD FSD TDD contracts
+  chunks:
+  - prd-v2-prd-fsd-tdd-parallel-model
+  - prd-v2-fsd-tdd-structure-rules
+  - prd-v2-prd-fsd-tdd-template-contracts
+  - prd-v2-fsd-tdd-commands
+  - prd-v2-codegen-tdd-context
+  - prd-v2-version-merge-compatibility
+  req_id: req-023
+- id: c2
+  timestamp: '2026-06-20T12:50:36.186687+00:00'
+  message: Add v2.0 compatibility layer impl
+  chunks:
+  - impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  req_id: req-023
+- id: c3
+  timestamp: '2026-06-20T12:50:44.513658+00:00'
+  message: Add v2.0 structure validator impl
+  chunks:
+  - impl-v2-fsd-tdd-structure-rules-validator
+  req_id: req-023
+- id: c4
+  timestamp: '2026-06-20T12:50:52.294588+00:00'
+  message: Add v2.0 template contract impl
+  chunks:
+  - impl-v2-prd-fsd-tdd-template-contracts-files
+  req_id: req-023
+- id: c5
+  timestamp: '2026-06-20T12:51:00.208850+00:00'
+  message: Add v2.0 FSD TDD command impl
+  chunks:
+  - impl-v2-fsd-tdd-commands-cli-managers
+  req_id: req-023
+- id: c6
+  timestamp: '2026-06-20T12:51:07.823365+00:00'
+  message: Add v2.0 TDD codegen context impl
+  chunks:
+  - impl-v2-codegen-tdd-context-assembler
+  req_id: req-023
+- id: c7
+  timestamp: '2026-06-20T12:51:15.774437+00:00'
+  message: Add v2.0 version merge compatibility impl
+  chunks:
+  - impl-v2-version-merge-compatibility-lifecycle
+  req_id: req-023
+stats:
+  total_chunks: 12
+  by_action:
+    add: 12
+  by_state:
+    committed: 12
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

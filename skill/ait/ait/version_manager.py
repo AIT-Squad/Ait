@@ -563,7 +563,7 @@ class VersionManager:
             # PRD baseline 单文件化：所有 prd/* 路由强制收敛到 prd/global，
             # 版本工作区允许多文件，但 confirm 阶段统一落到 docs/prd/global.md。
             # impl/* 类目不受影响。
-            if file_key.startswith("prd/") and file_key != "prd/global":
+            if self._should_route_legacy_prd_to_global(file_key, [r]):
                 file_key = "prd/global"
             by_file.setdefault(file_key, []).append(r)
 
@@ -854,6 +854,12 @@ class VersionManager:
             r.id for r in records
             if r.id.startswith("prd-") and r.action in ("add", "modify", "delete")
         }
+
+    @staticmethod
+    def _should_route_legacy_prd_to_global(file_key: str, records: list[VersionChunkEntry]) -> bool:
+        if not file_key.startswith("prd/") or file_key == "prd/global":
+            return False
+        return all(record.id.startswith("prd-") for record in records)
 
     @staticmethod
     def _implements_of_exact_version(graph, prd_chunk_id: str, version: str) -> set[str]:

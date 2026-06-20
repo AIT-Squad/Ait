@@ -1,0 +1,73 @@
+id: chg-121
+version: v2.0
+type: ADD
+target: impl/v2-prd-fsd-tdd#impl-v2-fsd-tdd-structure-rules-validator
+author: system
+date: '2026-06-20T12:50:44.507844+00:00'
+message: Add v2.0 structure validator impl
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-v2-fsd-tdd-structure-rules-validator -->
+
+  ## PRD/FSD/TDD structure validator
+
+
+  <!-- @ref:prd/v2-prd-fsd-tdd#prd-v2-fsd-tdd-structure-rules rel:implements -->
+
+
+  ### Change points
+
+
+  #### 1. New validation module
+
+
+  Add a validator focused on PRD/FSD/TDD structure and specgraph legality.
+
+
+  - Validate allowed relation types: `decomposes`, `details`, and `depends_on`.
+
+  - Validate PRD root to root FSD `decomposes`.
+
+  - Validate FSD to child FSD `decomposes`.
+
+  - Validate leaf FSD to TDD `details`.
+
+  - Validate that one FSD node does not mix child FSD and TDD children.
+
+
+  #### 2. Dependency legality
+
+
+  Implement dependency checks through explicit specgraph edges.
+
+
+  - `depends_on` must connect sibling internal split chunks in the same parent FSD file.
+
+  - `depends_on` must not point directly at downstream root chunks.
+
+  - Cross-level dependency must be reported as invalid.
+
+  - The validator should explain that dependency must be lifted to the parent split level.
+
+
+  #### 3. Command integration
+
+
+  Expose validation through a command path that can be used during v2.0 development and future dogfood.
+
+
+  - Return machine-readable JSON violations.
+
+  - Include chunk id, file, relation, and reason when possible.
+
+  - Keep this validation separate from legacy PRD/impl format validation.
+
+
+  ### Boundaries
+
+
+  - Do not auto-rewrite invalid graph relationships.
+
+  - Do not introduce additional relation types in v2.0.
+
+  - Do not decide FSD split depth automatically.'

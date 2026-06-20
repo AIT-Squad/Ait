@@ -1,0 +1,68 @@
+id: chg-114
+version: v2.0
+type: ADD
+target: prd/v2-prd-fsd-tdd#prd-v2-prd-fsd-tdd-parallel-model
+author: system
+date: '2026-06-20T12:47:28.641444+00:00'
+message: Add complete v2.0 PRD FSD TDD contracts
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v2-prd-fsd-tdd-parallel-model -->
+
+  ## v2.0 introduces parallel PRD/FSD/TDD model
+
+
+  ### 概述
+
+
+  AIT currently uses a PRD/impl/task workflow. v2.0 must keep that workflow available so v2.0 itself can be developed through
+  current AIT dogfood, while adding a new PRD/FSD/TDD model for later versions.
+
+
+  The target model separates intent, decomposition, and code generation instructions:
+
+
+  - PRD describes requirements: why and what.
+
+  - FSD describes functional decomposition and interaction contracts.
+
+  - TDD describes the concrete technical implementation of one target code file.
+
+
+  ### 业务规则
+
+
+  - v2.0 development itself must use the current AIT PRD/impl/task flow.
+
+  - v2.0 must introduce PRD/FSD/TDD as parallel capability, not replace the old workflow immediately.
+
+  - Existing `ait prd`, `ait impl`, and `ait task` commands remain available.
+
+  - New capability is exposed through `ait fsd`, `ait tdd`, and `ait codegen`.
+
+  - v2.0 must not migrate historical v1.x documents into the new PRD/FSD/TDD format.
+
+  - Versions after v2.0 can start using the new PRD/FSD/TDD document format and new AIT capability as the normal dogfood flow.
+
+
+  ### 验收标准
+
+
+  - Existing v1.x PRD/impl/task commands and tests continue to work.
+
+  - v2.0 documents explicitly describe the PRD/FSD/TDD model, template contracts, command surface, codegen context behavior,
+  and merge compatibility.
+
+  - AIT can parse and index PRD/FSD/TDD-style chunk ids while still accepting legacy chunk ids.
+
+  - AIT can represent PRD/FSD/TDD semantic relationships as specgraph edges.
+
+
+  ### 边界与非目标
+
+
+  - v2.0''s own PRD and impl do not need to use the new PRD/FSD/TDD format.
+
+  - v2.0 does not remove `ait impl` or `ait task`.
+
+  - v2.0 does not rewrite historical baseline or merged version documents.'

@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-14T06:04:36.685956+00:00'
+updated: '2026-06-20T12:51:15.870663+00:00'
 specs:
 - uri: spec:global:baseline:global-index
   title: global-index
@@ -67,9 +67,6 @@ specs:
   file: impl/cli-file-options
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-core-model-reset
   title: 核心模型：version reset 清空逻辑
   type: impl
@@ -715,12 +712,9 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-cli-file-option-names
-  file: prd/cli-file-options
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-core-model
   title: 核心模型与版本原子性
   type: prd

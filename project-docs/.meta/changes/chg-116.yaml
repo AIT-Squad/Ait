@@ -1,0 +1,120 @@
+id: chg-116
+version: v2.0
+type: ADD
+target: prd/v2-prd-fsd-tdd#prd-v2-prd-fsd-tdd-template-contracts
+author: system
+date: '2026-06-20T12:47:28.661624+00:00'
+message: Add complete v2.0 PRD FSD TDD contracts
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v2-prd-fsd-tdd-template-contracts -->
+
+  ## PRD/FSD/TDD template contracts
+
+
+  ### 概述
+
+
+  The new PRD/FSD/TDD model needs concrete markdown templates that humans can audit and AIT can later generate. These templates
+  are part of the v2.0 requirement, not optional supporting notes.
+
+
+  The target template files are:
+
+
+  - `TEMPLATE-PRD-AIT-DRAFT.md`
+
+  - `TEMPLATE-FSD-AIT-DRAFT.md`
+
+  - `TEMPLATE-TDD-AIT-DRAFT.md`
+
+
+  ### 业务规则
+
+
+  PRD template:
+
+
+  - Root chunk id uses `<!-- @id:[PRD]-{semantic_name} -->`.
+
+  - Internal requirement chunk id uses `<!-- @id:[PRD]-{semantic_name}-{requirement_name} -->`.
+
+  - Root chunk includes background and problem, goals and measurement, scope, users and roles, assumptions and constraints,
+  and overall acceptance criteria.
+
+  - Requirement chunks include user story, requirement description, business rules, user-visible flow, exception scenarios,
+  acceptance criteria, and open questions.
+
+  - PRD writes why and what, not module decomposition, technical design, or target code files.
+
+
+  FSD template:
+
+
+  - Root chunk id uses `<!-- @id:[FSD]-{semantic_name} -->`.
+
+  - Internal split chunk id uses `<!-- @id:[FSD]-{semantic_name}:{split_name} -->`.
+
+  - Root chunk includes functional scope, feature overview, common business rules, common definitions, interaction contract
+  overview, data model contract, and non-functional requirements.
+
+  - Split chunks include functional description, boundary, business flow, business rules, provided interaction contracts,
+  input/output fields, failure codes or exceptions, call constraints, and data contracts.
+
+  - FSD template content defines interaction fields and interaction methods, but dependencies are expressed through specgraph
+  instead of ordinary prose management fields.
+
+
+  TDD template:
+
+
+  - Root chunk id uses `<!-- @id:[TDD]-{semantic_name} -->`.
+
+  - TDD root chunk includes a YAML-style `target_file: path/to/target_file.ext` declaration.
+
+  - TDD root chunk includes technology stack, implementation constraints, file responsibility, code structure, core logic,
+  key data structures, algorithms and flow, error handling, boundary conditions, and unit test requirements.
+
+  - Optional internal implementation detail chunk id uses `<!-- @id:[TDD]-{semantic_name}-{detail_name} -->`.
+
+  - Unit test requirements must include test file path, framework, normal path, boundary conditions, error path, mocks/fixtures,
+  independent run command, passing standards, and failing conditions.
+
+  - Each TDD maps to exactly one target code file.
+
+
+  Template exclusion rules:
+
+
+  - Templates must not include AIT-managed fields such as document state, change log, version metadata, hierarchy type fields,
+  manual downstream-link fields, manual linked-FSD/TDD fields, or specgraph hint fields.
+
+  - Templates must not reintroduce task as a document layer.
+
+  - Relationship creation belongs to AIT-generated refs, metadata, and specgraph update actions.
+
+
+  ### 验收标准
+
+
+  - The three template files exist and use `[PRD]`, `[FSD]`, and `[TDD]` root chunk ids.
+
+  - The FSD template shows internal split chunk id format with `:<split_name>`.
+
+  - The FSD template does not use literal `:split`.
+
+  - The TDD template includes `target_file` as markdown source of truth.
+
+  - The TDD template includes passing standards and failing conditions for unit tests.
+
+  - The templates do not contain AIT-managed relationship or state fields.
+
+
+  ### 边界与非目标
+
+
+  - v2.0 templates are target-format templates for later versions, not the required format of v2.0''s own PRD/impl files.
+
+  - v2.0 does not require templates to contain concrete downstream specgraph edges.
+
+  - v2.0 does not require PRD internal requirement chunks to map one-to-one to implementation chunks.'
