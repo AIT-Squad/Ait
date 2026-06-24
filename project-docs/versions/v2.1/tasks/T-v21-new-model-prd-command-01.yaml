@@ -1,0 +1,18 @@
+id: T-v21-new-model-prd-command-01
+title: 实现 impl-v21-new-model-prd-create
+source_chunk: prd-v21-new-model-prd-command
+impl_refs:
+- impl-v21-new-model-prd-create
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v21-new-model-prd-create 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/new_model_manager.py
+  - skill/ait/ait/cli.py
+  bound_at: '2026-06-24T04:47:53.329970Z'

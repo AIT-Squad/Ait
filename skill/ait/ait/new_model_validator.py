@@ -88,6 +88,40 @@ def violations_to_details(violations: list[NewModelViolation]) -> list[dict]:
     ]
 
 
+def validate_target_file_uniqueness(
+    entries: list[tuple[str, str | None, str | None]]
+) -> list[NewModelViolation]:
+    """Reject the case where two distinct TDD root chunks declare the same target_file.
+
+    ``entries`` is a list of ``(chunk_id, file, target_file)`` tuples, one per TDD
+    root chunk. TDDs without a ``target_file`` are ignored here (that is the
+    separate ``TDD_TARGET_FILE_REQUIRED`` concern). This is the hard guarantee
+    behind "different people do not edit the same file".
+    """
+    by_target: dict[str, list[tuple[str, str | None]]] = {}
+    for chunk_id, file, target_file in entries:
+        if not target_file:
+            continue
+        by_target.setdefault(target_file, []).append((chunk_id, file))
+
+    violations: list[NewModelViolation] = []
+    for target_file, owners in sorted(by_target.items()):
+        if len(owners) > 1:
+            owner_ids = sorted(chunk_id for chunk_id, _ in owners)
+            violations.append(
+                NewModelViolation(
+                    code="DUPLICATE_TARGET_FILE",
+                    message=(
+                        f"target_file '{target_file}' is declared by multiple TDDs: "
+                        + ", ".join(owner_ids)
+                    ),
+                    chunk_id=owner_ids[0],
+                    file=sorted(owners)[0][1],
+                )
+            )
+    return violations
+
+
 def _validate_decomposes(edge: Edge, src: Spec, dst: Spec) -> list[NewModelViolation]:
     if src.type == "prd" and dst.type == "fsd":
         if _is_root_chunk(src) and _is_root_chunk(dst):

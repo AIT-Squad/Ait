@@ -139,6 +139,8 @@ class InitManager:
         *,
         check_only: bool = False,
         skip: Iterable[str] | None = None,
+        new_model: bool = False,
+        project_name: str = "project",
     ) -> InitResult:
         """Bootstrap or incrementally fill the global baseline.
 
@@ -147,7 +149,14 @@ class InitManager:
             skip:       names (without `.md`) the user explicitly declined to
                         fill. Each gets a `<!-- @id ... user-skipped -->`
                         placeholder so subsequent `init` runs don't re-prompt.
+            new_model:  bootstrap a PRD/FSD/TDD new-model baseline instead of the
+                        legacy global baseline. Idempotent: existing user files
+                        are never overwritten.
+            project_name: semantic name used for the `[PRD]`/`[FSD]` root chunks.
         """
+        if new_model and not check_only:
+            return self._run_new_model_bootstrap(project_name)
+
         skip_set = {s.strip() for s in (skip or []) if s and s.strip()}
         state = self._scan_global_state()
 
@@ -237,6 +246,79 @@ class InitManager:
             wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
             status="fresh",
             files={n: "present" for n in GLOBAL_FILES},
+        )
+
+    def _run_new_model_bootstrap(self, project_name: str) -> InitResult:
+        """Bootstrap a PRD/FSD/TDD new-model baseline under ``docs/``.
+
+        Creates ``docs/prd``, ``docs/fsd``, ``docs/tdd`` with one ``[PRD]`` root
+        document and one ``[FSD]`` root document, wired by a ``decomposes`` edge
+        (carried as an ``@ref`` in the PRD root so ``sync_specgraph`` materializes
+        it). Idempotent: existing files are left untouched.
+        """
+        created: list[str] = []
+        docs = self.root / "docs"
+        prd_id = f"[PRD]-{project_name}"
+        fsd_id = f"[FSD]-{project_name}"
+
+        # 1. PRD root — decomposes the root FSD (edge emitted from PRD root @ref).
+        prd_path = docs / "prd" / f"{prd_id}.md"
+        if not prd_path.exists():
+            prd_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_text(
+                prd_path,
+                f"<!-- @id:{prd_id} -->\n"
+                f"<!-- @ref:fsd/{fsd_id}#{fsd_id} rel:decomposes -->\n"
+                f"## {project_name} PRD\n\n"
+                f"<!-- @summary: {project_name} 根 PRD：描述需求意图（why/what），decomposes 根 FSD。 -->\n\n"
+                "### 概述\n\n<!-- 项目需求概述，init 后由 ait prdv2 增量补充。 -->\n",
+            )
+            created.append(self._rel(prd_path))
+
+        # 2. Root FSD.
+        fsd_path = docs / "fsd" / f"{fsd_id}.md"
+        if not fsd_path.exists():
+            fsd_path.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write_text(
+                fsd_path,
+                f"<!-- @id:{fsd_id} -->\n"
+                f"## {project_name} FSD\n\n"
+                f"<!-- @summary: {project_name} 根 FSD：功能分解与交互契约入口。 -->\n\n"
+                "### 功能范围\n\n<!-- 根 FSD 功能总览，init 后由 ait fsd 递归分解。 -->\n",
+            )
+            created.append(self._rel(fsd_path))
+
+        # 3. TDD placeholder dir (TDD docs are derived from leaf FSDs later).
+        tdd_dir = docs / "tdd"
+        tdd_dir.mkdir(parents=True, exist_ok=True)
+        tdd_readme = tdd_dir / "README.md"
+        if not tdd_readme.exists():
+            atomic_write_text(
+                tdd_readme,
+                "# TDD baseline\n\n"
+                "TDD 文档由叶子 FSD 派生，每个 TDD 唯一映射一个 target_file。\n",
+            )
+            created.append(self._rel(tdd_readme))
+
+        # 4. Rebuild baseline index + specgraph (decomposes edge from @ref).
+        baseline, _links = self.indexes.rebuild_baseline()
+        from .specgraph import sync_specgraph
+
+        graph = sync_specgraph(self.root)
+
+        skill_dir, cli_path = self._mark_initialized()
+        wrapper_path = self._write_project_wrapper(cli_path)
+        if wrapper_path and self._rel(wrapper_path) not in created:
+            created.append(self._rel(wrapper_path))
+
+        return InitResult(
+            created_files=created,
+            chunks=len(baseline.chunks),
+            specs=len(graph.specs),
+            skill_dir=skill_dir,
+            cli_path=cli_path,
+            wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
+            status="fresh",
         )
 
     def _run_incremental(

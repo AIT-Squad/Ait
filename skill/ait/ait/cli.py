@@ -34,6 +34,7 @@ from .impl_manager import ImplManager
 from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
 from .new_model_validator import validate_prd_fsd_tdd_graph
+from .new_model_validator import validate_target_file_uniqueness
 from .new_model_validator import violations_to_details as new_model_violations_to_details
 from .new_model_manager import NewModelManager
 from .prd_manager import PrdManager
@@ -202,8 +203,22 @@ def _emit_wrapper_hints(root: Path) -> None:
     default="",
     help="逗号分隔的 global 文件名列表（不含 .md），这些项写入 user-skipped 占位符。",
 )
+@click.option(
+    "--new-model",
+    "new_model",
+    is_flag=True,
+    default=False,
+    help="引导新模型 PRD/FSD/TDD 基线（docs/prd,fsd,tdd + 根 chunk + decomposes 边），不影响旧 init。",
+)
+@click.option(
+    "--name",
+    "project_name",
+    type=str,
+    default="project",
+    help="新模型基线的语义名（用于 [PRD]/[FSD] 根 chunk）。仅配合 --new-model。",
+)
 @click.pass_context
-def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str) -> None:
+def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str, new_model: bool, project_name: str) -> None:
     """Bootstrap the global baseline (global PRD/impl overview + global skeletons).
 
     v1.5: incremental-aware. ``init`` always inspects ``docs/global/*`` first:
@@ -246,7 +261,7 @@ def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str) -> Non
                 }
             )
             return
-        result = mgr.run(skip=skip_list)
+        result = mgr.run(skip=skip_list, new_model=new_model, project_name=project_name)
         ok(
             {
                 "created_files": result.created_files,
@@ -887,6 +902,65 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
         fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
 
 
+@main.group("prdv2")
+def prdv2_group() -> None:
+    """Manage new-model PRD documents (parallel to legacy `prd`)."""
+
+
+@prdv2_group.command("create")
+@click.argument("root_chunk_id")
+@click.option("--version", "version_opt", default=None)
+@click.option("--file", "file_opt", default=None, help="PRD file under prd/ or explicit index path, no .md.")
+@click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
+@click.option("--content", default=None)
+@click.option("--action", type=click.Choice(["add", "modify"]), default="add")
+@click.option("--overrides", default=None)
+@click.pass_context
+def prdv2_create(
+    ctx,
+    root_chunk_id: str,
+    version_opt: str | None,
+    file_opt: str | None,
+    content_file: Path | None,
+    content: str | None,
+    action: str,
+    overrides: str | None,
+) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        result = mgr.create_prd(
+            version,
+            root_chunk_id,
+            _read_content(content_file, content),
+            file=file_opt,
+            action=action,
+            overrides=overrides,
+        )
+        ok(_json_safe(result))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
+@prdv2_group.command("link")
+@click.argument("src_chunk_id")
+@click.argument("dst_chunk_id")
+@click.option("--rel", type=click.Choice(["decomposes", "details", "depends_on"]), required=True)
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def prdv2_link(ctx, src_chunk_id: str, dst_chunk_id: str, rel: str, version_opt: str | None) -> None:
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(_json_safe(mgr.add_edge(version, src_chunk_id, dst_chunk_id, rel)))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
 @main.command("context")
 @click.argument("target_id")
 @click.option(
@@ -1204,6 +1278,9 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             version = None
     graph = combined_specgraph(root, version) if version else load_specgraph(root, "baseline")
     violations = validate_prd_fsd_tdd_graph(graph)
+    violations += validate_target_file_uniqueness(
+        NewModelManager(root).collect_tdd_target_files(graph)
+    )
     payload = {
         "ok": not violations,
         "version": version or "baseline",

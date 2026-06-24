@@ -1,0 +1,55 @@
+id: chg-133
+version: v2.1
+type: ADD
+target: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-new-model-prd-command
+author: system
+date: '2026-06-24T03:09:04.564856+00:00'
+message: 'v2.1 PRD: 补全新模型工具链四缺口'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v21-new-model-prd-command -->
+
+  ## 新模型 PRD 命令入口
+
+
+  ### 概述
+
+
+  v2.0 引入了 PRD/FSD/TDD 并行模型，并提供了 `ait fsd`、`ait tdd`、`ait codegen` 命令，但**新模型 PRD 没有创建入口**：`new_model_manager` 只有 `create_fsd`/`create_tdd`，没有
+  `create_prd`。现状下要产出一个 `[PRD]-` 前缀的新模型 PRD 根文档，只能裸写文件，无法走 CLI。这是后续用新模型重建 project-docs baseline 的第一个阻塞点。
+
+
+  ### 业务规则
+
+
+  - 提供创建新模型 PRD 文档的 CLI 能力，产出带 `[PRD]-` 前缀根 chunk 的 PRD markdown。
+
+  - 新模型 PRD 文件写入版本工作区 `versions/<version>/prd/`，与现有版本侧写入方式一致。
+
+  - 新模型 PRD chunk 注册进版本 chunks-index。
+
+  - 创建命令必须与现有旧模型 `ait prd` 行为兼容，不破坏 `prd-` 前缀的旧流程。
+
+  - 关系边（如 PRD 根 `decomposes` 根 FSD）按新模型规则显式建立，不从命名推断。
+
+
+  ### 验收标准
+
+
+  - 能通过 CLI 创建一个 `[PRD]-{name}` 根 chunk 的新模型 PRD 文件。
+
+  - 创建后该 chunk 出现在版本 chunks-index 中。
+
+  - 旧模型 `prd-` 前缀的创建/确认/提交流程与现有测试继续通过。
+
+  - 新增测试覆盖新模型 PRD 创建路径。
+
+
+  ### 边界与非目标
+
+
+  - v2.1 不要求迁移历史 v1.x PRD 文档到新格式。
+
+  - v2.1 不移除旧模型 `ait prd` 命令。
+
+  - v2.1 不在本需求内完成 project-docs 重建本身。'

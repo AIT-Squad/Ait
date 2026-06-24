@@ -1,0 +1,123 @@
+<!-- @id:prd-v21-new-model-prd-command -->
+## 新模型 PRD 命令入口
+
+<!-- @summary: 提供创建 [PRD]- 前缀新模型 PRD 文档的 CLI 入口，与旧模型 ait prd 兼容 -->
+
+### 概述
+
+v2.0 引入了 PRD/FSD/TDD 并行模型，并提供了 `ait fsd`、`ait tdd`、`ait codegen` 命令，但**新模型 PRD 没有创建入口**：`new_model_manager` 只有 `create_fsd`/`create_tdd`，没有 `create_prd`。现状下要产出一个 `[PRD]-` 前缀的新模型 PRD 根文档，只能裸写文件，无法走 CLI。这是后续用新模型重建 project-docs baseline 的第一个阻塞点。
+
+### 业务规则
+
+- 提供创建新模型 PRD 文档的 CLI 能力，产出带 `[PRD]-` 前缀根 chunk 的 PRD markdown。
+- 新模型 PRD 文件写入版本工作区 `versions/<version>/prd/`，与现有版本侧写入方式一致。
+- 新模型 PRD chunk 注册进版本 chunks-index。
+- 创建命令必须与现有旧模型 `ait prd` 行为兼容，不破坏 `prd-` 前缀的旧流程。
+- 关系边（如 PRD 根 `decomposes` 根 FSD）按新模型规则显式建立，不从命名推断。
+
+### 验收标准
+
+- 能通过 CLI 创建一个 `[PRD]-{name}` 根 chunk 的新模型 PRD 文件。
+- 创建后该 chunk 出现在版本 chunks-index 中。
+- 旧模型 `prd-` 前缀的创建/确认/提交流程与现有测试继续通过。
+- 新增测试覆盖新模型 PRD 创建路径。
+
+### 边界与非目标
+
+- v2.1 不要求迁移历史 v1.x PRD 文档到新格式。
+- v2.1 不移除旧模型 `ait prd` 命令。
+- v2.1 不在本需求内完成 project-docs 重建本身。
+
+<!-- @id:prd-v21-new-model-init-scaffold -->
+## init 搭建新模型骨架
+
+<!-- @summary: ait init 增加显式新模型初始化路径，生成 prd/fsd/tdd 目录、根 chunk 与 decomposes 边 -->
+
+### 概述
+
+`ait init` 当前只 bootstrap 旧模型基线（`docs/global/*` + 旧 `docs/prd`/`docs/impl`），不产出 PRD/FSD/TDD 的目录与根文档。要让未来的项目（包括 AIT 自身重建后的 project-docs）从新模型起步，init 需要一条显式的新模型初始化路径。
+
+### 业务规则
+
+- `ait init` 提供一条显式的新模型初始化方式，不静默改变旧项目的现有行为。
+- 新模型初始化创建 `docs/prd`、`docs/fsd`、`docs/tdd` 三个基线目录。
+- 新模型初始化至少产出一个 `[PRD]-` 根 PRD 文档和一个 `[FSD]-` 根 FSD 文档。
+- PRD 根 chunk 通过 specgraph 的 `decomposes` 关系指向根 FSD 根 chunk。
+- 初始化产物可被现有 chunks-index 与 specgraph 流程重建索引。
+- 初始化产物能通过新模型图校验（`specgraph validate-new-model`）。
+- 旧模型 init 行为保留为兼容路径，供既有旧项目使用。
+- 命令输出报告所采用的 init 模式、创建的文件清单与校验状态。
+
+### 验收标准
+
+- 新项目能显式运行新模型 init，得到 `docs/prd`、`docs/fsd`、`docs/tdd` 目录。
+- 生成的 PRD/FSD 文件使用 `[PRD]`/`[FSD]` 根 chunk id。
+- 生成的 baseline specgraph 含一条 PRD 根 → 根 FSD 的 `decomposes` 边。
+- init 后运行 `ait reindex` 保留生成的 chunk 与图信息。
+- `ait specgraph validate-new-model` 在初始化产物上通过。
+- 旧模型 init 的现有测试继续通过；新增测试覆盖新模型 init 全新与增量补全两种情形。
+
+### 边界与非目标
+
+- v2.1 不要求把旧模型基线自动转换为新模型基线。
+- v2.1 不在 init 内决定具体项目的最终模块分解。
+- v2.1 不执行 project-docs 目录切换。
+
+<!-- @id:prd-v21-taskless-confirm -->
+## 无 task 的版本合并
+
+<!-- @summary: 验证并保证零 task 的新模型版本能正确走完 version confirm 合并与 git commit -->
+
+### 概述
+
+新模型用 TDD 作为代码生成单元，取代了旧模型的 task YAML。但 `version confirm` 的前置守卫历史上围绕"所有 task 必须 done"设计。新模型版本（只有 PRD/FSD/TDD、零 task）能否正确走完 confirm → merge → git commit，目前没有端到端验证，是新模型生命周期闭环的关键未知。
+
+### 业务规则
+
+- 新模型版本（无 task）能正常通过 `version confirm` 前置守卫。
+- confirm 把新模型 PRD/FSD/TDD chunk 按 chunk 维度合并进 baseline。
+- 合并保留 `decomposes`/`details`/`depends_on` 三种关系到 baseline specgraph。
+- 合并后 chunks-index 与 specgraph 被重建或更新。
+- 旧模型「task 必须 done」的守卫对旧模型版本保持不变。
+
+### 验收标准
+
+- 一个只含 PRD/FSD/TDD、无 task 的版本能成功 `version confirm`。
+- confirm 后 FSD/TDD chunk 进入 baseline，且未被塞进 `docs/prd/global.md`。
+- confirm 后 baseline specgraph 保留三种新模型关系边。
+- 新增测试覆盖 taskless confirm 路径。
+- 旧模型 confirm 的现有测试继续通过。
+
+### 边界与非目标
+
+- v2.1 不删除 task 元数据，不改写历史已合并版本。
+- v2.1 不强制所有项目立即切换到新模型 confirm 规则。
+
+<!-- @id:prd-v21-target-file-uniqueness -->
+## target_file 唯一性校验
+
+<!-- @summary: 校验同范围内不同 TDD 不得声明同一 target_file，重复报 DUPLICATE_TARGET_FILE -->
+
+### 概述
+
+新模型要求每个 TDD 唯一映射一个 `target_file`（代码文件）。这正是"多人协作不撞同一文件"（目标 2）的硬保证基础。但当前 validator 只校验图结构，不校验是否有两个 TDD 声明了同一个 `target_file`，导致该保证仅靠拆分自觉，未被工具强制。
+
+### 业务规则
+
+- 校验同一范围内（版本内 / baseline 内）不同 TDD 不得声明同一 `target_file`。
+- 发现重复时报错，错误码为 `DUPLICATE_TARGET_FILE`，并列出冲突的 TDD chunk id 与 target_file。
+- 校验以 TDD markdown 中的 `target_file` 为准（markdown 是 source of truth）。
+- 该校验集成进新模型校验路径（`specgraph validate-new-model`），与旧模型格式校验分离。
+
+### 验收标准
+
+- 两个 TDD 指向同一 `target_file` 时，校验报错 `DUPLICATE_TARGET_FILE` 并列出冲突项。
+- 每个 TDD 指向不同文件时，校验通过。
+- 校验返回机器可读 JSON，含冲突 chunk id、target_file。
+- 新增测试覆盖重复与不重复两种情形。
+
+### 边界与非目标
+
+- v2.1 不引入文件级 specgraph 图边（仍以 TDD→target_file 字段为准）。
+- v2.1 不自动重写或修复冲突的 target_file。
+- v2.1 不校验 target_file 指向的物理文件是否真实存在。

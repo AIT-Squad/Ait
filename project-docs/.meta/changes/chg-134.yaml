@@ -1,0 +1,65 @@
+id: chg-134
+version: v2.1
+type: ADD
+target: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-new-model-init-scaffold
+author: system
+date: '2026-06-24T03:09:04.576517+00:00'
+message: 'v2.1 PRD: 补全新模型工具链四缺口'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v21-new-model-init-scaffold -->
+
+  ## init 搭建新模型骨架
+
+
+  ### 概述
+
+
+  `ait init` 当前只 bootstrap 旧模型基线（`docs/global/*` + 旧 `docs/prd`/`docs/impl`），不产出 PRD/FSD/TDD 的目录与根文档。要让未来的项目（包括 AIT 自身重建后的
+  project-docs）从新模型起步，init 需要一条显式的新模型初始化路径。
+
+
+  ### 业务规则
+
+
+  - `ait init` 提供一条显式的新模型初始化方式，不静默改变旧项目的现有行为。
+
+  - 新模型初始化创建 `docs/prd`、`docs/fsd`、`docs/tdd` 三个基线目录。
+
+  - 新模型初始化至少产出一个 `[PRD]-` 根 PRD 文档和一个 `[FSD]-` 根 FSD 文档。
+
+  - PRD 根 chunk 通过 specgraph 的 `decomposes` 关系指向根 FSD 根 chunk。
+
+  - 初始化产物可被现有 chunks-index 与 specgraph 流程重建索引。
+
+  - 初始化产物能通过新模型图校验（`specgraph validate-new-model`）。
+
+  - 旧模型 init 行为保留为兼容路径，供既有旧项目使用。
+
+  - 命令输出报告所采用的 init 模式、创建的文件清单与校验状态。
+
+
+  ### 验收标准
+
+
+  - 新项目能显式运行新模型 init，得到 `docs/prd`、`docs/fsd`、`docs/tdd` 目录。
+
+  - 生成的 PRD/FSD 文件使用 `[PRD]`/`[FSD]` 根 chunk id。
+
+  - 生成的 baseline specgraph 含一条 PRD 根 → 根 FSD 的 `decomposes` 边。
+
+  - init 后运行 `ait reindex` 保留生成的 chunk 与图信息。
+
+  - `ait specgraph validate-new-model` 在初始化产物上通过。
+
+  - 旧模型 init 的现有测试继续通过；新增测试覆盖新模型 init 全新与增量补全两种情形。
+
+
+  ### 边界与非目标
+
+
+  - v2.1 不要求把旧模型基线自动转换为新模型基线。
+
+  - v2.1 不在 init 内决定具体项目的最终模块分解。
+
+  - v2.1 不执行 project-docs 目录切换。'

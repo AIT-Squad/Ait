@@ -1,0 +1,116 @@
+version: 1
+updated: '2026-06-24T03:10:59.325132+00:00'
+specs:
+- uri: spec:impl:v2.1:impl-v21-new-model-init-scaffold-mode
+  title: init 新模型初始化模式
+  type: impl
+  version: v2.1
+  chunk_id: impl-v21-new-model-init-scaffold-mode
+  file: impl/v21-new-model-init-scaffold-mode
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:v2.1:impl-v21-new-model-prd-create
+  title: 新模型 PRD 创建命令
+  type: impl
+  version: v2.1
+  chunk_id: impl-v21-new-model-prd-create
+  file: impl/v21-new-model-prd-create
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v2.1:impl-v21-target-file-uniqueness-check
+  title: target_file 唯一性校验
+  type: impl
+  version: v2.1
+  chunk_id: impl-v21-target-file-uniqueness-check
+  file: impl/v21-target-file-uniqueness-check
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c5
+- uri: spec:impl:v2.1:impl-v21-taskless-confirm-test
+  title: 无 task confirm 端到端验证
+  type: impl
+  version: v2.1
+  chunk_id: impl-v21-taskless-confirm-test
+  file: impl/v21-taskless-confirm-test
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:prd:v2.1:prd-v21-new-model-init-scaffold
+  title: init 搭建新模型骨架
+  type: prd
+  version: v2.1
+  chunk_id: prd-v21-new-model-init-scaffold
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.1:prd-v21-new-model-prd-command
+  title: 新模型 PRD 命令入口
+  type: prd
+  version: v2.1
+  chunk_id: prd-v21-new-model-prd-command
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.1:prd-v21-target-file-uniqueness
+  title: target_file 唯一性校验
+  type: prd
+  version: v2.1
+  chunk_id: prd-v21-target-file-uniqueness
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.1:prd-v21-taskless-confirm
+  title: 无 task 的版本合并
+  type: prd
+  version: v2.1
+  chunk_id: prd-v21-taskless-confirm
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v2.1:impl-v21-new-model-init-scaffold-mode
+  dst: spec:prd:v2.1:prd-v21-new-model-init-scaffold
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.1:impl-v21-new-model-prd-create
+  dst: spec:prd:v2.1:prd-v21-new-model-prd-command
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.1:impl-v21-target-file-uniqueness-check
+  dst: spec:prd:v2.1:prd-v21-target-file-uniqueness
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.1:impl-v21-taskless-confirm-test
+  dst: spec:prd:v2.1:prd-v21-taskless-confirm
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

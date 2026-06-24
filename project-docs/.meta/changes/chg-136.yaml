@@ -1,0 +1,52 @@
+id: chg-136
+version: v2.1
+type: ADD
+target: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-target-file-uniqueness
+author: system
+date: '2026-06-24T03:09:04.588916+00:00'
+message: 'v2.1 PRD: 补全新模型工具链四缺口'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v21-target-file-uniqueness -->
+
+  ## target_file 唯一性校验
+
+
+  ### 概述
+
+
+  新模型要求每个 TDD 唯一映射一个 `target_file`（代码文件）。这正是"多人协作不撞同一文件"（目标 2）的硬保证基础。但当前 validator 只校验图结构，不校验是否有两个 TDD 声明了同一个 `target_file`，导致该保证仅靠拆分自觉，未被工具强制。
+
+
+  ### 业务规则
+
+
+  - 校验同一范围内（版本内 / baseline 内）不同 TDD 不得声明同一 `target_file`。
+
+  - 发现重复时报错，错误码为 `DUPLICATE_TARGET_FILE`，并列出冲突的 TDD chunk id 与 target_file。
+
+  - 校验以 TDD markdown 中的 `target_file` 为准（markdown 是 source of truth）。
+
+  - 该校验集成进新模型校验路径（`specgraph validate-new-model`），与旧模型格式校验分离。
+
+
+  ### 验收标准
+
+
+  - 两个 TDD 指向同一 `target_file` 时，校验报错 `DUPLICATE_TARGET_FILE` 并列出冲突项。
+
+  - 每个 TDD 指向不同文件时，校验通过。
+
+  - 校验返回机器可读 JSON，含冲突 chunk id、target_file。
+
+  - 新增测试覆盖重复与不重复两种情形。
+
+
+  ### 边界与非目标
+
+
+  - v2.1 不引入文件级 specgraph 图边（仍以 TDD→target_file 字段为准）。
+
+  - v2.1 不自动重写或修复冲突的 target_file。
+
+  - v2.1 不校验 target_file 指向的物理文件是否真实存在。'

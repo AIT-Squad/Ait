@@ -1,0 +1,16 @@
+id: chg-139
+version: v2.1
+type: ADD
+target: impl/v21-taskless-confirm-test#impl-v21-taskless-confirm-test
+author: system
+date: '2026-06-24T03:10:57.962510+00:00'
+message: 'v2.1 impl: taskless-confirm测试'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-v21-taskless-confirm-test -->\n## 无 task confirm 端到端验证\n\n<!-- @ref:prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-taskless-confirm\
+  \ rel:implements -->\n\n### Change points\n\n#### 1. 现状确认（不改生产代码）\n\n- `version_manager.confirm` 守卫为 `not_done = [t for\
+  \ t in tasks if t.status != \"done\"]`；**零 task 时 `not_done` 为空 → 守卫通过**。\n- `merge` 已支持 FSD/TDD chunk 路由（v2.0 `test_new_model_merge`\
+  \ 已覆盖）。\n- 故本需求**不改** confirm/merge 任何生产逻辑。\n\n#### 2. 端到端测试\n\n- 新增 `tests/test_version_confirm_taskless.py`：构造一个只含 `[PRD]`/`[FSD]`/`[TDD]`、**零\
+  \ task** 的版本。\n- 走 `version confirm`，断言：\n  - confirm 成功返回；\n  - FSD chunk 合入 `docs/fsd/`、TDD chunk 合入 `docs/tdd/`，**未被塞进\
+  \ `docs/prd/global.md`**；\n  - baseline specgraph 保留 `decomposes`/`details`/`depends_on` 三种边；\n  - git commit 成功（必要时 `allow_dirty_git=True`）。\n\
+  \n### Boundaries\n\n- 不改 confirm 守卫与 merge 逻辑。\n- 不删除 task 元数据。\n- 不强制项目切换新模型 confirm 规则。"

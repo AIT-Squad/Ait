@@ -1,0 +1,17 @@
+id: T-v21-taskless-confirm-01
+title: 实现 impl-v21-taskless-confirm-test
+source_chunk: prd-v21-taskless-confirm
+impl_refs:
+- impl-v21-taskless-confirm-test
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v21-taskless-confirm-test 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - tests/test_v21_toolchain.py
+  bound_at: '2026-06-24T04:47:54.412728Z'

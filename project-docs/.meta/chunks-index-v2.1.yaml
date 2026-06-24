@@ -1,0 +1,163 @@
+version: 1
+scope: version
+version_name: v2.1
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-v21-new-model-prd-command
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  heading: 新模型 PRD 命令入口
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: 提供创建 [PRD]- 前缀新模型 PRD 文档的 CLI 入口，与旧模型 ait prd 兼容
+  metadata: {}
+- id: prd-v21-new-model-init-scaffold
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  heading: init 搭建新模型骨架
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: ait init 增加显式新模型初始化路径，生成 prd/fsd/tdd 目录、根 chunk 与 decomposes 边
+  metadata: {}
+- id: prd-v21-taskless-confirm
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  heading: 无 task 的版本合并
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: 验证并保证零 task 的新模型版本能正确走完 version confirm 合并与 git commit
+  metadata: {}
+- id: prd-v21-target-file-uniqueness
+  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  heading: target_file 唯一性校验
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: 校验同范围内不同 TDD 不得声明同一 target_file，重复报 DUPLICATE_TARGET_FILE
+  metadata: {}
+- id: impl-v21-new-model-prd-create
+  file: impl/v21-new-model-prd-create
+  heading: 新模型 PRD 创建命令
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: NewModelManager 增加 create_prd；CLI 新增 ait prdv2 命令组；旧 ait prd 原样保留
+  metadata: {}
+- id: impl-v21-new-model-init-scaffold-mode
+  file: impl/v21-new-model-init-scaffold-mode
+  heading: init 新模型初始化模式
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: init_manager 增加 --new-model 路径，生成 prd/fsd/tdd 目录、根 chunk 与 decomposes 边
+  metadata: {}
+- id: impl-v21-taskless-confirm-test
+  file: impl/v21-taskless-confirm-test
+  heading: 无 task confirm 端到端验证
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: confirm 守卫零 task 时已自然通过；本 impl 只补端到端测试，不改生产逻辑
+  metadata: {}
+- id: impl-v21-target-file-uniqueness-check
+  file: impl/v21-target-file-uniqueness-check
+  heading: target_file 唯一性校验
+  level: 2
+  action: add
+  state: committed
+  commit_id: c5
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-026
+  summary: new_model_validator 增加 target_file 唯一性检查，集成进 specgraph validate-new-model
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-24T03:09:04.593410+00:00'
+  message: 'v2.1 PRD: 补全新模型工具链四缺口'
+  chunks:
+  - prd-v21-new-model-prd-command
+  - prd-v21-new-model-init-scaffold
+  - prd-v21-taskless-confirm
+  - prd-v21-target-file-uniqueness
+  req_id: req-026
+- id: c2
+  timestamp: '2026-06-24T03:10:55.850403+00:00'
+  message: 'v2.1 impl: prdv2命令组'
+  chunks:
+  - impl-v21-new-model-prd-create
+  req_id: req-026
+- id: c3
+  timestamp: '2026-06-24T03:10:56.905483+00:00'
+  message: 'v2.1 impl: init新模型骨架'
+  chunks:
+  - impl-v21-new-model-init-scaffold-mode
+  req_id: req-026
+- id: c4
+  timestamp: '2026-06-24T03:10:57.967746+00:00'
+  message: 'v2.1 impl: taskless-confirm测试'
+  chunks:
+  - impl-v21-taskless-confirm-test
+  req_id: req-026
+- id: c5
+  timestamp: '2026-06-24T03:10:59.028489+00:00'
+  message: 'v2.1 impl: target_file唯一性校验'
+  chunks:
+  - impl-v21-target-file-uniqueness-check
+  req_id: req-026
+stats:
+  total_chunks: 8
+  by_action:
+    add: 8
+  by_state:
+    committed: 8
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

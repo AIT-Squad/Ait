@@ -91,6 +91,26 @@ class NewModelManager:
             overrides=overrides,
         )
 
+    def create_prd(
+        self,
+        version: str,
+        root_chunk_id: str,
+        content: str,
+        *,
+        file: str | None = None,
+        action: str = "add",
+        overrides: str | None = None,
+    ) -> DocumentCreateResult:
+        return self._create_document(
+            version,
+            root_chunk_id,
+            content,
+            kind="prd",
+            file=file,
+            action=action,
+            overrides=overrides,
+        )
+
     def add_edge(self, version: str, src: str, dst: str, rel: str) -> EdgeCreateResult:
         if rel not in NEW_MODEL_RELS:
             raise _validation_error(
@@ -237,6 +257,40 @@ class NewModelManager:
                 return spec
         return sorted(candidates, key=lambda spec: spec.uri)[-1] if candidates else None
 
+    def collect_tdd_target_files(self, graph) -> list[tuple[str, str | None, str | None]]:
+        """Return ``(chunk_id, file, target_file)`` for each TDD root chunk in ``graph``.
+
+        Only root chunks (file stem == chunk id) are considered; internal TDD
+        detail chunks are skipped. When the same chunk id appears in both the
+        active version and baseline, the version-side entry wins. ``target_file``
+        is read from the TDD markdown body (markdown is the source of truth).
+        """
+        seen: dict[str, tuple[str, str | None, str | None]] = {}
+        for spec in graph.specs.values():
+            if spec.type != "tdd":
+                continue
+            if not spec.file or _file_stem(spec.file) != spec.chunk_id:
+                continue  # root chunks only
+            if spec.chunk_id in seen and spec.version == "baseline":
+                continue  # keep the already-seen (version-side) entry
+            seen[spec.chunk_id] = (
+                spec.chunk_id,
+                spec.file,
+                self._read_target_file_for_spec(spec),
+            )
+        return list(seen.values())
+
+    def _read_target_file_for_spec(self, spec) -> str | None:
+        base_dir = (
+            self.versions.versions_dir / spec.version
+            if spec.version != "baseline"
+            else self.root / "docs"
+        )
+        path = base_dir / f"{spec.file}.md"
+        if not path.exists():
+            return None
+        return _target_file(path.read_text(encoding="utf-8"))
+
     def _create_document(
         self,
         version: str,
@@ -285,6 +339,10 @@ def _target_file(text: str) -> str | None:
 
 def _parent_chunk_id(chunk_id: str) -> str:
     return chunk_id.split(":", 1)[0]
+
+
+def _file_stem(file: str) -> str:
+    return file.rsplit("/", 1)[-1]
 
 
 def _validation_error(code: str, message: str, chunk_id: str | None = None) -> ValidationError:

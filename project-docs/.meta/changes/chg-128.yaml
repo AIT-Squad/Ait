@@ -1,0 +1,55 @@
+id: chg-128
+version: v2.1
+type: ADD
+target: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-taskless-confirm
+author: system
+date: '2026-06-24T02:15:05.996293+00:00'
+message: 'v2.1 PRD: 补全新模型工具链四缺口'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v21-taskless-confirm -->
+
+  ## 无 task 的版本合并
+
+
+  ### 概述
+
+
+  新模型用 TDD 作为代码生成单元，取代了旧模型的 task YAML。但 `version confirm` 的前置守卫历史上围绕"所有 task 必须 done"设计。新模型版本（只有 PRD/FSD/TDD、零 task）能否正确走完
+  confirm → merge → git commit，目前没有端到端验证，是新模型生命周期闭环的关键未知。
+
+
+  ### 业务规则
+
+
+  - 新模型版本（无 task）能正常通过 `version confirm` 前置守卫。
+
+  - confirm 把新模型 PRD/FSD/TDD chunk 按 chunk 维度合并进 baseline。
+
+  - 合并保留 `decomposes`/`details`/`depends_on` 三种关系到 baseline specgraph。
+
+  - 合并后 chunks-index 与 specgraph 被重建或更新。
+
+  - 旧模型「task 必须 done」的守卫对旧模型版本保持不变。
+
+
+  ### 验收标准
+
+
+  - 一个只含 PRD/FSD/TDD、无 task 的版本能成功 `version confirm`。
+
+  - confirm 后 FSD/TDD chunk 进入 baseline，且未被塞进 `docs/prd/global.md`。
+
+  - confirm 后 baseline specgraph 保留三种新模型关系边。
+
+  - 新增测试覆盖 taskless confirm 路径。
+
+  - 旧模型 confirm 的现有测试继续通过。
+
+
+  ### 边界与非目标
+
+
+  - v2.1 不删除 task 元数据，不改写历史已合并版本。
+
+  - v2.1 不强制所有项目立即切换到新模型 confirm 规则。'
