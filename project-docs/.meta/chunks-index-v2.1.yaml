@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.1
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-v21-new-model-prd-command
   file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
@@ -159,5 +159,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 4
     failed: 0

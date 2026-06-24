@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-24T03:10:59.325132+00:00'
+updated: '2026-06-24T05:48:54.692833+00:00'
 specs:
 - uri: spec:impl:v2.1:impl-v21-new-model-init-scaffold-mode
   title: init 新模型初始化模式

@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-20T15:43:32.058033+00:00'
+updated: '2026-06-24T05:48:54.395027+00:00'
 chunks:
 - id: global-schema
   file: global/schema
@@ -458,6 +458,30 @@ chunks:
   level: 2
   summary: null
   metadata: {}
+- id: impl-v21-new-model-init-scaffold-mode
+  file: impl/v21-new-model-init-scaffold-mode
+  heading: init 新模型初始化模式
+  level: 2
+  summary: null
+  metadata: {}
+- id: impl-v21-new-model-prd-create
+  file: impl/v21-new-model-prd-create
+  heading: 新模型 PRD 创建命令
+  level: 2
+  summary: null
+  metadata: {}
+- id: impl-v21-target-file-uniqueness-check
+  file: impl/v21-target-file-uniqueness-check
+  heading: target_file 唯一性校验
+  level: 2
+  summary: null
+  metadata: {}
+- id: impl-v21-taskless-confirm-test
+  file: impl/v21-taskless-confirm-test
+  heading: 无 task confirm 端到端验证
+  level: 2
+  summary: null
+  metadata: {}
 - id: impl-version-manager-overview
   file: impl/version-manager
   heading: 概述
@@ -911,6 +935,30 @@ chunks:
 - id: prd-v2-version-merge-compatibility
   file: prd/global
   heading: Version and merge compatibility
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v21-new-model-prd-command
+  file: prd/global
+  heading: 新模型 PRD 命令入口
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v21-new-model-init-scaffold
+  file: prd/global
+  heading: init 搭建新模型骨架
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v21-taskless-confirm
+  file: prd/global
+  heading: 无 task 的版本合并
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v21-target-file-uniqueness
+  file: prd/global
+  heading: target_file 唯一性校验
   level: 2
   summary: null
   metadata: {}

@@ -1,0 +1,25 @@
+<!-- @id:impl-v21-new-model-prd-create -->
+## 新模型 PRD 创建命令
+
+<!-- @ref:prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-new-model-prd-command rel:implements -->
+
+### Change points
+
+#### 1. NewModelManager.create_prd
+
+- 新增 `create_prd(version, root_chunk_id, content, *, file=None, action="add", overrides=None)`，复用现有 `_create_document(kind="prd")`。
+- 与 `create_tdd` 不同：**不要求** `target_file`（PRD 不是叶子代码文件）。
+- 写入 `versions/<version>/prd/<file>.md`，注册 chunk 到版本 chunks-index，`sync_specgraph`。
+
+#### 2. ait prdv2 CLI 命令组
+
+- 新增 `@main.group("prdv2")`，与现有 `fsd`/`tdd` 组同构。
+- `prdv2 create <root_chunk_id> [--version --file --content/--content-file --action --overrides]` → 调 `create_prd`。
+- `prdv2 link <src> <dst> --rel {decomposes,details,depends_on}` → 复用 `NewModelManager.add_edge`（建 PRD→FSD 的 `decomposes` 等边）。
+- **旧 `ait prd` 命令组保持不变**（create/save-draft/confirm/commit/show/resolve-candidates 全部原样）。
+
+### Boundaries
+
+- 不改旧 `prd` 组的任何行为。
+- 不要求新模型 PRD 携带 `target_file`。
+- 不迁移历史 PRD 文档。
