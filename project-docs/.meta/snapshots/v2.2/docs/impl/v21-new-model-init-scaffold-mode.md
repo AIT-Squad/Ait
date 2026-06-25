@@ -1,0 +1,33 @@
+<!-- @id:impl-v21-new-model-init-scaffold-mode -->
+## init 新模型初始化模式
+
+<!-- @ref:prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性#prd-v21-new-model-init-scaffold rel:implements -->
+
+### Change points
+
+#### 1. InitManager 新模型 bootstrap
+
+- 新增 `_run_new_model_bootstrap(project_name)`：在 `docs/` 下建 `prd/`、`fsd/`、`tdd/` 三目录。
+- 生成 `docs/prd/<project>.md`，含 `[PRD]-<project>` 根 chunk（带 `@summary`）。
+- 生成 `docs/fsd/<project>.md`，含 `[FSD]-<project>` 根 chunk（带 `@summary`）。
+- `docs/tdd/` 建目录 + README 占位（无根 chunk；TDD 由叶 FSD 派生）。
+- 通过 specgraph 建一条 `[PRD]-<project> decomposes [FSD]-<project>` 边。
+- `rebuild_baseline()` + `sync_specgraph()`。
+- `<project>` 默认占位名（如 `project`），由 CLI 选项可覆盖；后续可重命名。
+
+#### 2. 模式选择与幂等
+
+- `run()` 增加 `new_model: bool` 参数（由 CLI `--new-model` 透传）。
+- 已存在新模型基线时幂等：不覆盖用户已写文件，只补缺失目录/根 chunk。
+- 输出报告：采用的 init 模式、创建文件清单、校验状态。
+
+#### 3. CLI init 标志
+
+- `ait init` 增加 `--new-model` 标志，透传到 `InitManager.run`。
+- 旧 init（无标志）行为完全不变。
+
+### Boundaries
+
+- 不把旧模型基线自动转换为新模型基线。
+- 不在 init 内决定具体项目的最终模块分解。
+- 不执行 project-docs 目录切换。

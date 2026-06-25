@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.2
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: prd-v22-new-model-version-commit
   file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
@@ -124,5 +124,5 @@ stats:
   tasks_summary:
     created: 0
     executing: 0
-    done: 0
+    done: 3
     failed: 0

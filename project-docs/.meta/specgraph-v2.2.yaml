@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-25T03:41:27.507415+00:00'
+updated: '2026-06-25T03:56:44.803070+00:00'
 specs:
 - uri: spec:impl:v2.2:impl-v22-codegen-baseline-fallback-resolve
   title: codegen 基线回退

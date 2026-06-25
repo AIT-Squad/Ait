@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-24T05:48:54.395027+00:00'
+updated: '2026-06-25T03:56:44.522217+00:00'
 chunks:
 - id: global-schema
   file: global/schema
@@ -482,6 +482,24 @@ chunks:
   level: 2
   summary: null
   metadata: {}
+- id: impl-v22-codegen-baseline-fallback-resolve
+  file: impl/v22-codegen-baseline-fallback
+  heading: codegen 基线回退
+  level: 2
+  summary: null
+  metadata: {}
+- id: impl-v22-new-model-version-commit-cli
+  file: impl/v22-version-commit-cli
+  heading: 新模型版本提交命令
+  level: 2
+  summary: null
+  metadata: {}
+- id: impl-v22-new-model-version-ensure-meta
+  file: impl/v22-version-ensure-meta
+  heading: 新模型版本元数据自动创建
+  level: 2
+  summary: null
+  metadata: {}
 - id: impl-version-manager-overview
   file: impl/version-manager
   heading: 概述
@@ -959,6 +977,24 @@ chunks:
 - id: prd-v21-target-file-uniqueness
   file: prd/global
   heading: target_file 唯一性校验
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v22-new-model-version-commit
+  file: prd/global
+  heading: 新模型版本提交
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v22-new-model-version-ensure
+  file: prd/global
+  heading: 新模型版本元数据自动创建
+  level: 2
+  summary: null
+  metadata: {}
+- id: prd-v22-codegen-baseline-fallback
+  file: prd/global
+  heading: codegen 基线回退
   level: 2
   summary: null
   metadata: {}

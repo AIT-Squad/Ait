@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-25T03:41:27.366817+00:00'
+updated: '2026-06-25T03:56:45.002049+00:00'
 specs:
 - uri: spec:global:baseline:extract-block
   title: extract-block
@@ -616,6 +616,39 @@ specs:
   file: impl/v21-taskless-confirm-test
   metadata:
     source: baseline
+- uri: spec:impl:baseline:impl-v22-codegen-baseline-fallback-resolve
+  title: codegen 基线回退
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-codegen-baseline-fallback-resolve
+  file: impl/v22-codegen-baseline-fallback
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:baseline:impl-v22-new-model-version-commit-cli
+  title: 新模型版本提交命令
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-new-model-version-commit-cli
+  file: impl/v22-version-commit-cli
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:baseline:impl-v22-new-model-version-ensure-meta
+  title: 新模型版本元数据自动创建
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-new-model-version-ensure-meta
+  file: impl/v22-version-ensure-meta
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c3
 - uri: spec:impl:baseline:impl-version-manager-amends
   title: 修订已 committed 块
   type: impl
@@ -1280,6 +1313,39 @@ specs:
   file: prd/global
   metadata:
     source: baseline
+- uri: spec:prd:baseline:prd-v22-codegen-baseline-fallback
+  title: codegen 基线回退
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-codegen-baseline-fallback
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v22-new-model-version-commit
+  title: 新模型版本提交
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-new-model-version-commit
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v22-new-model-version-ensure
+  title: 新模型版本元数据自动创建
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-new-model-version-ensure
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:prd:baseline:prd-version-merge
   title: 版本合并
   type: prd
@@ -1687,6 +1753,24 @@ edges:
     source: baseline-ref
 - src: spec:impl:baseline:impl-v21-taskless-confirm-test
   dst: spec:prd:baseline:prd-v21-taskless-confirm
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-codegen-baseline-fallback-resolve
+  dst: spec:prd:baseline:prd-v22-codegen-baseline-fallback
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-new-model-version-commit-cli
+  dst: spec:prd:baseline:prd-v22-new-model-version-commit
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-new-model-version-ensure-meta
+  dst: spec:prd:baseline:prd-v22-new-model-version-ensure
   rel: implements
   weight: 1.0
   metadata:
