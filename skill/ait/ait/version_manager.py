@@ -131,6 +131,31 @@ class VersionManager:
         self._refresh_state(version)
         return meta
 
+    def ensure(self, version: str, based_on: str | None = None) -> VersionMeta:
+        """Idempotently ensure a version's meta + index exist.
+
+        Unlike :meth:`create`, this tolerates a pre-existing version directory
+        (e.g. created by ``write_version_file`` on the new-model fsd/tdd path) and
+        is a no-op when the meta file already exists. Closes the gap where
+        new-model documents could be written into a version with no metadata file
+        and therefore could never be confirmed.
+        """
+        if self.version_meta_path(version).exists():
+            return self.load_version_meta(version)
+        version_dir = self.versions_dir / version
+        (version_dir / "prd").mkdir(parents=True, exist_ok=True)
+        (version_dir / "impl").mkdir(parents=True, exist_ok=True)
+        meta = VersionMeta(
+            version=version,
+            created_at=datetime.now(timezone.utc),
+            dependencies=VersionDependencies(based_on=based_on),
+        )
+        self.save_version_meta(meta)
+        idx = VersionIndex(version_name=version, status="developing")
+        self.indexes.save_version_index(idx)
+        self._refresh_state(version)
+        return meta
+
     def list_versions(self) -> list[VersionMeta]:
         if not self.version_meta_dir.exists():
             return []

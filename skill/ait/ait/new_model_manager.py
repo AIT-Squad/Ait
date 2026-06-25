@@ -126,14 +126,19 @@ class NewModelManager:
         graph.save(specgraph_path(self.root, version))
         return EdgeCreateResult(version=version, src=src_uri, dst=dst_uri, rel=rel)
 
-    def prepare_codegen(self, version: str, tdd_root_chunk_id: str) -> CodegenBundle:
-        entry = self.indexes.query_version(version, tdd_root_chunk_id)
-        base_dir = self.versions.versions_dir / version
-        source = "version"
-        if entry is None:
+    def prepare_codegen(self, version: str | None, tdd_root_chunk_id: str) -> CodegenBundle:
+        if version is None:
             entry = self.indexes.query_baseline(tdd_root_chunk_id)
             base_dir = self.root / "docs"
             source = "baseline"
+        else:
+            entry = self.indexes.query_version(version, tdd_root_chunk_id)
+            base_dir = self.versions.versions_dir / version
+            source = "version"
+            if entry is None:
+                entry = self.indexes.query_baseline(tdd_root_chunk_id)
+                base_dir = self.root / "docs"
+                source = "baseline"
         if entry is None or entry.file is None:
             raise _validation_error("TDD_NOT_FOUND", f"TDD root chunk {tdd_root_chunk_id} not found", tdd_root_chunk_id)
 
@@ -312,6 +317,7 @@ class NewModelManager:
                 root_chunk_id,
             )
 
+        self.versions.ensure(version)
         path = self.versions.write_version_file(version, file, content)
         final_parsed = parse_file(path, self.versions.versions_dir / version)
         chunk_ids: list[str] = []

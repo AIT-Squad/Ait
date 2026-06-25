@@ -1,0 +1,18 @@
+id: T-v22-codegen-baseline-fallback-01
+title: 实现 impl-v22-codegen-baseline-fallback-resolve
+source_chunk: prd-v22-codegen-baseline-fallback
+impl_refs:
+- impl-v22-codegen-baseline-fallback-resolve
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v22-codegen-baseline-fallback-resolve 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/new_model_manager.py
+  - skill/ait/ait/cli.py
+  bound_at: '2026-06-25T03:56:12.139673Z'

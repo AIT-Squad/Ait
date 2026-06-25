@@ -1,0 +1,18 @@
+id: T-v22-new-model-version-ensure-01
+title: 实现 impl-v22-new-model-version-ensure-meta
+source_chunk: prd-v22-new-model-version-ensure
+impl_refs:
+- impl-v22-new-model-version-ensure-meta
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v22-new-model-version-ensure-meta 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/version_manager.py
+  - skill/ait/ait/new_model_manager.py
+  bound_at: '2026-06-25T03:56:11.613818Z'

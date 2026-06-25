@@ -591,6 +591,35 @@ def version_confirm(ctx, version_name: str, allow_dirty_git: bool) -> None:
         fail(str(exc), code=getattr(exc, "code", "CONFIRM_FAILED"))
 
 
+@version_group.command("commit")
+@click.argument("version_name")
+@click.option("-m", "--message", default="new-model commit", help="Commit message.")
+@click.pass_context
+def version_commit(ctx, version_name: str, message: str) -> None:
+    """Stage all working chunks and commit them — the new-model lock step.
+
+    New-model `fsd/tdd/prdv2 create` register chunks as `working`; `version
+    confirm` only merges `committed` chunks. This bulk-commits the whole version
+    (working → staged → committed) so a taskless new-model version can confirm.
+    """
+    mgr = VersionManager(_root(ctx))
+    try:
+        stage_result = mgr.stage(version_name)
+        commit_result = mgr.commit(version_name, message)
+        ok(
+            {
+                "version": version_name,
+                "committed": stage_result.staged,
+                "commit_id": commit_result.commit_id,
+                "changes": commit_result.changes,
+            }
+        )
+    except ValidationError as exc:
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "COMMIT_FAILED")
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "COMMIT_FAILED"))
+
+
 @version_group.command("reset")
 @click.argument("version_name")
 @click.option("--confirm", is_flag=True, help="Confirm the irreversible reset.")
@@ -894,8 +923,6 @@ def codegen_group() -> None:
 def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
     try:
         ok(_json_safe(mgr.prepare_codegen(version, tdd_root_chunk_id)))
     except ValidationError as exc:

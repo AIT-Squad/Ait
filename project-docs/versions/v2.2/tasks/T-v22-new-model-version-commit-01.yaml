@@ -1,0 +1,18 @@
+id: T-v22-new-model-version-commit-01
+title: 实现 impl-v22-new-model-version-commit-cli
+source_chunk: prd-v22-new-model-version-commit
+impl_refs:
+- impl-v22-new-model-version-commit-cli
+global_refs:
+- global-tech-stack
+depends_on: []
+order_hint: 1
+steps:
+- 按 impl-v22-new-model-version-commit-cli 的设计实现对应代码并自检
+status: done
+code_refs:
+- commit: null
+  paths:
+  - skill/ait/ait/cli.py
+  - tests/test_v22_new_model_lifecycle.py
+  bound_at: '2026-06-25T03:56:11.112603Z'

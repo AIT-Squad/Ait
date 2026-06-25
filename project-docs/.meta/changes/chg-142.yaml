@@ -1,0 +1,51 @@
+id: chg-142
+version: v2.2
+type: ADD
+target: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退#prd-v22-new-model-version-ensure
+author: system
+date: '2026-06-25T03:39:46.866493+00:00'
+message: 'v2.2 PRD: 补全新模型版本生命周期'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v22-new-model-version-ensure -->
+
+  ## 新模型版本元数据自动创建
+
+
+  ### 概述
+
+
+  新模型 `fsd/tdd/prdv2 create` 通过 `write_version_file` 写文件时会建出版本目录，但不创建版本元数据（`.meta/versions/<v>.yaml`）与版本索引。结果是版本处于"有目录、无 meta"的半建状态，`version
+  confirm` 报 `Version <v> has no metadata file`。旧模型靠 `prd create` 顺带建版本 meta，新模型路径缺这一步。
+
+
+  ### 业务规则
+
+
+  - 新模型 create 在写文件前，确保目标版本的 meta 与索引存在；缺失则创建，已存在则不动（幂等）。
+
+  - 自动创建容忍版本目录已存在（不与现有 create 的"目录已存在即报错"冲突）。
+
+  - 版本号取自命令显式传入的 `--version`，不隐式臆测命名。
+
+  - 不改旧模型版本创建路径。
+
+
+  ### 验收标准
+
+
+  - [ ] 对一个尚无 meta 的版本执行新模型 create 后，`.meta/versions/<v>.yaml` 与版本索引存在。
+
+  - [ ] 同版本重复 create 不报"已存在"错误（幂等）。
+
+  - [ ] 新模型版本随后可正常 `version confirm`。
+
+  - [ ] 旧模型版本创建的现有测试继续通过。
+
+
+  ### 边界与非目标
+
+
+  - 不改旧模型 `prd create` 的自动建版本逻辑。
+
+  - 不引入新的版本号自动分配策略。'

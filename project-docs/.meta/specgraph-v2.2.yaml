@@ -1,0 +1,88 @@
+version: 1
+updated: '2026-06-25T03:41:27.507415+00:00'
+specs:
+- uri: spec:impl:v2.2:impl-v22-codegen-baseline-fallback-resolve
+  title: codegen 基线回退
+  type: impl
+  version: v2.2
+  chunk_id: impl-v22-codegen-baseline-fallback-resolve
+  file: impl/v22-codegen-baseline-fallback
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:v2.2:impl-v22-new-model-version-commit-cli
+  title: 新模型版本提交命令
+  type: impl
+  version: v2.2
+  chunk_id: impl-v22-new-model-version-commit-cli
+  file: impl/v22-version-commit-cli
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:v2.2:impl-v22-new-model-version-ensure-meta
+  title: 新模型版本元数据自动创建
+  type: impl
+  version: v2.2
+  chunk_id: impl-v22-new-model-version-ensure-meta
+  file: impl/v22-version-ensure-meta
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:prd:v2.2:prd-v22-codegen-baseline-fallback
+  title: codegen 基线回退
+  type: prd
+  version: v2.2
+  chunk_id: prd-v22-codegen-baseline-fallback
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.2:prd-v22-new-model-version-commit
+  title: 新模型版本提交
+  type: prd
+  version: v2.2
+  chunk_id: prd-v22-new-model-version-commit
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:v2.2:prd-v22-new-model-version-ensure
+  title: 新模型版本元数据自动创建
+  type: prd
+  version: v2.2
+  chunk_id: prd-v22-new-model-version-ensure
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: version
+    state: committed
+    action: add
+    commit_id: c1
+edges:
+- src: spec:impl:v2.2:impl-v22-codegen-baseline-fallback-resolve
+  dst: spec:prd:v2.2:prd-v22-codegen-baseline-fallback
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.2:impl-v22-new-model-version-commit-cli
+  dst: spec:prd:v2.2:prd-v22-new-model-version-commit
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref
+- src: spec:impl:v2.2:impl-v22-new-model-version-ensure-meta
+  dst: spec:prd:v2.2:prd-v22-new-model-version-ensure
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: version-ref

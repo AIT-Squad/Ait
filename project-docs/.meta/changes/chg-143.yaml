@@ -1,0 +1,47 @@
+id: chg-143
+version: v2.2
+type: ADD
+target: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退#prd-v22-codegen-baseline-fallback
+author: system
+date: '2026-06-25T03:39:46.870492+00:00'
+message: 'v2.2 PRD: 补全新模型版本生命周期'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v22-codegen-baseline-fallback -->
+
+  ## codegen 基线回退
+
+
+  ### 概述
+
+
+  `codegen prepare <tdd>` 在未显式传 `--version` 且无活动未合并版本时，因 `versions.current()` 返回 None 而报 `NO_VERSION`。但 baseline 中已合并的 TDD
+  本应能直接出代码生成上下文——这正是迭代时"从已建基线追溯到代码文件"（目标 1）的常用场景。codegen 应在无活动版本时回退到 baseline 解析。
+
+
+  ### 业务规则
+
+
+  - `codegen prepare` 未指定版本且无活动版本时，从 baseline 解析 TDD 根 chunk 与上游/依赖上下文。
+
+  - 有活动版本时维持现有行为（版本优先、回退 baseline）。
+
+  - 回退路径仍返回 `target_file` 与上游 FSD/PRD、依赖契约。
+
+
+  ### 验收标准
+
+
+  - [ ] 已合并 baseline 后、无活动版本时，`codegen prepare <baseline-tdd>` 成功返回 target_file 与上游上下文。
+
+  - [ ] 有活动版本时行为不变，现有 codegen 测试继续通过。
+
+  - [ ] 新增测试覆盖无活动版本的 baseline 回退。
+
+
+  ### 边界与非目标
+
+
+  - 不改 codegen 的上下文组装算法（上游遍历、依赖收集不变）。
+
+  - 不引入反向（代码→spec）查询。'

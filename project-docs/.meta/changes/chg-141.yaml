@@ -1,0 +1,58 @@
+id: chg-141
+version: v2.2
+type: ADD
+target: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退#prd-v22-new-model-version-commit
+author: system
+date: '2026-06-25T03:39:46.860133+00:00'
+message: 'v2.2 PRD: 补全新模型版本生命周期'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-v22-new-model-version-commit -->
+
+  ## 新模型版本提交
+
+
+  ### 概述
+
+
+  新模型用 `fsd/tdd/prdv2 create` 把 chunk 注册进版本工作区，但注册态是 `working`。`version confirm` 只合并 `committed` 态 chunk，导致新模型版本 confirm 时报
+  `MERGE_NO_COMMITTED`（无可合并 chunk）。旧模型靠 `prd commit`/`impl commit` 把 chunk 推进到 committed，新模型缺少对应的提交/锁定入口。这是新模型 create→commit→confirm
+  生命周期断裂的核心缺口。
+
+
+  ### 业务规则
+
+
+  - 提供一个新模型版本提交入口，把该版本所有 `working` 态 chunk 一次性推进到 `committed`。
+
+  - 提交后这些 chunk 在本版本内锁定，与旧模型 commit 语义一致（不可再改，要改走 version reset）。
+
+  - 提交是 taskless 流程的一部分：新模型不拆 task，提交即"准备好被 confirm 合并"。
+
+  - 提交入口与旧模型 `prd/impl commit` 并存，不改其行为。
+
+  - 提交后 `version confirm` 能正常合并这些 chunk 进 baseline。
+
+
+  ### 验收标准
+
+
+  - [ ] 新模型版本（含 fsd/tdd/prdv2 chunk）执行提交后，chunk 全部变 committed。
+
+  - [ ] 提交后 `version confirm` 成功合并，不再报 `MERGE_NO_COMMITTED`。
+
+  - [ ] 提交后再次改动被拒（锁定生效）。
+
+  - [ ] 旧模型 `prd/impl commit` 现有测试继续通过。
+
+  - [ ] 新增测试覆盖新模型 create→提交→confirm 全链路。
+
+
+  ### 边界与非目标
+
+
+  - 不为新模型引入 task 层。
+
+  - 不改旧模型 commit 的逐 chunk 语义。
+
+  - 不在本需求内做 codegen 或 init 相关改动。'

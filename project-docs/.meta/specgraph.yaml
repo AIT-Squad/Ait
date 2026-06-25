@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-24T05:48:54.896170+00:00'
+updated: '2026-06-25T03:41:27.366817+00:00'
 specs:
 - uri: spec:global:baseline:extract-block
   title: extract-block
@@ -592,9 +592,6 @@ specs:
   file: impl/v21-new-model-init-scaffold-mode
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c3
 - uri: spec:impl:baseline:impl-v21-new-model-prd-create
   title: 新模型 PRD 创建命令
   type: impl
@@ -603,9 +600,6 @@ specs:
   file: impl/v21-new-model-prd-create
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c2
 - uri: spec:impl:baseline:impl-v21-target-file-uniqueness-check
   title: target_file 唯一性校验
   type: impl
@@ -614,9 +608,6 @@ specs:
   file: impl/v21-target-file-uniqueness-check
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c5
 - uri: spec:impl:baseline:impl-v21-taskless-confirm-test
   title: 无 task confirm 端到端验证
   type: impl
@@ -625,9 +616,6 @@ specs:
   file: impl/v21-taskless-confirm-test
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c4
 - uri: spec:impl:baseline:impl-version-manager-amends
   title: 修订已 committed 块
   type: impl
@@ -1265,45 +1253,33 @@ specs:
   type: prd
   version: baseline
   chunk_id: prd-v21-new-model-init-scaffold
-  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-v21-new-model-prd-command
   title: 新模型 PRD 命令入口
   type: prd
   version: baseline
   chunk_id: prd-v21-new-model-prd-command
-  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-v21-target-file-uniqueness
   title: target_file 唯一性校验
   type: prd
   version: baseline
   chunk_id: prd-v21-target-file-uniqueness
-  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-v21-taskless-confirm
   title: 无 task 的版本合并
   type: prd
   version: baseline
   chunk_id: prd-v21-taskless-confirm
-  file: prd/补全新模型工具链-prd命令入口-init骨架-taskless-confirm-target-file唯一性
+  file: prd/global
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:prd:baseline:prd-version-merge
   title: 版本合并
   type: prd

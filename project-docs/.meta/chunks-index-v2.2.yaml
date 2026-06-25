@@ -1,0 +1,128 @@
+version: 1
+scope: version
+version_name: v2.2
+based_on_hash: null
+status: developing
+chunks:
+- id: prd-v22-new-model-version-commit
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  heading: 新模型版本提交
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: 提供把新模型 fsd/tdd/prdv2 chunk 从 working 锁定为 committed 的 CLI，使 version confirm 能合并
+  metadata: {}
+- id: prd-v22-new-model-version-ensure
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  heading: 新模型版本元数据自动创建
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: 新模型 fsd/tdd/prdv2 create 在版本 meta 缺失时自动建 meta+index，避免半建状态
+  metadata: {}
+- id: prd-v22-codegen-baseline-fallback
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  heading: codegen 基线回退
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: 无活动版本时 codegen prepare 回退到 baseline 解析 TDD，而非报 NO_VERSION
+  metadata: {}
+- id: impl-v22-new-model-version-commit-cli
+  file: impl/v22-version-commit-cli
+  heading: 新模型版本提交命令
+  level: 2
+  action: add
+  state: committed
+  commit_id: c2
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: 新增 ait version commit，stage 全部 working + commit 推进到 committed
+  metadata: {}
+- id: impl-v22-new-model-version-ensure-meta
+  file: impl/v22-version-ensure-meta
+  heading: 新模型版本元数据自动创建
+  level: 2
+  action: add
+  state: committed
+  commit_id: c3
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: VersionManager.ensure 幂等建 meta+index；新模型 create 写文件前调用
+  metadata: {}
+- id: impl-v22-codegen-baseline-fallback-resolve
+  file: impl/v22-codegen-baseline-fallback
+  heading: codegen 基线回退
+  level: 2
+  action: add
+  state: committed
+  commit_id: c4
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: req-027
+  summary: 无活动版本时 codegen 从 baseline 解析；prepare_codegen 支持 version=None
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-25T03:39:46.872820+00:00'
+  message: 'v2.2 PRD: 补全新模型版本生命周期'
+  chunks:
+  - prd-v22-new-model-version-commit
+  - prd-v22-new-model-version-ensure
+  - prd-v22-codegen-baseline-fallback
+  req_id: req-027
+- id: c2
+  timestamp: '2026-06-25T03:41:25.192442+00:00'
+  message: 'v2.2 impl: version commit命令'
+  chunks:
+  - impl-v22-new-model-version-commit-cli
+  req_id: req-027
+- id: c3
+  timestamp: '2026-06-25T03:41:26.195886+00:00'
+  message: 'v2.2 impl: version meta自动创建'
+  chunks:
+  - impl-v22-new-model-version-ensure-meta
+  req_id: req-027
+- id: c4
+  timestamp: '2026-06-25T03:41:27.227547+00:00'
+  message: 'v2.2 impl: codegen baseline回退'
+  chunks:
+  - impl-v22-codegen-baseline-fallback-resolve
+  req_id: req-027
+stats:
+  total_chunks: 6
+  by_action:
+    add: 6
+  by_state:
+    committed: 6
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
