@@ -1,0 +1,18 @@
+id: chg-147
+version: v2.6
+type: ADD
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:subskill_ait_task_execute
+author: system
+date: '2026-06-27T10:00:54.135078+00:00'
+message: 'v2.6 spec: skill domain + SKILL.md/subskill TDDs'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:subskill_ait_task_execute -->
+
+  ## subskill_ait_task_execute
+
+
+  ### 功能描述
+
+
+  task 执行 sub-skill：据聚焦 context bundle 驱动 AI 编码，完成调用 task complete/fail 收口。'

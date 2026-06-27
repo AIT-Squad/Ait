@@ -1,0 +1,37 @@
+id: chg-150
+version: v2.6
+type: ADD
+target: tdd/[TDD]-subskill_ait_impl_discuss#[TDD]-subskill_ait_impl_discuss
+author: system
+date: '2026-06-27T10:00:54.145864+00:00'
+message: 'v2.6 spec: skill domain + SKILL.md/subskill TDDs'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[TDD]-subskill_ait_impl_discuss -->
+
+  ## subskill_ait_impl_discuss TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/sub-skills/ait-impl-discuss/SKILL.md
+
+  ```
+
+
+  ### 技术栈
+
+
+  Markdown（Claude Code Skill 指令文档）。
+
+
+  ### 文件职责
+
+
+  impl 规划 sub-skill：读上下文、生成 impl chunk（含 @extract）、注册到版本工作区。
+
+
+  ### 单元测试要求
+
+
+  skill 文档无单测；由 sub-skill 触发与 CLI 契约间接验证。'

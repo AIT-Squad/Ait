@@ -1,0 +1,18 @@
+id: chg-140
+version: v2.6
+type: ADD
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill
+author: system
+date: '2026-06-27T10:00:54.108414+00:00'
+message: 'v2.6 spec: skill domain + SKILL.md/subskill TDDs'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill -->
+
+  ## skill FSD
+
+
+  ### 功能范围
+
+
+  AIT 的 skill 层：主 SKILL.md 清单 + 6 个 sub-skills。均为生成目标（target_file 指向各 SKILL.md），新模型为主。'

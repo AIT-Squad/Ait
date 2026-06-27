@@ -1,0 +1,19 @@
+id: chg-141
+version: v2.6
+type: ADD
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:skill_manifest
+author: system
+date: '2026-06-27T10:00:54.108414+00:00'
+message: 'v2.6 spec: skill domain + SKILL.md/subskill TDDs'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:skill_manifest -->
+
+  ## skill_manifest
+
+
+  ### 功能描述
+
+
+  AIT skill 主清单（Claude 的 AIT 使用指令）。新模型为主叙事：开篇 Pipeline 以 prd(新模型)/fsd/tdd/codegen 为主线，旧 prdv1/impl/task 标 legacy；全局契约（CLI
+  入口、JSON 输出、project-docs 唯一权威、术语 chunk）；命令速查表新模型在前；版本原子性心智模型；sub-skills 路由索引；common pitfalls；scope boundaries。'

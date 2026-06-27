@@ -1,138 +1,119 @@
 ---
 name: ait
-description: INVOKE THIS SKILL when the user types /ait followed by a subcommand (init, prd, impl, task, version, reindex, context, search, specgraph, deps, impact, state). AIT provides chunk-level version control for AI-collaborated PRD/impl documentation plus a prd→impl→task→code AI-coding pipeline, and routes concrete workflows to focused sub-skills.
+description: INVOKE THIS SKILL when the user types /ait followed by a subcommand. AIT 是 chunk 级文档版本控制系统，主线为新模型 prd→fsd→tdd→codegen 的 spec→code 流水线（旧模型 prdv1→impl→task 为 legacy），并路由到 sub-skills。命令含 init/prd/fsd/tdd/codegen/version/specgraph/state/search/context/reindex 与 legacy prdv1/impl/task。
 ---
 
 # AIT — AI-Assisted Document Versioning
 
-AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本控制系统，并提供 `prd → impl → task → code` 的 AI 编码流水线。主 skill 只负责路由、全局契约和命令速查；具体讨论、进度面板和恢复建议由 `sub-skills/` 下的 micro-skill 承担。
+AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本控制**系统。**主线模型**：`prd → fsd → tdd → codegen → code`——PRD 递归分解为 FSD 功能树，叶 FSD `details` 到 TDD（每个 TDD 唯一映射一个 `target_file`，可指向任意生成目标：源码/测试/SKILL.md 等），`codegen` 沿 specgraph 上溯组装聚焦上下文驱动 AI 编码。**legacy 模型** `prdv1 → impl → task → code` 仍可用但属遗留。主 skill 负责路由、全局契约与命令速查；具体讨论/面板/恢复由 `sub-skills/` 承担。
 
 ## Global Contract
 
-- **入口命令**：项目根下统一使用 `project-docs/.ait/ait-cli <subcmd>`（由 `init` 自动生成的项目本地 wrapper）；唯一例外是 `init` 自身——首次运行用 `~/.claude/skills/ait/bin/ait init`，或安装路径变更后用 `~/.claude/skills/ait/bin/ait init --refresh-wrapper` 刷新本地 wrapper 与 `.meta/config.yaml`。不要假设系统存在全局 `ait`。
-- **运行目录**：必须从包含 `project-docs/` 的项目根目录运行；不要从 `project-docs/` 内部运行。
-- **写入规则**：不要直接写 `project-docs/versions/*`、`project-docs/docs/*` 或 `.meta/*`，所有持久化必须通过 `project-docs/.ait/ait-cli` 完成。
-- **输出契约**：所有 CLI 命令 stdout 都是单个 JSON 对象：`{"ok": true, "data": {...}}` 或 `{"ok": false, "error": "...", "code": "..."}`。
-- **术语约束**：使用 `chunk` 表示 `<!-- @id:xxx -->` 标注的文档单元；不要恢复 `block` 术语。
+- **入口命令**：项目根下统一用 `project-docs/.ait/ait-cli <subcmd>`（`init` 自动生成的项目本地 wrapper）；唯一例外是 `init` 自身——首次用 `~/.claude/skills/ait/bin/ait init`，路径变更后用 `... init --refresh-wrapper`。不要假设系统存在全局 `ait`。
+- **运行目录**：必须从包含 `project-docs/` 的项目根运行；不要从 `project-docs/` 内部运行。
+- **写入规则**：不要直接写 `project-docs/{docs,versions,.meta}/*`，所有持久化必须经 `project-docs/.ait/ait-cli`。
+- **输出契约**：所有 CLI stdout 是单个 JSON：`{"ok": true, "data": {...}}` 或 `{"ok": false, "error": "...", "code": "..."}`。
+- **术语约束**：用 `chunk` 表示 `<!-- @id:xxx -->` 标注的文档单元；不要恢复 `block`。
 
 ## 版本原子性（核心心智模型）
 
-- **commit 即锁定**：`prdv1 commit` 锁定 PRD，`impl commit` 锁定 impl。锁定后本版本不可改。
-- **无局部撤销**：要反悔只能 `version reset <vX.Y> --confirm` 整版重置（物理删除，不留快照）。merged 版本不可 reset。
-- 一个版本是「全有或全无」的原子单元。
+- **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定；legacy `prdv1 commit`/`impl commit` 锁对应文档。锁定后本版本不可改。
+- **无局部撤销**：要反悔只能 `version reset <vX.Y> --confirm` 整版重置（物理删除）。merged 版本不可 reset。
+- 一个版本是「全有或全无」的原子单元；`version confirm` 两阶段合入基线 + 一次 git commit，失败回退。
 
-## Pipeline
+## Pipeline（主线：新模型）
 
 ```text
-/ait init                       → 引导生成全局基线 docs/global/*（仅在项目无任何版本时允许）
-/ait prdv1 create "<title>"       → 讨论并写 PRD（四段结构）→ confirm 写工作区 → commit 锁定
-/ait impl create <prd-chunk>    → 设计实现（1 PRD chunk → N impl，可带 @extract）→ commit（pre-merge 校验）锁定
-/ait task create <prd-chunk>    → 从 specgraph 派生 task YAML（impl_refs/global_refs/deps）
-/ait task execute <id>          → 输出聚焦 context bundle 供 AI 编码
-/ait task complete <id>         → 自动收口：标 done + 绑定 code_refs（无 task confirm）
-/ait version confirm <vX.Y>     → 预检(全done+git干净)→合入基线→提取动态global→git commit(msg=title)
+/ait init --new-model --name <proj>   → 生成 docs/{prd,fsd,tdd} + [PRD]/[FSD] 根 + decomposes 边
+/ait prd create <[PRD]-id> ...         → 新模型 PRD（直写版本工作区，可 --action modify --overrides）
+/ait fsd create <[FSD]-id> ...         → FSD 功能分解（根/内部 split），fsd link 显式建边
+/ait tdd create <[TDD]-id> ...         → 叶子 TDD，必含 target_file（唯一映射一个生成目标文件）
+/ait fsd link <src> <dst> --rel ...    → decomposes / details / depends_on（关系不从命名推断）
+/ait specgraph validate-new-model      → 图合法性 + target_file 唯一性（重复报 DUPLICATE_TARGET_FILE）
+/ait version commit <v>                → 全部 working chunk → committed（锁定）
+/ait version confirm <v>               → 预检(git 干净)→合入基线→git commit
+/ait codegen prepare <[TDD]-id>        → 上溯 FSD/PRD + 旁取依赖 + target_file，输出聚焦上下文驱动编码
+```
+
+> 关系三种：`decomposes`(PRD/FSD→FSD)、`details`(叶 FSD→TDD)、`depends_on`(同父兄弟 split)。
+> ID：`[PRD]/[FSD]/[TDD]` 前缀、名内 `_`、层级 `-`、内部 split 用 `<父根id>:<split名>`。
+
+### legacy Pipeline（旧模型，遗留）
+
+```text
+/ait prdv1 create "<title>"   → 四段结构 PRD（req 草稿）→ confirm → commit 锁定
+/ait impl create <prd-chunk>  → 1 PRD→N impl（可 @extract）→ commit（pre-merge）锁定
+/ait task create/execute/complete → 派生 task、聚焦上下文、回写 code_refs → version confirm
 ```
 
 ## Project Layout
 
 ```text
-<cwd>/
-└── project-docs/
-    ├── docs/
-    │   ├── prd/
-    │   ├── impl/
-    │   └── global/                    # init 生成：overview/tech-stack(static) + ddl/schema/api(dynamic)
-    ├── versions/{vX.Y}/
-    │   ├── prd/  ├── impl/  ├── tasks/T-*.yaml  └── state.md
-    └── .meta/
-        ├── chunks-index.yaml          # baseline chunk 台账（状态视角）
-        ├── chunks-index-{vX.Y}.yaml   # version chunk 台账
-        ├── specgraph.yaml             # baseline 关系图（关系视角，替代 links-index）
-        ├── specgraph-{vX.Y}.yaml      # 每版本关系图（分文件）
-        ├── requirements/req-NNN.yaml
-        ├── versions/{vX.Y}.yaml       # 版本 meta（phase/锁定/title）
-        └── changes/chg-NNN.yaml
+<cwd>/project-docs/
+├── docs/{prd,fsd,tdd}/        # 新模型基线（confirm 合入）；legacy: docs/{impl,global}/
+├── versions/{vX.Y}/{prd,fsd,tdd,impl,tasks}/ + state.md
+└── .meta/  chunks-index[-vX.Y].yaml（块状态）· specgraph[-vX.Y].yaml（块关系）·
+           versions/{vX.Y}.yaml · changes/chg-NNN.yaml · requirements/req-NNN.yaml
 ```
 
-> `links-index.yaml` 已废弃，所有关系查询走 specgraph。chunks-index 管「块自身状态」，specgraph 管「块之间关系」。
-
-若当前目录没有 `project-docs/`，或位于 `project-docs/` 内部，应复述 CLI 错误码并提示切换到项目根目录；不要自动 scaffold。
+> chunks-index 管「块自身状态」，specgraph 管「块之间关系」；均 baseline + per-version 分文件。`links-index.yaml` 已废弃。
 
 ## Command Quick Reference
 
 | User trigger | CLI | Routed skill |
 |---|---|---|
-| `/ait init` | `~/.claude/skills/ait/bin/ait init`（引导命令；wrapper 尚未生成） | `ait-init-guide` |
-| `/ait prdv1 <title>` | `project-docs/.ait/ait-cli prdv1 create/save-draft/confirm` | `ait-discuss` |
-| `/ait prdv1 commit ...` | `project-docs/.ait/ait-cli prdv1 commit ... -m ...`（锁定 PRD） | main |
-| `/ait prdv1 show ...` | `project-docs/.ait/ait-cli prdv1 show ...` | main |
-| `/ait impl <prd-chunk-id>` | `project-docs/.ait/ait-cli context ...` + `project-docs/.ait/ait-cli impl create` | `ait-impl-discuss` |
-| `/ait impl commit ...` | `project-docs/.ait/ait-cli impl commit ... -m ...`（pre-merge 校验+锁定） | main |
-| `/ait impl show ...` | `project-docs/.ait/ait-cli impl show ...` | main |
-| `/ait task create [chunk]` | `project-docs/.ait/ait-cli task create [chunk]` | main |
-| `/ait task execute [id]` | `project-docs/.ait/ait-cli task execute [id]` → 驱动 AI 编码 → `task complete/fail` | main |
-| `/ait task list\|show` | `project-docs/.ait/ait-cli task list\|show ...` | `ait-state` |
-| `/ait version confirm <v>` | `project-docs/.ait/ait-cli version confirm <v>` | main |
-| `/ait version reset <v>` | `project-docs/.ait/ait-cli version reset <v> --confirm` | `ait-resume` |
-| `/ait version status <v>` | `project-docs/.ait/ait-cli version status <v>` | `ait-state` |
+| `/ait init [--new-model --name]` | `~/.claude/skills/ait/bin/ait init`（首次） | `ait-init-guide` |
+| `/ait prd create\|link ...` | `project-docs/.ait/ait-cli prd create\|link ...`（新模型 PRD） | main |
+| `/ait fsd create\|link ...` | `project-docs/.ait/ait-cli fsd ...` | main |
+| `/ait tdd create ...` | `project-docs/.ait/ait-cli tdd create ...`（必含 target_file） | main |
+| `/ait codegen prepare <[TDD]-id>` | `project-docs/.ait/ait-cli codegen prepare ...` → 驱动 AI 编码 | main |
+| `/ait specgraph validate-new-model` | `project-docs/.ait/ait-cli specgraph validate-new-model` | main |
+| `/ait version commit\|confirm\|reset <v>` | `project-docs/.ait/ait-cli version ...` | `ait-resume`（reset/错误） |
 | `/ait state [--version v]` | `project-docs/.ait/ait-cli state ...` | `ait-state` |
-| `/ait search <query>` | `project-docs/.ait/ait-cli search <query>` | main |
-| `/ait context <chunk-id>` | `project-docs/.ait/ait-cli context <chunk-id>` | main |
-| `/ait specgraph\|deps\|impact ...` | `project-docs/.ait/ait-cli specgraph\|deps\|impact ...` | main |
-| CLI error recovery | inspect `code` and `error` | `ait-resume` |
+| `/ait search\|context\|specgraph\|deps\|impact ...` | `project-docs/.ait/ait-cli ...` | main |
+| **legacy** `/ait prdv1 <title>` | `project-docs/.ait/ait-cli prdv1 create/save-draft/confirm/commit` | `ait-discuss` |
+| **legacy** `/ait impl <prd-chunk>` | `project-docs/.ait/ait-cli impl create/commit` | `ait-impl-discuss` |
+| **legacy** `/ait task create\|execute\|complete` | `project-docs/.ait/ait-cli task ...` | `ait-task-execute` |
+| CLI error recovery | inspect `code` / `error` | `ait-resume` |
 
-## task execute 的职责边界（重要）
+## codegen 的职责边界（重要）
 
-`task execute` **不写代码**。它把任务标记为 `executing`，并输出一个 token 聚焦的 context bundle（只含该 task 的 `impl_refs ∪ global_refs`，不读全树）。Skill 层据此驱动 AI 编码，完成后调用：
-
-- `project-docs/.ait/ait-cli task complete <id> --commit <hash> --path <file>` → 标 done + 绑定 code_refs
-- `project-docs/.ait/ait-cli task fail <id>` → 标 failed（可重跑 execute）
-
-没有 `task confirm`——execute 成功即收口，人工审核统一到 `version confirm`。
+`codegen prepare` **不写代码**。它解析 TDD 根 chunk 的 `target_file`，沿 specgraph 上溯父 FSD split→FSD 根→PRD、旁取 `depends_on` 兄弟契约，输出 token 聚焦的 context bundle（无活动版本时回退 baseline 解析）。Skill 层据此驱动 AI 编码。legacy `task execute` 同理输出 `impl_refs ∪ global_refs` bundle，完成调 `task complete/fail` 收口（无 task confirm）。
 
 ## Sub-skills 索引
 
 | Sub-skill | Trigger | Purpose |
 |---|---|---|
-| `ait-discuss` | `/ait prdv1 <title>` 创建/讨论 PRD | Clarify → Design → Generate，CLI 保存草稿与确认 PRD。 |
-| `ait-impl-discuss` | `/ait impl <prd-chunk-id>` 规划/生成 impl | 读上下文、生成 impl chunk（含 @extract）、CLI 注册到版本工作区。 |
-| `ait-state` | 查看/刷新 `state.md`、询问版本进度、chunk 三态、impl 覆盖、task 状态 | 调用 `state [--save]` 渲染面板，并兼任进度查询、未完成项叙述。 |
-| `ait-resume` | CLI 返回错误或要求恢复中断流程 | 根据 JSON `code` 给恢复步骤（含 version reset 指引）。 |
-| `ait-init-guide` | `/ait init` 进入差异补全模式时使用 | init 进入差异补全模式时，逐项确认 global 文件是否补齐；不再做新/旧项目判别（CLI 自识别）。 |
+| `ait-state` | 查看/刷新 `state.md`、版本进度、chunk 三态、task 状态 | 调 `state [--save]` 渲染面板，兼进度查询。 |
+| `ait-resume` | CLI 返回错误或要求恢复中断流程 | 据 JSON `code` 给恢复步骤（含 version reset）。 |
+| `ait-init-guide` | `/ait init` 进入差异补全模式 | 逐项确认 global 文件是否补齐。 |
+| `ait-discuss` (legacy) | `/ait prdv1 <title>` 创建/讨论 legacy PRD | Clarify → Design → Generate，CLI 存草稿/确认。 |
+| `ait-impl-discuss` (legacy) | `/ait impl <prd-chunk-id>` 规划/生成 impl | 读上下文、生成 impl chunk（含 @extract）、注册。 |
+| `ait-task-execute` (legacy) | `/ait task execute` 驱动 AI 编码 | 据聚焦 bundle 编码，完成调 task complete/fail。 |
 
 ## Required Knowledge
 
-参考文档位于 skill 内 `references/`：
-
-- `chunk-system.md`：`@id` / `@ref` / `@extract` 规范。
-- `index-system.md`：baseline/version index 与 specgraph 语义。
-- `chunk-parser.md`：chunk 与 @extract 解析边界。
-- `version-manager.md`：三态提交、锁定、confirm、reset。
-- `merge-engine.md`：merge 与动态 global 提取。
-- `overview.md`：设计边界。
+参考文档位于 skill 内 `references/`：`chunk-system.md`（@id/@ref/@extract）·`index-system.md`（index/specgraph 语义）·`chunk-parser.md`·`version-manager.md`（三态/confirm/reset）·`merge-engine.md`（按存在性逐 chunk merge，绝不丢 chunk）·`overview.md`（设计边界）。
 
 ## Common Pitfalls
 
 | Code / symptom | Likely cause | Recovery |
 |---|---|---|
-| `LOCKED` | 试图改已 commit 的 PRD/impl | 锁定后不可改；要改用 `version reset <v> --confirm` 整版重来。 |
-| `ID_FORMAT` | chunk ID 含大写/下划线/非法字符 | 改为 `{type}-{domain}-{name}` 小写短横线。 |
-| `PRD_NOT_COMMITTED` | impl 引用的 PRD chunk 仍 working/staged | 先 `project-docs/.ait/ait-cli prdv1 commit <prd-file> -m "..."`。 |
-| `PREMERGE_FAILED` | impl commit 时检出依赖成环或版本内重复（同 @id / 同 @extract 目标） | 修正 impl 设计后重新 commit。 |
-| `PRD_NOT_LOCKED` | task create 时 PRD 未锁定 | 先 `prdv1 commit` 锁定 PRD。 |
-| `NO_IMPL` | task create 的 PRD chunk 无 impl 覆盖 | 先为该 PRD chunk 设计 impl。 |
-| `BLOCKED` | task execute 的依赖 task 未 done | 先执行其 `depends_on` 的上游 task。 |
-| `TASK_NOT_DONE` | version confirm 时有 task 非 done | 先跑完/修复所有 task。 |
-| `GIT_DIRTY` | version confirm 时 git 工作区不干净 | 先提交/暂存改动，或加 `--allow-dirty-git`。 |
-| `MERGE_ROLLBACK` | confirm 的 merge/commit 阶段失败 | docs/ 已自动回退；查 error 详情修复后重试。 |
+| `DUPLICATE_TARGET_FILE` | 两个 TDD 声明同一 `target_file` | 改为各自唯一文件（目标2：不撞同一文件）。 |
+| `TDD_TARGET_FILE_REQUIRED` | TDD 缺 `target_file` | TDD 必须含 `target_file`。 |
+| 新模型图非法（FSD_MIXED_CHILDREN / DEPENDS_ON_*） | FSD 混 FSD/TDD 子、depends_on 跨级 | 见 `validate-new-model` 违规说明修正。 |
+| `MERGE_NO_COMMITTED` / `no metadata` | 新模型版本未 `version commit` / 未经 CLI 建版本 | 先 `version commit <v>`；版本 meta 由新模型 create 自动建。 |
+| `LOCKED` | 改已 commit 的 chunk | 锁定后不可改；用 `version reset <v> --confirm`。 |
+| `ID_FORMAT` | chunk ID 非法字符 | 新模型用 `[PRD]/[FSD]/[TDD]` 前缀；legacy 用 `{type}-{domain}-{name}` 小写短横线。 |
+| `GIT_DIRTY` | confirm 时 git 不干净 | 先提交/暂存，或 `--allow-dirty-git`。 |
+| `MERGE_ROLLBACK` | confirm 的 merge/commit 失败 | docs/ 已自动回退；查 error 修复后重试。 |
 | `NOT_AT_PROJECT_ROOT` / `CWD_INSIDE_PROJECT_DOCS` | 运行目录不对 | 切到包含 `project-docs/` 的父目录。 |
-| `ENOENT_BIN_AIT`（虚拟码，shell 错误：`no such file or directory: bin/ait` 或 `command not found: ait`） | 在用户项目根用了相对路径 `bin/ait` 调用 CLI；shell 找不到入口，CLI 不会执行 | 改用 `project-docs/.ait/ait-cli <subcmd>`；若该薄壳不存在，先跑 `~/.claude/skills/ait/bin/ait init --refresh-wrapper` 生成。注：此 code **非** CLI 真实返回，仅为文档兜底标识，不在 `ait/schemas.py` 注册，也不进入 `ait-resume` 处理链路。 |
+| **legacy** `PRD_NOT_COMMITTED`/`PRD_NOT_LOCKED`/`NO_IMPL`/`TASK_NOT_DONE` | 旧流水线前置未满足 | 先 `prdv1 commit` / 补 impl / 跑完 task。 |
 
 ## Scope Boundaries
 
-- AI 编码由 Skill 层驱动；CLI 只负责派生 task、输出聚焦上下文、记录 code_refs，不直接生成业务代码。
-- 不提供多用户协作锁。
-- 不提供系统级全局 `ait` 命令。
-- 不支持 `/ait:foo` colon 命名空间；skill 触发使用 `/ait foo`。
-- 不绕过 CLI 直接修改 AIT 管理文档或 `.meta`。
-- 动态 global（ddl/schema/api）内容只来自 impl 的 @extract，不接受人工直接编辑。
+- AI 编码由 Skill 层驱动；CLI 只派生上下文、记录绑定，不直接生成业务代码。
+- 不提供多用户协作锁；不提供系统级全局 `ait`；不支持 `/ait:foo` colon 命名空间（用 `/ait foo`）。
+- 不绕过 CLI 直接改 AIT 管理文档或 `.meta`。
+- 新模型关系不从命名推断，必须显式建 specgraph 边；每个 TDD 唯一映射一个 `target_file`。
+- legacy：动态 global（ddl/schema/api）只来自 impl 的 `@extract`，不接受人工直接编辑。
