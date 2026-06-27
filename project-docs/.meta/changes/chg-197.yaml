@@ -1,0 +1,16 @@
+id: chg-197
+version: v2.12
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:deps
+author: system
+date: '2026-06-27T11:17:44.596845+00:00'
+message: 'v2.12: generative specgraph domain (specgraph/deps/impact)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:deps -->
+
+  ## deps
+
+  ### 功能描述
+
+  `query_deps(target,direction)`：解析 target→URI，返回该 chunk 的 in/out/both 关系边。详见 [TDD]-deps。'

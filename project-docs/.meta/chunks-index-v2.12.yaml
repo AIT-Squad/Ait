@@ -1,0 +1,128 @@
+version: 1
+scope: version
+version_name: v2.12
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-specgraph'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:deps'
+  file: fsd/[FSD]-ait-specgraph
+  heading: deps
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:impact'
+  file: fsd/[FSD]-ait-specgraph
+  heading: impact
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-specgraph'
+  file: tdd/[TDD]-specgraph
+  heading: specgraph TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-specgraph'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-deps'
+  file: tdd/[TDD]-deps
+  heading: deps TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-deps'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-impact'
+  file: tdd/[TDD]-impact
+  heading: impact TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-impact'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T11:17:44.768076+00:00'
+  message: 'v2.12: generative specgraph domain (specgraph/deps/impact)'
+  chunks:
+  - '[FSD]-ait-specgraph'
+  - '[FSD]-ait-specgraph:specgraph'
+  - '[FSD]-ait-specgraph:deps'
+  - '[FSD]-ait-specgraph:impact'
+  - '[TDD]-specgraph'
+  - '[TDD]-deps'
+  - '[TDD]-impact'
+  req_id: null
+stats:
+  total_chunks: 7
+  by_action:
+    modify: 7
+  by_state:
+    committed: 7
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

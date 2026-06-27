@@ -1,0 +1,81 @@
+version: 1
+updated: '2026-06-27T11:17:45.034915+00:00'
+specs:
+- uri: spec:fsd:v2.12:[FSD]-ait-specgraph
+  title: specgraph FSD
+  type: fsd
+  version: v2.12
+  chunk_id: '[FSD]-ait-specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.12:[FSD]-ait-specgraph:deps
+  title: deps
+  type: fsd
+  version: v2.12
+  chunk_id: '[FSD]-ait-specgraph:deps'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.12:[FSD]-ait-specgraph:impact
+  title: impact
+  type: fsd
+  version: v2.12
+  chunk_id: '[FSD]-ait-specgraph:impact'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.12:[FSD]-ait-specgraph:specgraph
+  title: specgraph
+  type: fsd
+  version: v2.12
+  chunk_id: '[FSD]-ait-specgraph:specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.12:[TDD]-deps
+  title: deps TDD
+  type: tdd
+  version: v2.12
+  chunk_id: '[TDD]-deps'
+  file: tdd/[TDD]-deps
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.12:[TDD]-impact
+  title: impact TDD
+  type: tdd
+  version: v2.12
+  chunk_id: '[TDD]-impact'
+  file: tdd/[TDD]-impact
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.12:[TDD]-specgraph
+  title: specgraph TDD
+  type: tdd
+  version: v2.12
+  chunk_id: '[TDD]-specgraph'
+  file: tdd/[TDD]-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []
