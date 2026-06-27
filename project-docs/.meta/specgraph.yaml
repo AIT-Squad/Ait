@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T11:29:37.298829+00:00'
+updated: '2026-06-27T11:29:40.382549+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -17,6 +17,9 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli:cli
   title: cli
   type: fsd
@@ -25,6 +28,9 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-context
   title: context FSD
   type: fsd
@@ -113,6 +119,9 @@ specs:
   file: fsd/[FSD]-ait-impl
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-impl:impl_manager
   title: impl_manager
   type: fsd
@@ -121,6 +130,9 @@ specs:
   file: fsd/[FSD]-ait-impl
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing
   title: indexing FSD
   type: fsd
@@ -153,6 +165,9 @@ specs:
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-init:init_manager
   title: init_manager
   type: fsd
@@ -161,6 +176,9 @@ specs:
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint
   title: lint FSD
   type: fsd
@@ -217,6 +235,9 @@ specs:
   file: fsd/[FSD]-ait-prd
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd:prd_manager
   title: prd_manager
   type: fsd
@@ -225,6 +246,9 @@ specs:
   file: fsd/[FSD]-ait-prd
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-search
   title: search FSD
   type: fsd
@@ -393,6 +417,9 @@ specs:
   file: fsd/[FSD]-ait-task
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-task:task_manager
   title: task_manager
   type: fsd
@@ -401,6 +428,9 @@ specs:
   file: fsd/[FSD]-ait-task
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version
   title: version FSD
   type: fsd
@@ -577,6 +607,9 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -625,6 +658,9 @@ specs:
   file: tdd/[TDD]-impl_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-index_manager
   title: index_manager TDD
   type: tdd
@@ -641,6 +677,9 @@ specs:
   file: tdd/[TDD]-init_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-io_utils
   title: io_utils TDD
   type: tdd
@@ -689,6 +728,9 @@ specs:
   file: tdd/[TDD]-prd_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_new_model_format
   title: ref_new_model_format TDD
   type: tdd
@@ -801,6 +843,9 @@ specs:
   file: tdd/[TDD]-task_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-template_fsd
   title: template_fsd TDD
   type: tdd
