@@ -1,0 +1,34 @@
+<!-- @id:[TDD]-specgraph -->
+## specgraph TDD
+
+```yaml
+target_file: skill/ait/ait/specgraph.py
+```
+
+### 技术栈
+Python 3.10+；`dataclasses`、`pathlib`、`yaml`(经 io_utils 原子写)；依赖 `chunk_parser`(parse_file)、`index_manager`、`io_utils`。
+
+### 数据结构（@dataclass）
+- `Spec{uri, chunk_id, title, type, version, file, metadata:dict}`。
+- `Edge{src, dst, rel, weight=1.0, metadata:dict}`。
+- `SpecGraph{specs:dict[uri,Spec], edges:list[Edge]}`。
+
+### URI 体系
+`spec:{type}:{version}:{chunk_id}`（type∈prd/impl/fsd/tdd/global/task；version="baseline" 或 vX.Y）。`make_uri/parse_uri/spec_type`(由 file 位置/前缀定 type)。
+
+### 代码结构（SpecGraph 方法）
+- `load(path)`(classmethod，从 yaml 读 specs/edges)、`save(path)`(原子写)。
+- `add_spec/add_edge(src,dst,rel,weight,metadata)`。
+- `query(uri,*,direction="out",rel=None)`、`dependencies`、`implementations`、`impacted(uri)`(反向可达闭包)、`detect_cycle(*,rels)`、`implements_of(prd_chunk_id,version)`。
+- `dry_run_merge(other)->SpecGraph`(内存合并 baseline+version 供查询)、`merge_into_baseline(version)`(把版本边/spec 提升进 baseline)、`export_dot()`。
+
+### 模块函数（核心算法）
+- `specgraph_path(root,version)`、`load_specgraph(root,version="baseline")`、`combined_specgraph(root,version=None)`(baseline + 可选版本 dry_run_merge)。
+- `sync_specgraph(root)`：**从所有 docs/ 与 versions/ 的 markdown 重建图**——parse_file 取 chunks/refs，按 file 位置定 type 建 Spec，@ref 建 Edge；然后 `_preserve_explicit_edges(previous,current)` 把上一版图里**非 @ref 来源（fsd link/add_edge，metadata source）的显式边**搬回 current（保证 reindex 不丢 CLI 加的 decomposes/details/depends_on）。
+- `_global_category(chunk_id,file)`、`resolve_chunk_uri(root,chunk_id_or_uri,version,*,graph)`(chunk id→URI，version 优先)、`_preferred_uri`、`add_edge(root,src,dst,rel)`。
+
+### 关键约定
+markdown @ref 是声明式边的来源；CLI 显式边靠 _preserve_explicit_edges 跨 reindex 存活；baseline 与 per-version 分文件，combined 供查询。
+
+### 单元测试要求
+`tests/test_specgraph*.py`、`test_specgraph_orphan_guard.py`：建图、URI 解析、impacted/cycle、dry_run_merge、显式边经 sync 保留。pytest。
