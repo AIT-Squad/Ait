@@ -1,0 +1,18 @@
+id: chg-159
+version: v2.7
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:subskill_ait_init_guide
+author: system
+date: '2026-06-27T10:17:10.430411+00:00'
+message: 'v2.7 spec: ship templates + new-model-format ref in skill'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:subskill_ait_init_guide -->
+
+  ## subskill_ait_init_guide
+
+
+  ### 功能描述
+
+
+  init 差异补全引导 sub-skill：逐项确认 global 文件是否补齐。'

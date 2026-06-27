@@ -1,0 +1,18 @@
+id: chg-158
+version: v2.7
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:subskill_ait_impl_discuss
+author: system
+date: '2026-06-27T10:17:10.413660+00:00'
+message: 'v2.7 spec: ship templates + new-model-format ref in skill'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:subskill_ait_impl_discuss -->
+
+  ## subskill_ait_impl_discuss
+
+
+  ### 功能描述
+
+
+  impl 规划 sub-skill：读上下文、生成 impl chunk（含 @extract）、注册到版本工作区。'
