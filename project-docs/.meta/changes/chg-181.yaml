@@ -1,0 +1,17 @@
+id: chg-181
+version: v2.9
+type: MODIFY
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model:chunk_parser
+author: system
+date: '2026-06-27T11:09:14.137523+00:00'
+message: 'v2.9: generative doc_model (chunk_parser/schemas)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-doc_model:chunk_parser -->
+
+  ## chunk_parser
+
+  ### 功能描述
+
+  chunk 级 markdown 解析（边界由 `<!-- @id -->` 而非标题层级决定）。识别 @id/@ref/@extract/@summary/@prd-no-impl；code-fence 内屏蔽避免误匹配；file_header=首个
+  @id 前内容；@ref 归属所在 chunk；@extract 块成对解析（嵌套/未闭合报错）。支持 legacy 与 `[PRD]/[FSD]/[TDD]` 两类 ID。'

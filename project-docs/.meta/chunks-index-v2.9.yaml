@@ -1,0 +1,98 @@
+version: 1
+scope: version
+version_name: v2.9
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-doc_model'
+  file: fsd/[FSD]-ait-doc_model
+  heading: doc_model FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-doc_model'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-doc_model:chunk_parser'
+  file: fsd/[FSD]-ait-doc_model
+  heading: chunk_parser
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-doc_model:schemas'
+  file: fsd/[FSD]-ait-doc_model
+  heading: schemas
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-chunk_parser'
+  file: tdd/[TDD]-chunk_parser
+  heading: chunk_parser TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-chunk_parser'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-schemas'
+  file: tdd/[TDD]-schemas
+  heading: schemas TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-schemas'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T11:09:14.322935+00:00'
+  message: 'v2.9: generative doc_model (chunk_parser/schemas)'
+  chunks:
+  - '[FSD]-ait-doc_model'
+  - '[FSD]-ait-doc_model:chunk_parser'
+  - '[FSD]-ait-doc_model:schemas'
+  - '[TDD]-chunk_parser'
+  - '[TDD]-schemas'
+  req_id: null
+stats:
+  total_chunks: 5
+  by_action:
+    modify: 5
+  by_state:
+    committed: 5
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

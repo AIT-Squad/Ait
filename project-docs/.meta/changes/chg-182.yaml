@@ -1,0 +1,17 @@
+id: chg-182
+version: v2.9
+type: MODIFY
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model:schemas
+author: system
+date: '2026-06-27T11:09:14.147850+00:00'
+message: 'v2.9: generative doc_model (chunk_parser/schemas)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-doc_model:schemas -->
+
+  ## schemas
+
+  ### 功能描述
+
+  全部 `.meta` YAML 的 pydantic 模型（StrictModel：extra=forbid、populate_by_name）。覆盖 config/baseline index/version index/version
+  meta/requirement/change/task。summary ≤120 校验；version meta 含 phase/锁定/title 原子性字段。'
