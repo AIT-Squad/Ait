@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T11:17:47.768749+00:00'
+updated: '2026-06-27T11:17:49.243018+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -345,9 +345,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:deps
   title: deps
   type: fsd
@@ -356,9 +353,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -367,9 +361,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:specgraph
   title: specgraph
   type: fsd
@@ -378,9 +369,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state
   title: state FSD
   type: fsd
@@ -605,9 +593,6 @@ specs:
   file: tdd/[TDD]-deps
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-format_validator
   title: format_validator TDD
   type: tdd
@@ -632,9 +617,6 @@ specs:
   file: tdd/[TDD]-impact
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-impl_manager
   title: impl_manager TDD
   type: tdd
@@ -755,9 +737,6 @@ specs:
   file: tdd/[TDD]-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-state
   title: state TDD
   type: tdd
