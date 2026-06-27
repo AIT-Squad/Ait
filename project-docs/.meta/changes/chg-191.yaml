@@ -1,0 +1,17 @@
+id: chg-191
+version: v2.11
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_manager
+author: system
+date: '2026-06-27T11:15:51.206664+00:00'
+message: 'v2.11: generative new_model domain'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_manager -->
+
+  ## new_model_manager
+
+  ### 功能描述
+
+  NewModelManager：create_prd/fsd/tdd（_create_document：解析→ensure 版本→write_version_file→注册 chunk→sync_specgraph）、add_edge、prepare_codegen（上溯+依赖+target_file，无版本回退
+  baseline）、collect_tdd_target_files。详见 [TDD]-new_model_manager。'

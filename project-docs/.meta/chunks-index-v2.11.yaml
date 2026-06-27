@@ -1,0 +1,98 @@
+version: 1
+scope: version
+version_name: v2.11
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-new_model'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_validator
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-new_model_manager'
+  file: tdd/[TDD]-new_model_manager
+  heading: new_model_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-new_model_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-new_model_validator'
+  file: tdd/[TDD]-new_model_validator
+  heading: new_model_validator TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-new_model_validator'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T11:15:51.339181+00:00'
+  message: 'v2.11: generative new_model domain'
+  chunks:
+  - '[FSD]-ait-new_model'
+  - '[FSD]-ait-new_model:new_model_manager'
+  - '[FSD]-ait-new_model:new_model_validator'
+  - '[TDD]-new_model_manager'
+  - '[TDD]-new_model_validator'
+  req_id: null
+stats:
+  total_chunks: 5
+  by_action:
+    modify: 5
+  by_state:
+    committed: 5
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

@@ -1,0 +1,16 @@
+id: chg-192
+version: v2.11
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_validator
+author: system
+date: '2026-06-27T11:15:51.211999+00:00'
+message: 'v2.11: generative new_model domain'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_validator -->
+
+  ## new_model_validator
+
+  ### 功能描述
+
+  图合法性（decomposes/details/depends_on 类型与根-split 规则、FSD 不混子）+ target_file 唯一性（DUPLICATE_TARGET_FILE）。详见 [TDD]-new_model_validator。'

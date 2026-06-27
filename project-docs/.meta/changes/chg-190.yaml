@@ -1,0 +1,38 @@
+id: chg-190
+version: v2.11
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model
+author: system
+date: '2026-06-27T11:15:51.169917+00:00'
+message: 'v2.11: generative new_model domain'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-new_model -->
+
+  ## new_model FSD
+
+
+  ### 功能范围
+
+
+  ait prd/fsd/tdd/codegen：新模型文档、显式建边、图校验、codegen 上下文。（新模型 PRD 命令取名 `prd`；旧模型 PRD 命令更名 `prdv1`）'
+new_content: '<!-- @id:[FSD]-ait-new_model -->
+
+  ## new_model FSD
+
+
+  ### 功能范围
+
+
+  新模型 PRD/FSD/TDD 文档与代码生成上下文。创建文档、显式建关系边、图合法性与 target_file 唯一性校验、codegen 上溯组装。
+
+
+  ### 交互契约
+
+
+  - 创建：`create_prd/create_fsd/create_tdd`（写版本工作区、ensure 版本 meta；TDD 必含 target_file）。
+
+  - 建边：`add_edge(src,dst,rel)` rel∈{decomposes,details,depends_on}。
+
+  - codegen：`prepare_codegen(version,tdd) -> CodegenBundle`（target_file + 上溯 FSD/PRD + 依赖契约）。
+
+  - 校验：`validate_prd_fsd_tdd_graph` + `validate_target_file_uniqueness`。'
