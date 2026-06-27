@@ -4,10 +4,10 @@
 
 - Title: `-`
 - Version: `v2.4`
-- Phase: `empty`
+- Phase: `merged`
 - PRD locked: `false`
 - Impl locked: `false`
-- Merged: `false`
+- Merged: `true`
 - PRD chunks: `0`
 - Impl chunks: `0`
 - Working: `0`

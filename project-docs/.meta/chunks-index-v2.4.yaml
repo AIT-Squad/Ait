@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.4
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-merge_engine'
   file: tdd/[TDD]-merge_engine

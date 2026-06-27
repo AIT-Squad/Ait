@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-27T07:21:06.291773+00:00'
+updated: '2026-06-27T09:22:23.904913+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -247,6 +247,96 @@ chunks:
   heading: ait 功能分解根
   level: 2
   summary: ait 根 FSD：功能分解与交互契约入口。
+  metadata: {}
+- id: '[FSD]-ait:init'
+  file: fsd/[FSD]-ait
+  heading: init 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:prd'
+  file: fsd/[FSD]-ait
+  heading: prd 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:impl'
+  file: fsd/[FSD]-ait
+  heading: impl 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:task'
+  file: fsd/[FSD]-ait
+  heading: task 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:version'
+  file: fsd/[FSD]-ait
+  heading: version 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:new_model'
+  file: fsd/[FSD]-ait
+  heading: new-model 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:specgraph'
+  file: fsd/[FSD]-ait
+  heading: specgraph 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:context'
+  file: fsd/[FSD]-ait
+  heading: context 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:state'
+  file: fsd/[FSD]-ait
+  heading: state 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:lint'
+  file: fsd/[FSD]-ait
+  heading: lint 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:search'
+  file: fsd/[FSD]-ait
+  heading: search 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:indexing'
+  file: fsd/[FSD]-ait
+  heading: indexing 域
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:cli'
+  file: fsd/[FSD]-ait
+  heading: cli 分发器
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:doc_model'
+  file: fsd/[FSD]-ait
+  heading: doc-model 基础设施
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:foundation'
+  file: fsd/[FSD]-ait
+  heading: foundation 基础设施
+  level: 2
+  summary: null
   metadata: {}
 - id: '[PRD]-ait'
   file: prd/[PRD]-ait
