@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T11:23:51.351072+00:00'
+updated: '2026-06-27T11:23:54.327014+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -33,6 +33,9 @@ specs:
   file: fsd/[FSD]-ait-context
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-context:context_assembler
   title: context_assembler
   type: fsd
@@ -41,6 +44,9 @@ specs:
   file: fsd/[FSD]-ait-context
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model
   title: doc_model FSD
   type: fsd
@@ -169,6 +175,9 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint:format_validator
   title: format_validator
   type: fsd
@@ -177,6 +186,9 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint:validator
   title: validator
   type: fsd
@@ -185,6 +197,9 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model
   title: new_model FSD
   type: fsd
@@ -233,6 +248,9 @@ specs:
   file: fsd/[FSD]-ait-search
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-search:search
   title: search
   type: fsd
@@ -241,6 +259,9 @@ specs:
   file: fsd/[FSD]-ait-search
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill
   title: skill FSD
   type: fsd
@@ -377,6 +398,9 @@ specs:
   file: fsd/[FSD]-ait-state
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state:state
   title: state
   type: fsd
@@ -385,6 +409,9 @@ specs:
   file: fsd/[FSD]-ait-state
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-task
   title: task FSD
   type: fsd
@@ -585,6 +612,9 @@ specs:
   file: tdd/[TDD]-context_assembler
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-deps
   title: deps TDD
   type: tdd
@@ -601,6 +631,9 @@ specs:
   file: tdd/[TDD]-format_validator
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-hash_utils
   title: hash_utils TDD
   type: tdd
@@ -721,6 +754,9 @@ specs:
   file: tdd/[TDD]-search
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-skill_manifest
   title: skill_manifest TDD
   type: tdd
@@ -745,6 +781,9 @@ specs:
   file: tdd/[TDD]-state
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-subskill_ait_discuss
   title: subskill_ait_discuss TDD
   type: tdd
@@ -833,6 +872,9 @@ specs:
   file: tdd/[TDD]-validator
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-version_manager
   title: version_manager TDD
   type: tdd
