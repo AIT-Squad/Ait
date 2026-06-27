@@ -45,7 +45,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
     prd = runner.invoke(
         main,
         [
-            "prdv2", "create", "[PRD]-shop",
+            "prd", "create", "[PRD]-shop",
             "--version", "v9.0",
             "--content", "<!-- @id:[PRD]-shop -->\n## Shop PRD\n",
         ],
@@ -65,7 +65,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
     )
     link = runner.invoke(
         main,
-        ["prdv2", "link", "[PRD]-shop", "[FSD]-shop", "--rel", "decomposes", "--version", "v9.0"],
+        ["prd", "link", "[PRD]-shop", "[FSD]-shop", "--rel", "decomposes", "--version", "v9.0"],
         catch_exceptions=False,
     )
     assert link.exit_code == 0, link.output

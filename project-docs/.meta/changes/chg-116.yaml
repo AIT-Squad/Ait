@@ -1,0 +1,16 @@
+id: chg-116
+version: v2.5
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:foundation
+author: system
+date: '2026-06-27T09:43:48.686479+00:00'
+message: 'v2.5 spec: rename prd->prdv1, prdv2->prd (new model primary)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:foundation -->
+
+  ## foundation 基础设施
+
+  ### 功能描述
+
+  root（项目根解析）+ io_utils（原子写）+ yaml_io（模型存取）+ hash_utils（chunk 哈希）。'

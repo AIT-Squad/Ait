@@ -40,7 +40,7 @@ description: INVOKE THIS SKILL when /ait init returns status=incomplete and the 
    │ ...          │ ...       │
    └──────────────┴───────────┘
    ```
-6. **后续指引**：若 `status` 已变 `ready`，引导用户跑 `prd create` 进入第一个版本；否则提示"还有 X 项待补，请稍后再跑 `/ait init`"。
+6. **后续指引**：若 `status` 已变 `ready`，引导用户跑 `prdv1 create` 进入第一个版本；否则提示"还有 X 项待补，请稍后再跑 `/ait init`"。
 
 ## Output Contract
 
@@ -53,7 +53,7 @@ description: INVOKE THIS SKILL when /ait init returns status=incomplete and the 
 
 | 现象 | 处理 |
 |---|---|
-| `--check` 返回 `status=ready` | 无需补全，引导用户跑 `prd create`。 |
+| `--check` 返回 `status=ready` | 无需补全，引导用户跑 `prdv1 create`。 |
 | `--check` 返回 `status=fresh` | 这是全新项目，直接调 `init`（无 `--skip`）执行 full bootstrap，不走差异补全。 |
 | `init` 之后 `chunks-index.yaml` 缺新增 chunk | 兜底跑 `reindex` 刷新。 |
 | 用户拒绝某项后又改主意 | 把对应 `docs/global/<name>.md` 删掉再跑 `init`，CLI 会重新视为 missing 并补全。 |
@@ -63,5 +63,5 @@ description: INVOKE THIS SKILL when /ait init returns status=incomplete and the 
 
 - 不直接写 `docs/global/*.md`（Global Contract：写入只能走 CLI）。
 - 不内嵌交互式输入框；逐项征询完全靠 AI ↔ 用户对话。
-- 不调用 `prd commit` / `impl commit`（那是后续阶段，由 ait-discuss / ait-impl-discuss 负责）。
+- 不调用 `prdv1 commit` / `impl commit`（那是后续阶段，由 ait-discuss / ait-impl-discuss 负责）。
 - 不实现"已 skipped 的文件用户后续手动补内容后自动重纳管"——只要文件含 `<!-- @id -->` CLI 即视为 present，已自然支持该场景。

@@ -1,0 +1,19 @@
+id: chg-120
+version: v2.5
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_manager
+author: system
+date: '2026-06-27T09:43:48.735929+00:00'
+message: 'v2.5 spec: rename prd->prdv1, prdv2->prd (new model primary)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_manager -->
+
+  ## new_model_manager
+
+
+  ### 功能描述
+
+
+  NewModelManager：create_prd/fsd/tdd（写版本工作区、ensure 版本 meta）、add_edge（decomposes/details/depends_on）、prepare_codegen（上溯 FSD/PRD
+  + 依赖契约 + target_file，无版本回退 baseline）、collect_tdd_target_files。'

@@ -17,7 +17,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 
 ## 版本原子性（核心心智模型）
 
-- **commit 即锁定**：`prd commit` 锁定 PRD，`impl commit` 锁定 impl。锁定后本版本不可改。
+- **commit 即锁定**：`prdv1 commit` 锁定 PRD，`impl commit` 锁定 impl。锁定后本版本不可改。
 - **无局部撤销**：要反悔只能 `version reset <vX.Y> --confirm` 整版重置（物理删除，不留快照）。merged 版本不可 reset。
 - 一个版本是「全有或全无」的原子单元。
 
@@ -25,7 +25,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 
 ```text
 /ait init                       → 引导生成全局基线 docs/global/*（仅在项目无任何版本时允许）
-/ait prd create "<title>"       → 讨论并写 PRD（四段结构）→ confirm 写工作区 → commit 锁定
+/ait prdv1 create "<title>"       → 讨论并写 PRD（四段结构）→ confirm 写工作区 → commit 锁定
 /ait impl create <prd-chunk>    → 设计实现（1 PRD chunk → N impl，可带 @extract）→ commit（pre-merge 校验）锁定
 /ait task create <prd-chunk>    → 从 specgraph 派生 task YAML（impl_refs/global_refs/deps）
 /ait task execute <id>          → 输出聚焦 context bundle 供 AI 编码
@@ -63,9 +63,9 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 | User trigger | CLI | Routed skill |
 |---|---|---|
 | `/ait init` | `~/.claude/skills/ait/bin/ait init`（引导命令；wrapper 尚未生成） | `ait-init-guide` |
-| `/ait prd <title>` | `project-docs/.ait/ait-cli prd create/save-draft/confirm` | `ait-discuss` |
-| `/ait prd commit ...` | `project-docs/.ait/ait-cli prd commit ... -m ...`（锁定 PRD） | main |
-| `/ait prd show ...` | `project-docs/.ait/ait-cli prd show ...` | main |
+| `/ait prdv1 <title>` | `project-docs/.ait/ait-cli prdv1 create/save-draft/confirm` | `ait-discuss` |
+| `/ait prdv1 commit ...` | `project-docs/.ait/ait-cli prdv1 commit ... -m ...`（锁定 PRD） | main |
+| `/ait prdv1 show ...` | `project-docs/.ait/ait-cli prdv1 show ...` | main |
 | `/ait impl <prd-chunk-id>` | `project-docs/.ait/ait-cli context ...` + `project-docs/.ait/ait-cli impl create` | `ait-impl-discuss` |
 | `/ait impl commit ...` | `project-docs/.ait/ait-cli impl commit ... -m ...`（pre-merge 校验+锁定） | main |
 | `/ait impl show ...` | `project-docs/.ait/ait-cli impl show ...` | main |
@@ -94,7 +94,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 
 | Sub-skill | Trigger | Purpose |
 |---|---|---|
-| `ait-discuss` | `/ait prd <title>` 创建/讨论 PRD | Clarify → Design → Generate，CLI 保存草稿与确认 PRD。 |
+| `ait-discuss` | `/ait prdv1 <title>` 创建/讨论 PRD | Clarify → Design → Generate，CLI 保存草稿与确认 PRD。 |
 | `ait-impl-discuss` | `/ait impl <prd-chunk-id>` 规划/生成 impl | 读上下文、生成 impl chunk（含 @extract）、CLI 注册到版本工作区。 |
 | `ait-state` | 查看/刷新 `state.md`、询问版本进度、chunk 三态、impl 覆盖、task 状态 | 调用 `state [--save]` 渲染面板，并兼任进度查询、未完成项叙述。 |
 | `ait-resume` | CLI 返回错误或要求恢复中断流程 | 根据 JSON `code` 给恢复步骤（含 version reset 指引）。 |
@@ -117,9 +117,9 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作 PRD/impl 文档的 chunk 级版本
 |---|---|---|
 | `LOCKED` | 试图改已 commit 的 PRD/impl | 锁定后不可改；要改用 `version reset <v> --confirm` 整版重来。 |
 | `ID_FORMAT` | chunk ID 含大写/下划线/非法字符 | 改为 `{type}-{domain}-{name}` 小写短横线。 |
-| `PRD_NOT_COMMITTED` | impl 引用的 PRD chunk 仍 working/staged | 先 `project-docs/.ait/ait-cli prd commit <prd-file> -m "..."`。 |
+| `PRD_NOT_COMMITTED` | impl 引用的 PRD chunk 仍 working/staged | 先 `project-docs/.ait/ait-cli prdv1 commit <prd-file> -m "..."`。 |
 | `PREMERGE_FAILED` | impl commit 时检出依赖成环或版本内重复（同 @id / 同 @extract 目标） | 修正 impl 设计后重新 commit。 |
-| `PRD_NOT_LOCKED` | task create 时 PRD 未锁定 | 先 `prd commit` 锁定 PRD。 |
+| `PRD_NOT_LOCKED` | task create 时 PRD 未锁定 | 先 `prdv1 commit` 锁定 PRD。 |
 | `NO_IMPL` | task create 的 PRD chunk 无 impl 覆盖 | 先为该 PRD chunk 设计 impl。 |
 | `BLOCKED` | task execute 的依赖 task 未 done | 先执行其 `depends_on` 的上游 task。 |
 | `TASK_NOT_DONE` | version confirm 时有 task 非 done | 先跑完/修复所有 task。 |

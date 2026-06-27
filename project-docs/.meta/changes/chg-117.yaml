@@ -1,0 +1,26 @@
+id: chg-117
+version: v2.5
+type: MODIFY
+target: fsd/[FSD]-ait-prd#[FSD]-ait-prd
+author: system
+date: '2026-06-27T09:43:48.707796+00:00'
+message: 'v2.5 spec: rename prd->prdv1, prdv2->prd (new model primary)'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-prd -->
+
+  ## prd FSD
+
+
+  ### 功能范围
+
+
+  ait prd：四段结构 PRD、req 草稿、confirm 写工作区、commit 锁定。'
+new_content: '<!-- @id:[FSD]-ait-prd -->
+
+  ## prd FSD
+
+
+  ### 功能范围
+
+
+  ait prdv1：四段结构 PRD、req 草稿、confirm 写工作区、commit 锁定。（旧模型 PRD 命令，由 `prd` 更名 `prdv1`；`prd` 现归新模型）'

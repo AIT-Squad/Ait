@@ -52,7 +52,7 @@ def _seed_baseline(root: Path, runner: CliRunner) -> None:
 def test_candidates_written_to_workspace(cli_project: Path, tmp_path: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    _parse(_run(runner, "prd", "create", "candidate-test").output)
+    _parse(_run(runner, "prdv1", "create", "candidate-test").output)
     source = tmp_path / "candidates.yaml"
     candidate_data = {
         "modify_candidates": [
@@ -70,7 +70,7 @@ def test_candidates_written_to_workspace(cli_project: Path, tmp_path: Path):
     }
     source.write_text(yaml.safe_dump(candidate_data, allow_unicode=True, sort_keys=False), encoding="utf-8")
 
-    res = _run(runner, "prd", "resolve-candidates", "--from-file", str(source))
+    res = _run(runner, "prdv1", "resolve-candidates", "--from-file", str(source))
     payload = _parse(res.output)
 
     assert res.exit_code == 0
@@ -82,7 +82,7 @@ def test_candidates_written_to_workspace(cli_project: Path, tmp_path: Path):
 def test_chunk_id_collision_baseline(cli_project: Path, tmp_path: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    _parse(_run(runner, "prd", "create", "candidate-test").output)
+    _parse(_run(runner, "prdv1", "create", "candidate-test").output)
     source = tmp_path / "candidates.yaml"
     source.write_text(
         yaml.safe_dump(
@@ -97,7 +97,7 @@ def test_chunk_id_collision_baseline(cli_project: Path, tmp_path: Path):
         encoding="utf-8",
     )
 
-    res = _run(runner, "prd", "resolve-candidates", "--from-file", str(source))
+    res = _run(runner, "prdv1", "resolve-candidates", "--from-file", str(source))
     payload = _parse(res.output)
 
     assert res.exit_code == 1

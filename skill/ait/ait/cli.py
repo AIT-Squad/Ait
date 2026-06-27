@@ -284,9 +284,9 @@ def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str, new_mo
 # ═══════════════════════════════════════════════════════════
 
 
-@main.group("prd")
+@main.group("prdv1")
 def prd_group() -> None:
-    """PRD-domain commands."""
+    """Legacy old-model PRD commands (renamed from `prd`; new model now owns `prd`)."""
 
 
 @prd_group.command("create")
@@ -929,9 +929,9 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
         fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
 
 
-@main.group("prdv2")
+@main.group("prd")
 def prdv2_group() -> None:
-    """Manage new-model PRD documents (parallel to legacy `prd`)."""
+    """New-model PRD documents — the primary `prd` (legacy old-model moved to `prdv1`)."""
 
 
 @prdv2_group.command("create")

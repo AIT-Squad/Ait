@@ -1,0 +1,18 @@
+id: chg-121
+version: v2.5
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_validator
+author: system
+date: '2026-06-27T09:43:48.740525+00:00'
+message: 'v2.5 spec: rename prd->prdv1, prdv2->prd (new model primary)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_validator -->
+
+  ## new_model_validator
+
+
+  ### 功能描述
+
+
+  validate_prd_fsd_tdd_graph：关系合法性（decomposes PRD/FSD→FSD、details 叶FSD→TDD、depends_on 同父兄弟）、FSD 不混 FSD/TDD 子；validate_target_file_uniqueness：DUPLICATE_TARGET_FILE。'

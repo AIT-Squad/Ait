@@ -1,0 +1,16 @@
+id: chg-111
+version: v2.5
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:lint
+author: system
+date: '2026-06-27T09:43:48.662449+00:00'
+message: 'v2.5 spec: rename prd->prdv1, prdv2->prd (new model primary)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:lint -->
+
+  ## lint 域
+
+  ### 功能描述
+
+  `ait lint`：旧模型 PRD/impl 格式与结构校验（与新模型图校验分离）。'

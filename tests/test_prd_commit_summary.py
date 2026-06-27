@@ -45,9 +45,9 @@ def _prd_body(summary: str = "") -> str:
 
 
 def _prepare_prd(runner: CliRunner, draft: str) -> str:
-    req = _parse(_run(runner, "prd", "create", "summary").output)["data"]["req_id"]
-    assert _run(runner, "prd", "save-draft", req, "--content", draft).exit_code == 0
-    assert _run(runner, "prd", "confirm", req, "--file", "summary").exit_code == 0
+    req = _parse(_run(runner, "prdv1", "create", "summary").output)["data"]["req_id"]
+    assert _run(runner, "prdv1", "save-draft", req, "--content", draft).exit_code == 0
+    assert _run(runner, "prdv1", "confirm", req, "--file", "summary").exit_code == 0
     return req
 
 
@@ -58,7 +58,7 @@ def test_commit_blocks_when_summary_missing(cli_project: Path):
         _prd_body(),
     )
 
-    res = _run(runner, "prd", "commit", "prd/summary", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/summary", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1
@@ -74,7 +74,7 @@ def test_commit_blocks_when_summary_too_long(cli_project: Path):
         _prd_body("<!-- @summary: " + "长" * 121 + " -->\n\n"),
     )
 
-    res = _run(runner, "prd", "commit", "prd/summary", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/summary", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1

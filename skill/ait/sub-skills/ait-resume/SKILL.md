@@ -12,7 +12,7 @@ description: INVOKE THIS SKILL when an AIT CLI command fails or the user asks ho
 ## CLI Dependencies
 
 - `project-docs/.ait/ait-cli version status <version>`
-- `project-docs/.ait/ait-cli prd show <prd-file> [chunk-id]`
+- `project-docs/.ait/ait-cli prdv1 show <prd-file> [chunk-id]`
 - `project-docs/.ait/ait-cli impl show <impl-chunk-id>`
 - `project-docs/.ait/ait-cli context <chunk-id>`
 - `project-docs/.ait/ait-cli state --format json`

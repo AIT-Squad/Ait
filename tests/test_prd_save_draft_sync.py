@@ -52,7 +52,7 @@ def _seed_baseline(root: Path, runner: CliRunner) -> None:
 def test_save_draft_propagates_action_overrides(cli_project: Path, tmp_path: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    req_id = _parse(_run(runner, "prd", "create", "candidate-sync").output)["data"]["req_id"]
+    req_id = _parse(_run(runner, "prdv1", "create", "candidate-sync").output)["data"]["req_id"]
     source = tmp_path / "candidates.yaml"
     source.write_text(
         yaml.safe_dump(
@@ -74,9 +74,9 @@ def test_save_draft_propagates_action_overrides(cli_project: Path, tmp_path: Pat
         encoding="utf-8",
     )
 
-    assert _run(runner, "prd", "resolve-candidates", "--from-file", str(source)).exit_code == 0
-    assert _run(runner, "prd", "save-draft", req_id, "--content", _prd_chunk("prd-new-foo")).exit_code == 0
-    assert _run(runner, "prd", "confirm", req_id, "--file", "candidate-sync").exit_code == 0
+    assert _run(runner, "prdv1", "resolve-candidates", "--from-file", str(source)).exit_code == 0
+    assert _run(runner, "prdv1", "save-draft", req_id, "--content", _prd_chunk("prd-new-foo")).exit_code == 0
+    assert _run(runner, "prdv1", "confirm", req_id, "--file", "candidate-sync").exit_code == 0
 
     index = yaml.safe_load((cli_project / ".meta" / "chunks-index-v1.0.yaml").read_text(encoding="utf-8"))
     entry = next(chunk for chunk in index["chunks"] if chunk["id"] == "prd-new-foo")

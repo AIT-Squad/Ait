@@ -67,7 +67,7 @@ def _seed_baseline(root: Path, runner: CliRunner) -> None:
 def test_impl_create_modify_writes_action_and_overrides(cli_project: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    assert _run(runner, "prd", "create", "modify impl", "--version", "v1.1").exit_code == 0
+    assert _run(runner, "prdv1", "create", "modify impl", "--version", "v1.1").exit_code == 0
 
     new_impl = (
         "<!-- @id:impl-recommend-overview-api-v2 -->\n"
@@ -101,7 +101,7 @@ def test_impl_create_modify_writes_action_and_overrides(cli_project: Path):
 def test_impl_create_modify_requires_overrides(cli_project: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    assert _run(runner, "prd", "create", "modify impl", "--version", "v1.1").exit_code == 0
+    assert _run(runner, "prdv1", "create", "modify impl", "--version", "v1.1").exit_code == 0
 
     res = _run(
         runner,
@@ -122,7 +122,7 @@ def test_impl_create_modify_requires_overrides(cli_project: Path):
 def test_impl_create_add_rejects_overrides(cli_project: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    assert _run(runner, "prd", "create", "modify impl", "--version", "v1.1").exit_code == 0
+    assert _run(runner, "prdv1", "create", "modify impl", "--version", "v1.1").exit_code == 0
 
     res = _run(
         runner,
@@ -143,7 +143,7 @@ def test_impl_create_add_rejects_overrides(cli_project: Path):
 def test_impl_create_modify_requires_baseline_override(cli_project: Path):
     runner = CliRunner()
     _seed_baseline(cli_project, runner)
-    assert _run(runner, "prd", "create", "modify impl", "--version", "v1.1").exit_code == 0
+    assert _run(runner, "prdv1", "create", "modify impl", "--version", "v1.1").exit_code == 0
 
     res = _run(
         runner,

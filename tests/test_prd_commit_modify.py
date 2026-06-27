@@ -53,10 +53,10 @@ def _seed_baseline(root: Path, runner: CliRunner) -> None:
 
 
 def _prepare_version_prd(runner: CliRunner, chunk_ids: list[str]) -> str:
-    req = _parse(_run(runner, "prd", "create", "modify-test").output)["data"]["req_id"]
+    req = _parse(_run(runner, "prdv1", "create", "modify-test").output)["data"]["req_id"]
     draft = "\n\n".join(_prd_chunk(chunk_id, chunk_id, f"{chunk_id} summary") for chunk_id in chunk_ids)
-    assert _run(runner, "prd", "save-draft", req, "--content", draft).exit_code == 0
-    assert _run(runner, "prd", "confirm", req, "--file", "modify-test").exit_code == 0
+    assert _run(runner, "prdv1", "save-draft", req, "--content", draft).exit_code == 0
+    assert _run(runner, "prdv1", "confirm", req, "--file", "modify-test").exit_code == 0
     return req
 
 
@@ -77,7 +77,7 @@ def test_modify_overrides_must_exist(cli_project: Path):
         lambda data: data["chunks"][0].update({"action": "modify", "overrides": "prd-not-exist"}),
     )
 
-    res = _run(runner, "prd", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1
@@ -94,7 +94,7 @@ def test_modify_requires_overrides(cli_project: Path):
         lambda data: data["chunks"][0].update({"action": "modify", "overrides": None}),
     )
 
-    res = _run(runner, "prd", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1
@@ -112,7 +112,7 @@ def test_duplicate_overrides_target(cli_project: Path):
 
     _rewrite_index(cli_project, "v1.0", mutate)
 
-    res = _run(runner, "prd", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1
@@ -129,7 +129,7 @@ def test_delete_overrides_validated_too(cli_project: Path):
         lambda data: data["chunks"][0].update({"action": "delete", "overrides": "prd-not-exist"}),
     )
 
-    res = _run(runner, "prd", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 1
@@ -146,7 +146,7 @@ def test_legitimate_modify_passes(cli_project: Path):
         lambda data: data["chunks"][0].update({"action": "modify", "overrides": "prd-foo"}),
     )
 
-    res = _run(runner, "prd", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
+    res = _run(runner, "prdv1", "commit", "prd/modify-test", "-m", "msg", "--req-id", req)
     payload = _parse(res.output)
 
     assert res.exit_code == 0

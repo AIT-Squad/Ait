@@ -63,7 +63,7 @@ def test_end_to_end_happy_path(cli_project: Path):
     root = cli_project
 
     # 1. /ait:prd <title>  → create requirement (+ auto version)
-    res = _run(runner, root, "prd", "create", "推荐功能")
+    res = _run(runner, root, "prdv1", "create", "推荐功能")
     data = _parse(res.output)["data"]
     req_id = data["req_id"]
     version = data["version"]
@@ -78,7 +78,7 @@ def test_end_to_end_happy_path(cli_project: Path):
     res = _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "save-draft",
         req_id,
         "--content",
@@ -92,7 +92,7 @@ def test_end_to_end_happy_path(cli_project: Path):
     res = _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "confirm",
         req_id,
         "--file",
@@ -108,7 +108,7 @@ def test_end_to_end_happy_path(cli_project: Path):
     res = _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "commit",
         "prd/recommend",
         "-m",
@@ -192,28 +192,28 @@ def test_show_returns_block_after_merge(cli_project: Path):
     runner = CliRunner()
     root = cli_project
 
-    _run(runner, root, "prd", "create", "test")
-    data = _parse(_run(runner, root, "prd", "create", "test2").output)
+    _run(runner, root, "prdv1", "create", "test")
+    data = _parse(_run(runner, root, "prdv1", "create", "test2").output)
     req_id = data["data"]["req_id"]
 
     _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "save-draft",
         req_id,
         "--content",
         "<!-- @id:prd-test-overview -->\n## 概述\n\nbody",
     )
-    _run(runner, root, "prd", "confirm", req_id, "--file", "testing")
+    _run(runner, root, "prdv1", "confirm", req_id, "--file", "testing")
 
-    res = _run(runner, root, "prd", "show", "prd/testing")
+    res = _run(runner, root, "prdv1", "show", "prd/testing")
     parsed = _parse(res.output)["data"]
     assert parsed["source"] == "version"
     chunk_ids = [b["id"] for b in parsed["chunks"]]
     assert "prd-test-overview" in chunk_ids
 
-    res = _run(runner, root, "prd", "show", "prd/testing", "prd-test-overview")
+    res = _run(runner, root, "prdv1", "show", "prd/testing", "prd-test-overview")
     parsed = _parse(res.output)["data"]
     assert parsed["chunk"]["heading"] == "概述"
 
@@ -222,32 +222,32 @@ def test_file_options_accept_names_not_paths(cli_project: Path):
     runner = CliRunner()
     root = cli_project
 
-    data = _parse(_run(runner, root, "prd", "create", "path-check").output)
+    data = _parse(_run(runner, root, "prdv1", "create", "path-check").output)
     req_id = data["data"]["req_id"]
     version = data["data"]["version"]
 
     _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "save-draft",
         req_id,
         "--content",
         _prd_chunk("prd-path-check", "Overview", "path check", "body"),
     )
 
-    res = _run(runner, root, "prd", "confirm", req_id, "--file", "prd/path-check")
+    res = _run(runner, root, "prdv1", "confirm", req_id, "--file", "prd/path-check")
     payload = _parse(res.output)
     assert res.exit_code == 1
     assert payload["code"] == "INVALID_FILE_NAME"
 
-    res = _run(runner, root, "prd", "confirm", req_id, "--file", "path-check")
+    res = _run(runner, root, "prdv1", "confirm", req_id, "--file", "path-check")
     payload = _parse(res.output)["data"]
     assert payload["file"] == "prd/path-check"
     assert (root / "versions" / version / "prd" / "path-check.md").exists()
     assert not (root / "versions" / version / "path-check.md").exists()
 
-    _run(runner, root, "prd", "commit", "prd/path-check", "-m", "msg", "--req-id", req_id)
+    _run(runner, root, "prdv1", "commit", "prd/path-check", "-m", "msg", "--req-id", req_id)
 
     impl_content = (
         "<!-- @id:impl-path-check-version -->\n"
@@ -312,21 +312,21 @@ def test_context_command_returns_l1_only_when_no_links(cli_project: Path):
     runner = CliRunner()
     root = cli_project
 
-    _run(runner, root, "prd", "create", "ctx-test")
-    data = _parse(_run(runner, root, "prd", "create", "ctx-test-2").output)
+    _run(runner, root, "prdv1", "create", "ctx-test")
+    data = _parse(_run(runner, root, "prdv1", "create", "ctx-test-2").output)
     req_id = data["data"]["req_id"]
 
     _run(
         runner,
         root,
-        "prd",
+        "prdv1",
         "save-draft",
         req_id,
         "--content",
         _prd_chunk("prd-ctxtest-overview", "概述", "context 测试概述", "body"),
     )
-    _run(runner, root, "prd", "confirm", req_id, "--file", "ctxtest")
-    _run(runner, root, "prd", "commit", "prd/ctxtest", "-m", "msg", "--req-id", req_id)
+    _run(runner, root, "prdv1", "confirm", req_id, "--file", "ctxtest")
+    _run(runner, root, "prdv1", "commit", "prd/ctxtest", "-m", "msg", "--req-id", req_id)
 
     res = _run(runner, root, "context", "prd-ctxtest-overview")
     parsed = _parse(res.output)["data"]
@@ -340,7 +340,7 @@ def test_cli_returns_error_json_for_missing_block(cli_project: Path):
 
     res = runner.invoke(
         main,
-        ["prd", "show", "prd/nonexistent"],
+        ["prdv1", "show", "prd/nonexistent"],
         catch_exceptions=False,
     )
     payload = _parse(res.output)
