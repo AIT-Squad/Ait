@@ -1,0 +1,17 @@
+id: chg-203
+version: v2.13
+type: MODIFY
+target: fsd/[FSD]-ait-indexing#[FSD]-ait-indexing:index_manager
+author: system
+date: '2026-06-27T11:19:14.290130+00:00'
+message: 'v2.13: generative indexing domain'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-indexing:index_manager -->
+
+  ## index_manager
+
+  ### 功能描述
+
+  IndexManager：路径助手；scan_dir 解析 docs/version markdown；build_baseline（从 docs/ 重建 BaselineIndex，含 global category）、build_links、rebuild_baseline；query_baseline/query_version；load/save_version_index；_compute_stats/_compute_tasks_summary（三态/action/task
+  计数）；list_versions。详见 [TDD]-index_manager。'

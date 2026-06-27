@@ -1,0 +1,36 @@
+id: chg-202
+version: v2.13
+type: MODIFY
+target: fsd/[FSD]-ait-indexing#[FSD]-ait-indexing
+author: system
+date: '2026-06-27T11:19:14.256896+00:00'
+message: 'v2.13: generative indexing domain'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-indexing -->
+
+  ## indexing FSD
+
+
+  ### 功能范围
+
+
+  ait reindex/baseline-summary/migrate：索引重建、摘要、历史迁移。'
+new_content: '<!-- @id:[FSD]-ait-indexing -->
+
+  ## indexing FSD
+
+
+  ### 功能范围
+
+
+  索引重建与历史迁移：baseline/version chunks-index 的扫描重建、加载、查询；一次性 schema 迁移（block→chunk）。chunks-index 管「块自身状态」（与 specgraph 管关系互补）。
+
+
+  ### 交互契约
+
+
+  - 重建：`rebuild_baseline()->（BaselineIndex,LinksIndex)`、`scan_dir/build_baseline/build_links`。
+
+  - 查询：`query_baseline(chunk_id)`、`query_version(version,chunk_id)`、`load_baseline/load_version_index/save_version_index/all_version_records/list_versions`。
+
+  - 迁移：`migrate_block_to_chunk(meta_dir, dry_run)`。'

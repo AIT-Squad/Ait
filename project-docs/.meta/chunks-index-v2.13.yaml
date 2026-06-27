@@ -1,0 +1,98 @@
+version: 1
+scope: version
+version_name: v2.13
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-indexing'
+  file: fsd/[FSD]-ait-indexing
+  heading: indexing FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-indexing'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-indexing:index_manager'
+  file: fsd/[FSD]-ait-indexing
+  heading: index_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-indexing:migrations'
+  file: fsd/[FSD]-ait-indexing
+  heading: migrations
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-index_manager'
+  file: tdd/[TDD]-index_manager
+  heading: index_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-index_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-migrations'
+  file: tdd/[TDD]-migrations
+  heading: migrations TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-migrations'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T11:19:14.491284+00:00'
+  message: 'v2.13: generative indexing domain'
+  chunks:
+  - '[FSD]-ait-indexing'
+  - '[FSD]-ait-indexing:index_manager'
+  - '[FSD]-ait-indexing:migrations'
+  - '[TDD]-index_manager'
+  - '[TDD]-migrations'
+  req_id: null
+stats:
+  total_chunks: 5
+  by_action:
+    modify: 5
+  by_state:
+    committed: 5
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

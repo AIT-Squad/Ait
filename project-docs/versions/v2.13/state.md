@@ -1,0 +1,33 @@
+# AIT State — v2.13
+
+## Summary
+
+- Title: `-`
+- Version: `v2.13`
+- Phase: `empty`
+- PRD locked: `false`
+- Impl locked: `false`
+- Merged: `false`
+- PRD chunks: `0`
+- Impl chunks: `0`
+- Working: `0`
+- Staged: `0`
+- Committed: `5`
+- Covered PRD chunks: `0` / `0`
+
+## State Distribution
+
+| State | Chunks |
+|---|---|
+| working | - |
+| staged | - |
+| committed | [FSD]-ait-indexing, [FSD]-ait-indexing:index_manager, [FSD]-ait-indexing:migrations, [TDD]-index_manager, [TDD]-migrations |
+
+## Impl Coverage
+
+| PRD chunk | Impl chunks |
+|---|---|
+
+## Tasks
+
+- (no tasks yet)
