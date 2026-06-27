@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T11:19:17.389695+00:00'
+updated: '2026-06-27T11:19:18.688926+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -129,9 +129,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing:index_manager
   title: index_manager
   type: fsd
@@ -140,9 +137,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing:migrations
   title: migrations
   type: fsd
@@ -151,9 +145,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-init
   title: init FSD
   type: fsd
@@ -642,9 +633,6 @@ specs:
   file: tdd/[TDD]-index_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-init_manager
   title: init_manager TDD
   type: tdd
@@ -677,9 +665,6 @@ specs:
   file: tdd/[TDD]-migrations
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_manager
   title: new_model_manager TDD
   type: tdd
