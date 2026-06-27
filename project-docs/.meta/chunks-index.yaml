@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-27T09:22:23.904913+00:00'
+updated: '2026-06-27T09:22:56.077011+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
