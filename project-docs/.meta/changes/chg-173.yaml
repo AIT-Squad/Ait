@@ -1,0 +1,16 @@
+id: chg-173
+version: v2.8
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:io_utils
+author: system
+date: '2026-06-27T11:04:03.961826+00:00'
+message: 'v2.8: generative foundation domain (root/io/yaml/hash TDD+FSD)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:io_utils -->
+
+  ## io_utils
+
+  ### 功能描述
+
+  原子文件写与路径守卫。提供 `atomic_write_text/atomic_write_bytes`（tmp+fsync+os.replace）、`ensure_within(root,target)`（防越界）、`to_posix_rel`、`strip_md_ext`；`PathOutsideProjectError`。'

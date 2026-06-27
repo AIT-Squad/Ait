@@ -1,0 +1,16 @@
+id: chg-174
+version: v2.8
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:yaml_io
+author: system
+date: '2026-06-27T11:04:03.967018+00:00'
+message: 'v2.8: generative foundation domain (root/io/yaml/hash TDD+FSD)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:yaml_io -->
+
+  ## yaml_io
+
+  ### 功能描述
+
+  pydantic 模型与 YAML 文件互转。`load_yaml/load_model/dump_model/save_model`；稳定块状风格（allow_unicode、sort_keys=False、不流式、width=120）；datetime→isoformat。'

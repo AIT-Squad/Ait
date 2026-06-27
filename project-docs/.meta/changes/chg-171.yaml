@@ -1,0 +1,38 @@
+id: chg-171
+version: v2.8
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation
+author: system
+date: '2026-06-27T11:04:03.898166+00:00'
+message: 'v2.8: generative foundation domain (root/io/yaml/hash TDD+FSD)'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-foundation -->
+
+  ## foundation FSD
+
+
+  ### 功能范围
+
+
+  项目根解析、原子写、YAML 存取、哈希。'
+new_content: '<!-- @id:[FSD]-ait-foundation -->
+
+  ## foundation FSD
+
+
+  ### 功能范围
+
+
+  通用基础设施域：项目根解析、原子写与路径守卫、YAML↔pydantic 存取、chunk 内容哈希。被几乎所有上层域依赖；纯工具、无业务��态。
+
+
+  ### 交互契约（对上层域提供）
+
+
+  - 项目根解析：`resolve_project_root() -> ProjectRoot`，硬约束 `<CWD>/project-docs/`。
+
+  - 原子写：`atomic_write_text/atomic_write_bytes`（tmp+rename）；路径守卫 `ensure_within`。
+
+  - YAML 存取：`load_model/save_model/load_yaml/dump_model`（pydantic 模型 ↔ YAML）。
+
+  - 哈希：`chunk_hash(content) -> 8 hex`（规范化后 SHA-256 前 8 位）。'

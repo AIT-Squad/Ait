@@ -1,0 +1,158 @@
+version: 1
+scope: version
+version_name: v2.8
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-foundation'
+  file: fsd/[FSD]-ait-foundation
+  heading: foundation FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-foundation'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-foundation:root'
+  file: fsd/[FSD]-ait-foundation
+  heading: root
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-foundation:io_utils'
+  file: fsd/[FSD]-ait-foundation
+  heading: io_utils
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-foundation:yaml_io'
+  file: fsd/[FSD]-ait-foundation
+  heading: yaml_io
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-foundation:hash_utils'
+  file: fsd/[FSD]-ait-foundation
+  heading: hash_utils
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-root'
+  file: tdd/[TDD]-root
+  heading: root TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-root'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-io_utils'
+  file: tdd/[TDD]-io_utils
+  heading: io_utils TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-io_utils'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-yaml_io'
+  file: tdd/[TDD]-yaml_io
+  heading: yaml_io TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-yaml_io'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-hash_utils'
+  file: tdd/[TDD]-hash_utils
+  heading: hash_utils TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-hash_utils'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T11:04:04.153930+00:00'
+  message: 'v2.8: generative foundation domain (root/io/yaml/hash TDD+FSD)'
+  chunks:
+  - '[FSD]-ait-foundation'
+  - '[FSD]-ait-foundation:root'
+  - '[FSD]-ait-foundation:io_utils'
+  - '[FSD]-ait-foundation:yaml_io'
+  - '[FSD]-ait-foundation:hash_utils'
+  - '[TDD]-root'
+  - '[TDD]-io_utils'
+  - '[TDD]-yaml_io'
+  - '[TDD]-hash_utils'
+  req_id: null
+stats:
+  total_chunks: 9
+  by_action:
+    modify: 9
+  by_state:
+    committed: 9
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
