@@ -35,6 +35,22 @@ def test_modify_replaces_block():
     assert "New body" in merged.new_content
 
 
+def test_modify_nonexistent_target_is_kept_as_add():
+    """A `modify` whose target is absent from baseline must be appended, not
+    silently dropped — regression for the root(modify)+new-split(modify) file."""
+    base = _base(_chunk("[FSD]-x", "Root", body="old root"))
+    new_root = _chunk("[FSD]-x", "Root", body="new root body")
+    new_split = _chunk("[FSD]-x:s1", "Split 1", body="split body")
+    ops = [
+        VersionChunkOp(chunk_id="[FSD]-x", action="modify", overrides="[FSD]-x", new_chunk=new_root),
+        VersionChunkOp(chunk_id="[FSD]-x:s1", action="modify", overrides=None, new_chunk=new_split),
+    ]
+    merged = merge_file(base, ops)
+    assert [c.id for c in merged.chunks] == ["[FSD]-x", "[FSD]-x:s1"]
+    assert "new root body" in merged.new_content
+    assert "split body" in merged.new_content
+
+
 def test_delete_removes_block():
     base = _base(_chunk("prd-a", "A"), _chunk("prd-b", "B"), _chunk("prd-c", "C"))
     op = VersionChunkOp(chunk_id="prd-b", action="delete", overrides="prd-b")

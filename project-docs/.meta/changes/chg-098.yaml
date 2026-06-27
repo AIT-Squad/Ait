@@ -1,0 +1,16 @@
+id: chg-098
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:doc_model
+author: system
+date: '2026-06-27T09:21:59.541302+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:doc_model -->
+
+  ## doc-model 基础设施
+
+  ### 功能描述
+
+  chunk_parser（@id/@ref/@extract 解析）+ schemas（pydantic 数据模型）；被所有域依赖。'

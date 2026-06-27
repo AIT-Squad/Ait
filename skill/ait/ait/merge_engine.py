@@ -60,12 +60,17 @@ def merge_file(base: ParsedFile, ops: list[VersionChunkOp]) -> MergedFile:
 
     base_ids = {c.id for c in base.chunks}
 
-    # First pass: classify ops.
+    # First pass: classify ops. Action is reconciled against actual baseline
+    # existence so a chunk is never silently dropped: a `modify` whose target is
+    # absent from the baseline is a new chunk and is treated as an `add`.
     for op in ops:
         if op.action == "modify":
-            if op.overrides is None:
-                continue
-            modify_map[op.overrides] = op
+            target = op.overrides or op.chunk_id
+            if target in base_ids:
+                modify_map[target] = op
+            else:
+                # Not in baseline → effectively new; append rather than drop.
+                add_tail.append(op)
         elif op.action == "delete":
             if op.overrides is not None:
                 delete_set.add(op.overrides)

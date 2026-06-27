@@ -1,0 +1,16 @@
+id: chg-093
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:state
+author: system
+date: '2026-06-27T09:21:59.510710+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:state -->
+
+  ## state 域
+
+  ### 功能描述
+
+  `ait state`：渲染版本进度面板（三态分布、impl 覆盖、task 状态），可保存 state.md。'

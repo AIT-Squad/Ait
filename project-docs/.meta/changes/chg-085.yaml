@@ -1,0 +1,16 @@
+id: chg-085
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:init
+author: system
+date: '2026-06-27T09:21:59.478325+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:init -->
+
+  ## init 域
+
+  ### 功能描述
+
+  `ait init`：旧模型 global 基线 + 新模型 prd/fsd/tdd 骨架（--new-model），生成项目 wrapper。'

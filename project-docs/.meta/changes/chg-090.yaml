@@ -1,0 +1,16 @@
+id: chg-090
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:new_model
+author: system
+date: '2026-06-27T09:21:59.494025+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:new_model -->
+
+  ## new-model 域
+
+  ### 功能描述
+
+  `ait prdv2/fsd/tdd/codegen`：新模型文档创建、显式建边、图校验、target_file 唯一性、codegen 上下文组装。'

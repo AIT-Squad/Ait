@@ -1,0 +1,16 @@
+id: chg-094
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:lint
+author: system
+date: '2026-06-27T09:21:59.525569+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:lint -->
+
+  ## lint 域
+
+  ### 功能描述
+
+  `ait lint`：旧模型 PRD/impl 格式与结构校验（与新模型图校验分离）。'

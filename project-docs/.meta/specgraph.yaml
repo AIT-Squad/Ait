@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T07:21:06.755190+00:00'
+updated: '2026-06-27T09:21:59.628280+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -9,9 +9,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli
   title: cli FSD
   type: fsd
@@ -20,9 +17,6 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli:cli
   title: cli
   type: fsd
@@ -31,9 +25,6 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-context
   title: context FSD
   type: fsd
@@ -42,9 +33,6 @@ specs:
   file: fsd/[FSD]-ait-context
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-context:context_assembler
   title: context_assembler
   type: fsd
@@ -53,9 +41,6 @@ specs:
   file: fsd/[FSD]-ait-context
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model
   title: doc_model FSD
   type: fsd
@@ -64,9 +49,6 @@ specs:
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model:chunk_parser
   title: chunk_parser
   type: fsd
@@ -75,9 +57,6 @@ specs:
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model:schemas
   title: schemas
   type: fsd
@@ -86,9 +65,6 @@ specs:
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation
   title: foundation FSD
   type: fsd
@@ -97,9 +73,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:hash_utils
   title: hash_utils
   type: fsd
@@ -108,9 +81,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:io_utils
   title: io_utils
   type: fsd
@@ -119,9 +89,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:root
   title: root
   type: fsd
@@ -130,9 +97,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:yaml_io
   title: yaml_io
   type: fsd
@@ -141,9 +105,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-impl
   title: impl FSD
   type: fsd
@@ -152,9 +113,6 @@ specs:
   file: fsd/[FSD]-ait-impl
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-impl:impl_manager
   title: impl_manager
   type: fsd
@@ -163,9 +121,6 @@ specs:
   file: fsd/[FSD]-ait-impl
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing
   title: indexing FSD
   type: fsd
@@ -174,9 +129,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing:index_manager
   title: index_manager
   type: fsd
@@ -185,9 +137,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-indexing:migrations
   title: migrations
   type: fsd
@@ -196,9 +145,6 @@ specs:
   file: fsd/[FSD]-ait-indexing
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-init
   title: init FSD
   type: fsd
@@ -207,9 +153,6 @@ specs:
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-init:init_manager
   title: init_manager
   type: fsd
@@ -218,9 +161,6 @@ specs:
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint
   title: lint FSD
   type: fsd
@@ -229,9 +169,6 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint:format_validator
   title: format_validator
   type: fsd
@@ -240,9 +177,6 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint:validator
   title: validator
   type: fsd
@@ -251,9 +185,6 @@ specs:
   file: fsd/[FSD]-ait-lint
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model
   title: new_model FSD
   type: fsd
@@ -262,9 +193,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_manager
   title: new_model_manager
   type: fsd
@@ -273,9 +201,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_validator
   title: new_model_validator
   type: fsd
@@ -284,9 +209,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd
   title: prd FSD
   type: fsd
@@ -295,9 +217,6 @@ specs:
   file: fsd/[FSD]-ait-prd
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd:prd_manager
   title: prd_manager
   type: fsd
@@ -306,9 +225,6 @@ specs:
   file: fsd/[FSD]-ait-prd
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-search
   title: search FSD
   type: fsd
@@ -317,9 +233,6 @@ specs:
   file: fsd/[FSD]-ait-search
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-search:search
   title: search
   type: fsd
@@ -328,9 +241,6 @@ specs:
   file: fsd/[FSD]-ait-search
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph
   title: specgraph FSD
   type: fsd
@@ -339,9 +249,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:deps
   title: deps
   type: fsd
@@ -350,9 +257,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -361,9 +265,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:specgraph
   title: specgraph
   type: fsd
@@ -372,9 +273,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state
   title: state FSD
   type: fsd
@@ -383,9 +281,6 @@ specs:
   file: fsd/[FSD]-ait-state
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state:state
   title: state
   type: fsd
@@ -394,9 +289,6 @@ specs:
   file: fsd/[FSD]-ait-state
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-task
   title: task FSD
   type: fsd
@@ -405,9 +297,6 @@ specs:
   file: fsd/[FSD]-ait-task
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-task:task_manager
   title: task_manager
   type: fsd
@@ -416,9 +305,6 @@ specs:
   file: fsd/[FSD]-ait-task
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version
   title: version FSD
   type: fsd
@@ -427,9 +313,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version:merge_engine
   title: merge_engine
   type: fsd
@@ -438,9 +321,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version:version_manager
   title: version_manager
   type: fsd
@@ -449,174 +329,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:cli
-  title: cli 分发器
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:cli'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:context
-  title: context 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:context'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:doc_model
-  title: doc-model 基础设施
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:doc_model'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:foundation
-  title: foundation 基础设施
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:foundation'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:impl
-  title: impl 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:impl'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:indexing
-  title: indexing 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:indexing'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:init
-  title: init 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:init'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:lint
-  title: lint 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:lint'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:new_model
-  title: new-model 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:new_model'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:prd
-  title: prd 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:prd'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:search
-  title: search 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:search'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:specgraph
-  title: specgraph 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:specgraph'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:state
-  title: state 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:state'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:task
-  title: task 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:task'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
-- uri: spec:fsd:baseline:[FSD]-ait:version
-  title: version 域
-  type: fsd
-  version: baseline
-  chunk_id: '[FSD]-ait:version'
-  file: fsd/[FSD]-ait
-  metadata:
-    source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait
   title: ait 产品 PRD
   type: prd
@@ -625,9 +337,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-chunk_parser
   title: chunk_parser TDD
   type: tdd
@@ -636,9 +345,6 @@ specs:
   file: tdd/[TDD]-chunk_parser
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-cli
   title: cli TDD
   type: tdd
@@ -647,9 +353,6 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -658,9 +361,6 @@ specs:
   file: tdd/[TDD]-context_assembler
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-deps
   title: deps TDD
   type: tdd
@@ -669,9 +369,6 @@ specs:
   file: tdd/[TDD]-deps
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-format_validator
   title: format_validator TDD
   type: tdd
@@ -680,9 +377,6 @@ specs:
   file: tdd/[TDD]-format_validator
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-hash_utils
   title: hash_utils TDD
   type: tdd
@@ -691,9 +385,6 @@ specs:
   file: tdd/[TDD]-hash_utils
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-impact
   title: impact TDD
   type: tdd
@@ -702,9 +393,6 @@ specs:
   file: tdd/[TDD]-impact
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-impl_manager
   title: impl_manager TDD
   type: tdd
@@ -713,9 +401,6 @@ specs:
   file: tdd/[TDD]-impl_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-index_manager
   title: index_manager TDD
   type: tdd
@@ -724,9 +409,6 @@ specs:
   file: tdd/[TDD]-index_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-init_manager
   title: init_manager TDD
   type: tdd
@@ -735,9 +417,6 @@ specs:
   file: tdd/[TDD]-init_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-io_utils
   title: io_utils TDD
   type: tdd
@@ -746,9 +425,6 @@ specs:
   file: tdd/[TDD]-io_utils
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-merge_engine
   title: merge_engine TDD
   type: tdd
@@ -757,9 +433,6 @@ specs:
   file: tdd/[TDD]-merge_engine
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-migrations
   title: migrations TDD
   type: tdd
@@ -768,9 +441,6 @@ specs:
   file: tdd/[TDD]-migrations
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_manager
   title: new_model_manager TDD
   type: tdd
@@ -779,9 +449,6 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
@@ -790,9 +457,6 @@ specs:
   file: tdd/[TDD]-new_model_validator
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-prd_manager
   title: prd_manager TDD
   type: tdd
@@ -801,9 +465,6 @@ specs:
   file: tdd/[TDD]-prd_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-root
   title: root TDD
   type: tdd
@@ -812,9 +473,6 @@ specs:
   file: tdd/[TDD]-root
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-schemas
   title: schemas TDD
   type: tdd
@@ -823,9 +481,6 @@ specs:
   file: tdd/[TDD]-schemas
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-search
   title: search TDD
   type: tdd
@@ -834,9 +489,6 @@ specs:
   file: tdd/[TDD]-search
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-specgraph
   title: specgraph TDD
   type: tdd
@@ -845,9 +497,6 @@ specs:
   file: tdd/[TDD]-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-state
   title: state TDD
   type: tdd
@@ -856,9 +505,6 @@ specs:
   file: tdd/[TDD]-state
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-task_manager
   title: task_manager TDD
   type: tdd
@@ -867,9 +513,6 @@ specs:
   file: tdd/[TDD]-task_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-validator
   title: validator TDD
   type: tdd
@@ -878,9 +521,6 @@ specs:
   file: tdd/[TDD]-validator
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-version_manager
   title: version_manager TDD
   type: tdd
@@ -889,9 +529,6 @@ specs:
   file: tdd/[TDD]-version_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-yaml_io
   title: yaml_io TDD
   type: tdd
@@ -900,9 +537,6 @@ specs:
   file: tdd/[TDD]-yaml_io
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 edges:
 - src: spec:prd:baseline:[PRD]-ait
   dst: spec:fsd:baseline:[FSD]-ait

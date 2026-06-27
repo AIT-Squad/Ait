@@ -1,0 +1,16 @@
+id: chg-089
+version: v2.4
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:version
+author: system
+date: '2026-06-27T09:21:59.494025+00:00'
+message: 'v2.4: heal [FSD]-ait splits + merge rule'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:version -->
+
+  ## version 域
+
+  ### 功能描述
+
+  `ait version` commit/confirm/merge/reset/status：三态提交、原子 confirm（两阶段+回退）、chunk 级合并。'
