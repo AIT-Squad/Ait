@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T10:00:54.262693+00:00'
+updated: '2026-06-27T10:03:10.541644+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -9,6 +9,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli
   title: cli FSD
   type: fsd
@@ -241,6 +244,94 @@ specs:
   file: fsd/[FSD]-ait-search
   metadata:
     source: baseline
+- uri: spec:fsd:baseline:[FSD]-ait-skill
+  title: skill FSD
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:skill_manifest
+  title: skill_manifest
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:skill_manifest'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_discuss
+  title: subskill_ait_discuss
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_discuss'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_impl_discuss
+  title: subskill_ait_impl_discuss
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_impl_discuss'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_init_guide
+  title: subskill_ait_init_guide
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_init_guide'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_resume
+  title: subskill_ait_resume
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_resume'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_state
+  title: subskill_ait_state
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_state'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_task_execute
+  title: subskill_ait_task_execute
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-skill:subskill_ait_task_execute'
+  file: fsd/[FSD]-ait-skill
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph
   title: specgraph FSD
   type: fsd
@@ -337,6 +428,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:context
   title: context 域
   type: fsd
@@ -345,6 +439,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:doc_model
   title: doc-model 基础设施
   type: fsd
@@ -353,6 +450,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:foundation
   title: foundation 基础设施
   type: fsd
@@ -361,6 +461,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:impl
   title: impl 域
   type: fsd
@@ -369,6 +472,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:indexing
   title: indexing 域
   type: fsd
@@ -377,6 +483,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:init
   title: init 域
   type: fsd
@@ -385,6 +494,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:lint
   title: lint 域
   type: fsd
@@ -393,6 +505,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:new_model
   title: new-model 域
   type: fsd
@@ -401,6 +516,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:prd
   title: prd 域
   type: fsd
@@ -409,6 +527,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:search
   title: search 域
   type: fsd
@@ -417,6 +538,20 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait:skill
+  title: skill 层
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait:skill'
+  file: fsd/[FSD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:specgraph
   title: specgraph 域
   type: fsd
@@ -425,6 +560,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:state
   title: state 域
   type: fsd
@@ -433,6 +571,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:task
   title: task 域
   type: fsd
@@ -441,6 +582,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:version
   title: version 域
   type: fsd
@@ -449,6 +593,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait
   title: ait 产品 PRD
   type: prd
@@ -609,6 +756,17 @@ specs:
   file: tdd/[TDD]-search
   metadata:
     source: baseline
+- uri: spec:tdd:baseline:[TDD]-skill_manifest
+  title: skill_manifest TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-skill_manifest'
+  file: tdd/[TDD]-skill_manifest
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-specgraph
   title: specgraph TDD
   type: tdd
@@ -625,6 +783,72 @@ specs:
   file: tdd/[TDD]-state
   metadata:
     source: baseline
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_discuss
+  title: subskill_ait_discuss TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_discuss'
+  file: tdd/[TDD]-subskill_ait_discuss
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_impl_discuss
+  title: subskill_ait_impl_discuss TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_impl_discuss'
+  file: tdd/[TDD]-subskill_ait_impl_discuss
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_init_guide
+  title: subskill_ait_init_guide TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_init_guide'
+  file: tdd/[TDD]-subskill_ait_init_guide
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_resume
+  title: subskill_ait_resume TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_resume'
+  file: tdd/[TDD]-subskill_ait_resume
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_state
+  title: subskill_ait_state TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_state'
+  file: tdd/[TDD]-subskill_ait_state
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:tdd:baseline:[TDD]-subskill_ait_task_execute
+  title: subskill_ait_task_execute TDD
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-subskill_ait_task_execute'
+  file: tdd/[TDD]-subskill_ait_task_execute
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-task_manager
   title: task_manager TDD
   type: tdd
@@ -1315,6 +1539,54 @@ edges:
 - src: spec:fsd:baseline:[FSD]-ait:version
   dst: spec:fsd:baseline:[FSD]-ait:task
   rel: depends_on
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait:skill
+  dst: spec:fsd:baseline:[FSD]-ait-skill
+  rel: decomposes
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:skill_manifest
+  dst: spec:tdd:baseline:[TDD]-skill_manifest
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_discuss
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_discuss
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_impl_discuss
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_impl_discuss
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_init_guide
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_init_guide
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_resume
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_resume
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_state
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_state
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_task_execute
+  dst: spec:tdd:baseline:[TDD]-subskill_ait_task_execute
+  rel: details
   weight: 1.0
   metadata:
     source: new-model-cli
