@@ -88,3 +88,38 @@ def test_new_model_full_lifecycle(tmp_path: Path, monkeypatch):
     data = json.loads(cg.output.strip().splitlines()[-1])["data"]
     assert data["target_file"] == "app/core.py"
     assert data["version"] == "baseline"
+
+
+def test_codegen_climbs_to_domain_level_depends_on(tmp_path: Path):
+    """v2.17: codegen surfaces depends_on declared at the domain-split level,
+    not just the TDD's immediate parent module split."""
+    root = _new_project(tmp_path)
+    mgr = NewModelManager(root)
+    mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n")
+    mgr.create_fsd(
+        "v1.0", "[FSD]-app",
+        "<!-- @id:[FSD]-app -->\n## App\n\n"
+        "<!-- @id:[FSD]-app:svc -->\n## svc\n\n"
+        "<!-- @id:[FSD]-app:store -->\n## store\n",
+    )
+    mgr.create_fsd(
+        "v1.0", "[FSD]-app-svc",
+        "<!-- @id:[FSD]-app-svc -->\n## svc FSD\n\n<!-- @id:[FSD]-app-svc:core -->\n## core\n",
+    )
+    mgr.create_fsd("v1.0", "[FSD]-app-store", "<!-- @id:[FSD]-app-store -->\n## store FSD\n")
+    mgr.create_tdd(
+        "v1.0", "[TDD]-core",
+        "<!-- @id:[TDD]-core -->\n## core TDD\n\n```yaml\ntarget_file: app/core.py\n```\n",
+    )
+    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "decomposes")
+    mgr.add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app-svc", "decomposes")
+    mgr.add_edge("v1.0", "[FSD]-app:store", "[FSD]-app-store", "decomposes")
+    mgr.add_edge("v1.0", "[FSD]-app-svc:core", "[TDD]-core", "details")
+    # domain-level dependency: svc domain depends on store domain
+    mgr.add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app:store", "depends_on")
+
+    bundle = mgr.prepare_codegen("v1.0", "[TDD]-core")
+    dep_ids = {d["id"] for d in bundle.dependencies}
+    # codegen must climb from [TDD]-core's module split up to the [FSD]-app:svc
+    # domain split and surface its depends_on target.
+    assert "[FSD]-app:store" in dep_ids, dep_ids

@@ -154,7 +154,7 @@ class NewModelManager:
         graph = combined_specgraph(self.root, version)
         tdd_uri = resolve_chunk_uri(self.root, tdd_root_chunk_id, version, graph=graph)
         upstream = self._collect_upstream_context(graph, tdd_uri)
-        dependencies = self._collect_dependency_context(graph, upstream[0]["uri"] if upstream else None)
+        dependencies = self._collect_dependency_context(graph, upstream)
 
         return CodegenBundle(
             version=version if source == "version" else "baseline",
@@ -205,23 +205,35 @@ class NewModelManager:
                     self._append_context_item(items, seen, parent_root)
                     self._walk_upstream_roots(graph, parent_root.uri, items, seen)
 
-    def _collect_dependency_context(self, graph, parent_split_uri: str | None) -> list[dict]:
-        if parent_split_uri is None:
-            return []
+    def _collect_dependency_context(self, graph, upstream: list[dict]) -> list[dict]:
+        """Collect depends_on context from every FSD internal split in the upstream
+        chain — not just the immediate parent module split.
+
+        depends_on edges live at the domain-split level (e.g. ``[FSD]-ait:version``
+        ↔ ``[FSD]-ait:doc_model``) because the model only allows same-parent
+        siblings. A module split (``[FSD]-ait-version:version_manager``) therefore
+        has no depends_on of its own; we must climb to the domain split — which is
+        already part of the upstream chain — to surface real dependencies.
+        """
+        split_uris = [
+            u["uri"] for u in upstream
+            if u.get("type") == "fsd" and ":" in u.get("id", "")
+        ]
         items: list[dict] = []
         seen: set[str] = set()
-        for edge in [e for e in graph.edges if e.rel == "depends_on" and e.src == parent_split_uri]:
-            split = graph.specs.get(edge.dst)
-            if split is None:
-                continue
-            self._append_context_item(items, seen, split)
-            for child_edge in [
-                e for e in graph.edges
-                if e.src == edge.dst and e.rel in {"decomposes", "details"}
-            ]:
-                child = graph.specs.get(child_edge.dst)
-                if child is not None:
-                    self._append_context_item(items, seen, child)
+        for split_uri in split_uris:
+            for edge in [e for e in graph.edges if e.rel == "depends_on" and e.src == split_uri]:
+                split = graph.specs.get(edge.dst)
+                if split is None:
+                    continue
+                self._append_context_item(items, seen, split)
+                for child_edge in [
+                    e for e in graph.edges
+                    if e.src == edge.dst and e.rel in {"decomposes", "details"}
+                ]:
+                    child = graph.specs.get(child_edge.dst)
+                    if child is not None:
+                        self._append_context_item(items, seen, child)
         return items
 
     def _append_context_item(self, items: list[dict], seen: set[str], spec) -> None:
