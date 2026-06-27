@@ -1,0 +1,16 @@
+id: chg-248
+version: v2.16
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:search
+author: system
+date: '2026-06-27T11:34:53.042339+00:00'
+message: 'v2.16: enrich [PRD]-ait (roles/goals/risks) + root FSD 功能依赖'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:search -->
+
+  ## search 域
+
+  ### 功能描述
+
+  `ait search`：跨 chunk 全文检索。'
