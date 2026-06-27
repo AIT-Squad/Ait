@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-06-27T10:03:31.348862+00:00'
+updated: '2026-06-27T10:20:45.815987+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -221,6 +221,30 @@ chunks:
 - id: '[FSD]-ait-skill:subskill_ait_task_execute'
   file: fsd/[FSD]-ait-skill
   heading: subskill_ait_task_execute
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-skill:template_prd'
+  file: fsd/[FSD]-ait-skill
+  heading: template_prd
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-skill:template_fsd'
+  file: fsd/[FSD]-ait-skill
+  heading: template_fsd
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-skill:template_tdd'
+  file: fsd/[FSD]-ait-skill
+  heading: template_tdd
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-skill:ref_new_model_format'
+  file: fsd/[FSD]-ait-skill
+  heading: ref_new_model_format
   level: 2
   summary: null
   metadata: {}
@@ -494,6 +518,12 @@ chunks:
   level: 2
   summary: null
   metadata: {}
+- id: '[TDD]-ref_new_model_format'
+  file: tdd/[TDD]-ref_new_model_format
+  heading: ref_new_model_format TDD
+  level: 2
+  summary: null
+  metadata: {}
 - id: '[TDD]-root'
   file: tdd/[TDD]-root
   heading: root TDD
@@ -569,6 +599,24 @@ chunks:
 - id: '[TDD]-task_manager'
   file: tdd/[TDD]-task_manager
   heading: task_manager TDD
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[TDD]-template_fsd'
+  file: tdd/[TDD]-template_fsd
+  heading: template_fsd TDD
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[TDD]-template_prd'
+  file: tdd/[TDD]-template_prd
+  heading: template_prd TDD
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[TDD]-template_tdd'
+  file: tdd/[TDD]-template_tdd
+  heading: template_tdd TDD
   level: 2
   summary: null
   metadata: {}
