@@ -1,0 +1,28 @@
+id: chg-225
+version: v2.15
+type: MODIFY
+target: fsd/[FSD]-ait-impl#[FSD]-ait-impl
+author: system
+date: '2026-06-27T11:29:36.571592+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-impl -->
+
+  ## impl FSD
+
+
+  ### 功能范围
+
+
+  ait impl：1 PRD→N impl、@extract、@ref implements、pre-merge 校验、inherit、lock。'
+new_content: '<!-- @id:[FSD]-ait-impl -->
+
+  ## impl FSD
+
+  ### 功能范围
+
+  旧模型 impl 生命周期：1 PRD→N impl、@extract 标记动态 global、@ref implements 自动注入、pre-merge 校验、inherit、lock。
+
+  ### 交互契约
+
+  `create(prd_chunk) / commit / lock / inherit / show`。'

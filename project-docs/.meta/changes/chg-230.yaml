@@ -1,0 +1,16 @@
+id: chg-230
+version: v2.15
+type: MODIFY
+target: fsd/[FSD]-ait-cli#[FSD]-ait-cli:cli
+author: system
+date: '2026-06-27T11:29:36.712095+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-cli:cli -->
+
+  ## cli
+
+  ### 功能描述
+
+  click 命令树 + ok()/fail() 统一 `{ok,data}`/`{ok,error,code}` 契约 + _root() 项目根解析 + _read_content；新模型 `prd`、旧模型 `prdv1`。详见 [TDD]-cli。'

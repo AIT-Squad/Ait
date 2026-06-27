@@ -1,0 +1,29 @@
+id: chg-229
+version: v2.15
+type: MODIFY
+target: fsd/[FSD]-ait-cli#[FSD]-ait-cli
+author: system
+date: '2026-06-27T11:29:36.699024+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-cli -->
+
+  ## cli FSD
+
+
+  ### 功能范围
+
+
+  ait 入口：click 路由、JSON 契约、项目根解析；只分发不含业务逻辑。'
+new_content: '<!-- @id:[FSD]-ait-cli -->
+
+  ## cli FSD
+
+  ### 功能范围
+
+  ait 命令分发器：click 命令树路由、统一 JSON 输出契约、项目根解析；只分发不含业务逻辑（业务在各 manager）。
+
+  ### 交互契约
+
+  `main` click group → 各命令组(init/prd/prdv1/impl/task/version/fsd/tdd/codegen/specgraph/context/state/lint/search/deps/impact/reindex…)；ok/fail
+  JSON。'

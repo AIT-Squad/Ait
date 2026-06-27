@@ -1,0 +1,17 @@
+id: chg-228
+version: v2.15
+type: MODIFY
+target: fsd/[FSD]-ait-task#[FSD]-ait-task:task_manager
+author: system
+date: '2026-06-27T11:29:36.661018+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-task:task_manager -->
+
+  ## task_manager
+
+  ### 功能描述
+
+  TaskManager：create(从 PRD chunk 的 impl 覆盖派生 TaskYaml，impl_refs∪global_refs)、begin_execute、complete(标 done+绑 code_refs)、fail、deps_satisfied、assemble_context(聚焦
+  bundle)、list/resolve/pending。详见 [TDD]-task_manager。'

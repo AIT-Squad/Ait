@@ -1,0 +1,169 @@
+version: 1
+updated: '2026-06-27T11:29:37.410946+00:00'
+specs:
+- uri: spec:fsd:v2.15:[FSD]-ait-cli
+  title: cli FSD
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-cli'
+  file: fsd/[FSD]-ait-cli
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-cli:cli
+  title: cli
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-cli:cli'
+  file: fsd/[FSD]-ait-cli
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-impl
+  title: impl FSD
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-impl'
+  file: fsd/[FSD]-ait-impl
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-impl:impl_manager
+  title: impl_manager
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-impl:impl_manager'
+  file: fsd/[FSD]-ait-impl
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-init
+  title: init FSD
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-init'
+  file: fsd/[FSD]-ait-init
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-init:init_manager
+  title: init_manager
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-init:init_manager'
+  file: fsd/[FSD]-ait-init
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-prd
+  title: prd FSD
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-prd'
+  file: fsd/[FSD]-ait-prd
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-prd:prd_manager
+  title: prd_manager
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-prd:prd_manager'
+  file: fsd/[FSD]-ait-prd
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-task
+  title: task FSD
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-task'
+  file: fsd/[FSD]-ait-task
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.15:[FSD]-ait-task:task_manager
+  title: task_manager
+  type: fsd
+  version: v2.15
+  chunk_id: '[FSD]-ait-task:task_manager'
+  file: fsd/[FSD]-ait-task
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.15:[TDD]-cli
+  title: cli TDD
+  type: tdd
+  version: v2.15
+  chunk_id: '[TDD]-cli'
+  file: tdd/[TDD]-cli
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.15:[TDD]-impl_manager
+  title: impl_manager TDD
+  type: tdd
+  version: v2.15
+  chunk_id: '[TDD]-impl_manager'
+  file: tdd/[TDD]-impl_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.15:[TDD]-init_manager
+  title: init_manager TDD
+  type: tdd
+  version: v2.15
+  chunk_id: '[TDD]-init_manager'
+  file: tdd/[TDD]-init_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.15:[TDD]-prd_manager
+  title: prd_manager TDD
+  type: tdd
+  version: v2.15
+  chunk_id: '[TDD]-prd_manager'
+  file: tdd/[TDD]-prd_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.15:[TDD]-task_manager
+  title: task_manager TDD
+  type: tdd
+  version: v2.15
+  chunk_id: '[TDD]-task_manager'
+  file: tdd/[TDD]-task_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []

@@ -1,0 +1,79 @@
+id: chg-232
+version: v2.15
+type: MODIFY
+target: tdd/[TDD]-prd_manager#[TDD]-prd_manager
+author: system
+date: '2026-06-27T11:29:36.837519+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: '<!-- @id:[TDD]-prd_manager -->
+
+  ## prd_manager TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/prd_manager.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  PrdManager：create/save_draft/confirm/commit/show；四段结构与 summary 必需校验；req 草稿持久化；commit 锁定写保护。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/test_prd_*.py：覆盖正常路径、边界与错误路径。'
+new_content: '<!-- @id:[TDD]-prd_manager -->
+
+  ## prd_manager TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/prd_manager.py
+
+  ```
+
+
+  ### 技术栈
+
+  Python 3.10+；依赖 schemas(RequirementMeta/PrdChunkSummary)、chunk_parser、VersionManager、index_manager、yaml_io、io_utils。
+
+
+  ### 数据结构
+
+  @dataclass CreateRequirementResult/WriteToVersionResult/CandidateDecision；slugify(title)。
+
+
+  ### 代码结构（PrdManager，旧模型 ait prdv1）
+
+  - create(title,author,version)：_next_req_id→建 RequirementMeta(status draft)→_auto_create_version(无版本则建)→存盘。
+
+  - save_draft(req_id,prd_text)：解析为四段 chunk(四段+summary 校验)，存 prd_draft+prd_chunks，status prd_draft。
+
+  - confirm：草稿物化进版本工作区(write+add_chunk)，status prd_confirmed。
+
+  - commit：经 version_manager 锁定(SUMMARY_REQUIRED/格式校验)。
+
+  - resolve_candidates(from_file)：_parse_candidate_decisions+_validate_candidate_decisions+_sync_candidates_to_version_index。
+
+  - load_requirement/save_requirement/req_path/_next_req_id/candidates_path。
+
+
+  ### 错误码 SUMMARY_REQUIRED/NO_CHUNKS。
+
+
+  ### 单元测试要求
+
+  tests/test_prd_*.py：create/save-draft/confirm/commit、四段+summary 校验、候选决策、auto 建版本。pytest。'

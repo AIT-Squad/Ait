@@ -1,0 +1,28 @@
+id: chg-227
+version: v2.15
+type: MODIFY
+target: fsd/[FSD]-ait-task#[FSD]-ait-task
+author: system
+date: '2026-06-27T11:29:36.652726+00:00'
+message: 'v2.15: generative init/prd/impl/task/cli domains'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-task -->
+
+  ## task FSD
+
+
+  ### 功能范围
+
+
+  ait task：从 specgraph 派生、聚焦上下文、状态机、code_refs 回写。'
+new_content: '<!-- @id:[FSD]-ait-task -->
+
+  ## task FSD
+
+  ### 功能范围
+
+  旧模型 task：从 specgraph 派生 AI 编码单元、聚焦上下文、状态机、code_refs 回写。
+
+  ### 交互契约
+
+  `create(prd_chunk) / execute(begin) / complete / fail / list / resolve`；deps_satisfied 守卫。'
