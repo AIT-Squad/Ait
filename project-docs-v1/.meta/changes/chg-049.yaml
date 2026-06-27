@@ -1,0 +1,24 @@
+id: chg-049
+version: v1.4
+type: ADD
+target: impl/core#impl-core-specgraph-store
+author: system
+date: '2026-06-01T07:11:11.773951+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-core-specgraph-store -->\n## SpecGraph 分文件存储与环检测\n\n实现 specgraph 的全局+版本分文件存储，并提供 pre-merge 校验所需的环检测。彻底替代\
+  \ links-index。\n\n### 分文件布局\n\n<!-- @extract:dynamic/schema#specgraph-store -->\n```python\n# 全局基线图：.meta/specgraph.yaml\
+  \          （version 段 = baseline）\n# 开发中版本图：.meta/specgraph-{version}.yaml （version 段 = vX.Y）\n\ndef specgraph_path(root:\
+  \ Path, version: str) -> Path:\n    if version == \"baseline\":\n        return root / \".meta\" / \"specgraph.yaml\"\n\
+  \    return root / \".meta\" / f\"specgraph-{version}.yaml\"\n```\n<!-- @extract-end -->\n\n### 写入时机\n- `prd confirm` /\
+  \ `impl create` / `impl confirm`：写当前版本图 `specgraph-{version}.yaml`\n- `version confirm`：版本图并入全局图（见 impl-version-merge-engine）\n\
+  - `version reset`：直接删除 `specgraph-{version}.yaml`\n- `reindex`：重建全局图 `specgraph.yaml`（扫 docs/）\n\n### 环检测（detect_cycle）\n\
+  \n```python\ndef detect_cycle(graph) -> list[str] | None:\n    # 对 depends-on 边做 DFS / Kahn 拓扑排序\n    # 若存在无法排序的节点 → 返回环路径，否则\
+  \ None\n    indeg = compute_indegree(graph, rel=\"depends-on\")\n    queue = [n for n in graph.nodes if indeg[n] == 0]\n\
+  \    visited = 0\n    while queue:\n        n = queue.pop()\n        visited += 1\n        for m in graph.successors(n,\
+  \ rel=\"depends-on\"):\n            indeg[m] -= 1\n            if indeg[m] == 0: queue.append(m)\n    if visited < len(graph.nodes):\n\
+  \        return extract_cycle(graph)   # 剩余节点构成环\n    return None\n```\n\n### 查询接口（替代 links-index 的全部职责）\n- `implements_of(prd_chunk,\
+  \ version)`：查指向该 PRD 的 impl（task 拆分用）\n- `deps_of(chunk)` / `impact_of(chunk)`：依赖与影响面分析\n- `dry_run_merge(version_graph)`：pre-merge\
+  \ 校验用，不落盘\n\n### 不变量\n- links-index 彻底废弃，不再生成或读取\n- 所有关联查询唯一数据源 = specgraph\n\n<!-- @ref:prd/ait-redesign#prd-core-model\
+  \ rel:implements -->"

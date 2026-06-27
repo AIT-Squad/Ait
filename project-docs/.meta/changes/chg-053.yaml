@@ -1,27 +1,18 @@
 id: chg-053
-version: v1.4
+version: v2.3
 type: ADD
-target: impl/impl#impl-impl-stage-cli
+target: fsd/[FSD]-ait-lint#[FSD]-ait-lint
 author: system
-date: '2026-06-01T07:11:13.119402+00:00'
-message: v1.4 impl 设计定稿
+date: '2026-06-27T07:21:04.739774+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-impl-stage-cli -->\n## impl 阶段命令实现\n\n实现 `impl create` / `impl confirm`，支持 1:N 派生与无 id 逐批交互。\n\
-  \n### 命令\n\n```python\n@impl_group.command(\"create\")\n@click.argument(\"prd_chunk_id\", required=False)  # 无 id → 逐批交互\n\
-  @click.option(\"--content-file\")\ndef impl_create(prd_chunk_id, content_file):\n    if prd_chunk_id is None:\n        #\
-  \ 逐批模式：遍历本版本所有 committed PRD chunk 中尚无 impl 的，依次设计\n        return _interactive_impl_loop(root)\n    # 单 chunk：校验 PRD 已\
-  \ committed → 写 impl 到 versions/{v}/impl/ → 自动注入 @ref\n    ...\n\n@impl_group.command(\"confirm\")\n@click.argument(\"chunk_id\"\
-  , required=False)\ndef impl_confirm(chunk_id):\n    # 1. pre-merge 校验：把版本 specgraph dry-run 合并进全局图，检测冲突\n    issues = pre_merge_check(root,\
-  \ version)   # 见下「pre-merge 校验」\n    if issues:\n        return fail(f\"impl 设计存在问题，无法 confirm: {issues}\", code=\"PREMERGE_FAILED\"\
-  )\n    # 2. 写工作区，置 impl_locked=True；无 id 则确认全部待确认 impl\n    ...\n```\n\n### pre-merge 校验（impl confirm 的质量门）\nconfirm 时把本版本\
-  \ specgraph 试合并进全局图，做 dry-run，检测两类问题，有问题拒绝 confirm：\n\n```python\ndef pre_merge_check(root, version) -> list[str]:\n   \
-  \ vgraph = load_specgraph(root, version)      # specgraph-{version}.yaml\n    ggraph = load_specgraph(root, \"baseline\"\
-  )   # 全局 specgraph.yaml\n    merged = ggraph.dry_run_merge(vgraph)       # 不落盘\n    issues = []\n    # ① 依赖成环：合并后的图做拓扑排序，有环则失败\n\
-  \    if cycle := merged.detect_cycle():\n        issues.append(f\"依赖成环: {cycle}\")\n    # ② 版本内重复：同 @id 多定义 / 多个 impl 抢同一\
-  \ @extract 目标\n    issues += detect_intra_version_dup(version)\n    return issues\n```\n\n- 严格串行单版本，故无需检测基线分叉冲突（不会发生）\n\
-  - 跨版本同名 @extract 目标是合法演进（替换），不算冲突\n\n### 1:N 派生\n- 一个 PRD chunk 可被多次 `impl create` 调用，或单次提交含多个 `@id` 的文件\n- 派生命名 `impl-{源chunk去前缀}-{名}`，由\
-  \ impl-formats-naming 校验\n- 每个 impl 自动注入 `@ref:{prd-file}#{prd-chunk} rel:implements`\n\n### 逐批交互\n- `_interactive_impl_loop`：查\
-  \ specgraph（version 维度）找出\"有 PRD committed 但无 impl 覆盖\"的 chunk，逐个提示设计\n- 覆盖判定：specgraph 中是否有 `rel:implements` 边指向该 PRD chunk（不再依赖\
-  \ links-index）\n\n### 锁定\n- confirm 置 `impl_locked=True`，之后本版本 impl 不可改\n\n<!-- @ref:prd/ait-redesign#prd-impl-stage rel:implements\
-  \ -->"
+new_content: '<!-- @id:[FSD]-ait-lint -->
+
+  ## lint FSD
+
+
+  ### 功能范围
+
+
+  ait lint：旧模型 PRD/impl 格式与结构校验。'

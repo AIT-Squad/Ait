@@ -1,0 +1,1254 @@
+version: 1
+scope: version
+version_name: v2.3
+based_on_hash: null
+status: merged
+chunks:
+- id: '[PRD]-ait'
+  file: prd/[PRD]-ait
+  heading: ait 产品 PRD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[PRD]-ait'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: AIT 产品需求：AI 时代 chunk 级文档版本控制 + 双流水线 + spec→代码可追溯 + FSD 可拆分并行。
+  metadata: {}
+- id: '[FSD]-ait'
+  file: fsd/[FSD]-ait
+  heading: ait 功能分解根
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: AIT 按命令域分解为 15 个子 FSD；叶 FSD details 到 TDD（一文件一映射，god-file 整块）。
+  metadata: {}
+- id: '[FSD]-ait:init'
+  file: fsd/[FSD]-ait
+  heading: init 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 项目初始化与新模型骨架，decomposes [FSD]-ait-init。
+  metadata: {}
+- id: '[FSD]-ait:prd'
+  file: fsd/[FSD]-ait
+  heading: prd 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 旧模型 PRD 生命周期，decomposes [FSD]-ait-prd。
+  metadata: {}
+- id: '[FSD]-ait:impl'
+  file: fsd/[FSD]-ait
+  heading: impl 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 旧模型 impl 生命周期，decomposes [FSD]-ait-impl。
+  metadata: {}
+- id: '[FSD]-ait:task'
+  file: fsd/[FSD]-ait
+  heading: task 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 旧模型 task 派生与执行，decomposes [FSD]-ait-task。
+  metadata: {}
+- id: '[FSD]-ait:version'
+  file: fsd/[FSD]-ait
+  heading: version 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 版本生命周期与基线合并，decomposes [FSD]-ait-version。
+  metadata: {}
+- id: '[FSD]-ait:new_model'
+  file: fsd/[FSD]-ait
+  heading: new-model 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 新模型 prdv2/fsd/tdd/codegen，decomposes [FSD]-ait-new_model。
+  metadata: {}
+- id: '[FSD]-ait:specgraph'
+  file: fsd/[FSD]-ait
+  heading: specgraph 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 关系图与依赖/影响查询，decomposes [FSD]-ait-specgraph。
+  metadata: {}
+- id: '[FSD]-ait:context'
+  file: fsd/[FSD]-ait
+  heading: context 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 聚焦上下文组装，decomposes [FSD]-ait-context。
+  metadata: {}
+- id: '[FSD]-ait:state'
+  file: fsd/[FSD]-ait
+  heading: state 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 版本状态面板，decomposes [FSD]-ait-state。
+  metadata: {}
+- id: '[FSD]-ait:lint'
+  file: fsd/[FSD]-ait
+  heading: lint 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: PRD/impl 格式校验，decomposes [FSD]-ait-lint。
+  metadata: {}
+- id: '[FSD]-ait:search'
+  file: fsd/[FSD]-ait
+  heading: search 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 全文搜索，decomposes [FSD]-ait-search。
+  metadata: {}
+- id: '[FSD]-ait:indexing'
+  file: fsd/[FSD]-ait
+  heading: indexing 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 索引重建与数据迁移，decomposes [FSD]-ait-indexing。
+  metadata: {}
+- id: '[FSD]-ait:cli'
+  file: fsd/[FSD]-ait
+  heading: cli 分发器
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 命令分发器，decomposes [FSD]-ait-cli。
+  metadata: {}
+- id: '[FSD]-ait:doc_model'
+  file: fsd/[FSD]-ait
+  heading: doc-model 基础设施
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: chunk 解析与数据模型，decomposes [FSD]-ait-doc_model。
+  metadata: {}
+- id: '[FSD]-ait:foundation'
+  file: fsd/[FSD]-ait
+  heading: foundation 基础设施
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 通用工具，decomposes [FSD]-ait-foundation。
+  metadata: {}
+- id: '[FSD]-ait-init'
+  file: fsd/[FSD]-ait-init
+  heading: init FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 项目初始化域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-init:init_manager'
+  file: fsd/[FSD]-ait-init
+  heading: init_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: InitManager：fresh/incomplete/ready 状态判定；full/incremental/new-model bootstrap；生成  details [TDD]-init_manager。
+  metadata: {}
+- id: '[TDD]-init_manager'
+  file: tdd/[TDD]-init_manager
+  heading: init_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: InitManager：fresh/incomplete/ready 状态判定；full/incremental/new-model boo target_file skill/ait/ait/init_manager.py。
+  metadata: {}
+- id: '[FSD]-ait-prd'
+  file: fsd/[FSD]-ait-prd
+  heading: prd FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 旧模型 PRD 生命周期域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-prd:prd_manager'
+  file: fsd/[FSD]-ait-prd
+  heading: prd_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: PrdManager：create/save_draft/confirm/commit/show；四段结构与 summary 必需校验；req 草稿持久化；co details [TDD]-prd_manager。
+  metadata: {}
+- id: '[TDD]-prd_manager'
+  file: tdd/[TDD]-prd_manager
+  heading: prd_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: PrdManager：create/save_draft/confirm/commit/show；四段结构与 summary 必需校验；re target_file skill/ait/ait/prd_manager.py。
+  metadata: {}
+- id: '[FSD]-ait-impl'
+  file: fsd/[FSD]-ait-impl
+  heading: impl FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 旧模型 impl 生命周期域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-impl:impl_manager'
+  file: fsd/[FSD]-ait-impl
+  heading: impl_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: ImplManager：create（自动注入 @ref implements）、commit（pre-merge：成环/重复 @id/@extract 目标） details [TDD]-impl_manager。
+  metadata: {}
+- id: '[TDD]-impl_manager'
+  file: tdd/[TDD]-impl_manager
+  heading: impl_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: ImplManager：create（自动注入 @ref implements）、commit（pre-merge：成环/重复 @id/@e target_file skill/ait/ait/impl_manager.py。
+  metadata: {}
+- id: '[FSD]-ait-task'
+  file: fsd/[FSD]-ait-task
+  heading: task FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: task 派生与执行域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-task:task_manager'
+  file: fsd/[FSD]-ait-task
+  heading: task_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: TaskManager：create（从 specgraph 派生 impl_refs∪global_refs）、execute（输出聚焦 bundle）、co details [TDD]-task_manager。
+  metadata: {}
+- id: '[TDD]-task_manager'
+  file: tdd/[TDD]-task_manager
+  heading: task_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: TaskManager：create（从 specgraph 派生 impl_refs∪global_refs）、execute（输出聚焦  target_file skill/ait/ait/task_manager.py。
+  metadata: {}
+- id: '[FSD]-ait-version'
+  file: fsd/[FSD]-ait-version
+  heading: version FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 版本生命周期与合并域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-version:version_manager'
+  file: fsd/[FSD]-ait-version
+  heading: version_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: VersionManager：create/ensure/stage/commit/lock/confirm/reset；三态流转；confirm 两阶段（pr details [TDD]-version_manager。
+  metadata: {}
+- id: '[FSD]-ait-version:merge_engine'
+  file: fsd/[FSD]-ait-version
+  heading: merge_engine
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: merge_file/merge_new_file：按 action 把版本 chunk 合并进 baseline——modify 全替换 overrides  details [TDD]-merge_engine。
+  metadata: {}
+- id: '[TDD]-version_manager'
+  file: tdd/[TDD]-version_manager
+  heading: version_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: VersionManager：create/ensure/stage/commit/lock/confirm/reset；三态流转；conf target_file skill/ait/ait/version_manager.py。
+  metadata: {}
+- id: '[TDD]-merge_engine'
+  file: tdd/[TDD]-merge_engine
+  heading: merge_engine TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: merge_file/merge_new_file：按 action 把版本 chunk 合并进 baseline——modify 全替换  target_file skill/ait/ait/merge_engine.py。
+  metadata: {}
+- id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 新模型 PRD/FSD/TDD 域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: NewModelManager：create_prd/fsd/tdd（写版本工作区、ensure 版本 meta）、add_edge（decomposes/de details [TDD]-new_model_manager。
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_validator
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: validate_prd_fsd_tdd_graph：关系合法性（decomposes PRD/FSD→FSD、details 叶FSD→TDD、depends details [TDD]-new_model_validator。
+  metadata: {}
+- id: '[TDD]-new_model_manager'
+  file: tdd/[TDD]-new_model_manager
+  heading: new_model_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: NewModelManager：create_prd/fsd/tdd（写版本工作区、ensure 版本 meta）、add_edge（dec target_file skill/ait/ait/new_model_manager.py。
+  metadata: {}
+- id: '[TDD]-new_model_validator'
+  file: tdd/[TDD]-new_model_validator
+  heading: new_model_validator TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: validate_prd_fsd_tdd_graph：关系合法性（decomposes PRD/FSD→FSD、details 叶FSD→T target_file skill/ait/ait/new_model_validator.py。
+  metadata: {}
+- id: '[FSD]-ait-specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 关系图与依赖/影响查询域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-specgraph:specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: SpecGraph：spec/edge 模型、load/save、dry_run_merge、combined_specgraph、resolve_chunk_ details [TDD]-specgraph。
+  metadata: {}
+- id: '[FSD]-ait-specgraph:deps'
+  file: fsd/[FSD]-ait-specgraph
+  heading: deps
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 依赖查询：返回某 chunk 的 depends_on / 上游关系。 details [TDD]-deps。
+  metadata: {}
+- id: '[FSD]-ait-specgraph:impact'
+  file: fsd/[FSD]-ait-specgraph
+  heading: impact
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 影响查询：返回改动某 chunk 的下游影响面。 details [TDD]-impact。
+  metadata: {}
+- id: '[TDD]-specgraph'
+  file: tdd/[TDD]-specgraph
+  heading: specgraph TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: SpecGraph：spec/edge 模型、load/save、dry_run_merge、combined_specgraph、reso target_file skill/ait/ait/specgraph.py。
+  metadata: {}
+- id: '[TDD]-deps'
+  file: tdd/[TDD]-deps
+  heading: deps TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 依赖查询：返回某 chunk 的 depends_on / 上游关系。 target_file skill/ait/ait/deps.py。
+  metadata: {}
+- id: '[TDD]-impact'
+  file: tdd/[TDD]-impact
+  heading: impact TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 影响查询：返回改动某 chunk 的下游影响面。 target_file skill/ait/ait/impact.py。
+  metadata: {}
+- id: '[FSD]-ait-context'
+  file: fsd/[FSD]-ait-context
+  heading: context FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 聚焦上下文装配域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-context:context_assembler'
+  file: fsd/[FSD]-ait-context
+  heading: context_assembler
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: ContextAssembler：assemble(L1 目标 chunk + L2 SpecGraph 依赖)，prd-to-impl / impl-edit details [TDD]-context_assembler。
+  metadata: {}
+- id: '[TDD]-context_assembler'
+  file: tdd/[TDD]-context_assembler
+  heading: context_assembler TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: ContextAssembler：assemble(L1 目标 chunk + L2 SpecGraph 依赖)，prd-to-impl / target_file skill/ait/ait/context_assembler.py。
+  metadata: {}
+- id: '[FSD]-ait-state'
+  file: fsd/[FSD]-ait-state
+  heading: state FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 状态面板域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-state:state'
+  file: fsd/[FSD]-ait-state
+  heading: state
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: render_state/save_state：三态分布、impl 覆盖、task 状态、title/phase；markdown/json；可保存 versi details [TDD]-state。
+  metadata: {}
+- id: '[TDD]-state'
+  file: tdd/[TDD]-state
+  heading: state TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: render_state/save_state：三态分布、impl 覆盖、task 状态、title/phase；markdown/json target_file skill/ait/ait/state.py。
+  metadata: {}
+- id: '[FSD]-ait-lint'
+  file: fsd/[FSD]-ait-lint
+  heading: lint FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 格式校验域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-lint:validator'
+  file: fsd/[FSD]-ait-lint
+  heading: validator
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 校验框架：ValidationError/ValidationIssue、严重度 E1、chunk ID 格式规则。 details [TDD]-validator。
+  metadata: {}
+- id: '[FSD]-ait-lint:format_validator'
+  file: fsd/[FSD]-ait-lint
+  heading: format_validator
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: PRD/impl 格式校验：四段结构、summary 必需、派生命名 DERIVED_NAME、@extract 边界。 details [TDD]-format_validator。
+  metadata: {}
+- id: '[TDD]-validator'
+  file: tdd/[TDD]-validator
+  heading: validator TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 校验框架：ValidationError/ValidationIssue、严重度 E1、chunk ID 格式规则。 target_file skill/ait/ait/validator.py。
+  metadata: {}
+- id: '[TDD]-format_validator'
+  file: tdd/[TDD]-format_validator
+  heading: format_validator TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: PRD/impl 格式校验：四段结构、summary 必需、派生命名 DERIVED_NAME、@extract 边界。 target_file skill/ait/ait/format_validator.py。
+  metadata: {}
+- id: '[FSD]-ait-search'
+  file: fsd/[FSD]-ait-search
+  heading: search FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 全文检索域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-search:search'
+  file: fsd/[FSD]-ait-search
+  heading: search
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: search：跨 baseline/version chunk 的全文关键词检索，返回命中 chunk 与位置。 details [TDD]-search。
+  metadata: {}
+- id: '[TDD]-search'
+  file: tdd/[TDD]-search
+  heading: search TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: search：跨 baseline/version chunk 的全文关键词检索，返回命中 chunk 与位置。 target_file skill/ait/ait/search.py。
+  metadata: {}
+- id: '[FSD]-ait-indexing'
+  file: fsd/[FSD]-ait-indexing
+  heading: indexing FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 索引重建与迁移域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-indexing:index_manager'
+  file: fsd/[FSD]-ait-indexing
+  heading: index_manager
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: IndexManager：baseline/version chunks-index 加载/保存/重建（rebuild_baseline）、query_base details [TDD]-index_manager。
+  metadata: {}
+- id: '[FSD]-ait-indexing:migrations'
+  file: fsd/[FSD]-ait-indexing
+  heading: migrations
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 一次性数据迁移：block→chunk 等历史 schema 迁移（migrate-block-to-chunk）。 details [TDD]-migrations。
+  metadata: {}
+- id: '[TDD]-index_manager'
+  file: tdd/[TDD]-index_manager
+  heading: index_manager TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: IndexManager：baseline/version chunks-index 加载/保存/重建（rebuild_baseline）、 target_file skill/ait/ait/index_manager.py。
+  metadata: {}
+- id: '[TDD]-migrations'
+  file: tdd/[TDD]-migrations
+  heading: migrations TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 一次性数据迁移：block→chunk 等历史 schema 迁移（migrate-block-to-chunk）。 target_file skill/ait/ait/migrations.py。
+  metadata: {}
+- id: '[FSD]-ait-cli'
+  file: fsd/[FSD]-ait-cli
+  heading: cli FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 命令分发器域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-cli:cli'
+  file: fsd/[FSD]-ait-cli
+  heading: cli
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: click 命令树：init/prd/impl/task/version/fsd/tdd/codegen/prdv2/specgraph/context/sta details [TDD]-cli。
+  metadata: {}
+- id: '[TDD]-cli'
+  file: tdd/[TDD]-cli
+  heading: cli TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: click 命令树：init/prd/impl/task/version/fsd/tdd/codegen/prdv2/specgraph/c target_file skill/ait/ait/cli.py。
+  metadata: {}
+- id: '[FSD]-ait-doc_model'
+  file: fsd/[FSD]-ait-doc_model
+  heading: doc_model FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 文档模型基础设施域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-doc_model:chunk_parser'
+  file: fsd/[FSD]-ait-doc_model
+  heading: chunk_parser
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: parse_file/parse_text：@id/@ref/@extract 解析、代码围栏屏蔽、[PRD]/[FSD]/[TDD] bracket 前缀、内 details [TDD]-chunk_parser。
+  metadata: {}
+- id: '[FSD]-ait-doc_model:schemas'
+  file: fsd/[FSD]-ait-doc_model
+  heading: schemas
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: pydantic 数据模型：VersionMeta/VersionIndex/VersionChunkEntry/ChangeRecord/CommitEntr details [TDD]-schemas。
+  metadata: {}
+- id: '[TDD]-chunk_parser'
+  file: tdd/[TDD]-chunk_parser
+  heading: chunk_parser TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: parse_file/parse_text：@id/@ref/@extract 解析、代码围栏屏蔽、[PRD]/[FSD]/[TDD] br target_file skill/ait/ait/chunk_parser.py。
+  metadata: {}
+- id: '[TDD]-schemas'
+  file: tdd/[TDD]-schemas
+  heading: schemas TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: pydantic 数据模型：VersionMeta/VersionIndex/VersionChunkEntry/ChangeRecord/ target_file skill/ait/ait/schemas.py。
+  metadata: {}
+- id: '[FSD]-ait-foundation'
+  file: fsd/[FSD]-ait-foundation
+  heading: foundation FSD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 通用工具基础设施域。details 到对应 TDD（一文件一映射）。
+  metadata: {}
+- id: '[FSD]-ait-foundation:root'
+  file: fsd/[FSD]-ait-foundation
+  heading: root
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 项目根解析：定位含 project-docs 的根、CWD 校验（NOT_AT_PROJECT_ROOT / CWD_INSIDE_PROJECT_DOCS）。 details [TDD]-root。
+  metadata: {}
+- id: '[FSD]-ait-foundation:io_utils'
+  file: fsd/[FSD]-ait-foundation
+  heading: io_utils
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: atomic_write_text：原子写文件（临时文件 + 替换）。 details [TDD]-io_utils。
+  metadata: {}
+- id: '[FSD]-ait-foundation:yaml_io'
+  file: fsd/[FSD]-ait-foundation
+  heading: yaml_io
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: save_model/load_model：pydantic 模型 ↔ YAML 文件存取。 details [TDD]-yaml_io。
+  metadata: {}
+- id: '[FSD]-ait-foundation:hash_utils'
+  file: fsd/[FSD]-ait-foundation
+  heading: hash_utils
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: chunk_hash：chunk 内容哈希（用于 base_hash 失效检测）。 details [TDD]-hash_utils。
+  metadata: {}
+- id: '[TDD]-root'
+  file: tdd/[TDD]-root
+  heading: root TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 项目根解析：定位含 project-docs 的根、CWD 校验（NOT_AT_PROJECT_ROOT / CWD_INSIDE_PROJ target_file skill/ait/ait/root.py。
+  metadata: {}
+- id: '[TDD]-io_utils'
+  file: tdd/[TDD]-io_utils
+  heading: io_utils TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: atomic_write_text：原子写文件（临时文件 + 替换）。 target_file skill/ait/ait/io_utils.py。
+  metadata: {}
+- id: '[TDD]-yaml_io'
+  file: tdd/[TDD]-yaml_io
+  heading: yaml_io TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: save_model/load_model：pydantic 模型 ↔ YAML 文件存取。 target_file skill/ait/ait/yaml_io.py。
+  metadata: {}
+- id: '[TDD]-hash_utils'
+  file: tdd/[TDD]-hash_utils
+  heading: hash_utils TDD
+  level: 2
+  action: add
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: chunk_hash：chunk 内容哈希（用于 base_hash 失效检测）。 target_file skill/ait/ait/hash_utils.py。
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-06-27T07:21:04.873386+00:00'
+  message: ait v2.3 baseline as-built
+  chunks:
+  - '[PRD]-ait'
+  - '[FSD]-ait'
+  - '[FSD]-ait:init'
+  - '[FSD]-ait:prd'
+  - '[FSD]-ait:impl'
+  - '[FSD]-ait:task'
+  - '[FSD]-ait:version'
+  - '[FSD]-ait:new_model'
+  - '[FSD]-ait:specgraph'
+  - '[FSD]-ait:context'
+  - '[FSD]-ait:state'
+  - '[FSD]-ait:lint'
+  - '[FSD]-ait:search'
+  - '[FSD]-ait:indexing'
+  - '[FSD]-ait:cli'
+  - '[FSD]-ait:doc_model'
+  - '[FSD]-ait:foundation'
+  - '[FSD]-ait-init'
+  - '[FSD]-ait-init:init_manager'
+  - '[TDD]-init_manager'
+  - '[FSD]-ait-prd'
+  - '[FSD]-ait-prd:prd_manager'
+  - '[TDD]-prd_manager'
+  - '[FSD]-ait-impl'
+  - '[FSD]-ait-impl:impl_manager'
+  - '[TDD]-impl_manager'
+  - '[FSD]-ait-task'
+  - '[FSD]-ait-task:task_manager'
+  - '[TDD]-task_manager'
+  - '[FSD]-ait-version'
+  - '[FSD]-ait-version:version_manager'
+  - '[FSD]-ait-version:merge_engine'
+  - '[TDD]-version_manager'
+  - '[TDD]-merge_engine'
+  - '[FSD]-ait-new_model'
+  - '[FSD]-ait-new_model:new_model_manager'
+  - '[FSD]-ait-new_model:new_model_validator'
+  - '[TDD]-new_model_manager'
+  - '[TDD]-new_model_validator'
+  - '[FSD]-ait-specgraph'
+  - '[FSD]-ait-specgraph:specgraph'
+  - '[FSD]-ait-specgraph:deps'
+  - '[FSD]-ait-specgraph:impact'
+  - '[TDD]-specgraph'
+  - '[TDD]-deps'
+  - '[TDD]-impact'
+  - '[FSD]-ait-context'
+  - '[FSD]-ait-context:context_assembler'
+  - '[TDD]-context_assembler'
+  - '[FSD]-ait-state'
+  - '[FSD]-ait-state:state'
+  - '[TDD]-state'
+  - '[FSD]-ait-lint'
+  - '[FSD]-ait-lint:validator'
+  - '[FSD]-ait-lint:format_validator'
+  - '[TDD]-validator'
+  - '[TDD]-format_validator'
+  - '[FSD]-ait-search'
+  - '[FSD]-ait-search:search'
+  - '[TDD]-search'
+  - '[FSD]-ait-indexing'
+  - '[FSD]-ait-indexing:index_manager'
+  - '[FSD]-ait-indexing:migrations'
+  - '[TDD]-index_manager'
+  - '[TDD]-migrations'
+  - '[FSD]-ait-cli'
+  - '[FSD]-ait-cli:cli'
+  - '[TDD]-cli'
+  - '[FSD]-ait-doc_model'
+  - '[FSD]-ait-doc_model:chunk_parser'
+  - '[FSD]-ait-doc_model:schemas'
+  - '[TDD]-chunk_parser'
+  - '[TDD]-schemas'
+  - '[FSD]-ait-foundation'
+  - '[FSD]-ait-foundation:root'
+  - '[FSD]-ait-foundation:io_utils'
+  - '[FSD]-ait-foundation:yaml_io'
+  - '[FSD]-ait-foundation:hash_utils'
+  - '[TDD]-root'
+  - '[TDD]-io_utils'
+  - '[TDD]-yaml_io'
+  - '[TDD]-hash_utils'
+  req_id: null
+stats:
+  total_chunks: 82
+  by_action:
+    modify: 17
+    add: 65
+  by_state:
+    committed: 82
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

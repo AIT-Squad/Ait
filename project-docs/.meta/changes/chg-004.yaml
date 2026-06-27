@@ -1,30 +1,16 @@
 id: chg-004
-version: v1.1
-type: ADD
-target: prd/project-docs-only#prd-project-docs-only-errors
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:prd
 author: system
-date: '2026-05-24T07:19:26.680616+00:00'
-message: lockdown  document dir
+date: '2026-06-27T07:21:04.557957+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-project-docs-only-errors -->
+new_content: '<!-- @id:[FSD]-ait:prd -->
 
-  ## 错误场景
+  ## prd 域
 
+  ### 功能描述
 
-  所有错误遵循统一的 JSON 输出契约：`{"ok": false, "error": "<人类可读>", "code": "<机器码>"}`，并以 exit code 1 退出。
-
-
-  | 编号 | code | 触发条件 | 提示文案（中文） |
-
-  |---|---|---|---|
-
-  | E1 | `NOT_AT_PROJECT_ROOT` | CWD 下没有 `project-docs/` 子目录 | 当前目录不是 AIT 项目根。请 cd 到包含 `project-docs/` 子目录的项目根目录后重试。 |
-
-  | E2 | `PROJECT_DOCS_MALFORMED` | `project-docs/` 存在，但缺 `docs/` 或 `.meta/` | `project-docs/` 结构不完整：缺少 `docs/` 或 `.meta/`。请检查目录或重新初始化。
-  |
-
-  | E3 | `CWD_INSIDE_PROJECT_DOCS` | CWD 本身就是 `project-docs/` 或其后代 | 请退出 `project-docs/`，从其父目录（项目根）运行命令。 |
-
-
-  **辅助信息**：错误 JSON 的 `data` 字段允许携带诊断信息（如解析过的 CWD 绝对路径、缺失的子目录名），便于排障，但 `code` + `error` 两个字段是稳定 API。'
+  `ait prd` create/save-draft/confirm/commit/show：旧模型 PRD 四段结构、req 草稿、确认锁定。'

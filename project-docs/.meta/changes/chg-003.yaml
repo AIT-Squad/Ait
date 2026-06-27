@@ -1,45 +1,16 @@
 id: chg-003
-version: v1.1
-type: ADD
-target: prd/project-docs-only#prd-project-docs-only-detection
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:init
 author: system
-date: '2026-05-24T07:19:26.675589+00:00'
-message: lockdown  document dir
+date: '2026-06-27T07:21:04.554038+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-project-docs-only-detection -->
+new_content: '<!-- @id:[FSD]-ait:init -->
 
-  ## 目录定位
+  ## init 域
 
+  ### 功能描述
 
-  **触发时机**：所有 `bin/ait` 子命令（`prd`、`impl`、`version`、`reindex`、`context`）在解析子命令参数之前、加载任何元数据之前，先调用统一的 root 解析逻辑。
-
-
-  **算法**：
-
-
-  ```
-
-  1. cwd ← os.getcwd()
-
-  2. candidate ← cwd / "project-docs"
-
-  3. 若 candidate 不是已存在的目录 → 抛 NOT_AT_PROJECT_ROOT（见错误场景 E1）
-
-  4. 若 (candidate / "docs") 或 (candidate / ".meta") 不是已存在的目录 → 抛 PROJECT_DOCS_MALFORMED（E2）
-
-  5. 若 cwd 本身位于 candidate 内部（即 cwd == candidate 或 cwd 是 candidate 的后代）→ 抛 CWD_INSIDE_PROJECT_DOCS（E3）
-
-  6. 否则 root ← candidate，写入命令上下文，后续路径解析全部基于 root
-
-  ```
-
-
-  **不变量**：
-
-
-  - 解析完成后，CLI 内部不再使用 `os.getcwd()`，全部以解析得到的 root 为基准。
-
-  - 同一进程生命周期内 root 不变。
-
-  - 任何相对路径（`docs/prd/...`、`.meta/blocks-index.yaml`、`versions/v1.0/...`）都相对 root 解析。'
+  `ait init`：旧模型 global 基线 + 新模型 prd/fsd/tdd 骨架（--new-model），生成项目 wrapper。'

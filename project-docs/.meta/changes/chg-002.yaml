@@ -1,29 +1,27 @@
 id: chg-002
-version: v1.1
-type: ADD
-target: prd/project-docs-only#prd-project-docs-only-rules
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait
 author: system
-date: '2026-05-24T07:19:26.670473+00:00'
-message: lockdown  document dir
+date: '2026-06-27T07:21:04.550027+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
-base_content: null
-new_content: '<!-- @id:prd-project-docs-only-rules -->
+base_content: '<!-- @id:[FSD]-ait -->
 
-  ## 业务规则
+  ## ait FSD
 
 
-  | 编号 | 规则 |
+  ### 功能范围
 
-  |---|---|
 
-  | R1 | 唯一合法的 AIT 工作根 = `<CWD>/project-docs/`（CWD 的直接子目录，名称严格匹配） |
+  <!-- 根 FSD 功能总览，init 后由 ait fsd 递归分解。 -->'
+new_content: '<!-- @id:[FSD]-ait -->
 
-  | R2 | 目录名 `project-docs` **硬编**，不读取任何配置项、环境变量、CLI flag 来改名 |
+  ## ait 功能分解根
 
-  | R3 | 不向上递归查找项目根 marker（`.git`、`pyproject.toml`、`.ait-root` 等一概不参与判定） |
 
-  | R4 | 不提供 `--root` / `-C` / `AIT_ROOT` 之类的覆盖入口 |
+  ### 功能范围
 
-  | R5 | `project-docs/` 内必须同时存在 `docs/` 和 `.meta/` 子目录才被视为合法工作根 |
 
-  | R6 | 一次命令执行内 root 解析结果**锁定**：命令运行期间不重新探测、不切换 |'
+  AIT 的功能按 CLI 命令域分解为子 FSD。命令域：init/prd/impl/task/version/new-model/specgraph/context/state/lint/search/indexing；外加分发器 cli
+  与两个基础设施域 doc-model、foundation。每个域 decomposes 一个子 FSD，子 FSD details 到 TDD，每个 TDD 唯一映射一个 .py 文件。'

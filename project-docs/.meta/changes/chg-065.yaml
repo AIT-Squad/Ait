@@ -1,61 +1,37 @@
 id: chg-065
-version: v1.5
+version: v2.3
 type: ADD
-target: prd/v1-5-roadmap#prd-skill-cli-resolution
+target: tdd/[TDD]-migrations#[TDD]-migrations
 author: system
-date: '2026-06-01T12:52:13.739987+00:00'
-message: 'v1.5 roadmap: task relocation, init incremental, CLI path resolution, sub-skills coverage'
+date: '2026-06-27T07:21:04.781286+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-skill-cli-resolution -->
+new_content: '<!-- @id:[TDD]-migrations -->
 
-  ## bin/ait 路径解析与 SKILL 文档约定修订
-
-
-  ### 概述
-
-  SKILL.md 与 sub-skills 中所有 CLI 调用使用相对路径 `bin/ait ...`，AI 在用户项目根（cwd 不在 skill 安装目录）执行时直接抛 `zsh:1: no such file or directory:
-  bin/ait`。本期通过"文档约定 + 入口脚本自定位 + 错误码兜底"三层解决：让 AI 不论从哪个 cwd 触发都能正确调用 CLI。
+  ## migrations TDD
 
 
-  ### 业务规则
+  ```yaml
 
-  - **文档层约定**：SKILL.md / 所有 sub-skill SKILL.md / references/* 中的 CLI 调用统一改为占位符 `${SKILL_DIR}/bin/ait`，并在 Global Contract 增加一条：*"调用
-  CLI 时使用 skill 安装目录下的绝对路径（默认 `~/.claude/skills/ait/bin/ait`）；不要在用户项目根使用相对路径 `bin/ait`"*
+  target_file: skill/ait/ait/migrations.py
 
-  - **入口脚本自定位**：`bin/ait` shell wrapper 与 `bin/ait.cmd` 在执行前用脚本自身路径（`$(dirname "$0")` 等价）解析 venv 位置，不依赖 cwd；保证用户即便手动从绝对路径调用也能找到
-  venv 与 ait 包
-
-  - **CLI cwd 校验**：`bin/ait` 子命令保持原有"必须从含 `project-docs/` 的目录运行"约束（这指的是用户业务 cwd，与 wrapper 自定位无关）
-
-  - **错误码兜底**：当 shell 抛出 `command not found` 类错误时（不在 CLI 控制内），sub-skill 必须能识别症状并给出修正命令；主 SKILL.md 的 Common Pitfalls 增加一条 `ENOENT_BIN_AIT`（虚拟代码，不是
-  CLI 真实返回）
-
-  - **install.py 行为不变**：仍把 skill 拷贝到 `~/.claude/skills/ait/`，仍预热 venv
+  ```
 
 
-  ### 验收标准
-
-  - [ ] `grep -rn "bin/ait" skill/ait/SKILL.md skill/ait/sub-skills/` 命中数为 0（除非紧跟在 `${SKILL_DIR}/` 之后）
-
-  - [ ] 主 SKILL.md 的 Global Contract 含路径绝对化条款
-
-  - [ ] 用户在任意 cwd（如用户项目根）执行 `~/.claude/skills/ait/bin/ait --version` 都能正常输出版本号
-
-  - [ ] `bin/ait` wrapper 不再依赖 `cd` 到特定目录才能找到 venv
-
-  - [ ] Common Pitfalls 表新增 `ENOENT_BIN_AIT` 行：症状 = `no such file or directory: bin/ait`，恢复 = 改用绝对路径
-
-  - [ ] 现有 sub-skill（ait-discuss / ait-impl-discuss / ait-progress / ait-resume / ait-init-check / ait-state）的 CLI Dependencies
-  段全部更新
+  ### 技术栈
 
 
-  ### 边界与非目标
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
 
-  - 不引入系统级全局 `ait` 命令（PATH 注入），保持当前"显式路径调用"哲学
 
-  - 不修改 `install.py` 拷贝逻辑与 venv 机制
+  ### 文件职责
 
-  - 不改变 CLI 子命令名与参数
 
-  - 不引入环境变量 `AIT_HOME` 之类的可配置 skill 路径（保持默认 `~/.claude/skills/ait/`）'
+  一次性数据迁移：block→chunk 等历史 schema 迁移（migrate-block-to-chunk）。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（migration 相关）：覆盖正常路径、边界与错误路径。'

@@ -67,15 +67,6 @@ def test_lint_baseline_clean(cli_project: Path):
     assert payload == {"ok": True, "violations": [], "fixed_files": []}
 
 
-def test_lint_version_v16_clean_after_dogfood():
-    res = CliRunner().invoke(main, ["lint", "--scope", "v1.6"], catch_exceptions=False)
-    payload = _parse(res.output)
-
-    assert res.exit_code == 0
-    assert payload["ok"] is True
-    assert payload["violations"] == []
-
-
 def test_lint_fix_english_to_chinese(cli_project: Path):
     root = cli_project
     (root / "docs" / "prd" / "demo.md").write_text(

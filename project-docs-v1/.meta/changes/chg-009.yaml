@@ -1,0 +1,19 @@
+id: chg-009
+version: v1.2
+type: ADD
+target: prd/skills#prd-skills-layout
+author: system
+date: '2026-05-25T05:45:35.973684+00:00'
+message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:prd-skills-layout -->\n# 嵌套目录布局\n\n## 决议\n\n所有子 skill 全部嵌套在 `skill/ait/sub-skills/<name>/` 下，不另起 `skill/ait-xxx/`\
+  \ 同级目录。理由：\n\n1. 单一 skill 安装入口（`skill/ait/`）保持 init 工作流不变\n2. 子 skill 与主 skill 共享同一 venv 与 `bin/ait`，免重复初始化\n3. 用户在 IDE\
+  \ 加载主 skill 时，子 skill 自然可见\n\n## 最终布局\n\n```\nskill/ait/                          ← 主 skill（router 角色，扩充能力的载体）\n├── SKILL.md\
+  \                        ← router：CLI 速查 + Common Pitfalls + Sub-skills 导航\n├── README.md                       ← 不变\n├──\
+  \ pyproject.toml                  ← 不变\n├── bin/                            ← 不变（ait / ait.cmd）\n├── ait/              \
+  \              ← Python 包，全部 block→chunk 重构\n├── references/                     ← 不变（block-system.md 等内部术语随之改名）\n├── templates/\
+  \                      ← 不变\n└── sub-skills/                     ← 【新增】子 skill 集合\n    ├── ait-discuss/SKILL.md        ←\
+  \ PRD 三阶段讨论\n    ├── ait-impl-discuss/SKILL.md   ← impl 设计讨论\n    ├── ait-progress/SKILL.md       ← 版本进度面板\n    └── ait-resume/SKILL.md\
+  \         ← 失败恢复\n```\n\n## 命名规则\n\n- 子 skill 目录名：`ait-<verb>`（小写 + 连字符），与参考项目对齐\n- 每个子 skill 必须包含且仅包含 `SKILL.md` 一个文件（与参考项目对齐）\n\
+  - 子 skill 不允许引入额外的 `bin/`、`venv/`、`pyproject.toml` —— 共用主 skill 的运行时"

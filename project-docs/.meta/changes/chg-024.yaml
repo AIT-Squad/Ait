@@ -1,71 +1,18 @@
 id: chg-024
-version: v1.3
+version: v2.3
 type: ADD
-target: prd/todo4-search#prd-v13-todo4-search
+target: fsd/[FSD]-ait-impl#[FSD]-ait-impl
 author: system
-date: '2026-05-26T07:40:38.416785+00:00'
-message: 'v1.3 PRD: 检索/聚焦读取命令行迁移'
+date: '2026-06-27T07:21:04.641511+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-v13-todo4-search -->\n\n# 需求4：检索/聚焦读取命令行迁移\n\n## 需求来源\n\n`todo.md` 需求4：\n\n> 参考项目中，检索/聚焦读取相关的命令行，挪到当前项目\n\
-  > 结束要求：按照当前项目的实现规范\n\n## 背景\n\n参考项目 `version-design` 中有 **检索（search）** 和 **聚焦读取（focus）** 相关的命令行功能，当前项目（`ait`）尚未实现。\n\n###\
-  \ 推测的功能范围（基于版本管理系统的常见需求）\n\n| 功能 | 说明 | 参考项目可能的命令 |\n|---|---|---|\n| 检索 | 在全项目范围内搜索 chunk 内容（按关键词 / 语义） | `ait search <keyword>`\
-  \ / `ait search --semantic <query>` |\n| 聚焦读取 | 只加载指定 chunk + 其关联 chunk（最小化上下文） | `ait focus <chunk-id>` / `ait context\
-  \ <chunk-id> --focus` |\n| 依赖查询 | 查询 chunk 的依赖关系图谱 | `ait deps <chunk-id>` |\n| 影响面分析 | 查询修改某个 chunk 会影响哪些其他 chunk | `ait\
-  \ impact <chunk-id>` |\n\n## 与已有功能的关系\n\n当前项目已有相关功能，需要**对齐而非重复**：\n\n| 当前项目已有 | 参考项目可能有 | 处理方式 |\n|---|---|---|\n| `bin/ait\
-  \ context <chunk-id>`（L1+L2 上下文组装） | `ait focus` | 增强 `context` 命令，增加 `--focus` 模式（只返回 L1，不展开 L2） |\n| `bin/ait reindex`（全量重新索引）\
-  \ | `ait scan` | 已对齐（v1.2 已完成） |\n| 无 | `ait search` | **新增** |\n| 无 | `ait deps` / `ait impact` | **新增**（基于 v1.3 的 SpecGraph）\
-  \ |\n\n## 设计方案\n\n### 新增命令 1：`bin/ait search <query>`\n\n**功能**：在项目所有已 committed 的 PRD/impl chunk 中搜索关键词或语义匹配。\n\n**实现**：\n\
-  \n```python\n# ait/search.py\n\nimport yaml\nimport os\nimport re\nfrom typing import List, Dict, Tuple\n\ndef search_chunks(query:\
-  \ str, scope: str = \"all\", semantic: bool = False) -> List[Dict]:\n    \"\"\"\n    Args:\n        query: 搜索关键词\n     \
-  \   scope: prd | impl | all\n        semantic: 是否使用语义搜索（需要 embedding，v1.4+）\n    \"\"\"\n    results = []\n    index = load_chunks_index()\n\
-  \n    for chunk in index[\"chunks\"]:\n        if scope == \"prd\" and not chunk[\"file\"].startswith(\"prd/\"):\n     \
-  \       continue\n        if scope == \"impl\" and not chunk[\"file\"].startswith(\"impl/\"):\n            continue\n  \
-  \      if chunk[\"state\"] != \"committed\":\n            continue  # 只搜索已 committed 的 chunk\n\n        content = read_chunk_content(chunk)\n\
-  \        if match_chunk(content, query, semantic):\n            results.append({\n                \"chunk_id\": chunk[\"\
-  id\"],\n                \"file\": chunk[\"file\"],\n                \"heading\": chunk[\"heading\"],\n                \"\
-  version\": chunk[\"version\"],\n                \"snippet\": extract_snippet(content, query)\n            })\n\n    return\
-  \ results\n\ndef match_chunk(content: str, query: str, semantic: bool) -> bool:\n    if semantic:\n        # v1.4+：调用 embedding\
-  \ API\n        return False\n    else:\n        # 关键词匹配（大小写不敏感）\n        return query.lower() in content.lower()\n\ndef\
-  \ extract_snippet(content: str, query: str, context_lines: int = 2) -> str:\n    \"\"\"提取匹配行前后各 context_lines 行作为预览\"\"\"\
-  \n    lines = content.split(\"\\n\")\n    matches = []\n    for i, line in enumerate(lines):\n        if query.lower() in\
-  \ line.lower():\n            start = max(0, i - context_lines)\n            end = min(len(lines), i + context_lines + 1)\n\
-  \            matches.append(\"\\n\".join(lines[start:end]))\n    return \"\\n---\\n\".join(matches[:3])  # 最多 3 个匹配片段\n\
-  ```\n\n**CLI 接口**：\n\n```\nbin/ait search \"chunk 重命名\" [--scope prd|impl|all] [--semantic]\n```\n\n**输出格式**：\n\n```yaml\n\
-  results:\n  - chunk_id: prd-skills-rename-block-to-chunk\n    file: versions/v1.2/prd/skills\n    heading: Block 到 Chunk\
-  \ 的术语统一重构\n    version: v1.2\n    snippet: \"当前项目的 block 在全项目重命名为 chunk...\"\n```\n\n---\n\n### 新增命令 2：`bin/ait focus <chunk-id>`（增强已有的\
-  \ `context` 命令）\n\n**功能**：只加载指定 chunk 本身（L1），不展开关联的 L2 chunk，用于\"聚焦阅读\"场景。\n\n**与现有 `context` 的关系**：\n\n| 命令 | 行为 |\n|---|---|\n\
-  | `bin/ait context <chunk-id>` | L1（目标 chunk）+ L2（@ref 关联 chunk）|\n| `bin/ait context <chunk-id> --focus` | 仅 L1（目标 chunk\
-  \ 本身）|\n| `bin/ait context <chunk-id> --deps` | L1 + 依赖图谱（基于 SpecGraph）|\n\n**实现**（增强 `context.py`）：\n\n```python\n# ait/context.py\
-  \ - get_context() 函数新增 --focus 和 --deps 模式\n\ndef get_context(chunk_id: str, scenario: str = \"default\", focus: bool =\
-  \ False, deps: bool = False):\n    # 读取目标 chunk（L1）\n    target = read_chunk_file(chunk_id)\n\n    if focus:\n        #\
-  \ 仅返回 L1\n        return {\"L1\": target, \"L2\": []}\n\n    # 原有逻辑：读取 @ref 关联 chunk（L2）\n    l2_chunks = extract_refs(target)\n\
-  \n    if deps:\n        # 基于 SpecGraph 读取依赖\n        graph = SpecGraph.load(\".meta/specgraph.yaml\")\n        uri = f\"\
-  spec:{chunk_id.split('-')[0]}:{get_version(chunk_id)}:{chunk_id}\"\n        deps_specs = graph.get_dependencies(uri)\n \
-  \       l2_chunks += [spec.chunk_id for spec in deps_specs]\n\n    return {\"L1\": target, \"L2\": l2_chunks}\n```\n\n---\n\
-  \n### 新增命令 3：`bin/ait deps <chunk-id>`（基于 SpecGraph）\n\n**功能**：查询指定 chunk 的依赖关系（depends_on）和被依赖关系。\n\n**实现**：\n\n```python\n\
-  # ait/deps.py\n\ndef show_deps(chunk_id: str, direction: str = \"both\"):\n    \"\"\"\n    Args:\n        chunk_id: 目标 chunk\n\
-  \        direction: \"in\" (被依赖) / \"out\" (依赖别人) / \"both\"\n    \"\"\"\n    graph = SpecGraph.load(\".meta/specgraph.yaml\"\
-  )\n    uri = spec_uri_for_chunk(chunk_id)\n\n    result = {\"chunk_id\": chunk_id, \"in\": [], \"out\": []}\n\n    for edge\
-  \ in graph.edges:\n        if direction in (\"both\", \"out\") and edge.src == uri and edge.rel == \"depends_on\":\n   \
-  \         dst_spec = graph.get_spec_by_uri(edge.dst)\n            result[\"out\"].append({\"chunk_id\": dst_spec.chunk_id,\
-  \ \"title\": dst_spec.title})\n        if direction in (\"both\", \"in\") and edge.dst == uri and edge.rel == \"depends_on\"\
-  :\n            src_spec = graph.get_spec_by_uri(edge.src)\n            result[\"in\"].append({\"chunk_id\": src_spec.chunk_id,\
-  \ \"title\": src_spec.title})\n\n    return result\n```\n\n**CLI 接口**：\n\n```\nbin/ait deps <chunk-id> [--direction in|out|both]\n\
-  ```\n\n---\n\n### 新增命令 4：`bin/ait impact <chunk-id>`\n\n**功能**：修改某个 chunk 会影响哪些其他 chunk（反向依赖分析）。\n\n**实现**：基于 SpecGraph\
-  \ 的**传递闭包**计算。\n\n```python\n# ait/impact.py\n\ndef compute_impact(chunk_id: str) -> List[Dict]:\n    \"\"\"计算修改 chunk_id\
-  \ 的影响面（所有反向依赖，传递）\"\"\"\n    graph = SpecGraph.load(\".meta/specgraph.yaml\")\n    uri = spec_uri_for_chunk(chunk_id)\n\n\
-  \    # BFS 反向遍历\n    visited = set()\n    queue = [uri]\n    impact = []\n\n    while queue:\n        current = queue.pop(0)\n\
-  \        if current in visited:\n            continue\n        visited.add(current)\n\n        for edge in graph.edges:\n\
-  \            if edge.dst == current and edge.rel in (\"depends_on\", \"implements\"):\n                spec = graph.get_spec_by_uri(edge.src)\n\
-  \                impact.append({\n                    \"chunk_id\": spec.chunk_id,\n                    \"title\": spec.title,\n\
-  \                    \"rel\": edge.rel\n                })\n                queue.append(edge.src)\n\n    return impact\n\
-  ```\n\n**CLI 接口**：\n\n```\nbin/ait impact <chunk-id>\n```\n\n**输出示例**：\n\n```yaml\nimpact_analysis:\n  target: prd-skills-router\n\
-  \  affected_chunks:\n    - chunk_id: impl-skills-router\n      title: 主 SKILL.md Router 改造（实现）\n      rel: implements\n\
-  \    - chunk_id: prd-skills-mapping\n      title: 4 个 Skill 的迁移映射表\n      rel: depends_on\n```\n\n## 验收标准\n\n1. `bin/ait\
-  \ search \"关键词\"` 能返回匹配的 chunk 列表（含 snippet）\n2. `bin/ait search \"关键词\" --scope prd` 只返回 PRD chunk\n3. `bin/ait context\
-  \ <chunk-id> --focus` 只返回 L1（目标 chunk 本身）\n4. `bin/ait context <chunk-id> --deps` 返回 L1 + SpecGraph 依赖\n5. `bin/ait deps\
-  \ <chunk-id>` 返回依赖关系（in/out/both）\n6. `bin/ait impact <chunk-id>` 返回影响面分析\n7. 以上所有命令只读取 `state: committed` 的 chunk（不搜索 working/staged）\n\
-  8. `ait/search.py`、`ait/deps.py`、`ait/impact.py` 文件存在，有对应的 CLI 注册\n\n## 非目标（本期不做）\n\n| 非目标 | 留给后续 |\n|---|---|\n| 语义搜索（embedding\
-  \ + vector store） | v1.4+，需要引入向量数据库 |\n| 全文索引持久化（如 whoosh / elasticsearch） | v1.4+ |\n| `ait search` 的 Web UI | 不在 CLI 工具范围内\
-  \ |"
+new_content: '<!-- @id:[FSD]-ait-impl -->
+
+  ## impl FSD
+
+
+  ### 功能范围
+
+
+  ait impl：1 PRD→N impl、@extract、@ref implements、pre-merge 校验、inherit、lock。'

@@ -1,0 +1,21 @@
+id: chg-048
+version: v1.4
+type: ADD
+target: impl/core#impl-core-model-state
+author: system
+date: '2026-06-01T07:11:11.433885+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-core-model-state -->\n## 核心模型：版本与锁定状态机数据结构\n\n实现 prd → impl → task 三态及版本原子性的底层数据结构。版本是原子单元，内部各\
+  \ chunk 有锁定状态，confirm 单向推进。\n\n### 数据结构\n\n版本元数据扩展 `phase` 字段表达单向推进的阶段，锁定通过 chunk 的 `locked` 标志实现。\n\n<!-- @extract:dynamic/schema#version-state\
+  \ -->\n```python\nfrom dataclasses import dataclass, field\nfrom enum import Enum\n\nclass VersionPhase(str, Enum):\n  \
+  \  EMPTY = \"empty\"            # 空白起点\n    PRD_LOCKED = \"prd_locked\"  # prd confirm 后\n    IMPL_LOCKED = \"impl_locked\"\
+  # impl confirm 后\n    CODING = \"coding\"          # task 执行中\n    MERGED = \"merged\"          # version confirm 后\n\n\
+  @dataclass\nclass VersionState:\n    version: str\n    phase: VersionPhase = VersionPhase.EMPTY\n    title: str | None =\
+  \ None        # 来自 prd discuss 总结，写 state.md\n    prd_locked: bool = False\n    impl_locked: bool = False\n```\n<!-- @extract-end\
+  \ -->\n\n### 锁定校验\n\n任何写操作前检查锁：PRD 写操作要求 `prd_locked == False`，impl 写操作要求 `impl_locked == False`。锁定后写操作直接拒绝（错误码 `LOCKED`），提示只能\
+  \ `version reset`。\n\n```python\ndef assert_prd_writable(state: VersionState) -> None:\n    if state.prd_locked:\n     \
+  \   raise AitError(\"PRD locked in this version; use `ait version reset` to restart\", code=\"LOCKED\")\n```\n\n### 不变量\n\
+  - phase 单向推进，无逆转换（除 reset 直接归零）\n- prd_locked / impl_locked 一旦 True，本版本内不可变 False\n\n<!-- @ref:prd/ait-redesign#prd-core-model\
+  \ rel:implements -->"

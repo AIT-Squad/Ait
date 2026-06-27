@@ -1,0 +1,28 @@
+id: chg-077
+version: v1.5
+type: ADD
+target: impl/skill-cli-doc-rewrite#impl-skill-cli-doc-rewrite
+author: system
+date: '2026-06-01T13:08:04.684184+00:00'
+message: 'v1.5: rewrite all bin/ait references to project-local wrapper'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-skill-cli-doc-rewrite -->\n## SKILL/sub-skills/references 全量改写为项目本地 wrapper\n\n<!-- @ref:prd-skill-cli-resolution\
+  \ rel:implements -->\n<!-- @ref:impl-skill-cli-config-injection rel:depends-on -->\n\n### 范围扫描\n当前命中（`grep -rn \"bin/ait\"\
+  \ skill/ait/SKILL.md skill/ait/sub-skills/ skill/ait/references/ skill/ait/README.md` 共 71 处）按文件分类：\n- `skill/ait/SKILL.md`：Pipeline、Quick\
+  \ Reference、Common Pitfalls、Sub-skills 索引等多段。\n- `skill/ait/sub-skills/ait-discuss/SKILL.md`、`ait-impl-discuss/SKILL.md`、`ait-progress/SKILL.md`、`ait-resume/SKILL.md`、`ait-init-check/SKILL.md`、`ait-state/SKILL.md`：CLI\
+  \ Dependencies / Workflow 各段。\n- `skill/ait/references/*.md`：示例命令片段。\n- `skill/ait/README.md`：用户上手命令示例。\n\n### 改写规则\n1.\
+  \ **业务命令**：`bin/ait <subcmd>` → `project-docs/.ait/ait-cli <subcmd>`（统一相对路径，从项目根执行）。\n2. **引导例外**（仅一处）：`/ait init` 文档说明保留\
+  \ `~/.claude/skills/ait/bin/ait init`，并加注释：*\"init 是引导命令，wrapper 尚未生成；之后所有命令使用 `project-docs/.ait/ait-cli`\"*。\n3. **Global\
+  \ Contract 新增条款**（主 SKILL.md）：\n   - 第一项：\"**入口命令**：项目根下统一使用 `project-docs/.ait/ait-cli <subcmd>`（由 `init` 自动生成）；唯一例外是 `init`\
+  \ 自身——首次运行用 `~/.claude/skills/ait/bin/ait init`，或安装路径变更后用 `~/.claude/skills/ait/bin/ait init --refresh-wrapper` 刷新。\"\n\
+  \   - 删除原\"本文档中的 `ait ...` 均指 skill 目录内的 `bin/ait`\"那条（被新条款替代）。\n4. **Quick Reference 表 CLI 列**：把所有 `bin/ait ...` 改为 `project-docs/.ait/ait-cli\
+  \ ...`；`/ait init` 行 CLI 列写为 `~/.claude/skills/ait/bin/ait init`（含引导注脚）。\n5. **README.md 上手段**：示例从 `bin/ait init` 改为：\n\
+  \   ```bash\n   ~/.claude/skills/ait/bin/ait init        # 一次性引导\n   project-docs/.ait/ait-cli prd create ... # 之后所有命令\n\
+  \   ```\n\n### 改写工具链\n- 优先用 `multi_replace` 按文件批改，**不能** `sed -i` 全局替换——因为引导例外那一处需要保留 skill 绝对路径。\n- 改完跑验收命令：\n  ```bash\n\
+  \  grep -rnE \"(^|[^/])bin/ait\" skill/ait/SKILL.md skill/ait/sub-skills/ skill/ait/references/ skill/ait/README.md \\\n\
+  \    | grep -v \"~/.claude/skills/ait/bin/ait\" \\\n    | grep -v \"skill/ait/bin/ait\"             # 引用 wrapper 自身实现的注释行允许\n\
+  \  ```\n  期望输出 0 行。\n\n### 验收\n- 71 处全部改完，验收 grep 命中数 = 0（除去白名单行）。\n- 主 SKILL.md Global Contract 含新\"入口命令\"条款。\n- README\
+  \ 引导段示例与新约定一致。\n\n### 边界\n- 不改 `skill/ait/ait/*.py` 源代码中的字符串字面量（CLI 内部不出现 `bin/ait` 文档引用）。\n- 不改 `tests/`、`scripts/verify-*`\
+  \ 中的实现路径引用（这些是 skill 仓库自身的内部调用，不属于用户文档）。\n- 本 chunk **依赖** `prd-skill-substructure-cleanup` 完成的 sub-skill 重命名（progress→state、init-check→init-guide）；task\
+  \ 上声明 `depends_on`。\n\n<!-- @ref:prd/v1-5-roadmap#prd-skill-cli-resolution rel:implements -->"

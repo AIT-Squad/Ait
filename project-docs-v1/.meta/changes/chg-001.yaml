@@ -1,0 +1,26 @@
+id: chg-001
+version: v1.1
+type: ADD
+target: prd/project-docs-only#prd-project-docs-only-overview
+author: system
+date: '2026-05-24T07:19:26.663103+00:00'
+message: lockdown  document dir
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-project-docs-only-overview -->
+
+  ## 概述
+
+
+  **背景**：当前 AIT CLI 在任意 CWD 下都会启动——如果该目录已具备 `docs/` + `.meta/` 布局就直接接管，否则按提示 scaffold 出一份新的。这导致两类风险：
+
+
+  1. **目录歧义**：同一仓库里可以存在多份 AIT-managed 目录（如本仓库的 `project-demo/` 与 `project-docs/`），CLI 是否"对该项目生效"完全取决于 CWD，使用者难以一眼判断当前命令作用于哪一份元数据。
+
+  2. **误 scaffold**：在错误的目录下执行 `/ait prd` 之类的命令会无声地 scaffold 出一份空的 AIT 项目，污染目录结构。
+
+
+  **目标**：把 AIT 的"项目根"语义收紧到唯一约定——`<CWD>/project-docs/`，并在不满足时立即拒绝执行，不再 scaffold、不再自动推断。
+
+
+  **非范围声明**：本需求只调整 root 解析行为，不改变 PRD/impl/版本/合并等业务规则。已有的 `project-demo/` 不在治理范围内（仅作样例保留）。'

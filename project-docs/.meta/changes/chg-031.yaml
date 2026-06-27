@@ -1,72 +1,18 @@
 id: chg-031
-version: v1.3
+version: v2.3
 type: ADD
-target: impl/workflow#impl-workflow-skill-migration
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:version_manager
 author: system
-date: '2026-05-26T09:28:58.682406+00:00'
-message: Implement v1.3 skill migration
+date: '2026-06-27T07:21:04.656595+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-workflow-skill-migration -->
+new_content: '<!-- @id:[FSD]-ait-version:version_manager -->
+
+  ## version_manager
 
 
-  # 参考项目 Skill 功能迁移实现
+  ### 功能描述
 
 
-  ## 目标
-
-
-  把参考项目 `tools/ait/templates/skills` 中可复用的 micro-skill 能力迁移到当前项目，但按当前 AIT 的目录、CLI 和写入契约重新组织。
-
-
-  ## 输入素材
-
-
-  - 参考项目的主 router 模板。
-
-  - 参考项目的 PRD 讨论、impl 讨论、progress、resume 子 skill 模板。
-
-  - 当前项目 v1.2 的 `prd-skills-*` 规划。
-
-
-  ## 迁移步骤
-
-
-  1. 对参考项目模板做术语替换：`block` 全部改为 `chunk`。
-
-  2. 将 `.planning/*` 数据源替换为 `project-docs/.meta/*`。
-
-  3. 将所有 `ait <cmd>` 调用替换为 `bin/ait <cmd>`。
-
-  4. 删除与 `phases/`、`task/`、`issues.md` 强绑定的流程，只保留 v1.3 允许的占位说明。
-
-  5. 将具体流程写入四个子 skill，主 `SKILL.md` 仅保留 router 索引。
-
-
-  ## 子 Skill 清单
-
-
-  | 子 skill | 来源能力 | 当前项目职责 |
-
-  |---|---|---|
-
-  | `ait-discuss` | PRD 讨论 | 驱动 `prd create/save-draft/confirm` |
-
-  | `ait-impl-discuss` | impl 讨论 | 驱动 `context` 与 `impl create` |
-
-  | `ait-progress` | 进度查看 | 读取 chunks-index 输出三态统计 |
-
-  | `ait-resume` | 错误恢复 | 基于 CLI `code` 给出恢复建议 |
-
-
-  ## 验收
-
-
-  - 4 个子 skill 均存在，且格式满足 `impl-skills-format-adapt`。
-
-  - 主 router 不再包含长篇 PRD/impl 生成流程。
-
-  - 全部迁移内容均使用当前项目路径和命令。
-
-
-  <!-- @ref:prd/todo1-skill-migration#prd-skill-migration rel:implements -->'
+  VersionManager：create/ensure/stage/commit/lock/confirm/reset；三态流转；confirm 两阶段（precheck→merge→extract→specgraph 提升→git commit）失败回退。'

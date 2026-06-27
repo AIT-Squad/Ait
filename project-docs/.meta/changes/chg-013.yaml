@@ -1,19 +1,16 @@
 id: chg-013
-version: v1.2
-type: ADD
-target: prd/skills#prd-skills-contract
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:search
 author: system
-date: '2026-05-25T05:45:35.978615+00:00'
-message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+date: '2026-06-27T07:21:04.596789+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-skills-contract -->\n# 子 Skill 写入与调用契约\n\n## 工作目录约束\n\n- 所有子 skill 在 INVOKE 时必须先验证 CWD 存在 `project-docs/`\
-  \ 子目录\n- 若不满足，直接转交 `bin/ait` 的 `NOT_AT_PROJECT_ROOT` 错误码给用户，不在 skill 内重新实现校验\n- 这与主 SKILL.md 现有约定一致\n\n## 写入路径\n\n| 写入对象\
-  \ | 仅允许通过 |\n|---|---|\n| `docs/prd/*.md` | `bin/ait prd confirm` + `bin/ait version merge`（间接） |\n| `docs/impl/*.md` |\
-  \ `bin/ait impl create` + `bin/ait version merge`（间接） |\n| `versions/<vX.Y>/prd/*.md` | `bin/ait prd confirm` |\n| `versions/<vX.Y>/impl/*.md`\
-  \ | `bin/ait impl create` |\n| `.meta/**/*` | `bin/ait` 任意写命令的副产物（CLI 自动维护） |\n\n禁令：子 skill 不得通过任何 IDE / shell 工具直接 `echo\
-  \ > file` 或 `edit_file` 这些路径。\n\n## 错误处理\n\n- 子 skill 接到 `{\"ok\": false, \"error\": \"...\", \"code\": \"...\"}` 时：\n \
-  \ 1. 向用户复述 `error` 自然语言 + `code` 标识符\n  2. 对照主 SKILL.md 的 Common Pitfalls 表，给出对应的修复命令\n  3. 不重试隐藏错误（不允许 swallow），失败必须可见\n\
-  \n## 自然语言\n\n- 所有子 skill 的对话语言与当前用户偏好对齐：中文对话 + 中文代码注释（与项目现有偏好一致）\n- frontmatter / 命令 / 错误码使用英文（与 CLI 输出对齐）\n\n## 触发关键词\n\
-  \n每个子 skill `description` 字段的 INVOKE 触发语必须：\n\n- 以 `INVOKE THIS SKILL when ` 起头\n- 明确触发场景（用户在哪个阶段说什么话时被加载）\n- 不与其他子 skill\
-  \ 触发条件重叠（router 模式下重叠会导致 IDE 加载多个 skill 稀释 prompt）"
+new_content: '<!-- @id:[FSD]-ait:search -->
+
+  ## search 域
+
+  ### 功能描述
+
+  `ait search`：跨 chunk 全文检索。'

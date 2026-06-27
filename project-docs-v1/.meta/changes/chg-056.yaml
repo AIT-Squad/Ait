@@ -1,0 +1,18 @@
+id: chg-056
+version: v1.4
+type: ADD
+target: impl/prd#impl-prd-stage-cli
+author: system
+date: '2026-06-01T07:11:14.203147+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-prd-stage-cli -->\n## PRD 阶段命令实现\n\n实现 `prd create` / `prd discuss` / `prd confirm` 三个入口。create\
+  \ 带标题直建，discuss 启动讨论，confirm 写工作区并锁定。\n\n### 命令\n\n```python\n@prd_group.command(\"create\")\n@click.argument(\"title\"\
+  )\ndef prd_create(title: str):\n    # 无活跃版本则自动创建（从 v1.0 起），记录 req + title\n    ...\n\n@prd_group.command(\"discuss\")\n\
+  def prd_discuss():\n    # 启动讨论模式（skill 层驱动多轮对话）；收敛后调 _summarize_title 写 state.md\n    ...\n\n@prd_group.command(\"confirm\"\
+  )\n@click.argument(\"req_id\", required=False)\ndef prd_confirm(req_id):\n    # 写入版本工作区 versions/{v}/prd/，置 prd_locked=True，刷新\
+  \ state.md\n    ...\n```\n\n### 锁定语义\n- confirm 成功后调用 `assert_prd_writable` 的反向操作：置 `VersionState.prd_locked = True`\n-\
+  \ 锁定后再调 `prd create/discuss/confirm` 修改本版本 PRD → 返回 `LOCKED` 错误\n\n### 与现有实现的术语对齐\n- 现有 `prd confirm` 仅写工作区（state=working），需扩展为同时置\
+  \ `prd_locked`\n- 锁定的\"冻结\"语义由 impl-core-model-state 的 `prd_locked` 标志承载\n\n<!-- @ref:prd/ait-redesign#prd-prd-stage rel:implements\
+  \ -->"

@@ -1,0 +1,48 @@
+id: chg-042
+version: v1.4
+type: ADD
+target: prd/ait-redesign#prd-impl-stage
+author: system
+date: '2026-06-01T03:03:46.376526+00:00'
+message: AIT 重构设计 PRD 定稿（8块）
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-impl-stage -->
+
+  ## impl 阶段
+
+
+  ### 概述
+
+  基于已锁定的 PRD chunk 设计具体实现。一个 PRD chunk 可对应多个 impl chunk（1:N）。impl 既是实现设计，又是动态 global（DDL/schema/api）的数据源。
+
+
+  ### 业务规则
+
+  - `/ait impl create "chunk-id"`：为指定 PRD chunk 设计实现
+
+  - `/ait impl create`（无 id）：逐批交互，遍历待实现的 PRD chunk 依次设计
+
+  - 1:N 派生式命名：`impl-{源chunk}-{名}`（如 `impl-pet-archive-ddl`、`impl-pet-archive-api`）
+
+  - impl chunk 内用 `@extract` 注释标记可提取到动态 global 的片段（DDL/schema/api）
+
+  - impl 通过 `@ref ... rel:implements` 绑定其源 PRD chunk
+
+  - `/ait impl confirm "chunk-id"`：确认 impl 写入工作区并锁定；锁定后本版本不得改动 impl
+
+
+  ### 验收标准
+
+  - [ ] 一个 PRD chunk 能派生多个 impl chunk
+
+  - [ ] 无 id 时逐批交互生成
+
+  - [ ] impl 中 `@extract` 标记的片段可被识别
+
+  - [ ] confirm 后 impl 锁定
+
+
+  ### 边界与非目标
+
+  - 锁定后若需改 impl，只能 version reset 整版重来'

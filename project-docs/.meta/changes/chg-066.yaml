@@ -1,40 +1,18 @@
 id: chg-066
-version: v1.5
+version: v2.3
 type: ADD
-target: prd/v1-5-roadmap#prd-subskills-coverage
+target: fsd/[FSD]-ait-cli#[FSD]-ait-cli
 author: system
-date: '2026-06-01T12:52:13.741895+00:00'
-message: 'v1.5 roadmap: task relocation, init incremental, CLI path resolution, sub-skills coverage'
+date: '2026-06-27T07:21:04.797171+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-subskills-coverage -->\n## sub-skills 治理：补齐 task 阶段、合并 progress/state、init-check 重定位\n\n### 概述\n\
-  当前 6 个 sub-skill 覆盖了 PRD/impl/接入诊断/进度/state/恢复 6 个场景，但 **task 阶段裸奔**（拆 task → AI 编码 → 收口由 main 直接处理，缺契约约束）；同时 `ait-progress`\
-  \ 与 `ait-state` 触发条件高度重叠（都读同一份状态数据），存在 AI 同时加载两个 skill 稀释 prompt 的风险。本期治理范围限定 3 件事：新增 task 执行 skill、合并 progress 入 state、重定位\
-  \ init-check 为 init-guide。\n\n### 业务规则\n\n#### 规则 1：新增 ait-task-execute 子 skill\n- 文件位置：`skill/ait/sub-skills/ait-task-execute/SKILL.md`\n\
-  - 触发语：`INVOKE THIS SKILL when the user runs /ait task execute or asks to start coding a specific task`\n- 职责：\n  1. 调 `bin/ait\
-  \ task execute <id>` 拿到 token 聚焦的 context bundle（含 `impl_refs ∪ global_refs`）\n  2. 驱动 AI 按 task YAML 的 `steps` 字段编码\n \
-  \ 3. 编码完成后让用户/AI 执行 git commit 拿到 commit hash\n  4. 调 `bin/ait task complete <id> --commit <hash> --path <files>` 收口\n \
-  \ 5. 失败路径：调 `bin/ait task fail <id>` 后转交 `ait-resume`\n- CLI Dependencies：`task execute` / `task complete` / `task fail`\
-  \ / `task show`\n- Artifacts：Reads = task YAML + context bundle；Writes = 业务代码（由 AI 编辑工具落盘） + `task complete` 触发的 code_refs\
-  \ 回写；不直接写 `.meta/` 或 `versions/`\n- 输出契约：每步必须复述 task id、commit hash、code_refs 路径\n\n#### 规则 2：合并 ait-progress 进 ait-state\n\
-  - 删除 `skill/ait/sub-skills/ait-progress/` 整个目录\n- `ait-state` 扩展职责：兼任进度看板（原 progress 职责），既能渲染面板（`bin/ait state --version\
-  \ <v>`）又能落盘（`--save`），还能输出\"未完成 chunk 列表\"和\"下一步建议\"等进度叙述\n- 触发语扩展为：`INVOKE THIS SKILL when the user asks to view AIT version\
-  \ state, refresh state.md, or check version progress / chunk three-state distribution / impl coverage`\n- 主 SKILL.md 的速查表把\
-  \ `/ait task list|show`、`/ait version status` 的 Routed skill 列从 `ait-progress` 改为 `ait-state`\n- 主 SKILL.md 的 Sub-skills\
-  \ 索引表移除 `ait-progress` 行\n\n#### 规则 3：ait-init-check 重定位并更名为 ait-init-guide\n- 目录改名：`skill/ait/sub-skills/ait-init-check/`\
-  \ → `ait-init-guide/`\n- 新职责：当 `bin/ait init` 进入\"差异补全模式\"（见 `prd-init-incremental`）时，逐项讨论用户要补哪些 global 文件，**不再做\"新项目/旧项目\"\
-  判别**（CLI 自己已能识别三种场景）\n- 触发语改为：`INVOKE THIS SKILL when bin/ait init returns status=incomplete and the user needs to fill\
-  \ missing docs/global/* files interactively`\n- CLI Dependencies：`bin/ait init --check`（诊断） / `bin/ait init`（执行补全） / `bin/ait\
-  \ reindex`\n- 主 SKILL.md 的速查表把 `/ait init` 的 Routed skill 从 `ait-init-check` 改为 `ait-init-guide`\n\n#### 规则 4：触发关键词去重与契约一致性\n\
-  - 所有保留的 sub-skill（ait-discuss / ait-impl-discuss / ait-init-guide / ait-state / ait-resume / ait-task-execute）的 `description`\
-  \ 触发语两两不重叠\n- 每个 sub-skill 的 CLI Dependencies / Artifacts / Output Contract / Common Pitfalls 四段必须完整\n- 写入路径仍受主 SKILL.md\
-  \ Global Contract 限制（不直接写 `docs/` / `.meta/` / `versions/`）\n\n### 验收标准\n- [ ] `skill/ait/sub-skills/ait-task-execute/SKILL.md`\
-  \ 存在且四段完整（CLI Dependencies / Artifacts / Workflow / Common Pitfalls）\n- [ ] `skill/ait/sub-skills/ait-progress/` 目录被删除\n\
-  - [ ] `skill/ait/sub-skills/ait-init-guide/SKILL.md` 存在；旧 `ait-init-check/` 目录被删除\n- [ ] `ait-state/SKILL.md` 的 description\
-  \ 触发语包含 progress / 进度 / 完成度 等关键词\n- [ ] 主 SKILL.md 速查表的 Routed skill 列与 Sub-skills 索引表均同步更新（progress 全部替换为 state；init-check\
-  \ 替换为 init-guide）\n- [ ] `grep -r \"ait-progress\\|ait-init-check\" skill/ait/` 命中数为 0\n- [ ] 6 个 sub-skill 的触发语两两不重叠（人工\
-  \ review 通过）\n- [ ] `/ait task execute` 端到端走通：CLI → ait-task-execute skill → AI 编码 → task complete\n\n### 边界与非目标\n- 不为 `prd\
-  \ commit` / `impl commit` / `version confirm` / `version reset` 单独建 sub-skill（单步 CLI 调用，main 路由足够）\n- 不引入 `ait-task-create`\
-  \ 子 skill（拆 task 当前由 main 处理，复杂度未到需要独立 skill 的程度）\n- 不重写所有现有 sub-skill 的 description（仅 ait-state 与 ait-init-guide 必需修改）\n\
-  - 不引入 sub-skill 之间的显式调用链（仍由 AI 根据触发条件自主切换）\n\n<!-- @ref:prd/ait-redesign#prd-task-stage rel:supersedes-path -->\n<!-- @ref:prd/ait-redesign#prd-init\
-  \ rel:refines -->\n<!-- @ref:prd/skills#prd-skills-overview rel:refines -->"
+new_content: '<!-- @id:[FSD]-ait-cli -->
+
+  ## cli FSD
+
+
+  ### 功能范围
+
+
+  ait 入口：click 路由、JSON 契约、项目根解析；只分发不含业务逻辑。'

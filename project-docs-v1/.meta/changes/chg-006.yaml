@@ -1,0 +1,56 @@
+id: chg-006
+version: v1.1
+type: ADD
+target: impl/project-docs-only#impl-project-docs-only-root-resolver
+author: system
+date: '2026-05-24T09:14:13.267090+00:00'
+message: locked docs dir impl
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-project-docs-only-root-resolver -->\n## 项目根解析器（root-resolver）\n\n把 PRD `prd-project-docs-only-{overview,rules,detection,errors,non-goals}`\
+  \ 全部落到一个新模块 `ait/cli/root.py` 上，配合 `ait/cli/errors.py` 的错误码扩展与一份测试文件即可完成。下分 5 个 H3 子节对应 PRD 的 5 个 block。\n\n### 模块位置与接入点\n\
+  \n- **新增模块**：`ait/cli/root.py`，封装解析、校验、锁定。\n- **接入点**：所有 CLI 子命令（`prd` / `impl` / `version` / `reindex` / `context`）的入口装饰器在执行业务逻辑前调用\
+  \ `resolve_project_root()` 一次；结果以不可变上下文对象注入到各业务模块，替代当前直接读取 `os.getcwd()` 的代码。\n- **依赖**：仅标准库 `os` / `pathlib`，不引入新第三方包。\n\
+  - **改造范围**：\n  - `ait/cli/__init__.py` —— 改造命令入口装饰器，统一调用根解析\n  - `ait/cli/errors.py` —— 注册 3 个新错误码\n  - 所有 `ait/manager/*`\
+  \ 业务模块 —— 改为从注入的 root 上下文取路径\n\n### 规则强制映射（R1–R6）\n\n| 规则 | 强制方式 | 代码位置 |\n|---|---|---|\n| R1 唯一合法根 = CWD/project-docs/\
+  \ | `resolve_project_root()` 内硬编路径拼接 | `ait/cli/root.py: resolve_project_root` |\n| R2 目录名硬编 | 模块级常量 `DOCS_DIR_NAME = \"\
+  project-docs\"`，无对外 setter | `ait/cli/root.py: DOCS_DIR_NAME` |\n| R3 不向上递归 | 只做一次拼接判断，不循环、不读 marker | 同上 |\n| R4 无覆盖入口\
+  \ | CLI 顶层不注册 `--root` / `-C` 选项；`AIT_ROOT` 不被读取 | `ait/cli/__init__.py` 参数表 |\n| R5 必须含 docs/ + .meta/ | 锁定前 `is_dir()`\
+  \ 两个子目录 | `ait/cli/root.py` |\n| R6 单次执行内锁定 | 解析结果存到 click `ctx.obj`，命令生命周期内只读 | `ait/cli/root.py: ProjectRoot` dataclass\
+  \ |\n\n### `resolve_project_root` 算法\n\n**公开 API**：\n\n```python\nfrom dataclasses import dataclass\nfrom pathlib import\
+  \ Path\n\nDOCS_DIR_NAME = \"project-docs\"\n\n@dataclass(frozen=True)\nclass ProjectRoot:\n    \"\"\"Resolved project root.\
+  \ Immutable for the lifetime of one CLI invocation.\"\"\"\n    cwd: Path           # original CWD when CLI was invoked\n\
+  \    root: Path          # absolute path of <cwd>/project-docs/\n    docs: Path          # root / \"docs\"\n    meta: Path\
+  \          # root / \".meta\"\n\ndef resolve_project_root() -> ProjectRoot:\n    \"\"\"Resolve the AIT project root from\
+  \ os.getcwd(). Raises RootResolutionError on failure.\"\"\"\n```\n\n**算法实现**：\n\n```python\ndef resolve_project_root() ->\
+  \ ProjectRoot:\n    cwd = Path.cwd().resolve()\n    candidate = cwd / DOCS_DIR_NAME\n\n    if cwd.name == DOCS_DIR_NAME\
+  \ or DOCS_DIR_NAME in cwd.parts:\n        raise CwdInsideProjectDocs(cwd=str(cwd))\n\n    if not candidate.is_dir():\n \
+  \       raise NotAtProjectRoot(cwd=str(cwd), expected=str(candidate))\n\n    docs = candidate / \"docs\"\n    meta = candidate\
+  \ / \".meta\"\n    missing = [name for name, p in [(\"docs\", docs), (\".meta\", meta)] if not p.is_dir()]\n    if missing:\n\
+  \        raise ProjectDocsMalformed(root=str(candidate), missing=missing)\n\n    return ProjectRoot(cwd=cwd, root=candidate,\
+  \ docs=docs, meta=meta)\n```\n\n**接入装饰器**：\n\n```python\n# ait/cli/__init__.py\n@click.group()\n@click.pass_context\ndef\
+  \ cli(ctx):\n    ctx.obj = resolve_project_root()   # 失败由顶层 click 错误处理器转 JSON\n```\n\n**关键不变量**：\n\n- `cwd` 在 `resolve_project_root`\
+  \ 内部只读一次，写入 `ProjectRoot.cwd` 后冻结\n- 所有业务 manager 的构造函数接受 `ProjectRoot` 参数，不再调用 `os.getcwd()`\n- 同一进程多次调用 `resolve_project_root()`\
+  \ 必须返回值相等的对象（idempotent）\n\n### 错误码扩展\n\n扩展 `ait/cli/errors.py`，3 个新错误继承统一基类 `AitError`，由顶层 click 错误处理器转为 `{\"ok\": false,\
+  \ \"error\", \"code\", \"data\"}` 契约，exit code 1。\n\n```python\nclass RootResolutionError(AitError):\n    \"\"\"Base for\
+  \ project root resolution failures (E1/E2/E3).\"\"\"\n\nclass NotAtProjectRoot(RootResolutionError):\n    code = \"NOT_AT_PROJECT_ROOT\"\
+  \n    message_template = \"当前目录不是 AIT 项目根。请 cd 到包含 `project-docs/` 子目录的项目根目录后重试。\"\n    def __init__(self, cwd: str, expected:\
+  \ str):\n        super().__init__(self.message_template)\n        self.data = {\"cwd\": cwd, \"expected_path\": expected}\n\
+  \nclass ProjectDocsMalformed(RootResolutionError):\n    code = \"PROJECT_DOCS_MALFORMED\"\n    def __init__(self, root:\
+  \ str, missing: list[str]):\n        super().__init__(f\"`project-docs/` 结构不完整：缺少 {', '.join(missing)}。请检查目录或重新初始化。\")\n\
+  \        self.data = {\"root\": root, \"missing\": missing}\n\nclass CwdInsideProjectDocs(RootResolutionError):\n    code\
+  \ = \"CWD_INSIDE_PROJECT_DOCS\"\n    message_template = \"请退出 `project-docs/`，从其父目录（项目根）运行命令。\"\n    def __init__(self,\
+  \ cwd: str):\n        super().__init__(self.message_template)\n        self.data = {\"cwd\": cwd}\n```\n\n**JSON 输出示例**（E1）：\n\
+  \n```json\n{\n  \"ok\": false,\n  \"error\": \"当前目录不是 AIT 项目根。请 cd 到包含 `project-docs/` 子目录的项目根目录后重试。\",\n  \"code\": \"\
+  NOT_AT_PROJECT_ROOT\",\n  \"data\": {\"cwd\": \"/Users/foo/random-dir\", \"expected_path\": \"/Users/foo/random-dir/project-docs\"\
+  }\n}\n```\n\n**测试矩阵**（最小覆盖，落到 `tests/cli/test_root_resolution.py`）：\n\n| 场景 | 期望 code | exit code |\n|---|---|---|\n| CWD\
+  \ 下无 project-docs/ | `NOT_AT_PROJECT_ROOT` | 1 |\n| project-docs/ 缺 docs/ | `PROJECT_DOCS_MALFORMED` | 1 |\n| project-docs/\
+  \ 缺 .meta/ | `PROJECT_DOCS_MALFORMED` | 1 |\n| CWD 是 project-docs/ 本身 | `CWD_INSIDE_PROJECT_DOCS` | 1 |\n| CWD 是 project-docs/\
+  \ 后代 | `CWD_INSIDE_PROJECT_DOCS` | 1 |\n| 完整合法布局 | （正常返回） | 0 |\n\n### 非目标的实现约束\n\n非目标不引入新模块，而是通过**测试断言**与**代码缺失证据**保证后续\
+  \ PR 不\"顺手\"加回这些能力。\n\n| 非目标 | 约束方式 |\n|---|---|\n| 不实现 `--root` / `-C` / `AIT_ROOT` | 测试：注入 `AIT_ROOT=...` 后 `resolve_project_root()`\
+  \ 行为不变；CLI 顶层 click 参数表不含 `--root` / `-C` |\n| 不支持自定义目录名 | 测试：CWD 下放 `site/` / `docs/` 等非约定名目录而非 `project-docs/`，CLI 仍抛\
+  \ `NOT_AT_PROJECT_ROOT` |\n| 不向上递归 | 测试：CWD=`/foo/bar/baz/`，`/foo/project-docs/` 存在但 `/foo/bar/baz/project-docs/` 不存在，CLI\
+  \ 必须抛 `NOT_AT_PROJECT_ROOT` |\n| 不为 project-demo/ 兼容 | 不做事——`project-demo/` 不在 CWD 直接子目录时自然走 E1 路径 |\n| 不处理 multi-root |\
+  \ 实现上只读取一个 `<cwd>/project-docs/`；不引入\"工作区\"概念 |\n| 不引入命令语义改动 | 现有所有 manager 模块仅改造构造函数接收 `ProjectRoot`，业务方法签名不变 |\n\n**反向告警**：在\
+  \ `ait/cli/root.py` 顶部加注释明确\"本模块刻意不接受任何形式的覆盖配置\"，劝阻未来 PR 加回这些能力。\n\n<!-- @ref:prd/project-docs-only#prd-project-docs-only-detection\
+  \ rel:implements -->"

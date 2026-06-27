@@ -1,44 +1,19 @@
 id: chg-041
-version: v1.4
+version: v2.3
 type: ADD
-target: prd/ait-redesign#prd-prd-stage
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:specgraph
 author: system
-date: '2026-06-01T03:03:46.375502+00:00'
-message: AIT 重构设计 PRD 定稿（8块）
+date: '2026-06-27T07:21:04.688368+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-prd-stage -->
+new_content: '<!-- @id:[FSD]-ait-specgraph:specgraph -->
 
-  ## PRD 阶段
-
-
-  ### 概述
-
-  版本开发的起点。通过创建或讨论确定本版本的 PRD，定稿后锁定。PRD 是本版本一切实现的需求源头。
+  ## specgraph
 
 
-  ### 业务规则
-
-  - `/ait prd create "title"`：带标题直接创建
-
-  - `/ait prd discuss`：启动讨论模式，讨论收敛后总结出 title
-
-  - title 写入 state.md 的独立字段（后续作为 git commit message）
-
-  - `/ait prd confirm`：确认 PRD 写入工作区并锁定；锁定后本版本任何流程不得以任何形式改动 PRD
-
-  - PRD chunk 采用四段固定结构（见 prd-formats）
+  ### 功能描述
 
 
-  ### 验收标准
-
-  - [ ] create 与 discuss 两种入口都能产出 PRD chunk
-
-  - [ ] discuss 模式能总结 title 并写入 state.md 独立字段
-
-  - [ ] confirm 后 PRD 进入锁定态，再次修改被拒绝
-
-
-  ### 边界与非目标
-
-  - 锁定后若需改 PRD，只能 `version reset` 整版重来，无局部解锁'
+  SpecGraph：spec/edge 模型、load/save、dry_run_merge、combined_specgraph、resolve_chunk_uri、@ref 建边、export_dot；baseline + per-version
+  分文件。'

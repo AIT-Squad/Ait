@@ -1,23 +1,37 @@
 id: chg-081
-version: v1.6
+version: v2.3
 type: ADD
-target: prd/v1-6-roadmap#prd-prd-chunk-summary-index
+target: tdd/[TDD]-yaml_io#[TDD]-yaml_io
 author: system
-date: '2026-06-02T09:16:57.312250+00:00'
-message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+date: '2026-06-27T07:21:04.866036+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-prd-chunk-summary-index -->\n## prd-chunk-summary-index: chunks-index 增加 summary 字段\n\n### 概述\n\
-  \n为每个 chunk 在 `chunks-index.yaml` 中增加一个短摘要字段，让 `/ait prd create` 在递归读 baseline 时只读 index 不读全文，把基线扫描的 token 消耗压到原来的 1/20\
-  \ 量级。summary 仅在 index 里维护，不写进 markdown 正文，纯辅助元数据。\n\n### 业务规则\n\n- schema 扩展（向后兼容），index 中每个 chunk 增加可选字段：\n  ```yaml\n\
-  \  chunks:\n    - id: prd-task-relocation\n      file: prd/global\n      heading: task relocation\n      level: 2\n    \
-  \  summary: \"Move task YAML from .meta/tasks to versions/{vX}/tasks; add legacy warn\"\n  ```\n- summary 约束：≤ 120 字符的中文/英文一句话摘要；字段可缺省；旧数据\
-  \ reindex 时 summary 为 `null`，由后续 commit/手动补齐\n- 生成时机：\n  - `prd commit` / `impl commit` 锁定时，CLI 调用 ait-discuss skill 钩子让\
-  \ LLM 生成 summary，写入 chunks-index\n  - 也允许在 markdown 里用 `<!-- @summary: ... -->` 元注释直接声明（优先级高于 LLM 生成）\n- 新命令 `ait baseline-summary\
-  \ [--scope prd|impl|all] [--format yaml|json]`：输出 baseline 所有 chunk 的 `id + heading + summary` 列表，供 ait-discuss skill 在\
-  \ `/ait prd create` 时一次性读入\n- `ait reindex` 兼容性：保留已有 summary 字段，仅刷新 `id` / `file` / `heading` / `level`\n\n### 验收标准\n\n\
-  - [ ] `chunks-index.yaml` 新增的 `summary` 字段被现有解析代码忽略时不报错（向后兼容）\n- [ ] `ait baseline-summary --scope prd` 输出当前 baseline 所有\
-  \ PRD chunk 的 `id + summary`\n- [ ] `prd commit` 后该 commit 涉及的所有 chunk 在 baseline `chunks-index.yaml` 中都有非空 summary（commit\
-  \ 时若 LLM 钩子失败必须报错而非静默写空）\n- [ ] markdown 里 `<!-- @summary: xxx -->` 注释能正确被读取并写入 index（优先级覆盖 LLM 生成值）\n- [ ] `ait reindex`\
-  \ 不丢失已存在的 summary 字段\n\n### 边界与非目标\n\n- 不用 embedding / 向量库（保留为 v1.7+ 可选增强）\n- 不改 chunk 内文档语法（summary 只在 index 里，不写进 markdown\
-  \ 正文）\n- summary 不参与合并冲突检测，不参与 `@id` / `@ref` 解析"
+new_content: '<!-- @id:[TDD]-yaml_io -->
+
+  ## yaml_io TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/yaml_io.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  save_model/load_model：pydantic 模型 ↔ YAML 文件存取。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（yaml 相关）：覆盖正常路径、边界与错误路径。'

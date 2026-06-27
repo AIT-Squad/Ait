@@ -1,20 +1,18 @@
 id: chg-075
-version: v1.5
+version: v2.3
 type: ADD
-target: impl/task-relocation#impl-task-legacy-warn
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:root
 author: system
-date: '2026-06-01T13:08:04.015496+00:00'
-message: 'v1.5: warn on legacy .meta/tasks path'
+date: '2026-06-27T07:21:04.844580+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-task-legacy-warn -->\n## 旧 .meta/tasks 路径检测告警\n\n<!-- @ref:prd-task-relocation rel:implements\
-  \ -->\n<!-- @ref:impl-task-yaml-path rel:depends-on -->\n\n### 改动点\n\n#### 1. `ait/cli.py` — 命令入口检测\n- 在 `main()` 装饰器或 `cli`\
-  \ group `invoke_without_command=True` 钩子里，加入一次性预检：\n  ```python\n  legacy = root / \".meta\" / \"tasks\"\n  if legacy.exists()\
-  \ and any(legacy.rglob(\"*.yaml\")):\n      click.echo(\n          f\"⚠️  legacy task path detected: {legacy} — \"\n   \
-  \       f\"task YAML 已迁至 versions/<v>/tasks/，请手动删除旧目录\",\n          err=True,\n      )\n  ```\n- 仅 stderr 输出，不抛异常、不阻塞 stdout\
-  \ JSON 契约。\n- 用进程级缓存（模块全局 bool）避免一次 CLI 进程内重复打印。\n\n#### 2. 文档同步\n- 主 `SKILL.md` 的 `Project Layout` 段：\n  - `.meta/tasks/{vX.Y}/T-*.yaml`\
-  \ → 整行删除\n  - `versions/{vX.Y}/` 段下追加：`└── tasks/T-*.yaml         # AI 编码任务 YAML`\n- `references/index-system.md`：如有 task\
-  \ 路径示意同步更新。\n- `docs/global/schema.md` 中的 task-yaml 示例路径同步。\n\n### 测试\n- `tests/test_legacy_warn.py`：mock `.meta/tasks/v1.0/T-x.yaml`\
-  \ 存在，运行任意 CLI 子命令，断言 stderr 含 `legacy task path detected`，stdout JSON 仍干净。\n\n### 边界\n- 不自动迁移、不自动删除（PRD 明确零数据，要求手动删）。\n\
-  - 不为告警新增 error code。\n- 检测仅在 CLI 入口跑一次；TaskManager 内部调用不重复检测。\n\n<!-- @ref:prd/v1-5-roadmap#prd-task-relocation rel:implements\
-  \ -->"
+new_content: '<!-- @id:[FSD]-ait-foundation:root -->
+
+  ## root
+
+
+  ### 功能描述
+
+
+  项目根解析：定位含 project-docs 的根、CWD 校验（NOT_AT_PROJECT_ROOT / CWD_INSIDE_PROJECT_DOCS）。'

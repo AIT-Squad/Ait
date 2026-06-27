@@ -1,0 +1,24 @@
+id: chg-064
+version: v1.5
+type: ADD
+target: prd/v1-5-roadmap#prd-init-incremental
+author: system
+date: '2026-06-01T12:52:13.738237+00:00'
+message: 'v1.5 roadmap: task relocation, init incremental, CLI path resolution, sub-skills coverage'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:prd-init-incremental -->\n## init 改为幂等的基线补全器\n\n### 概述\n当前 `bin/ait init` 在已有版本的项目上会以 `ALREADY_MANAGED`\
+  \ 错误码硬性拒绝，不区分\"完整初始化\"和\"global 信息缺项\"两种场景，导致用户在 global 不全时无法用 init 补齐，只能手工编辑文件。本期把 init 重定位为\"幂等的差异补全器\"：新项目走全量讨论，已纳管项目按缺项补全，已就绪项目报告状态退出。\n\
+  \n### 业务规则\n- 删除 `ALREADY_MANAGED` 这条 fail 出口；改为分支判别后走对应路径\n- 三种场景：\n  - **全新项目**：`project-docs/` 不存在或为空 → 走原全量讨论流程，生成 docs/global/\
+  \ 全部骨架\n  - **已纳管但 global 不全**：存在 `project-docs/` 但 `docs/global/` 下 `overview.md` / `tech-stack.md` / `ddl.md` / `schema.md`\
+  \ / `api.md` 任一缺失或仅含空骨架（无 `<!-- @id -->` 标记）→ 进入差异补全模式\n  - **已就绪**：上述全部齐全 → 输出 `{\"ok\": true, \"data\": {\"status\": \"\
+  ready\", ...}}` 并退出\n- 差异补全模式：\n  - 由 `ait-init-guide` 子 skill（重定位自 `ait-init-check`）逐项讨论缺失文件\n  - 每项补全前显式询问用户确认，拒绝则跳过该项\n\
+  \  - 仅写 `docs/global/`，不动 `versions/`、`docs/prd/`、`docs/impl/`、`.meta/specgraph.yaml` 中已有 chunk\n  - 补全完成后调用 `reindex` 把新\
+  \ chunk 注入 baseline `chunks-index.yaml` + `specgraph.yaml`\n- 新增 `bin/ait init --check` 仅诊断不写入：返回 global 各项 present/missing\
+  \ 状态，方便 sub-skill 与用户预览\n- \"缺失\"判定标准：文件不存在、文件大小为 0、或文件内容不含任何 `<!-- @id:global-* -->` 标记（仅占位骨架视为缺失）\n\n### 验收标准\n- [ ] 全新空目录\
+  \ `bin/ait init` 行为不变（向后兼容）\n- [ ] 已纳管但 `docs/global/tech-stack.md` 缺失时，`bin/ait init` 不再返回 `ALREADY_MANAGED`，进入补全流程\n-\
+  \ [ ] 已就绪项目 `bin/ait init` 返回 `ok: true` + `status: ready`，不修改任何文件\n- [ ] `bin/ait init --check` 输出 5 项 global 文件的 present/missing\
+  \ 字典\n- [ ] 补全过程中用户拒绝某项，该项跳过且其他项继续\n- [ ] 补全完成后 baseline `chunks-index.yaml` 与 `specgraph.yaml` 含新增 global chunk\n- [ ]\
+  \ 不修改 `versions/`、`docs/prd/`、`docs/impl/` 任何已有内容\n- [ ] 主 SKILL.md 的 Common Pitfalls 表移除 `ALREADY_MANAGED` 行\n\n### 边界与非目标\n\
+  - init 仍不创建版本号、不创建 `versions/{vX.Y}/` 目录\n- 动态 global（ddl/schema/api）补全只生成空骨架（带 `<!-- @id -->`），真实内容仍由后续 version confirm\
+  \ 从 impl @extract 提取\n- 不引入交互式 shell 输入（read -p）；逐项确认由 AI 对话完成\n- 不支持选择性\"重置某项 global 文件\"（要重置仍需手动删文件后重跑 init）"

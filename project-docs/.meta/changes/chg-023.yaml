@@ -1,66 +1,37 @@
 id: chg-023
-version: v1.3
+version: v2.3
 type: ADD
-target: prd/todo3-specgraph#prd-v13-todo3-specgraph
+target: tdd/[TDD]-prd_manager#[TDD]-prd_manager
 author: system
-date: '2026-05-26T07:40:33.954645+00:00'
-message: 'v1.3 PRD: links-index.yaml 重构为 SpecGraph'
+date: '2026-06-27T07:21:04.638145+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-v13-todo3-specgraph -->\n\n# 需求3：links-index.yaml 重构为 SpecGraph\n\n## 需求来源\n\n`todo.md` 需求3：\n\n\
-  > prd 和 impl 之间的管理 links-index.yaml 格式修改为参考项目的方式，block 改为 chunk，使用参考项目中更加完善系统的 specgraph\n\n## 背景\n\n### 当前实现（v1.2）\n\n\
-  当前项目使用 `.meta/links-index.yaml` 来管理 PRD chunk 与 impl chunk 之间的关联关系，格式简单：\n\n```yaml\nlinks:\n  - prd_chunk: prd-xxx-overview\n\
-  \    impl_chunk: impl-xxx-overview\n    relation: implements\n```\n\n**问题**：\n1. 只有 `implements` 一种关系，无法表达 `depends_on`\
-  \ / `blocks` / `superseded_by` 等复杂关系\n2. 没有 spec 来源的 URI 标准化（`spec:prd:<version>:<chunk-id>`）\n3. 不支持跨版本 dependency graph\
-  \ 查询\n4. 没有 weight / metadata 扩展能力\n\n### 参考项目实现（version-design）\n\n参考项目使用 **SpecGraph** 格式，核心概念：\n\n| 概念 | 说明 |\n|---|---|\n\
-  | Spec URI | `spec:<type>:<version>:<chunk-id>`（标准化标识符） |\n| Edge | `src` → `dst`，带 `rel` 类型 + `weight` + `metadata` |\n\
-  | Graph | 有向图，支持拓扑排序、依赖分析、影响面分析 |\n| Store | `.meta/specgraph.yaml`（替代 `links-index.yaml`） |\n\n**参考项目 SpecGraph 格式示例**（预期格式，需从参考项目确认）：\n\
-  \n```yaml\nversion: 1\nspecs:\n  - uri: spec:prd:v1.2:prd-skills-overview\n    title: 概述与目标\n    type: prd\n    version:\
-  \ v1.2\n    chunk_id: prd-skills-overview\n  - uri: spec:impl:v1.2:impl-skills-overview\n    title: 概述与目标（实现）\n    type:\
-  \ impl\n    version: v1.2\n    chunk_id: impl-skills-overview\nedges:\n  - src: spec:impl:v1.2:impl-skills-overview\n  \
-  \  dst: spec:prd:v1.2:prd-skills-overview\n    rel: implements\n    weight: 1.0\n    metadata:\n      committed_at: '2026-05-25T05:45:35Z'\n\
-  \  - src: spec:prd:v1.3:prd-v13-overview\n    dst: spec:prd:v1.2:prd-skills-overview\n    rel: superseded_by\n    weight:\
-  \ 1.0\n    metadata: {}\n```\n\n## 设计方案\n\n### Step 1：定义 SpecGraph 数据模型\n\n**新增文件**：`ait/specgraph.py`\n\n```python\n# ait/specgraph.py\n\
-  \nfrom dataclasses import dataclass, field\nfrom typing import Optional, Dict, List\nimport yaml\n\n@dataclass\nclass Spec:\n\
-  \    uri: str           # spec:<type>:<version>:<chunk-id>\n    title: str\n    type: str          # prd | impl\n    version:\
-  \ str       # v1.2, v1.3, ...\n    chunk_id: str\n    metadata: Dict = field(default_factory=dict)\n\n@dataclass\nclass\
-  \ Edge:\n    src: str           # Spec.uri\n    dst: str           # Spec.uri\n    rel: str          # implements | depends_on\
-  \ | blocks | superseded_by | related\n    weight: float = 1.0\n    metadata: Dict = field(default_factory=dict)\n\n@dataclass\n\
-  class SpecGraph:\n    version: int = 1\n    specs: List[Spec] = field(default_factory=list)\n    edges: List[Edge] = field(default_factory=list)\n\
-  \n    def add_spec(self, spec: Spec):\n        if not any(s.uri == spec.uri for s in self.specs):\n            self.specs.append(spec)\n\
-  \n    def add_edge(self, edge: Edge):\n        self.edges.append(edge)\n\n    def get_impl_for_prd(self, prd_uri: str) ->\
-  \ Optional[Spec]:\n        \"\"\"查找实现指定 PRD spec 的 impl spec\"\"\"\n        for e in self.edges:\n            if e.dst ==\
-  \ prd_uri and e.rel == \"implements\":\n                return self.get_spec_by_uri(e.src)\n        return None\n\n    def\
-  \ get_prd_for_impl(self, impl_uri: str) -> Optional[Spec]:\n        \"\"\"查找 impl spec 实现的 PRD spec\"\"\"\n        for e\
-  \ in self.edges:\n            if e.src == impl_uri and e.rel == \"implements\":\n                return self.get_spec_by_uri(e.dst)\n\
-  \        return None\n\n    def get_dependencies(self, uri: str) -> List[Spec]:\n        \"\"\"获取指定 spec 的依赖（depends_on\
-  \ 关系）\"\"\"\n        result = []\n        for e in self.edges:\n            if e.src == uri and e.rel == \"depends_on\"\
-  :\n                spec = self.get_spec_by_uri(e.dst)\n                if spec:\n                    result.append(spec)\n\
-  \        return result\n\n    def topological_sort(self) -> List[Spec]:\n        \"\"\"拓扑排序（用于确定实现顺序）\"\"\"\n        # Kahn's\
-  \ algorithm\n        ...\n\n    def to_dict(self) -> dict:\n        ...\n\n    @classmethod\n    def from_dict(cls, d: dict)\
-  \ -> \"SpecGraph\":\n        ...\n\n    def save(self, path: str):\n        with open(path, \"w\") as f:\n            yaml.dump(self.to_dict(),\
-  \ f, allow_unicode=True)\n\n    @classmethod\n    def load(cls, path: str) -> \"SpecGraph\":\n        with open(path) as\
-  \ f:\n            d = yaml.safe_load(f)\n        return cls.from_dict(d)\n\n    # --- 辅助 ---\n    def get_spec_by_uri(self,\
-  \ uri: str) -> Optional[Spec]:\n        for s in self.specs:\n            if s.uri == uri:\n                return s\n \
-  \       return None\n```\n\n### Step 2：在 `bin/ait` 中新增 SpecGraph 子命令\n\n**新增 CLI**：\n\n| 命令 | 用途 |\n|---|---|\n| `bin/ait\
-  \ specgraph add-edge <src> <dst> --rel implements` | 手动添加 edge |\n| `bin/ait specgraph query <uri> --deps` | 查询依赖 |\n| `bin/ait\
-  \ specgraph query <uri> --implements` | 查询实现关系 |\n| `bin/ait specgraph export --format dot` | 导出 Graphviz DOT（可视化） |\n|\
-  \ `bin/ait specgraph sync` | 从现有 `links-index.yaml` 迁移数据 |\n\n### Step 3：在 `bin/ait prd commit` 和 `bin/ait impl commit`\
-  \ 时自动维护 SpecGraph\n\n**自动化规则**：\n\n1. **PRD commit** 时：自动在 SpecGraph 中注册 `spec:prd:<version>:<chunk-id>`\n2. **Impl create**\
-  \ 时：若 YAML frontmatter 含 `@ref ... rel:implements`，自动添加 `implements` edge\n3. **Impl commit** 时：验证对应的 PRD chunk 已 committed（通过\
-  \ SpecGraph 查询）\n\n### Step 4：迁移现有 `links-index.yaml`\n\n**迁移脚本**（由 `bin/ait specgraph sync` 执行）：\n\n```python\ndef migrate_links_index():\n\
-  \    \"\"\"从 .meta/links-index.yaml 迁移到 .meta/specgraph.yaml\"\"\"\n    old = load_yaml(\".meta/links-index.yaml\")\n  \
-  \  graph = SpecGraph()\n\n    for link in old.get(\"links\", []):\n        prd_uri = f\"spec:prd:v1.2:{link['prd_chunk']}\"\
-  \n        impl_uri = f\"spec:impl:v1.2:{link['impl_chunk']}\"\n\n        # 注册 specs\n        graph.add_spec(Spec(\n    \
-  \        uri=prd_uri,\n            title=link['prd_chunk'],\n            type=\"prd\",\n            version=\"v1.2\",\n\
-  \            chunk_id=link['prd_chunk']\n        ))\n        graph.add_spec(Spec(\n            uri=impl_uri,\n         \
-  \   title=link['impl_chunk'],\n            type=\"impl\",\n            version=\"v1.2\",\n            chunk_id=link['impl_chunk']\n\
-  \        ))\n\n        # 注册 edge\n        graph.add_edge(Edge(\n            src=impl_uri,\n            dst=prd_uri,\n  \
-  \          rel=link.get(\"relation\", \"implements\")\n        ))\n\n    graph.save(\".meta/specgraph.yaml\")\n```\n\n##\
-  \ 与 v1.2 的关系\n\n- v1.2 的 `links-index.yaml` **继续保留**（向后兼容），但新增操作同时写入 `specgraph.yaml`\n- `bin/ait specgraph sync` 提供一次性迁移\n\
-  - v1.4+ 可以考虑完全废弃 `links-index.yaml`\n\n## 验收标准\n\n1. `ait/specgraph.py` 存在，`SpecGraph` / `Spec` / `Edge` 可导入\n2. `bin/ait\
-  \ specgraph --help` 显示 5 个子命令\n3. `bin/ait specgraph sync` 能成功从 `.meta/links-index.yaml` 迁移数据到 `.meta/specgraph.yaml`\n\
-  4. `bin/ait prd commit` 后，`.meta/specgraph.yaml` 中自动注册对应 `spec:prd:` 条目\n5. `bin/ait impl create` 时，若内容含 `@ref ... rel:implements`，自动添加\
-  \ edge\n6. `bin/ait specgraph query spec:prd:v1.2:prd-skills-overview --implements` 返回正确的 impl spec URI\n7. `bin/ait specgraph\
-  \ export --format dot` 输出合法的 Graphviz DOT 格式\n\n## 非目标（本期不做）\n\n| 非目标 | 留给后续 |\n|---|---|\n| 在 AI 对话中自动渲染依赖图（Mermaid） |\
-  \ v1.4+，需要 AI 端支持 |\n| 跨版本 dependency conflict 检测 | v1.4+ |\n| SpecGraph 的 Web UI 可视化 | 不在 CLI 工具范围内 |"
+new_content: '<!-- @id:[TDD]-prd_manager -->
+
+  ## prd_manager TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/prd_manager.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  PrdManager：create/save_draft/confirm/commit/show；四段结构与 summary 必需校验；req 草稿持久化；commit 锁定写保护。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/test_prd_*.py：覆盖正常路径、边界与错误路径。'

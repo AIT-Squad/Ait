@@ -1,0 +1,98 @@
+id: chg-011
+version: v1.2
+type: ADD
+target: prd/skills#prd-skills-mapping
+author: system
+date: '2026-05-25T05:45:35.975937+00:00'
+message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-skills-mapping -->
+
+  # 4 个 Skill 的迁移映射表
+
+
+  ## ait-discuss
+
+
+  | 维度 | 参考项目 | 本期改造 |
+
+  |---|---|---|
+
+  | 职责 | adaptive PRD 讨论 + 写 ADD/MODIFY/DELETE draft | 不变（adaptive 三阶段：Clarify → Design → Generate） |
+
+  | `ait list` | 列出已有 chunk | → `bin/ait reindex` 后读 `.meta/chunks-index.yaml`（v0.2 引入 `bin/ait chunk list` 单独 PRD 处理） |
+
+  | `ait draft new --op ADD` | 产 ADD draft | → `bin/ait prd create "<title>"` + `bin/ait prd save-draft <req_id>` |
+
+  | `ait draft new --op MODIFY` | 产 MODIFY draft（带 base-hash） | → `bin/ait prd save-draft <req_id>`（覆盖，base_hash 由 confirm
+  阶段校验） |
+
+  | `ait draft confirm` + `ait draft merge` | confirmed → merged | → `bin/ait prd confirm <req_id> --file prd/<slug>` + `bin/ait
+  prd commit prd/<slug> -m ...` |
+
+  | 删除策略 | DELETE draft | 本期不支持（当前 CLI 无 delete；写入 PRD non-goals） |
+
+  | 工作目录 | 任意 | 必须在 `project-docs/` 父目录 |
+
+
+  ## ait-impl-discuss
+
+
+  | 维度 | 参考项目 | 本期改造 |
+
+  |---|---|---|
+
+  | 职责 | 为稳定的 PRD chunk 驱动 impl 设计 | 不变 |
+
+  | `ait context <prd-chunk> --depth 1` | 拉 PRD + 邻居作为 prompt 上下文 | → `bin/ait context <prd-chunk-id> --scenario prd-to-impl`
+  |
+
+  | 落盘方式 | 直接写 `docs/impl/<stem>.md` + `ait scan` | → `bin/ait impl create <prd-chunk-id> --content-file <tmp>`（CLI 自动注入 `@ref
+  ... rel:implements`） |
+
+  | 索引重建 | `ait scan` | → 由 `impl create` 自动 reindex；手工修文件后用 `bin/ait reindex` |
+
+  | commit | 不要求（参考项目 impl 解耦于 SemVer） | 要求走 `bin/ait impl commit <impl-chunk-id> -m ...`（PRD 必须先 committed） |
+
+
+  ## ait-progress
+
+
+  参考项目依赖 `.planning/STATE.md` + `progress.json` + `issues.md`，当前项目全部不存在。本期改造为：
+
+
+  | 维度 | 参考项目 | 本期改造 |
+
+  |---|---|---|
+
+  | 数据源 | STATE.md + progress.json + issues.md | `.meta/versions/<vX.Y>.yaml` + `.meta/chunks-index-<vX.Y>.yaml` + `.meta/changes/`
+  |
+
+  | CLI | `ait progress show` | 本期不引入新 CLI，子 skill 自己调用现有命令组合（占位实现）：`bin/ait reindex` 后读 `.meta/chunks-index-<vX.Y>.yaml`
+  统计 working/staged/committed 三态分布 |
+
+  | 渲染面板 | Phase / Milestone / Tasks{done,running,pending,failed} / Open issues | 改为 Version / Requirements / Chunks{working,staged,committed}
+  / Pending merges（具体格式见 ait-progress 子 skill SKILL.md） |
+
+  | 长远规划 | （已实装） | 单独 PRD 引入 `bin/ait version status <vX.Y>` CLI 后，本 skill 改为 thin wrapper |
+
+
+  ## ait-resume
+
+
+  参考项目依赖 `issues.md`，当前项目不存在。本期改造为：
+
+
+  | 维度 | 参考项目 | 本期改造 |
+
+  |---|---|---|
+
+  | 数据源 | `.planning/ait/issues.md`（结构化 ISS 条目） | CLI 错误码字典（`PRD_NOT_COMMITTED` / `MERGE_CONFLICT` / `CHUNK_NOT_IN_VERSION`
+  / `ID_FORMAT` 等，已在 SKILL.md Common Pitfalls 列出） |
+
+  | CLI | `ait resume` | 本期不引入新 CLI，子 skill 通过：1) 询问用户上一次失败的 CLI 命令 + JSON 错误；2) 解析 `code` 字段；3) 在对话中给出恢复建议（建议命令 + 修复路径） |
+
+  | 触发时机 | 用户主动调用 / 失败后 ait-execute 自动 next | 仅用户主动 `/ait-resume` 调用（当前无 ait-execute） |
+
+  | 长远规划 | （已实装 issues.md） | 单独 PRD 引入 `.meta/issues.yaml` 与 `bin/ait resume` 后，本 skill 改为 thin wrapper |'

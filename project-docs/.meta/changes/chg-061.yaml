@@ -1,24 +1,18 @@
 id: chg-061
-version: v1.4
+version: v2.3
 type: ADD
-target: impl/version#impl-version-merge-engine
+target: fsd/[FSD]-ait-indexing#[FSD]-ait-indexing
 author: system
-date: '2026-06-01T07:11:15.921004+00:00'
-message: v1.4 impl 设计定稿
+date: '2026-06-27T07:21:04.779289+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-version-merge-engine -->\n## 版本合并引擎（两阶段 + 失败回退）\n\n实现 `version confirm`：守卫 → merge → git commit，保证原子性。\n\
-  \n### 流程\n\n```python\ndef version_confirm(root: Path, version: str) -> dict:\n    # ── 阶段1：预检守卫 ──\n    state = load_version_state(root,\
-  \ version)\n    tasks = load_tasks(root, version)\n    if any(t.status != \"done\" for t in tasks):\n        return fail(\"\
-  存在未完成 task，无法 confirm\", code=\"TASK_NOT_DONE\")\n    if not git_clean(root):\n        return fail(\"git 工作区不干净\", code=\"\
-  GIT_DIRTY\")\n\n    # ── 阶段2：merge（写 docs/，可回退）──\n    backup = snapshot_docs(root)            # 内存/临时备份 docs/\n    try:\n\
-  \        merge_chunks_to_baseline(root, version)        # 同名 chunk 替换\n        extract_dynamic_global(root, version)   \
-  \       # impl @extract → 动态 global\n        merge_specgraph_to_baseline(root, version)     # 版本图节点/边并入全局 specgraph.yaml\n\
-  \        # ── 阶段3：git commit ──\n        git_add_commit(root, message=state.title)\n    except Exception as e:\n       \
-  \ restore_docs(root, backup)          # 回退：恢复 docs/ 到 merge 前\n        return fail(f\"merge/commit 失败已回退: {e}\", code=\"\
-  MERGE_ROLLBACK\")\n\n    state.phase = \"merged\"; save(state)\n    return {\"ok\": True, \"version\": version, \"commit_msg\"\
-  : state.title}\n```\n\n### 合并规则（按 chunk 维度）\n- 同名 chunk：用本版本内容替换基线对应 chunk（不覆盖无关全局信息）\n- 新增 chunk：追加到基线\n- 其他 chunk：保持不动\n\
-  \n### specgraph 合并（merge_specgraph_to_baseline）\n- 将 `specgraph-{version}.yaml` 的节点与边并入全局 `specgraph.yaml`（baseline）\n-\
-  \ 节点 URI 的 version 段由 `{version}` 改写为 `baseline`\n- 同名 chunk 的节点/边按替换处理（与 chunk 合并一致）\n- 合并成功后，`specgraph-{version}.yaml`\
-  \ 可随版本归档（merged 版本工作区保留供追溯）\n\n### 原子性\n- commit 失败 → 回退 docs/ 到 merge 前，要么全成要么全不动\n- 守卫不通过 → 不动任何文件\n- pre-merge 校验已在 impl\
-  \ confirm 阶段完成（环/版本内重复），此处不再重复\n\n<!-- @ref:prd/ait-redesign#prd-version-merge rel:implements -->"
+new_content: '<!-- @id:[FSD]-ait-indexing -->
+
+  ## indexing FSD
+
+
+  ### 功能范围
+
+
+  ait reindex/baseline-summary/migrate：索引重建、摘要、历史迁移。'

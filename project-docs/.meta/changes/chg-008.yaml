@@ -1,97 +1,16 @@
 id: chg-008
-version: v1.2
-type: ADD
-target: prd/skills#prd-skills-rename-block-to-chunk
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:new_model
 author: system
-date: '2026-05-25T05:45:35.972492+00:00'
-message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+date: '2026-06-27T07:21:04.571948+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-skills-rename-block-to-chunk -->
+new_content: '<!-- @id:[FSD]-ait:new_model -->
 
-  # Block 到 Chunk 的术语统一重构
+  ## new-model 域
 
+  ### 功能描述
 
-  ## 背景
-
-
-  参考项目的版本管理单元称为 **chunk**，当前项目称为 **block**。两者语义完全相同。为了与 micro-skill 体系（其内部均使用 chunk 术语）对齐，本期把 `block` 在全项目重命名为 `chunk`。
-
-
-  ## 重构范围
-
-
-  ### 代码符号
-
-
-  | 当前 | 重构后 |
-
-  |---|---|
-
-  | `skill/ait/ait/block_parser.py` | `chunk_parser.py` |
-
-  | `BlockParser` 类 | `ChunkParser` |
-
-  | `parse_blocks()` / `serialize_blocks()` | `parse_chunks()` / `serialize_chunks()` |
-
-  | Schema 字段 `prd_blocks` / `impl_blocks` | `prd_chunks` / `impl_chunks` |
-
-  | 错误码 `BLOCK_NOT_IN_VERSION` | `CHUNK_NOT_IN_VERSION` |
-
-  | 错误码 `BLOCK_NOT_FOUND` | `CHUNK_NOT_FOUND` |
-
-  | `index_manager.py` 中所有 `block` 标识符 | `chunk` |
-
-
-  ### 索引与元数据文件
-
-
-  | 当前 | 重构后 |
-
-  |---|---|
-
-  | `.meta/blocks-index.yaml` | `.meta/chunks-index.yaml` |
-
-  | `.meta/blocks-index-{vX.Y}.yaml` | `.meta/chunks-index-{vX.Y}.yaml` |
-
-  | YAML 内字段 `blocks:` | `chunks:` |
-
-
-  ### 块标记语法（向后兼容）
-
-
-  - 新写入统一使用 `<!-- @id:prd-xxx -->`（不改为 `@chunk:`，保持简洁）
-
-  - 文档与代码注释中的"块"统一称为 "chunk"
-
-
-  ### CLI 输出 JSON 字段
-
-
-  | 当前字段 | 重构后字段 |
-
-  |---|---|
-
-  | `block_count` | `chunk_count` |
-
-  | `block_ids` | `chunk_ids` |
-
-  | `block_id` | `chunk_id` |
-
-
-  ### 用户态文档迁移
-
-
-  - 已存在的 `project-docs/docs/prd/*.md` 中 `<!-- @id:xxx -->` 注释保持不变（只是术语层重命名，不影响标记语法）
-
-  - 已存在的 `.meta/blocks-index.yaml` 在重构落地时自动迁移（开发 impl 阶段需提供一次性迁移脚本或在 reindex 时透明改名）
-
-
-  ## 验收标准
-
-
-  - 全代码 `grep -ri ''block'' skill/ait/ait/` 命中数 = 0（除注释中的英文单词 "block" 在自然语言含义下保留）
-
-  - 全文档 `grep -ri ''block'' skill/ait/SKILL.md skill/ait/references/` 命中数 = 0（同上）
-
-  - 现有 PRD/impl 用例（`project-docs/docs/`）的 `bin/ait reindex` + `bin/ait prd show` 全部通过'
+  `ait prdv2/fsd/tdd/codegen`：新模型文档创建、显式建边、图校验、target_file 唯一性、codegen 上下文组装。'

@@ -1,0 +1,13 @@
+id_prefix_separator: '-'
+version_format: '{major}.{minor}'
+auto_snapshot_on_merge: true
+custom_relations:
+- refines
+- depends-on
+id_prefixes:
+  prd: 产品需求与设计意图
+  impl: 模块实现规范
+initialized: true
+skill_dir: skill/ait
+cli_path: .venv/Scripts/python.exe -m ait.cli
+wrapper_path: project-docs/.ait/ait-cli.cmd

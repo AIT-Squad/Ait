@@ -1,0 +1,19 @@
+id: chg-055
+version: v1.4
+type: ADD
+target: impl/init#impl-init-flow
+author: system
+date: '2026-06-01T07:11:13.797087+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-init-flow -->\n## 初始化流程与 docs/ 骨架生成\n\n实现 `/ait init`：通过讨论生成项目全局基线（全局 prd 概览、impl 概览、global 静态/动态骨架），写入\
+  \ `docs/`，不占版本号。\n\n### 命令入口\n\n```python\n@main.command(\"init\")\ndef init_cmd() -> None:\n    # 前置守卫：仅当项目尚无任何版本时才能 init（已被\
+  \ ait 纳管则拒绝）\n    if has_any_version(root):\n        return fail(\"项目已被 ait 纳管（已存在版本），不可重新 init\", code=\"ALREADY_MANAGED\"\
+  )\n    result = run_init(root)\n    ok(result)\n```\n\n### 流程\n\n1. **讨论收集**（由 skill 层驱动对话）：技术栈、项目 overview、核心领域划分\n2. **生成\
+  \ docs/ 骨架**：\n   - `docs/global/overview.md`（`global-overview`，static）\n   - `docs/global/tech-stack.md`（`global-tech-stack`，static）\n\
+  \   - `docs/global/ddl.md` / `schema.md` / `api.md`（dynamic 空骨架，待 version confirm 提取填充）\n   - `docs/prd/README.md` + `docs/impl/README.md`（说明文件，不入索引）\n\
+  3. **建立基线索引**：`reindex` 重建 chunks-index + 全局 specgraph.yaml（baseline），global chunk 标 `category`\n4. **标记已初始化**：`.meta/config.yaml`\
+  \ 写 `initialized: true`\n\n### 判定\n- `has_any_version()`：检查 `versions/` 下是否存在任何版本目录，或 `.meta/versions/` 是否有版本定义\n- init\
+  \ 不创建 `versions/` 下任何目录，首个功能版本由后续 `prd create` 触发（从 v1.0 起）\n\n### 不变量\n- init 产出全部落 `docs/` 基线，不进版本工作区\n- 动态 global 此阶段仅建空骨架（category:\
+  \ dynamic，内容空）\n\n<!-- @ref:prd/ait-redesign#prd-init rel:implements -->"

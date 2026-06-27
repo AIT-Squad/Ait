@@ -1,0 +1,1849 @@
+version: 1
+updated: '2026-06-25T03:56:45.002049+00:00'
+specs:
+- uri: spec:global:baseline:extract-block
+  title: extract-block
+  type: global
+  version: baseline
+  chunk_id: extract-block
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:global-index
+  title: global-index
+  type: global
+  version: baseline
+  chunk_id: global-index
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:global-schema
+  title: 数据结构 Schema
+  type: global
+  version: baseline
+  chunk_id: global-schema
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:schema-prd-sections
+  title: schema-prd-sections
+  type: global
+  version: baseline
+  chunk_id: schema-prd-sections
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:specgraph-store
+  title: specgraph-store
+  type: global
+  version: baseline
+  chunk_id: specgraph-store
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:task-yaml
+  title: task-yaml
+  type: global
+  version: baseline
+  chunk_id: task-yaml
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:global:baseline:version-state
+  title: version-state
+  type: global
+  version: baseline
+  chunk_id: version-state
+  file: global/schema
+  metadata:
+    source: baseline
+    category: dynamic
+- uri: spec:impl:baseline:impl-block-parser-algorithm
+  title: 算法
+  type: impl
+  version: baseline
+  chunk_id: impl-block-parser-algorithm
+  file: impl/block-parser
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-block-parser-api
+  title: 公开 API
+  type: impl
+  version: baseline
+  chunk_id: impl-block-parser-api
+  file: impl/block-parser
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-block-parser-edge-cases
+  title: 边界场景
+  type: impl
+  version: baseline
+  chunk_id: impl-block-parser-edge-cases
+  file: impl/block-parser
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-block-parser-overview
+  title: 概述
+  type: impl
+  version: baseline
+  chunk_id: impl-block-parser-overview
+  file: impl/block-parser
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-block-parser-tests
+  title: 测试要点
+  type: impl
+  version: baseline
+  chunk_id: impl-block-parser-tests
+  file: impl/block-parser
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-cli-file-option-names-normalization
+  title: CLI file option normalization
+  type: impl
+  version: baseline
+  chunk_id: impl-cli-file-option-names-normalization
+  file: impl/cli-file-options
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-core-model-reset
+  title: 核心模型：version reset 清空逻辑
+  type: impl
+  version: baseline
+  chunk_id: impl-core-model-reset
+  file: impl/core
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-core-model-state
+  title: 核心模型：版本与锁定状态机数据结构
+  type: impl
+  version: baseline
+  chunk_id: impl-core-model-state
+  file: impl/core
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-core-specgraph-store
+  title: SpecGraph 分文件存储与环检测
+  type: impl
+  version: baseline
+  chunk_id: impl-core-specgraph-store
+  file: impl/core
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-data-chunk-rename
+  title: Chunk 数据模型重命名（Schema + 索引文件 + 一次性迁移）
+  type: impl
+  version: baseline
+  chunk_id: impl-data-chunk-rename
+  file: impl/data-model
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-data-specgraph-model
+  title: SpecGraph 数据模型实现
+  type: impl
+  version: baseline
+  chunk_id: impl-data-specgraph-model
+  file: impl/specgraph
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-formats-naming
+  title: 派生式命名校验
+  type: impl
+  version: baseline
+  chunk_id: impl-formats-naming
+  file: impl/formats
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-formats-parser
+  title: 格式解析扩展（四段 PRD + chunk 解析）
+  type: impl
+  version: baseline
+  chunk_id: impl-formats-parser
+  file: impl/formats
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-global-index
+  title: 全局信息索引与 context 注入
+  type: impl
+  version: baseline
+  chunk_id: impl-global-index
+  file: impl/global
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-impl-stage-cli
+  title: impl 阶段命令实现
+  type: impl
+  version: baseline
+  chunk_id: impl-impl-stage-cli
+  file: impl/impl
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-impl-stage-extract
+  title: '@extract 提取标记解析器'
+  type: impl
+  version: baseline
+  chunk_id: impl-impl-stage-extract
+  file: impl/impl
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-init-flow
+  title: 初始化流程与 docs/ 骨架生成
+  type: impl
+  version: baseline
+  chunk_id: impl-init-flow
+  file: impl/init
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-init-guide-skill
+  title: ait-init-guide 子 skill 升级（差异补全交互）
+  type: impl
+  version: baseline
+  chunk_id: impl-init-guide-skill
+  file: impl/init-incremental
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-init-state-detect
+  title: init 三态识别与 --check 子命令
+  type: impl
+  version: baseline
+  chunk_id: impl-init-state-detect
+  file: impl/init-incremental
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-algorithm
+  title: 合并算法
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-algorithm
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-api
+  title: 公开 API
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-api
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-conflict-detection
+  title: 冲突检测（不在本模块）
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-conflict-detection
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-edge-cases
+  title: 边界场景
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-edge-cases
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-overview
+  title: 概述
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-overview
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-serialize
+  title: 序列化规则
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-serialize
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-merge-engine-tests
+  title: 测试要点
+  type: impl
+  version: baseline
+  chunk_id: impl-merge-engine-tests
+  file: impl/merge-engine
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-inherit-noop
+  title: impl inherit no longer appends baseline chunks during merge
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-chunk-atomic-impl-merge-inherit-noop
+  file: impl/baseline-aware-confirmation
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-chunk-summary-field
+  title: chunks-index 增加 summary 字段 + @summary 注释解析
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-chunk-summary-field
+  file: impl/prd-chunk-summary-index
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-format-enforcement-gate
+  title: PRD/impl 格式硬约束 + ait lint 命令 + 派生命名校验
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-format-enforcement-gate
+  file: impl/prd-format-enforcement
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-global-merge-target-rewrite
+  title: Baseline PRD 单文件化 — version confirm 路由收敛
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-global-merge-target-rewrite
+  file: impl/prd-global-single-file
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-global-migrate-script
+  title: Baseline PRD 单文件化 — 一次性迁移脚本
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-global-migrate-script
+  file: impl/prd-global-single-file
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-global-parser-compat-check
+  title: Baseline PRD 单文件化 — 解析与依赖系统兼容性验证
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-global-parser-compat-check
+  file: impl/prd-global-single-file
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-recursive-modify-discovery-full-replacement-skill
+  title: ait-discuss requires full replacement PRD modify chunks
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-recursive-modify-discovery-full-replacement-skill
+  file: impl/baseline-aware-confirmation
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-stage-cli
+  title: PRD 阶段命令实现
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-stage-cli
+  file: impl/prd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-prd-stage-title
+  title: title 抽取与 state.md 写入
+  type: impl
+  version: baseline
+  chunk_id: impl-prd-stage-title
+  file: impl/prd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-project-docs-only-root-resolver
+  title: 项目根解析器（root-resolver）
+  type: impl
+  version: baseline
+  chunk_id: impl-project-docs-only-root-resolver
+  file: impl/project-docs-only
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skill-cli-config-injection
+  title: init 阶段注入 skill 路径并生成项目本地 wrapper
+  type: impl
+  version: baseline
+  chunk_id: impl-skill-cli-config-injection
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skill-cli-doc-rewrite
+  title: SKILL/sub-skills/references 全量改写为项目本地 wrapper
+  type: impl
+  version: baseline
+  chunk_id: impl-skill-cli-doc-rewrite
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skill-cli-install-update-venv
+  title: install.py update refreshes venv by default
+  type: impl
+  version: baseline
+  chunk_id: impl-skill-cli-install-update-venv
+  file: impl/install-update-venv
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skill-cli-pitfall-doc
+  title: ENOENT_BIN_AIT 兜底文档
+  type: impl
+  version: baseline
+  chunk_id: impl-skill-cli-pitfall-doc
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skill-cli-wrapper-verify
+  title: wrapper 自定位回归测试
+  type: impl
+  version: baseline
+  chunk_id: impl-skill-cli-wrapper-verify
+  file: impl/skill-cli-doc-rewrite
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-contract
+  title: 子 Skill 调用与写入契约实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-contract
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-format-adapt
+  title: 子 Skill 格式适配实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-format-adapt
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-layout
+  title: Skill 子目录布局实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-layout
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-mapping
+  title: 四个子 Skill 行为映射实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-mapping
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-overview
+  title: Micro-skill 总览实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-overview
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-skills-router
+  title: 主 SKILL.md Router 改造实现
+  type: impl
+  version: baseline
+  chunk_id: impl-skills-router
+  file: impl/skills
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-subskill-init-guide-rename
+  title: ait-init-check → ait-init-guide 目录搬迁
+  type: impl
+  version: baseline
+  chunk_id: impl-subskill-init-guide-rename
+  file: impl/subskills-coverage
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-subskill-state-merge
+  title: ait-progress 合入 ait-state
+  type: impl
+  version: baseline
+  chunk_id: impl-subskill-state-merge
+  file: impl/subskills-coverage
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-subskill-task-execute-add
+  title: 新增 ait-task-execute 子 skill
+  type: impl
+  version: baseline
+  chunk_id: impl-subskill-task-execute-add
+  file: impl/subskills-coverage
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-subskill-trigger-audit
+  title: sub-skill 触发关键词去重 + 四段完整性审计
+  type: impl
+  version: baseline
+  chunk_id: impl-subskill-trigger-audit
+  file: impl/subskills-coverage
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-legacy-warn
+  title: 旧 .meta/tasks 路径检测告警
+  type: impl
+  version: baseline
+  chunk_id: impl-task-legacy-warn
+  file: impl/task-relocation
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-stage-build
+  title: task 拆分（task create）
+  type: impl
+  version: baseline
+  chunk_id: impl-task-stage-build
+  file: impl/task
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-stage-execute
+  title: task 执行与自动收口（task execute）
+  type: impl
+  version: baseline
+  chunk_id: impl-task-stage-execute
+  file: impl/task
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-stage-schema
+  title: task YAML Schema
+  type: impl
+  version: baseline
+  chunk_id: impl-task-stage-schema
+  file: impl/task
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-summary-index
+  title: chunks-index-{vX.Y}.yaml 注入 tasks_summary 字段
+  type: impl
+  version: baseline
+  chunk_id: impl-task-summary-index
+  file: impl/task-relocation
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-task-yaml-path
+  title: TaskManager 物理路径迁移到版本工作区
+  type: impl
+  version: baseline
+  chunk_id: impl-task-yaml-path
+  file: impl/task-relocation
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-test-spec-alignment-failures
+  title: Test Failure Alignment Implementation
+  type: impl
+  version: baseline
+  chunk_id: impl-test-spec-alignment-failures
+  file: impl/test-spec-alignment
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v13-release-plan
+  title: v1.3 实现总览
+  type: impl
+  version: baseline
+  chunk_id: impl-v13-release-plan
+  file: impl/release
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-codegen-tdd-context-assembler
+  title: TDD codegen context assembler
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-codegen-tdd-context-assembler
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-fsd-tdd-commands-cli-managers
+  title: FSD, TDD, and codegen command groups
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-fsd-tdd-commands-cli-managers
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-fsd-tdd-structure-rules-validator
+  title: PRD/FSD/TDD structure validator
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-fsd-tdd-structure-rules-validator
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  title: PRD/FSD/TDD compatibility layer
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-prd-fsd-tdd-template-contracts-files
+  title: PRD/FSD/TDD template contract files
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-prd-fsd-tdd-template-contracts-files
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v2-version-merge-compatibility-lifecycle
+  title: Version lifecycle and merge compatibility
+  type: impl
+  version: baseline
+  chunk_id: impl-v2-version-merge-compatibility-lifecycle
+  file: impl/v2-prd-fsd-tdd
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v21-new-model-init-scaffold-mode
+  title: init 新模型初始化模式
+  type: impl
+  version: baseline
+  chunk_id: impl-v21-new-model-init-scaffold-mode
+  file: impl/v21-new-model-init-scaffold-mode
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v21-new-model-prd-create
+  title: 新模型 PRD 创建命令
+  type: impl
+  version: baseline
+  chunk_id: impl-v21-new-model-prd-create
+  file: impl/v21-new-model-prd-create
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v21-target-file-uniqueness-check
+  title: target_file 唯一性校验
+  type: impl
+  version: baseline
+  chunk_id: impl-v21-target-file-uniqueness-check
+  file: impl/v21-target-file-uniqueness-check
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v21-taskless-confirm-test
+  title: 无 task confirm 端到端验证
+  type: impl
+  version: baseline
+  chunk_id: impl-v21-taskless-confirm-test
+  file: impl/v21-taskless-confirm-test
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-v22-codegen-baseline-fallback-resolve
+  title: codegen 基线回退
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-codegen-baseline-fallback-resolve
+  file: impl/v22-codegen-baseline-fallback
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c4
+- uri: spec:impl:baseline:impl-v22-new-model-version-commit-cli
+  title: 新模型版本提交命令
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-new-model-version-commit-cli
+  file: impl/v22-version-commit-cli
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c2
+- uri: spec:impl:baseline:impl-v22-new-model-version-ensure-meta
+  title: 新模型版本元数据自动创建
+  type: impl
+  version: baseline
+  chunk_id: impl-v22-new-model-version-ensure-meta
+  file: impl/v22-version-ensure-meta
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c3
+- uri: spec:impl:baseline:impl-version-manager-amends
+  title: 修订已 committed 块
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-amends
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-api
+  title: 公开 API
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-api
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-merge
+  title: merge 流程
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-merge
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-overview
+  title: 概述
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-overview
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-stage-commit
+  title: stage / commit 流程
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-stage-commit
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-state-model
+  title: 三阶段状态模型
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-state-model
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-manager-tests
+  title: 测试要点
+  type: impl
+  version: baseline
+  chunk_id: impl-version-manager-tests
+  file: impl/version-manager
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-version-merge-single-commit-state
+  title: version confirm commits final merged state in one commit
+  type: impl
+  version: baseline
+  chunk_id: impl-version-merge-single-commit-state
+  file: impl/version
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-chunk-rename
+  title: Chunk 代码符号与文档术语重命名工作流
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-chunk-rename
+  file: impl/workflow
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-focus-deps-impact
+  title: 聚焦读取、依赖查询与影响面分析实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-focus-deps-impact
+  file: impl/search
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-init-upgrade
+  title: Init 流程智能识别实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-init-upgrade
+  file: impl/workflow
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-search-cli
+  title: Search CLI 实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-search-cli
+  file: impl/search
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-skill-migration
+  title: 参考项目 Skill 功能迁移实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-skill-migration
+  file: impl/workflow
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-specgraph-cli
+  title: SpecGraph CLI 与自动维护实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-specgraph-cli
+  file: impl/specgraph
+  metadata:
+    source: baseline
+- uri: spec:impl:baseline:impl-workflow-state-skill
+  title: ait-state Skill 与 state.md 实现
+  type: impl
+  version: baseline
+  chunk_id: impl-workflow-state-skill
+  file: impl/state
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-backlog-v12-legacy
+  title: v1.2 遗留 PRD Chunk 实现清单
+  type: prd
+  version: baseline
+  chunk_id: prd-backlog-v12-legacy
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-format
+  title: Block 标注格式
+  type: prd
+  version: baseline
+  chunk_id: prd-block-format
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-id-naming
+  title: ID 命名规范
+  type: prd
+  version: baseline
+  chunk_id: prd-block-id-naming
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-parse-rule
+  title: 解析规则
+  type: prd
+  version: baseline
+  chunk_id: prd-block-parse-rule
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-relation-types
+  title: 关系类型
+  type: prd
+  version: baseline
+  chunk_id: prd-block-relation-types
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-relations
+  title: Block 关联（@ref）
+  type: prd
+  version: baseline
+  chunk_id: prd-block-relations
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-block-validation
+  title: 块校验规则
+  type: prd
+  version: baseline
+  chunk_id: prd-block-validation
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-cli-file-option-names
+  title: CLI file options accept file names only
+  type: prd
+  version: baseline
+  chunk_id: prd-cli-file-option-names
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-core-model
+  title: 核心模型与版本原子性
+  type: prd
+  version: baseline
+  chunk_id: prd-core-model
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-formats
+  title: 格式规范
+  type: prd
+  version: baseline
+  chunk_id: prd-formats
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-global
+  title: 全局信息层
+  type: prd
+  version: baseline
+  chunk_id: prd-global
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-impl-stage
+  title: impl 阶段
+  type: prd
+  version: baseline
+  chunk_id: prd-impl-stage
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-atomicity
+  title: 原子性
+  type: prd
+  version: baseline
+  chunk_id: prd-index-atomicity
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-baseline
+  title: 基线索引
+  type: prd
+  version: baseline
+  chunk_id: prd-index-baseline
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-isolation
+  title: 分层隔离
+  type: prd
+  version: baseline
+  chunk_id: prd-index-isolation
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-links
+  title: 引用索引
+  type: prd
+  version: baseline
+  chunk_id: prd-index-links
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-record-fields
+  title: 索引记录字段
+  type: prd
+  version: baseline
+  chunk_id: prd-index-record-fields
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-index-version
+  title: 版本增量索引
+  type: prd
+  version: baseline
+  chunk_id: prd-index-version
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-init
+  title: 项目初始化
+  type: prd
+  version: baseline
+  chunk_id: prd-init
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-init-incremental
+  title: init 改为幂等的基线补全器
+  type: prd
+  version: baseline
+  chunk_id: prd-init-incremental
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-init-upgrade
+  title: 需求2：init 流程智能识别旧项目
+  type: prd
+  version: baseline
+  chunk_id: prd-init-upgrade
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-design-principles
+  title: 设计原则
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-design-principles
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-mission
+  title: 使命
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-mission
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-roadmap
+  title: 路线图
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-roadmap
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-scope
+  title: MVP 范围
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-scope
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-target-users
+  title: 目标用户
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-target-users
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-overview-terminology
+  title: 核心术语
+  type: prd
+  version: baseline
+  chunk_id: prd-overview-terminology
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
+  title: 'prd-chunk-atomic-impl-merge: impl 侧基于 baseline 讨论并确认 modify/inherit'
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-chunk-atomic-impl-merge
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-chunk-summary-index
+  title: 'prd-chunk-summary-index: chunks-index 增加 summary 字段'
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-chunk-summary-index
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-format-enforcement
+  title: 'prd-format-enforcement: PRD/impl 格式规范强制化'
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-format-enforcement
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-global-single-file
+  title: 'prd-global-single-file: Baseline PRD 单文件化'
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-global-single-file
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-recursive-modify-discovery
+  title: 'prd-recursive-modify-discovery: prd create 时基于 baseline 讨论并确认 modify'
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-recursive-modify-discovery
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-prd-stage
+  title: PRD 阶段
+  type: prd
+  version: baseline
+  chunk_id: prd-prd-stage
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-project-docs-only-detection
+  title: 目录定位
+  type: prd
+  version: baseline
+  chunk_id: prd-project-docs-only-detection
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-project-docs-only-errors
+  title: 错误场景
+  type: prd
+  version: baseline
+  chunk_id: prd-project-docs-only-errors
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-project-docs-only-non-goals
+  title: 非目标
+  type: prd
+  version: baseline
+  chunk_id: prd-project-docs-only-non-goals
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-project-docs-only-overview
+  title: 概述
+  type: prd
+  version: baseline
+  chunk_id: prd-project-docs-only-overview
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-project-docs-only-rules
+  title: 业务规则
+  type: prd
+  version: baseline
+  chunk_id: prd-project-docs-only-rules
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-release-v13-overview
+  title: v1.3 版本概述
+  type: prd
+  version: baseline
+  chunk_id: prd-release-v13-overview
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-scope-non-goals
+  title: v1.3 非目标（Non-Goals）
+  type: prd
+  version: baseline
+  chunk_id: prd-scope-non-goals
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-search-cli
+  title: 需求4：检索/聚焦读取命令行迁移
+  type: prd
+  version: baseline
+  chunk_id: prd-search-cli
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-sections
+  title: prd-sections
+  type: prd
+  version: baseline
+  chunk_id: prd-sections
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skill-cli-resolution
+  title: bin/ait 路径解析与 SKILL 文档约定修订
+  type: prd
+  version: baseline
+  chunk_id: prd-skill-cli-resolution
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skill-migration
+  title: 需求1：参考项目 skill 功能迁移
+  type: prd
+  version: baseline
+  chunk_id: prd-skill-migration
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skill-state
+  title: 目标3：ait-state Skill（版本进度面板）
+  type: prd
+  version: baseline
+  chunk_id: prd-skill-state
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-contract
+  title: 子 Skill 写入与调用契约
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-contract
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-format-adapt
+  title: 子 Skill 格式适配规范
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-format-adapt
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-layout
+  title: 嵌套目录布局
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-layout
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-mapping
+  title: 4 个 Skill 的迁移映射表
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-mapping
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-non-goals
+  title: 非目标（本期不做）
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-non-goals
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-overview
+  title: 概述
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-overview
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-rename-block-to-chunk
+  title: Block 到 Chunk 的术语统一重构
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-rename-block-to-chunk
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-skills-router
+  title: 主 SKILL.md Router 改造
+  type: prd
+  version: baseline
+  chunk_id: prd-skills-router
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-specgraph-index
+  title: 需求3：links-index.yaml 重构为 SpecGraph
+  type: prd
+  version: baseline
+  chunk_id: prd-specgraph-index
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-subskills-coverage
+  title: sub-skills 治理：补齐 task 阶段、合并 progress/state、init-check 重定位
+  type: prd
+  version: baseline
+  chunk_id: prd-subskills-coverage
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-task-relocation
+  title: task YAML 目录从 .meta 迁到版本工作区
+  type: prd
+  version: baseline
+  chunk_id: prd-task-relocation
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-task-stage
+  title: task 阶段
+  type: prd
+  version: baseline
+  chunk_id: prd-task-stage
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-test-spec-alignment
+  title: Test and Spec Alignment
+  type: prd
+  version: baseline
+  chunk_id: prd-test-spec-alignment
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-codegen-tdd-context
+  title: TDD-based code generation context
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-codegen-tdd-context
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-fsd-tdd-commands
+  title: Parallel FSD, TDD, and codegen commands
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-fsd-tdd-commands
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-fsd-tdd-structure-rules
+  title: PRD/FSD/TDD structure and graph rules
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-fsd-tdd-structure-rules
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-prd-fsd-tdd-parallel-model
+  title: v2.0 introduces parallel PRD/FSD/TDD model
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-prd-fsd-tdd-parallel-model
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-prd-fsd-tdd-template-contracts
+  title: PRD/FSD/TDD template contracts
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-prd-fsd-tdd-template-contracts
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v2-version-merge-compatibility
+  title: Version and merge compatibility
+  type: prd
+  version: baseline
+  chunk_id: prd-v2-version-merge-compatibility
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v21-new-model-init-scaffold
+  title: init 搭建新模型骨架
+  type: prd
+  version: baseline
+  chunk_id: prd-v21-new-model-init-scaffold
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v21-new-model-prd-command
+  title: 新模型 PRD 命令入口
+  type: prd
+  version: baseline
+  chunk_id: prd-v21-new-model-prd-command
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v21-target-file-uniqueness
+  title: target_file 唯一性校验
+  type: prd
+  version: baseline
+  chunk_id: prd-v21-target-file-uniqueness
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v21-taskless-confirm
+  title: 无 task 的版本合并
+  type: prd
+  version: baseline
+  chunk_id: prd-v21-taskless-confirm
+  file: prd/global
+  metadata:
+    source: baseline
+- uri: spec:prd:baseline:prd-v22-codegen-baseline-fallback
+  title: codegen 基线回退
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-codegen-baseline-fallback
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v22-new-model-version-commit
+  title: 新模型版本提交
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-new-model-version-commit
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-v22-new-model-version-ensure
+  title: 新模型版本元数据自动创建
+  type: prd
+  version: baseline
+  chunk_id: prd-v22-new-model-version-ensure
+  file: prd/补全新模型版本生命周期-version-commit-版本-meta-自动创建-codegen-baseline-回退
+  metadata:
+    source: baseline
+    state: committed
+    action: add
+    commit_id: c1
+- uri: spec:prd:baseline:prd-version-merge
+  title: 版本合并
+  type: prd
+  version: baseline
+  chunk_id: prd-version-merge
+  file: prd/global
+  metadata:
+    source: baseline
+edges:
+- src: spec:impl:baseline:impl-prd-chunk-atomic-impl-merge-inherit-noop
+  dst: spec:prd:baseline:prd-prd-chunk-atomic-impl-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-recursive-modify-discovery-full-replacement-skill
+  dst: spec:prd:baseline:prd-prd-recursive-modify-discovery
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-block-parser-overview
+  dst: spec:prd:baseline:prd-block-format
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-block-parser-overview
+  dst: spec:prd:baseline:prd-block-parse-rule
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-block-parser-algorithm
+  dst: spec:prd:baseline:prd-block-parse-rule
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-cli-file-option-names-normalization
+  dst: spec:prd:baseline:prd-cli-file-option-names
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-core-model-state
+  dst: spec:prd:baseline:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-core-model-reset
+  dst: spec:prd:baseline:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-core-specgraph-store
+  dst: spec:prd:baseline:prd-core-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-data-chunk-rename
+  dst: spec:prd:baseline:prd-skills-rename-block-to-chunk
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-formats-parser
+  dst: spec:prd:baseline:prd-formats
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-formats-naming
+  dst: spec:prd:baseline:prd-formats
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-global-index
+  dst: spec:prd:baseline:prd-global
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-impl-stage-cli
+  dst: spec:prd:baseline:prd-impl-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-impl-stage-extract
+  dst: spec:prd:baseline:prd-impl-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-init-state-detect
+  dst: spec:prd:baseline:prd-init-incremental
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-init-guide-skill
+  dst: spec:prd:baseline:prd-init-incremental
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-init-flow
+  dst: spec:prd:baseline:prd-init
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skill-cli-install-update-venv
+  dst: spec:prd:baseline:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-merge-engine-overview
+  dst: spec:prd:baseline:prd-index-baseline
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-merge-engine-overview
+  dst: spec:prd:baseline:prd-block-parse-rule
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-merge-engine-algorithm
+  dst: spec:prd:baseline:prd-index-version
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-chunk-summary-field
+  dst: spec:prd:baseline:prd-prd-chunk-summary-index
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-format-enforcement-gate
+  dst: spec:prd:baseline:prd-prd-format-enforcement
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-global-migrate-script
+  dst: spec:prd:baseline:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-global-merge-target-rewrite
+  dst: spec:prd:baseline:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-global-parser-compat-check
+  dst: spec:prd:baseline:prd-prd-global-single-file
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-stage-cli
+  dst: spec:prd:baseline:prd-prd-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-prd-stage-title
+  dst: spec:prd:baseline:prd-prd-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-project-docs-only-root-resolver
+  dst: spec:prd:baseline:prd-project-docs-only-detection
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v13-release-plan
+  dst: spec:prd:baseline:prd-release-v13-overview
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-search-cli
+  dst: spec:prd:baseline:prd-search-cli
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-focus-deps-impact
+  dst: spec:prd:baseline:prd-search-cli
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skill-cli-config-injection
+  dst: spec:prd:baseline:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skill-cli-doc-rewrite
+  dst: spec:prd:baseline:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skill-cli-wrapper-verify
+  dst: spec:prd:baseline:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skill-cli-pitfall-doc
+  dst: spec:prd:baseline:prd-skill-cli-resolution
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-layout
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-router
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-format-adapt
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-contract
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-mapping
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-skills-overview
+  dst: spec:prd:baseline:prd-backlog-v12-legacy
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-data-specgraph-model
+  dst: spec:prd:baseline:prd-specgraph-index
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-specgraph-cli
+  dst: spec:prd:baseline:prd-specgraph-index
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-state-skill
+  dst: spec:prd:baseline:prd-skill-state
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-subskill-task-execute-add
+  dst: spec:prd:baseline:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-subskill-state-merge
+  dst: spec:prd:baseline:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-subskill-init-guide-rename
+  dst: spec:prd:baseline:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-subskill-trigger-audit
+  dst: spec:prd:baseline:prd-subskills-coverage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-yaml-path
+  dst: spec:prd:baseline:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-summary-index
+  dst: spec:prd:baseline:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-legacy-warn
+  dst: spec:prd:baseline:prd-task-relocation
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-stage-build
+  dst: spec:prd:baseline:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-stage-schema
+  dst: spec:prd:baseline:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-task-stage-execute
+  dst: spec:prd:baseline:prd-task-stage
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-test-spec-alignment-failures
+  dst: spec:prd:baseline:prd-test-spec-alignment
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-prd-fsd-tdd-parallel-model-compat-layer
+  dst: spec:prd:baseline:prd-v2-prd-fsd-tdd-parallel-model
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-fsd-tdd-structure-rules-validator
+  dst: spec:prd:baseline:prd-v2-fsd-tdd-structure-rules
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-prd-fsd-tdd-template-contracts-files
+  dst: spec:prd:baseline:prd-v2-prd-fsd-tdd-template-contracts
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-fsd-tdd-commands-cli-managers
+  dst: spec:prd:baseline:prd-v2-fsd-tdd-commands
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-codegen-tdd-context-assembler
+  dst: spec:prd:baseline:prd-v2-codegen-tdd-context
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v2-version-merge-compatibility-lifecycle
+  dst: spec:prd:baseline:prd-v2-version-merge-compatibility
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v21-new-model-init-scaffold-mode
+  dst: spec:prd:baseline:prd-v21-new-model-init-scaffold
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v21-new-model-prd-create
+  dst: spec:prd:baseline:prd-v21-new-model-prd-command
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v21-target-file-uniqueness-check
+  dst: spec:prd:baseline:prd-v21-target-file-uniqueness
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v21-taskless-confirm-test
+  dst: spec:prd:baseline:prd-v21-taskless-confirm
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-codegen-baseline-fallback-resolve
+  dst: spec:prd:baseline:prd-v22-codegen-baseline-fallback
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-new-model-version-commit-cli
+  dst: spec:prd:baseline:prd-v22-new-model-version-commit
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-v22-new-model-version-ensure-meta
+  dst: spec:prd:baseline:prd-v22-new-model-version-ensure
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-version-manager-overview
+  dst: spec:prd:baseline:prd-index-version
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-version-manager-overview
+  dst: spec:prd:baseline:prd-overview-scope
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-version-manager-merge
+  dst: spec:prd:baseline:prd-index-baseline
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-version-manager-amends
+  dst: spec:prd:baseline:prd-block-id-naming
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-version-merge-single-commit-state
+  dst: spec:prd:baseline:prd-version-merge
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-chunk-rename
+  dst: spec:prd:baseline:prd-skills-rename-block-to-chunk
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-skill-migration
+  dst: spec:prd:baseline:prd-skill-migration
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:impl:baseline:impl-workflow-init-upgrade
+  dst: spec:prd:baseline:prd-init-upgrade
+  rel: implements
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:prd:baseline:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-task-stage
+  rel: supersedes-path
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:prd:baseline:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-init
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:prd:baseline:prd-subskills-coverage
+  dst: spec:prd:baseline:prd-skills-overview
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: baseline-ref
+- src: spec:prd:baseline:prd-prd-format-enforcement
+  dst: spec:prd:baseline:prd-formats
+  rel: refines
+  weight: 1.0
+  metadata:
+    source: baseline-ref

@@ -1,49 +1,18 @@
 id: chg-070
-version: v1.5
+version: v2.3
 type: ADD
-target: impl/skill-cli-doc-rewrite#impl-skill-cli-wrapper-verify
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model:chunk_parser
 author: system
-date: '2026-06-01T13:08:02.366134+00:00'
-message: 'v1.5: wrapper self-locate regression script'
+date: '2026-06-27T07:21:04.820748+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-skill-cli-wrapper-verify -->
+new_content: '<!-- @id:[FSD]-ait-doc_model:chunk_parser -->
 
-  ## wrapper 自定位回归测试
-
-
-  <!-- @ref:prd-skill-cli-resolution rel:implements -->
+  ## chunk_parser
 
 
-  ### 现状
-
-  `skill/ait/bin/ait`（Unix）与 `skill/ait/bin/ait.cmd`（Windows）已通过 `$(dirname "$SCRIPT_PATH")/..` 与 `%~dp0` 实现脚本自定位，**本期不修改其自定位逻辑**——仅
-  `impl-skill-cli-config-injection` 在 exec 前追加 `export AIT_SKILL_DIR`。
+  ### 功能描述
 
 
-  ### 新增产出
-
-  新增 `skill/ait/scripts/verify-wrapper-self-locate.sh`：
-
-  - 在 5 个不同 cwd（`/tmp`、`$HOME`、`$SKILL_DIR`、`$SKILL_DIR/bin`、随机临时目录）下分别绝对路径调用 `$SKILL_DIR/bin/ait --version`。
-
-  - 断言每次输出均为 `ait, version <X.Y.Z>` 且 exit 0。
-
-  - 断言进程内 `AIT_SKILL_DIR` 环境变量等于 `$SKILL_DIR`（通过 `bin/ait` 增加一个隐藏诊断子命令 `__diag` 输出环境变量？或直接在 venv 用 `python -c` 读取，脚本里实现）。
-
-
-  ### 集成入口
-
-  - `skill/ait/scripts/verify-all.sh` 追加调用 `verify-wrapper-self-locate.sh`。
-
-  - 失败则脚本以 exit 1 退出，CI/本地 verify 都能捕获回归。
-
-
-  ### 边界
-
-  - 不实现 Windows 版 `verify-wrapper-self-locate.cmd`（团队主开发环境为 macOS/Linux；Windows 由用户实际运行验证）。
-
-  - 不引入 `pytest` 依赖（保持 verify scripts 轻量）。
-
-
-  <!-- @ref:prd/v1-5-roadmap#prd-skill-cli-resolution rel:implements -->'
+  parse_file/parse_text：@id/@ref/@extract 解析、代码围栏屏蔽、[PRD]/[FSD]/[TDD] bracket 前缀、内部 split `:`、summary 提取。'

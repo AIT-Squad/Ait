@@ -1,0 +1,25 @@
+id: chg-074
+version: v1.5
+type: ADD
+target: impl/task-relocation#impl-task-summary-index
+author: system
+date: '2026-06-01T13:08:03.683031+00:00'
+message: 'v1.5: tasks_summary in chunks-index-{v}.yaml'
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-task-summary-index -->\n## chunks-index-{vX.Y}.yaml 注入 tasks_summary 字段\n\n<!-- @ref:prd-task-relocation\
+  \ rel:implements -->\n<!-- @ref:impl-task-yaml-path rel:depends-on -->\n\n### 改动点\n\n#### 1. `ait/schemas.py` — VersionIndex\
+  \ 扩展\n- `VersionIndexStats` 新增字段：\n  ```python\n  tasks_summary: dict[str, int] = Field(default_factory=dict)\n  ```\n-\
+  \ `dict` 取值：`{\"created\": int, \"executing\": int, \"done\": int, \"failed\": int}`，全 0 时仍写入空字典而非省略字段（保持 schema 稳定）。\n\n\
+  #### 2. `ait/index_manager.py` — rebuild_version 注入\n- `rebuild_version(version)` 在构建 `VersionIndex` 末尾、`stats` 计算后注入：\n\
+  \  ```python\n  from .task_manager import TaskManager\n  tm = TaskManager(self.root)\n  summary = {\"created\": 0, \"executing\"\
+  : 0, \"done\": 0, \"failed\": 0}\n  for t in tm.list_tasks(version):\n      summary[t.status] = summary.get(t.status, 0)\
+  \ + 1\n  vi.stats.tasks_summary = summary\n  ```\n- 隔离失败：`tasks_dir` 不存在时 `list_tasks` 返回空，`summary` 全 0，正常写入。\n\n#### 3.\
+  \ `ait/cli.py` — reindex 子命令\n- `reindex` 已调 `rebuild_baseline()`；新增对所有现存版本的 `rebuild_version(v)` 调用：\n  ```python\n  for\
+  \ v in sorted(p.stem for p in (root / \".meta\" / \"versions\").glob(\"*.yaml\")):\n      mgr.rebuild_version(v)\n  ```\n\
+  - 输出 JSON 增加 `data.versions_reindexed: [\"v1.1\", \"v1.2\", ...]`。\n\n#### 4. impl/prd commit 钩子\n- `prd_manager.commit`\
+  \ / `impl_manager.commit` 末尾已经调 `rebuild_version(v)`，本次只需确认 `tasks_summary` 同步生成（修改 schema 后自动生效）。\n\n### 验收命令\n```bash\n\
+  project-docs/.ait/ait-cli reindex\nyq '.stats.tasks_summary' project-docs/.meta/chunks-index-v1.5.yaml\n# 期望输出：{created:\
+  \ 0, executing: 0, done: 0, failed: 0} 且字段 5 个版本一致\n```\n\n### 边界\n- 不在 baseline `chunks-index.yaml` 注入 tasks_summary（baseline\
+  \ 不绑版本，task 是版本资产）。\n- 不引入新 CLI 子命令（`reindex` 直接覆盖）。\n- `tasks_summary` 字段仅由 reindex / commit 钩子写入，CLI 不暴露独立写入路径。\n\n<!--\
+  \ @ref:prd/v1-5-roadmap#prd-task-relocation rel:implements -->"

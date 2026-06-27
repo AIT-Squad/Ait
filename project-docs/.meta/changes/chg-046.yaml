@@ -1,49 +1,37 @@
 id: chg-046
-version: v1.4
+version: v2.3
 type: ADD
-target: prd/ait-redesign#prd-formats
+target: tdd/[TDD]-impact#[TDD]-impact
 author: system
-date: '2026-06-01T03:03:46.380932+00:00'
-message: AIT 重构设计 PRD 定稿（8块）
+date: '2026-06-27T07:21:04.720433+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-formats -->
+new_content: '<!-- @id:[TDD]-impact -->
 
-  ## 格式规范
-
-
-  ### 概述
-
-  统一 PRD chunk、impl chunk、task YAML 的格式，沿用现有 `@id`/`@ref` HTML 注释体系，最小扩展。
+  ## impact TDD
 
 
-  ### 业务规则
+  ```yaml
 
-  - PRD chunk 四段固定结构：`概述` / `业务规则` / `验收标准` / `边界与非目标`
+  target_file: skill/ait/ait/impact.py
 
-  - impl chunk 提取标记：`<!-- @extract:dynamic/{类型}#{chunk} -->` ... ```代码``` ... `<!-- @extract-end -->`，与 @id/@ref 同构，可覆盖代码块与纯文本
-
-  - task YAML 字段：`id` / `title` / `source_chunk` / `impl_refs` / `global_refs` / `depends_on` / `order_hint` / `steps` / `status`
-  / `code_refs`
-
-  - 命名规范（派生式）：impl=`impl-{源chunk}-{名}`，task=`T-{源chunk}-NN`
-
-  - chunk id 沿用 `{type}-{domain}-{name}` 小写短横线规则，全局唯一
+  ```
 
 
-  ### 验收标准
-
-  - [ ] PRD chunk 解析器认四段结构
-
-  - [ ] impl 的 @extract 片段可被精确提取（边界正确）
-
-  - [ ] task YAML 字段完整且可被 execute 消费
-
-  - [ ] 派生式命名能反推源 chunk 血缘
+  ### 技术栈
 
 
-  ### 边界与非目标
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
 
-  - 不引入 YAML frontmatter（保持 HTML 注释元数据哲学）
 
-  - 砍掉 v1.4 的 inherited_from / status_inherited / provenance 等增量继承字段'
+  ### 文件职责
+
+
+  影响查询：返回改动某 chunk 的下游影响面。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（specgraph 相关）：覆盖正常路径、边界与错误路径。'

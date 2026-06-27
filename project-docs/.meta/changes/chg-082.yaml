@@ -1,27 +1,37 @@
 id: chg-082
-version: v1.6
+version: v2.3
 type: ADD
-target: prd/v1-6-roadmap#prd-prd-recursive-modify-discovery
+target: tdd/[TDD]-hash_utils#[TDD]-hash_utils
 author: system
-date: '2026-06-02T09:16:57.313732+00:00'
-message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+date: '2026-06-27T07:21:04.873386+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-prd-recursive-modify-discovery -->\n## prd-recursive-modify-discovery: prd create 时递归识别 modify\
-  \ 候选\n\n### 概述\n\n让 `/ait prd create \"<title>\"` 在 ait-discuss 阶段自动一次性读入 baseline PRD chunks 的 `id+heading+summary` 列表（约几\
-  \ KB），对用户的新需求给出 modify 候选清单（结构化 yaml）；高置信度自动用 `action: modify, overrides: <id>`；低置信度回到 `ait context <id>` 拉全文做精判；用户在 `prd\
-  \ confirm` 前看到一份清晰的 add / modify 决议表。\n\n### 业务规则\n\n- ait-discuss skill 流程加阶段 0：scan-baseline\n  - skill 先调用 `ait baseline-summary\
-  \ --scope prd` 拿 baseline 摘要列表\n  - 把\"用户原始需求 + summary 列表\"喂给 LLM，输出结构化 candidates：\n    ```yaml\n    modify_candidates:\n\
-  \      - new_id: prd-prd-global-single-file\n        overrides: prd-overview\n        confidence: 0.92\n        reason:\
-  \ \"both define how baseline PRD is organized\"\n    adds:\n      - new_id: prd-prd-chunk-summary-index\n        reason:\
-  \ \"no baseline chunk covers chunks-index summary semantics\"\n    ```\n- 低置信度二次精判：任一 candidate 的 `confidence < 0.8` → skill\
-  \ 自动调 `ait context <overrides>` 拉该 baseline chunk 全文 + 让 LLM 重判（最多 3 个候选，避免成本爆炸）\n- 用户审阅闸门（在 `prd confirm` 之前）：skill 把 candidates\
-  \ 渲染成 markdown 表格供用户阅读；用户可在表中手动改 `overrides` / 拒绝某条 modify（降级为 add）\n- 写入 chunks-index 的版本视图：`prd save-draft` / `prd confirm`\
-  \ 时把 candidates 决议落到 `chunks-index-{vX.Y}.yaml` 的 `action` 字段：\n  ```yaml\n  - id: prd-prd-global-single-file\n    file:\
-  \ prd/global\n    state: working\n    action: modify\n    overrides: prd-overview\n  ```\n  merge_engine 已经原生支持 add/modify/delete\
-  \ + overrides，无需改它\n- CLI 校验（`prd commit` 阶段）：\n  - 所有 `action: modify/delete` 的 `overrides` 必须在 baseline 存在\n  - 同一 `overrides`\
-  \ 不能被本版本内多个新 chunk 同时覆盖\n\n### 验收标准\n\n- [ ] `/ait prd create` 时 skill 自动调用 `ait baseline-summary` 并把列表注入 LLM 上下文\n- [ ]\
-  \ LLM 输出的 candidates 是合法 yaml（schema 校验通过）\n- [ ] 用户能在 `prd confirm` 前看到一份 add / modify 决议表\n- [ ] `chunks-index-{vX.Y}.yaml`\
-  \ 中每个版本 chunk 都带 `action` 字段；modify/delete 都带合法 `overrides`\n- [ ] `prd commit` 阶段对非法 `overrides`（baseline 不存在 / 重复覆盖）报错并阻断\n\
-  - [ ] 单次 baseline 扫描的 LLM 输入 token ≤ 5 KB（30 chunk × 120 char summary 量级）\n\n### 边界与非目标\n\n- 不让 LLM 自动生成 chunk id（id 一律来自人/skill\
-  \ 设计，CLI 校验唯一）\n- 不自动产生 delete 候选（删除是更重的语义，需用户显式声明）\n- 不做语义合并——modify 永远是完整替换 chunk content，不做 diff/patch"
+new_content: '<!-- @id:[TDD]-hash_utils -->
+
+  ## hash_utils TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/hash_utils.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  chunk_hash：chunk 内容哈希（用于 base_hash 失效检测）。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（hash 相关）：覆盖正常路径、边界与错误路径。'

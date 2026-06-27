@@ -1,25 +1,37 @@
 id: chg-072
-version: v1.5
+version: v2.3
 type: ADD
-target: impl/subskills-coverage#impl-subskill-state-merge
+target: tdd/[TDD]-chunk_parser#[TDD]-chunk_parser
 author: system
-date: '2026-06-01T13:08:03.037698+00:00'
-message: 'v1.5: merge ait-progress into ait-state'
+date: '2026-06-27T07:21:04.826456+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-subskill-state-merge -->\n## ait-progress 合入 ait-state\n\n<!-- @ref:prd-subskills-coverage rel:implements\
-  \ -->\n\n### 改动\n\n#### 1. 删除 `skill/ait/sub-skills/ait-progress/`\n整目录 `rm -rf`。删除前确认无外部 git 依赖（已 grep `ait-progress` 在主\
-  \ SKILL.md 仅 2 处引用）。\n\n#### 2. 重写 `skill/ait/sub-skills/ait-state/SKILL.md`\n- frontmatter description 扩展（保留原 state.md\
-  \ 渲染职责 + 新增 progress 职责）：\n  ```\n  description: INVOKE THIS SKILL when the user asks to view AIT version state, refresh\
-  \ state.md, check version progress, chunk three-state distribution, impl coverage, or task counts.\n  ```\n- Workflow 增加：\n\
-  \  - **A. State 渲染**：`state --version <v>`（默认）/ `state --save`（落盘 state.md）\n  - **B. 进度查询**：调 `state --version <v> --format\
-  \ json` 后从 `counts` / `working` / `staged` / `committed` / `impl_coverage` / `tasks_summary` 五段输出 ASCII 摘要\n  - **C. 任务清单**：`task\
-  \ list <v>`（替代原 ait-progress 的 task list 触发场景）\n- Common Pitfalls 增加：\n  - 用户问\"v1.5 进度\"或\"哪些 chunk 还没 impl\" → 用 `--format\
-  \ json` + `impl_coverage` 字段筛 missing。\n  - 用户问\"task 跑到哪了\" → 用 `tasks_summary` 字段（来自 `impl-task-summary-index`）。\n\n####\
-  \ 3. 主 `SKILL.md` 速查表 / Sub-skills 索引同步\n- Quick Reference 表：\n  - `/ait task list|show` 行的 Routed skill 列：`ait-progress`\
-  \ → `ait-state`\n  - `/ait version status <v>` 行的 Routed skill 列：`ait-progress` → `ait-state`\n- Sub-skills 索引表：\n  - 删除\
-  \ `ait-progress` 整行\n  - `ait-state` 行 Purpose 列改写为：`渲染/落盘 state.md，并兼任版本进度、chunk 三态分布、impl 覆盖、task 统计的查询入口。`\n\n### 验收\n\
-  ```bash\n[ ! -d skill/ait/sub-skills/ait-progress ]                   # 必须为真\ngrep -r \"ait-progress\" skill/ait/      \
-  \                      # 命中 0\ngrep -c \"ait-state\" skill/ait/SKILL.md                       # ≥ 3（速查表 2 + 索引 1）\n```\n\
-  \n### 边界\n- 不改 `bin/ait state` CLI 行为（已在 v1.4 实现）。\n- 不为 `version status` 实现单独子命令（直接用 `state --version`）。\n- 旧 ait-progress\
-  \ 的 README/templates/scripts 子文件随目录一并删除。\n\n<!-- @ref:prd/v1-5-roadmap#prd-subskills-coverage rel:implements -->"
+new_content: '<!-- @id:[TDD]-chunk_parser -->
+
+  ## chunk_parser TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/chunk_parser.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  parse_file/parse_text：@id/@ref/@extract 解析、代码围栏屏蔽、[PRD]/[FSD]/[TDD] bracket 前缀、内部 split `:`、summary 提取。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/test_chunk_parser.py：覆盖正常路径、边界与错误路径。'

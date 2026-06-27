@@ -1,21 +1,18 @@
 id: chg-047
-version: v1.4
+version: v2.3
 type: ADD
-target: impl/core#impl-core-model-reset
+target: fsd/[FSD]-ait-context#[FSD]-ait-context
 author: system
-date: '2026-06-01T07:11:11.089353+00:00'
-message: v1.4 impl 设计定稿
+date: '2026-06-27T07:21:04.720433+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-core-model-reset -->\n## 核心模型：version reset 清空逻辑\n\n实现唯一的逃生口 `/ait version reset`：物理删除版本工作区，回到空白起点。\n\
-  \n### 算法\n\n```python\ndef version_reset(root: Path, version: str, *, confirmed: bool) -> dict:\n    # 1. 二次确认守卫\n    if\
-  \ not confirmed:\n        return {\"ok\": False, \"code\": \"NEED_CONFIRM\",\n                \"warning\": f\"将物理删除版本 {version}\
-  \ 的所有工作区内容，不可恢复\"}\n    # 2. 物理删除版本工作区\n    shutil.rmtree(root / \"versions\" / version, ignore_errors=True)\n    # 3. 删除版本索引与定义（含版本\
-  \ specgraph 分文件，直接删除即彻底清理）\n    (root / \".meta\" / f\"chunks-index-{version}.yaml\").unlink(missing_ok=True)\n    (root\
-  \ / \".meta\" / f\"specgraph-{version}.yaml\").unlink(missing_ok=True)\n    (root / \".meta\" / \"versions\" / f\"{version}.yaml\"\
-  ).unlink(missing_ok=True)\n    # 4. 清理该版本产生的 requirement 草稿与 changes（按 version 字段筛）\n    _purge_version_artifacts(root,\
-  \ version)\n    # 5. 重建索引基线（剔除已删 chunk）\n    rebuild_indexes(root)\n    return {\"ok\": True, \"version\": version, \"reset\"\
-  : True}\n```\n\n### 规则\n- 必须显式二次确认（`--confirm` 或交互应答），否则只返回告警不执行\n- 物理删除，不保留快照（符合\"反悔即重置\"原则）\n- 已 merged 的历史版本不可 reset（只能\
-  \ reset 当前开发中版本）\n- reset 后该版本号可被重新 `prd create` 复用\n\n### 不变量\n- reset 不影响 docs/ 基线与其他版本\n- reset 是幂等的：对不存在的版本 reset 返回成功（无副作用）\n\
-  - 版本 specgraph 分文件存储，reset 即 `rm specgraph-{version}.yaml`，无残留（区别于单文件需精确摘除）\n\n<!-- @ref:prd/ait-redesign#prd-core-model\
-  \ rel:implements -->"
+new_content: '<!-- @id:[FSD]-ait-context -->
+
+  ## context FSD
+
+
+  ### 功能范围
+
+
+  ait context：L1 目标 chunk + L2 specgraph 依赖。'

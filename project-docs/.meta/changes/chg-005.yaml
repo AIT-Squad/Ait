@@ -1,28 +1,16 @@
 id: chg-005
-version: v1.1
-type: ADD
-target: prd/project-docs-only#prd-project-docs-only-non-goals
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:impl
 author: system
-date: '2026-05-24T07:19:26.686129+00:00'
-message: lockdown  document dir
+date: '2026-06-27T07:21:04.557957+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-project-docs-only-non-goals -->
+new_content: '<!-- @id:[FSD]-ait:impl -->
 
-  ## 非目标
+  ## impl 域
 
+  ### 功能描述
 
-  明确**不做**的事项，避免范围蔓延：
-
-
-  - ❌ 不实现 `--root` / `-C` / `AIT_ROOT` 等任何覆盖入口
-
-  - ❌ 不支持自定义目录名（`docs/`、`site/`、`project_docs` 一律不接受）
-
-  - ❌ 不向上递归查找项目根 marker（`.git`、`pyproject.toml`、`.ait-root` 等不参与判定）
-
-  - ❌ 不为 `project-demo/` 提供兼容性 shim——它仅作演示样例保留，本需求生效后将不再被 CLI 视为合法工作根
-
-  - ❌ 不处理 multi-root 工作区场景（一个项目内放多套独立 AIT 元数据）
-
-  - ❌ 不引入 scaffold 行为变化以外的命令语义改动；仅在 root 解析失败时拒绝执行'
+  `ait impl` create/commit/lock/inherit：1 PRD→N impl、@extract、@ref implements、pre-merge 校验。'

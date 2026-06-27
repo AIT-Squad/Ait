@@ -1,72 +1,37 @@
 id: chg-073
-version: v1.5
+version: v2.3
 type: ADD
-target: impl/subskills-coverage#impl-subskill-init-guide-rename
+target: tdd/[TDD]-schemas#[TDD]-schemas
 author: system
-date: '2026-06-01T13:08:03.359442+00:00'
-message: 'v1.5: rename ait-init-check to ait-init-guide'
+date: '2026-06-27T07:21:04.835027+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-subskill-init-guide-rename -->
+new_content: '<!-- @id:[TDD]-schemas -->
 
-  ## ait-init-check → ait-init-guide 目录搬迁
-
-
-  <!-- @ref:prd-subskills-coverage rel:implements -->
+  ## schemas TDD
 
 
-  ### 改动
+  ```yaml
 
-
-  #### 1. 物理搬迁
-
-  ```bash
-
-  git mv skill/ait/sub-skills/ait-init-check skill/ait/sub-skills/ait-init-guide
-
-  ```
-
-  保留旧 SKILL.md 内容 → 由 `impl-init-guide-skill`（属于 `prd-init-incremental`）后续重写为差异补全工作流。本 chunk 仅做目录搬迁与触发语调整，**不重写工作流正文**。
-
-
-  #### 2. SKILL.md frontmatter description 调整
-
-  仅改 description 一行：
-
-  - 旧：`INVOKE THIS SKILL when running bin/ait init or asking how to onboard an existing project ...`
-
-  - 新：`INVOKE THIS SKILL when bin/ait init returns status=incomplete and the user needs to fill missing docs/global/* files
-  interactively`
-
-
-  正文保留原内容（避免与 `impl-init-guide-skill` 冲突；待后者执行时再覆盖）。
-
-
-  #### 3. 主 SKILL.md 速查表更新
-
-  Quick Reference 表 `/ait init` 行的 Routed skill 列：`ait-init-check` → `ait-init-guide`。
-
-  Sub-skills 索引表 `ait-init-check` 行 → `ait-init-guide`，Purpose 列改写为：`init 进入差异补全模式时，逐项确认 global 文件是否补齐；不再做新/旧项目判别（CLI 自识别）。`
-
-
-  ### 验收
-
-  ```bash
-
-  [ -d skill/ait/sub-skills/ait-init-guide ]                   # true
-
-  [ ! -d skill/ait/sub-skills/ait-init-check ]                 # true
-
-  grep -r "ait-init-check" skill/ait/                          # 命中 0
+  target_file: skill/ait/ait/schemas.py
 
   ```
 
 
-  ### 边界
-
-  - 工作流正文重写见 `impl-init-guide-skill`（不在本 chunk 范围）。
-
-  - 不删除 `ait-init-guide/templates/` 等子目录（保留以备后续工作流复用）。
+  ### 技术栈
 
 
-  <!-- @ref:prd/v1-5-roadmap#prd-subskills-coverage rel:implements -->'
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  pydantic 数据模型：VersionMeta/VersionIndex/VersionChunkEntry/ChangeRecord/CommitEntry/State 等 + 错误码集合。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（schema 相关）：覆盖正常路径、边界与错误路径。'

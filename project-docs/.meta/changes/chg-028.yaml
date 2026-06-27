@@ -1,60 +1,19 @@
 id: chg-028
-version: v1.3
+version: v2.3
 type: ADD
-target: impl/skills#impl-skills-contract
+target: fsd/[FSD]-ait-task#[FSD]-ait-task:task_manager
 author: system
-date: '2026-05-26T09:27:05.529070+00:00'
-message: Implement v1.3 sub-skill contract
+date: '2026-06-27T07:21:04.656595+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-skills-contract -->
+new_content: '<!-- @id:[FSD]-ait-task:task_manager -->
+
+  ## task_manager
 
 
-  # 子 Skill 调用与写入契约实现
+  ### 功能描述
 
 
-  ## 目标
-
-
-  补齐 `prd-skills-contract` 的实现规划，确保子 skill 在工作目录、写入行为、错误处理和语言偏好上与主 AIT 契约一致。
-
-
-  ## 工作目录约束
-
-
-  - 调用任何 `bin/ait` 前，必须确认当前目录包含 `project-docs/`。
-
-  - 如果位于 `project-docs/` 内部，应提示用户切换到项目根目录。
-
-  - 不自动 scaffold 缺失的项目结构。
-
-
-  ## 写入约束
-
-
-  - PRD 写入只允许 `bin/ait prd save-draft` 与 `bin/ait prd confirm`。
-
-  - Impl 写入只允许 `bin/ait impl create`。
-
-  - Version merge 只允许 `bin/ait version merge`。
-
-  - state 写入只允许未来的 `bin/ait state --save`。
-
-
-  ## 错误处理
-
-
-  - 所有 CLI 错误必须复述 `error` 与 `code`。
-
-  - 对 `PRD_NOT_COMMITTED`、`CHUNK_NOT_IN_VERSION`、`ID_FORMAT`、`MERGE_CONFLICT` 给出下一步恢复建议。
-
-
-  ## 验收
-
-
-  - 子 skill 中不存在引导直接写版本文档的描述。
-
-  - Common Pitfalls 能覆盖主要错误码。
-
-
-  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'
+  TaskManager：create（从 specgraph 派生 impl_refs∪global_refs）、execute（输出聚焦 bundle）、complete/fail（状态机 created→executing→done/failed
+  + 回写 code_refs）、list/show。'

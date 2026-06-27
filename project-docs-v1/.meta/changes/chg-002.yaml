@@ -1,0 +1,29 @@
+id: chg-002
+version: v1.1
+type: ADD
+target: prd/project-docs-only#prd-project-docs-only-rules
+author: system
+date: '2026-05-24T07:19:26.670473+00:00'
+message: lockdown  document dir
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-project-docs-only-rules -->
+
+  ## 业务规则
+
+
+  | 编号 | 规则 |
+
+  |---|---|
+
+  | R1 | 唯一合法的 AIT 工作根 = `<CWD>/project-docs/`（CWD 的直接子目录，名称严格匹配） |
+
+  | R2 | 目录名 `project-docs` **硬编**，不读取任何配置项、环境变量、CLI flag 来改名 |
+
+  | R3 | 不向上递归查找项目根 marker（`.git`、`pyproject.toml`、`.ait-root` 等一概不参与判定） |
+
+  | R4 | 不提供 `--root` / `-C` / `AIT_ROOT` 之类的覆盖入口 |
+
+  | R5 | `project-docs/` 内必须同时存在 `docs/` 和 `.meta/` 子目录才被视为合法工作根 |
+
+  | R6 | 一次命令执行内 root 解析结果**锁定**：命令运行期间不重新探测、不切换 |'

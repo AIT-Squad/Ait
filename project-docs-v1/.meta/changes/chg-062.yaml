@@ -1,0 +1,18 @@
+id: chg-062
+version: v1.4
+type: ADD
+target: impl/version#impl-version-merge-extract
+author: system
+date: '2026-06-01T07:11:16.268098+00:00'
+message: v1.4 impl 设计定稿
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-version-merge-extract -->\n## impl → 动态 global 提取\n\nversion confirm 时，从本版本 impl 的 @extract 块提取片段，按\
+  \ chunk 合并进动态 global。\n\n### 算法\n\n```python\ndef extract_dynamic_global(root: Path, version: str) -> list[str]:\n    written\
+  \ = []\n    for impl_chunk in version_impl_chunks(root, version):\n        for blk in parse_extract_blocks(impl_chunk):\
+  \    # 见 impl-impl-stage-extract\n            # blk.target_type = dynamic/ddl|schema|api, blk.target_chunk = 目标 chunk id\n\
+  \            target_file = root / \"docs\" / \"global\" / f\"{blk.target_type.split('/')[1]}.md\"\n            upsert_chunk(target_file,\
+  \ blk.target_chunk, blk.content, category=\"dynamic\")\n            written.append(blk.target_chunk)\n    return written\n\
+  ```\n\n### 规则\n- 提取目标按 @extract 的 `dynamic/{type}` 路由到 `docs/global/{type}.md`\n- 写入方式：同名 chunk 替换（与 merge 一致）\n- 动态 global\
+  \ chunk 标 `category: dynamic`，不接受人工直接编辑\n- 提取是 merge 阶段的一部分，纳入两阶段回退保护\n\n### 不变量\n- 动态 global 内容 100% 来自 impl 的 @extract，无其他来源（防漂移）\n\
+  \n<!-- @ref:prd/ait-redesign#prd-version-merge rel:implements -->"

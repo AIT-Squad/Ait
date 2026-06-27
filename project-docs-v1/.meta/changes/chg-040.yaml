@@ -1,0 +1,44 @@
+id: chg-040
+version: v1.4
+type: ADD
+target: prd/ait-redesign#prd-init
+author: system
+date: '2026-06-01T03:03:46.374474+00:00'
+message: AIT 重构设计 PRD 定稿（8块）
+base_hash: null
+base_content: null
+new_content: '<!-- @id:prd-init -->
+
+  ## 项目初始化
+
+
+  ### 概述
+
+  `/ait init` 是项目的一次性初始化入口，通过讨论生成项目的全局基线信息（全局 prd、impl 概览、global 静态/动态信息骨架），为后续版本开发建立上下文底座。
+
+
+  ### 业务规则
+
+  - `/ait init` 启动讨论模式，引导生成：全局 PRD 概览、全局 impl 概览、global 信息（静态：技术栈/overview；动态：ddl/schema/api 骨架）
+
+  - init 产出写入 `docs/`（基线），不占用版本号
+
+  - init 为幂等保护：已初始化的项目再次 init 需提示确认
+
+  - init 完成后，项目进入"可开始版本开发"状态
+
+
+  ### 验收标准
+
+  - [ ] `/ait init` 能讨论生成全局 prd/impl/global 并写入 docs/
+
+  - [ ] 生成的 global 区分 static 与 dynamic 两类
+
+  - [ ] 重复 init 有保护提示
+
+
+  ### 边界与非目标
+
+  - init 不创建功能版本，不拆 task
+
+  - 动态 global 此阶段只建骨架，真实内容由后续 version confirm 从 impl 提取'

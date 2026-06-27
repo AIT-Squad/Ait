@@ -1,23 +1,37 @@
 id: chg-080
-version: v1.6
+version: v2.3
 type: ADD
-target: prd/v1-6-roadmap#prd-prd-global-single-file
+target: tdd/[TDD]-io_utils#[TDD]-io_utils
 author: system
-date: '2026-06-02T09:16:57.310506+00:00'
-message: 'v1.6 PRD: global PRD pipeline + format enforcement'
+date: '2026-06-27T07:21:04.866036+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:prd-prd-global-single-file -->\n## prd-global-single-file: Baseline PRD 单文件化\n\n### 概述\n\n把 baseline\
-  \ 的 PRD 物理布局从\"`docs/prd/*.md` 多文件散落\"统一为\"`docs/prd/global.md` 单文件\"，让 global PRD 在文件系统层就是一个清晰的实体；同时保留 chunk 作为唯一规划/合并单位的语义。impl\
-  \ 文件布局保持多文件不变，由 PRD chunk 通过 `@ref` 锚定关联。\n\n### 业务规则\n\n- 新基线契约：v1.6 起 baseline PRD 唯一文件为 `docs/prd/global.md`\n- 一次性迁移（v1.6\
-  \ 内执行一次，作为本版本第一组 task 落地）：\n  - 把现有 `docs/prd/` 下 14 个 PRD 文件的全部 chunk 按当前 chunks-index 顺序拼接到 `docs/prd/global.md`\n  -\
-  \ 每个 chunk 内容、`@id`、`@ref`、`@extract` 全部保留不变（chunk_parser 自反性自检）\n  - 物理删除迁移源文件\n  - 调用 `ait reindex` 重建 baseline `chunks-index.yaml`\
-  \ + `specgraph.yaml`\n  - 校验：迁移前后 chunk 数量、id 集合、`@ref` 关系全等\n- CLI 路径写入策略调整：\n  - `prd commit` 时对 `versions/{vX.Y}/prd/`\
-  \ 下任意 `*.md` 解析出的 chunk，merge 时全部合入 `docs/prd/global.md`，不再保留版本里的多文件物理结构到 baseline\n  - 版本工作区仍可多文件（人写起来更舒服），但 baseline 永远单文件\n\
-  - 历史版本兼容：\n  - 已 merged 的 v1.1~v1.5 不动其 `versions/{vX.Y}/prd/` 历史快照\n  - `chunks-index-{vX.Y}.yaml` 历史也不动\n  - 仅 baseline\
-  \ `chunks-index.yaml` 在迁移后所有 chunk 的 `file` 字段统一为 `prd/global`\n\n### 验收标准\n\n- [ ] `docs/prd/global.md` 存在，包含原 14 个 PRD\
-  \ 文件的所有 chunk\n- [ ] `docs/prd/` 下不再有其他 `.md` 文件（仅 `global.md`）\n- [ ] `ait reindex` 后 `chunks-index.yaml` 中所有 PRD chunk\
-  \ 的 `file` 字段均为 `prd/global`\n- [ ] 迁移前后 chunk id 集合相等、`@ref` 关系图同构（specgraph diff = 0）\n- [ ] `chunk_parser.parse_file(global.md)`\
-  \ 解析出的 chunk 数 = 迁移前所有 PRD 文件 chunk 数之和\n- [ ] 现有所有 `ait state` / `ait specgraph` / `ait deps` / `ait impact` 命令仍正常工作\n\n\
-  ### 边界与非目标\n\n- 不改 impl 文件布局：`docs/impl/*.md` 仍可多文件\n- 不改 chunk 的 `@id` / `@ref` / `@extract` 语法\n- 不改版本工作区的写入路径：版本仍可在 `versions/{vX.Y}/prd/<file>.md`\
-  \ 下任意命名（CLI 在 confirm/merge 时把 chunk 缝合进 `global.md`）"
+new_content: '<!-- @id:[TDD]-io_utils -->
+
+  ## io_utils TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/io_utils.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  atomic_write_text：原子写文件（临时文件 + 替换）。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（io 相关）：覆盖正常路径、边界与错误路径。'

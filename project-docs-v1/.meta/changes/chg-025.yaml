@@ -1,0 +1,15 @@
+id: chg-025
+version: v1.3
+type: ADD
+target: impl/skills#impl-skills-layout
+author: system
+date: '2026-05-26T09:27:04.983604+00:00'
+message: Implement v1.3 skill sub-skill layout
+base_hash: null
+base_content: null
+new_content: "<!-- @id:impl-skills-layout -->\n\n# Skill 子目录布局实现\n\n## 目标\n\n为 v1.2 遗留的 `prd-skills-layout` 补齐实现规划，建立 `skill/ait/sub-skills/`\
+  \ 作为 micro-skill 的唯一承载目录。\n\n## 文件结构\n\n```text\nskill/ait/\n  SKILL.md\n  sub-skills/\n    ait-discuss/SKILL.md\n    ait-impl-discuss/SKILL.md\n\
+  \    ait-progress/SKILL.md\n    ait-resume/SKILL.md\n```\n\n## 实现要求\n\n- 每个子目录只包含一个 `SKILL.md`，不放脚本、缓存或运行时产物。\n- 子 skill\
+  \ 名称使用小写短横线，触发语必须互斥。\n- 本 chunk 只负责目录和占位文件创建，具体行为由 `impl-skills-format-adapt` 与 `impl-skills-mapping` 补全。\n\n## 验收\n\n-\
+  \ `skill/ait/sub-skills/ait-*/SKILL.md` 共 4 个文件存在。\n- 主 `SKILL.md` 能索引这些子 skill。\n\n<!-- @ref:prd/backlog#prd-backlog-v12-legacy\
+  \ rel:implements -->"

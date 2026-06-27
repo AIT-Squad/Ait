@@ -1,42 +1,37 @@
 id: chg-045
-version: v1.4
+version: v2.3
 type: ADD
-target: prd/ait-redesign#prd-global
+target: tdd/[TDD]-deps#[TDD]-deps
 author: system
-date: '2026-06-01T03:03:46.379975+00:00'
-message: AIT 重构设计 PRD 定稿（8块）
+date: '2026-06-27T07:21:04.706275+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-global -->
+new_content: '<!-- @id:[TDD]-deps -->
 
-  ## 全局信息层
-
-
-  ### 概述
-
-  global 承载跨版本的全局约束，分静态与动态两类，存于同一目录，靠 chunk 类型（category）区分。静态人工维护，动态由 version confirm 从 impl 提取。
+  ## deps TDD
 
 
-  ### 业务规则
+  ```yaml
 
-  - 静态 global（category: static）：技术栈、overview 等，人工维护
+  target_file: skill/ait/ait/deps.py
 
-  - 动态 global（category: dynamic）：DDL、schema、api 等，由 version confirm 从 impl 的 @extract 片段提取
-
-  - 同目录存放：`docs/global/` 下不分子目录，靠 chunk id 前缀 + links-index 的 `category` 字段区分
-
-  - global chunk 参与 context 组装，任务执行时作为全局约束注入
+  ```
 
 
-  ### 验收标准
-
-  - [ ] links-index 中 global chunk 带 category: static|dynamic
-
-  - [ ] 静态 global 可人工编辑，动态 global 由提取生成
-
-  - [ ] task execute 时 global_refs 指向的约束被加载
+  ### 技术栈
 
 
-  ### 边界与非目标
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
 
-  - 动态 global 不接受人工直接编辑（应改 impl 再 version confirm 提取）'
+
+  ### 文件职责
+
+
+  依赖查询：返回某 chunk 的 depends_on / 上游关系。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（specgraph 相关）：覆盖正常路径、边界与错误路径。'

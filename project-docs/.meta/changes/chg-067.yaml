@@ -1,75 +1,19 @@
 id: chg-067
-version: v1.5
+version: v2.3
 type: ADD
-target: impl/task-relocation#impl-task-yaml-path
+target: fsd/[FSD]-ait-cli#[FSD]-ait-cli:cli
 author: system
-date: '2026-06-01T13:07:51.501828+00:00'
-message: 'v1.5: TaskManager paths to versions/<v>/tasks/'
+date: '2026-06-27T07:21:04.805167+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-task-yaml-path -->
+new_content: '<!-- @id:[FSD]-ait-cli:cli -->
 
-  ## TaskManager 物理路径迁移到版本工作区
-
-
-  <!-- @ref:prd-task-relocation rel:implements -->
+  ## cli
 
 
-  ### 改动点
+  ### 功能描述
 
 
-  #### 1. `ait/task_manager.py`
-
-  - 第 5 行模块 docstring：`.meta/tasks/{version}/T-{src-chunk}-NN.yaml` → `versions/{version}/tasks/T-{src-chunk}-NN.yaml`。
-
-  - 第 67-68 行 `tasks_dir`：返回 `self.root / "versions" / version / "tasks"`，去掉 `.meta`。
-
-  - 检查 `task_path` / `list_tasks` / `mkdir(parents=True, exist_ok=True)` 链路是否还引用 `self.meta_dir`，如有去除。
-
-  - 不改 `task_id` 命名规则、不改 YAML schema、不改任何字段。
-
-
-  #### 2. `ait/state.py`
-
-  - 第 120 行 docstring：把 `.meta/tasks/{version}/` 改为 `versions/{version}/tasks/`。
-
-  - 第 123 行 `tasks_dir = project_root / ".meta" / "tasks" / version` → `tasks_dir = project_root / "versions" / version /
-  "tasks"`。
-
-  - 同时把"扫不存在目录"的早返回逻辑保留（兼容尚未创建任何 task 的版本）。
-
-
-  #### 3. `ait/version_manager.py`
-
-  - 第 378 行 reset 删目录：`shutil.rmtree(self.meta_dir / "tasks" / version, ...)` → 删除整段语句（`versions/{version}/` 整目录已在同一函数前面物理
-  rmtree，不必再二次清理）。
-
-  - 验证 `_purge_version` 函数主体已经覆盖 `versions/<v>/` 整目录递归删，**确保 task 目录顺带被清理**。
-
-  - confirm 守卫无需改动（`tm.list_tasks(version)` 自动跟随 task_manager 新路径）。
-
-
-  #### 4. `ait/schemas.py`
-
-  - 第 211 行注释路径同步：`.meta/tasks/{vX.Y}/T-{src}-NN.yaml` → `versions/{vX.Y}/tasks/T-{src}-NN.yaml`。
-
-
-  ### 单元测试
-
-  - `tests/test_task_manager.py`：断言 `tasks_dir(v).resolve()` 末段为 `versions/{v}/tasks`，旧路径 `.meta/tasks/{v}/` 不再被创建。
-
-  - `tests/test_version_reset.py`：在 reset 前注入 fake task，reset 后断言 `versions/{v}/tasks/` 目录不存在。
-
-  - `tests/test_state.py`：断言 state 计数读新路径下的 yaml。
-
-
-  ### 边界
-
-  - 不引入 `.meta/tasks/` → 新路径的迁移脚本（PRD 已明确零数据）。
-
-  - 不改 `tasks_summary` 字段（独立 chunk `impl-task-summary-index` 处理）。
-
-  - 不改 task 命令行参数与子命令名。
-
-
-  <!-- @ref:prd/v1-5-roadmap#prd-task-relocation rel:implements -->'
+  click 命令树：init/prd/impl/task/version/fsd/tdd/codegen/prdv2/specgraph/context/state/lint/search/deps/impact/reindex 等；ok/fail
+  统一 JSON 契约；_root 项目根解析；只分发。'

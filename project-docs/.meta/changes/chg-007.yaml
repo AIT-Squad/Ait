@@ -1,47 +1,16 @@
 id: chg-007
-version: v1.2
-type: ADD
-target: prd/skills#prd-skills-overview
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:version
 author: system
-date: '2026-05-25T05:45:35.971240+00:00'
-message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+date: '2026-06-27T07:21:04.570404+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-skills-overview -->
+new_content: '<!-- @id:[FSD]-ait:version -->
 
-  # 概述
+  ## version 域
 
+  ### 功能描述
 
-  ## 背景
-
-
-  当前项目的 ait skill 是一个 **monolithic SKILL.md**（`skill/ait/SKILL.md`，216 行），把 PRD 三阶段讨论、impl 设计讨论、版本合并、reindex 等所有流程混合在一份文档中。这种组织方式在流程数量增长后会出现两个问题：
-
-
-  1. AI 加载单一 skill 时，prompt 上下文被无关流程稀释，触发关键词难以收敛
-
-  2. 单一文档难以承载"按角色/阶段触发不同行为"的协作模式
-
-
-  ## 目标
-
-
-  引入参考项目（`/Users/jenningwang/PycharmProjects/version-design/`）的 **micro-skill 思想**：把流程沿"用户当前所处阶段"切分为多个独立 skill，每个 skill 只在其对应阶段被
-  INVOKE。**目标是扩充当前 ait skill 的能力，不是替换。**
-
-
-  ## 取舍原则
-
-
-  | 原则 | 说明 |
-
-  |---|---|
-
-  | CLI 单源 | 子 skill 不引入新 CLI、不改动 init、不直接读写 `docs/` 或 `.meta/`，全部通过 `bin/ait` 现有命令操作 |
-
-  | 不引入 phase/task 体系 | 参考项目的 `.planning/phases/<phase>/` + `progress.json` + `issues.md` 暂不引入；本期 4 个 skill 全部围绕版本（vX.Y）+
-  chunk 三态机重构 |
-
-  | format 统一 | 参考项目 SKILL.md 中 `chunk-id` / `ait draft new` / `.planning/STATE.md` 等术语必须按当前项目术语对齐改写 |
-
-  | router 模式 | 主 SKILL.md 改造为 router：保留全局速查 + Common Pitfalls + Sub-skills 索引；具体流程下沉子 skill |'
+  `ait version` commit/confirm/merge/reset/status：三态提交、原子 confirm（两阶段+回退）、chunk 级合并。'

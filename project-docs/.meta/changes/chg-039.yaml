@@ -1,50 +1,37 @@
 id: chg-039
-version: v1.4
+version: v2.3
 type: ADD
-target: prd/ait-redesign#prd-core-model
+target: tdd/[TDD]-new_model_validator#[TDD]-new_model_validator
 author: system
-date: '2026-06-01T03:03:46.373064+00:00'
-message: AIT 重构设计 PRD 定稿（8块）
+date: '2026-06-27T07:21:04.688368+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-core-model -->
+new_content: '<!-- @id:[TDD]-new_model_validator -->
 
-  ## 核心模型与版本原子性
-
-
-  ### 概述
-
-  AIT 重构为围绕 **prd → impl → task** 三核心态的版本化 AI 开发流水线。每个版本是一个原子单元：要么完整走完确认链合并入全局，要么整体重置重来。该模型用"版本不可变"消除了局部回滚、增量继承、变更失效检测等复杂子系统。
+  ## new_model_validator TDD
 
 
-  ### 业务规则
+  ```yaml
 
-  - 三核心态：PRD（需求意图）→ impl（实现设计）→ task（AI coding 执行单元），逐级派生
+  target_file: skill/ait/ait/new_model_validator.py
 
-  - 版本内不可变：任一 confirm 之后，对应内容在本版本内冻结，不可局部修改、撤销或回滚
-
-  - 唯一逃生口：`/ait version reset` 清空整个版本工作区，回到空白 PRD 状态重来
-
-  - 版本号：init 不算版本，首个功能版本从 v1.0 起，逐版递增
-
-  - 全程 chunk 聚焦：任何阶段只加载当前 chunk 及其关联，最小化 token
-
-  - 每个流程步骤都更新 `state.md`
+  ```
 
 
-  ### 验收标准
-
-  - [ ] prd/impl/task 三态数据结构与命令齐备
-
-  - [ ] confirm 后对应内容不可改（写保护生效）
-
-  - [ ] `version reset` 能清空版本工作区并回到起点（二次确认，物理删除）
-
-  - [ ] 每个命令执行后 state.md 被刷新
+  ### 技术栈
 
 
-  ### 边界与非目标
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
 
-  - 不做局部回滚 / 单 chunk 放弃 / checksum 失效检测（被版本原子性取代）
 
-  - 不做增量版本继承（每版本独立）'
+  ### 文件职责
+
+
+  validate_prd_fsd_tdd_graph：关系合法性（decomposes PRD/FSD→FSD、details 叶FSD→TDD、depends_on 同父兄弟）、FSD 不混 FSD/TDD 子；validate_target_file_uniqueness：DUPLICATE_TARGET_FILE。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/test_new_model_validator.py：覆盖正常路径、边界与错误路径。'

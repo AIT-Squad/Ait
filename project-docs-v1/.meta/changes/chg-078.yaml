@@ -1,0 +1,49 @@
+id: chg-078
+version: v1.5
+type: ADD
+target: impl/skill-cli-doc-rewrite#impl-skill-cli-pitfall-doc
+author: system
+date: '2026-06-01T13:08:05.013240+00:00'
+message: 'v1.5: ENOENT_BIN_AIT pitfall row'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:impl-skill-cli-pitfall-doc -->
+
+  ## ENOENT_BIN_AIT 兜底文档
+
+
+  <!-- @ref:prd-skill-cli-resolution rel:implements -->
+
+  <!-- @ref:impl-skill-cli-doc-rewrite rel:depends-on -->
+
+
+  ### 改动
+
+  仅改 `skill/ait/SKILL.md` 的 Common Pitfalls 表，新增一行：
+
+
+  | Code / symptom | Likely cause | Recovery |
+
+  |---|---|---|
+
+  | `ENOENT_BIN_AIT`（虚拟，shell 错误：`no such file or directory: bin/ait` 或 `command not found: ait`） | 在用户项目根用了相对路径 `bin/ait`
+  调用 CLI | 改用 `project-docs/.ait/ait-cli <subcmd>`；若该薄壳不存在，先跑 `~/.claude/skills/ait/bin/ait init --refresh-wrapper` 生成。 |
+
+
+  ### 性质说明
+
+  - `ENOENT_BIN_AIT` **不是** CLI 真实返回的 error code（shell 都没找到入口，CLI 不会执行）。
+
+  - 文档显式标注"虚拟代码"，避免后续维护者误以为是 `ait/cli.py` 内部的错误码。
+
+  - 不在 `ait/schemas.py` 注册此 code。
+
+
+  ### 边界
+
+  - 不在 wrapper 中尝试自我修复（找不到自己时无法运行任何修复逻辑）。
+
+  - 不向 `ait-resume` sub-skill 注入此 code（resume 处理的是 CLI 真实返回的 JSON，shell 报错无 JSON）。
+
+
+  <!-- @ref:prd/v1-5-roadmap#prd-skill-cli-resolution rel:implements -->'

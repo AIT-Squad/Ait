@@ -1,19 +1,37 @@
 id: chg-060
-version: v1.4
+version: v2.3
 type: ADD
-target: impl/task#impl-task-stage-schema
+target: tdd/[TDD]-search#[TDD]-search
 author: system
-date: '2026-06-01T07:11:15.580664+00:00'
-message: v1.4 impl 设计定稿
+date: '2026-06-27T07:21:04.776280+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: "<!-- @id:impl-task-stage-schema -->\n## task YAML Schema\n\n定义 task YAML 的字段规范，供 create 生成、execute 消费。\n\n<!--\
-  \ @extract:dynamic/schema#task-yaml -->\n```yaml\n# .meta/tasks/{version}/T-{源chunk}-NN.yaml\nid: T-pet-archive-01     \
-  \     # 派生式：T-{源chunk}-NN\ntitle: 实现宠物档案创建接口\nsource_chunk: prd-pet-archive # 血缘：源 PRD chunk\nimpl_refs:               \
-  \     # 该读的 impl chunk\n  - impl-pet-archive-ddl\n  - impl-pet-archive-api\nglobal_refs:                  # 该遵守的全局约束\n \
-  \ - global-tech-stack\ndepends_on: []                # 上游 task id（拓扑）\norder_hint: 1                 # 同 chunk 内执行序\nsteps:\
-  \                        # AI coding 步骤\n  - 读 impl-pet-archive-ddl 建表\n  - 按 impl-pet-archive-api 实现 POST /pets\n  - 写单测覆盖必填校验\n\
-  status: created               # created | executing | done | failed\ncode_refs: []                 # done 时回写：[{commit,\
-  \ paths, bound_at}]\n```\n<!-- @extract-end -->\n\n### 字段约束\n- `id` 全局唯一；`source_chunk` 必填且须为 committed PRD chunk\n- `status`\
-  \ 初始 `created`；由 execute 流转\n- `code_refs` 仅 done 时非空\n- 砍掉 v1.4 的 `inherited_from` / `status_inherited` / `provenance`\n\
-  \n<!-- @ref:prd/ait-redesign#prd-task-stage rel:implements -->"
+new_content: '<!-- @id:[TDD]-search -->
+
+  ## search TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/search.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  search：跨 baseline/version chunk 的全文关键词检索，返回命中 chunk 与位置。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（search 相关）：覆盖正常路径、边界与错误路径。'

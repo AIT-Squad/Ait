@@ -1,54 +1,37 @@
 id: chg-026
-version: v1.3
+version: v2.3
 type: ADD
-target: impl/skills#impl-skills-router
+target: tdd/[TDD]-impl_manager#[TDD]-impl_manager
 author: system
-date: '2026-05-26T09:27:05.183390+00:00'
-message: Implement v1.3 skill router
+date: '2026-06-27T07:21:04.648248+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:impl-skills-router -->
+new_content: '<!-- @id:[TDD]-impl_manager -->
+
+  ## impl_manager TDD
 
 
-  # 主 SKILL.md Router 改造实现
+  ```yaml
+
+  target_file: skill/ait/ait/impl_manager.py
+
+  ```
 
 
-  ## 目标
+  ### 技术栈
 
 
-  将主 `skill/ait/SKILL.md` 从完整流程文档改造成 router，只保留全局规则、命令速查、项目布局、子 skill 索引和错误处理边界。
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
 
 
-  ## 保留内容
+  ### 文件职责
 
 
-  - AIT 项目布局与 `project-docs/` 工作根约束。
-
-  - `bin/ait` 命令速查与 JSON 输出契约。
-
-  - Common Pitfalls 与 MVP Scope Boundaries。
-
-  - `Sub-skills 索引`：列出 `ait-discuss`、`ait-impl-discuss`、`ait-progress`、`ait-resume` 的 Trigger 与 Purpose。
+  ImplManager：create（自动注入 @ref implements）、commit（pre-merge：成环/重复 @id/@extract 目标）、inherit、lock；@extract 标记动态 global 片段。
 
 
-  ## 下沉内容
+  ### 单元测试要求
 
 
-  - PRD Clarify → Design → Generate 流程下沉到 `ait-discuss`。
-
-  - Impl context → generate → create 流程下沉到 `ait-impl-discuss`。
-
-  - 三态进度展示下沉到 `ait-progress`。
-
-  - 错误恢复建议下沉到 `ait-resume`。
-
-
-  ## 验收
-
-
-  - `wc -l skill/ait/SKILL.md` 小于 120 行。
-
-  - `grep "Sub-skills 索引" skill/ait/SKILL.md` 有结果。
-
-
-  <!-- @ref:prd/backlog#prd-backlog-v12-legacy rel:implements -->'
+  测试位于 tests/test_impl_*.py：覆盖正常路径、边界与错误路径。'

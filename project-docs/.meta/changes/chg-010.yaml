@@ -1,62 +1,16 @@
 id: chg-010
-version: v1.2
-type: ADD
-target: prd/skills#prd-skills-format-adapt
+version: v2.3
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:context
 author: system
-date: '2026-05-25T05:45:35.974733+00:00'
-message: 'req-002: 组织 skills (micro-skill 拆分 + block→chunk 重构)'
+date: '2026-06-27T07:21:04.581769+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-skills-format-adapt -->
+new_content: '<!-- @id:[FSD]-ait:context -->
 
-  # 子 Skill 格式适配规范
+  ## context 域
 
+  ### 功能描述
 
-  ## 参考项目与当前项目的格式差异
-
-
-  | 维度 | 参考项目 | 当前项目对齐项 |
-
-  |---|---|---|
-
-  | frontmatter | `name` + `description`（含 INVOKE 触发语） | 沿用，额外要求：`description` 必须以 `INVOKE THIS SKILL when ...` 起头（与主 SKILL.md
-  风格一致） |
-
-  | chunk 术语 | `chunk-id` / `chunk` | 沿用 chunk（重构后） |
-
-  | CLI 引用 | `ait list` / `ait scan` / `ait draft new` / `ait progress show` / `ait resume` | 全部替换为 `bin/ait <subcommand>`
-  当前等价命令（见映射表块） |
-
-  | artifacts 读取源 | `.planning/STATE.md` / `.planning/ait/progress.json` / `.planning/ait/issues.md` | 全部替换为 `.meta/versions/<vX.Y>.yaml`
-  + `.meta/chunks-index.yaml` + `.meta/changes/`（无 `.planning/` 目录） |
-
-  | Decision Anchors 段 | 引用 DEC-501 ~ DEC-512 | 删除整段（当前项目无 DEC 编号体系） |
-
-  | ▶ Next Up 段 | 引用 `ait next-up <skill> --on success` | 改为静态文本，列出下一阶段子 skill（当前项目无 `ait next-up` CLI） |
-
-
-  ## 强制契约
-
-
-  每个子 SKILL.md 必须满足：
-
-
-  1. frontmatter 触发语：`description` 字段以 `INVOKE THIS SKILL when ...` 起头
-
-  2. CLI Dependencies 表：列出本 skill 调用的所有 `bin/ait` 命令 + 触发时机 + 副作用
-
-  3. Artifacts 段：明确 Reads / Writes / Side-effect，写入路径仅限 `bin/ait` CLI 路径
-
-  4. 写入禁令：明确写入"绝不直接写 `docs/` 或 `.meta/`，必须通过 `bin/ait`"
-
-  5. Common Pitfalls 段（可选）：与主 SKILL.md 同名段落对齐，列出本 skill 特有错误码
-
-
-  ## 输出契约
-
-
-  - 子 skill 调用 `bin/ait` 后获得 JSON：`{"ok": true/false, "data"/"error", "code"}`
-
-  - 子 skill 在对话中复述 `data` 关键字段（如 `req_id`、`chunk_count`、`file`），而非原样 dump JSON
-
-  - 失败时必须复述 `error` + `code`，让用户能直接对照 SKILL.md 的 Pitfalls 自助排错'
+  `ait context`：L1+L2 上下文装配（prd-to-impl / impl-edit 场景）。'

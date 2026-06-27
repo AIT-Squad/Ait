@@ -1,50 +1,18 @@
 id: chg-043
-version: v1.4
+version: v2.3
 type: ADD
-target: prd/ait-redesign#prd-task-stage
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:impact
 author: system
-date: '2026-06-01T03:03:46.377752+00:00'
-message: AIT 重构设计 PRD 定稿（8块）
+date: '2026-06-27T07:21:04.706275+00:00'
+message: ait v2.3 baseline as-built
 base_hash: null
 base_content: null
-new_content: '<!-- @id:prd-task-stage -->
+new_content: '<!-- @id:[FSD]-ait-specgraph:impact -->
 
-  ## task 阶段
-
-
-  ### 概述
-
-  把锁定的 PRD+impl 拆分为 AI coding 任务（YAML 格式），并执行。一个 PRD chunk 可拆多个 task。execute 成功即自动收口，无需单独 confirm。
+  ## impact
 
 
-  ### 业务规则
-
-  - `/ait task create "chunk-id"`：为指定 PRD chunk 生成 task YAML；无 id 则逐批交互
-
-  - task 命名：`T-{源chunk}-NN`，文件 `T-{源chunk}-NN.yaml`
-
-  - task YAML 字段见 prd-formats，含 source_chunk/impl_refs/global_refs/depends_on/order_hint/steps
-
-  - `/ait task execute "taskId或chunk-id"`：AI coding 执行；无参则逐批交互
-
-  - task 状态机：created → executing → done / failed
-
-  - execute 成功自动标 done 并回写 code_refs（git commit hash + 文件路径）；失败停在 failed，可重跑
-
-  - 无 task confirm 步骤（execute 自动收口）
+  ### 功能描述
 
 
-  ### 验收标准
-
-  - [ ] 一个 PRD chunk 能拆多个 task YAML
-
-  - [ ] execute 成功后 task 自动 done 且回写 code_refs
-
-  - [ ] execute 失败 task 停在 failed 且可重跑
-
-  - [ ] 依赖（depends_on）未满足的 task 不先执行
-
-
-  ### 边界与非目标
-
-  - 不提供 task confirm；人工审核统一在 version confirm'
+  影响查询：返回改动某 chunk 的下游影响面。'
