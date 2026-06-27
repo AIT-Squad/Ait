@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-06-27T10:20:46.275666+00:00'
+updated: '2026-06-27T10:21:14.273538+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -249,9 +249,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_new_model_format
   title: ref_new_model_format
   type: fsd
@@ -260,9 +257,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:skill_manifest
   title: skill_manifest
   type: fsd
@@ -271,9 +265,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_discuss
   title: subskill_ait_discuss
   type: fsd
@@ -282,9 +273,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_impl_discuss
   title: subskill_ait_impl_discuss
   type: fsd
@@ -293,9 +281,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_init_guide
   title: subskill_ait_init_guide
   type: fsd
@@ -304,9 +289,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_resume
   title: subskill_ait_resume
   type: fsd
@@ -315,9 +297,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_state
   title: subskill_ait_state
   type: fsd
@@ -326,9 +305,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_task_execute
   title: subskill_ait_task_execute
   type: fsd
@@ -337,9 +313,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_fsd
   title: template_fsd
   type: fsd
@@ -348,9 +321,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_prd
   title: template_prd
   type: fsd
@@ -359,9 +329,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_tdd
   title: template_tdd
   type: fsd
@@ -370,9 +337,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph
   title: specgraph FSD
   type: fsd
@@ -733,9 +697,6 @@ specs:
   file: tdd/[TDD]-ref_new_model_format
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-root
   title: root TDD
   type: tdd
@@ -848,9 +809,6 @@ specs:
   file: tdd/[TDD]-template_fsd
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-template_prd
   title: template_prd TDD
   type: tdd
@@ -859,9 +817,6 @@ specs:
   file: tdd/[TDD]-template_prd
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-template_tdd
   title: template_tdd TDD
   type: tdd
@@ -870,9 +825,6 @@ specs:
   file: tdd/[TDD]-template_tdd
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-validator
   title: validator TDD
   type: tdd
