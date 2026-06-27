@@ -1,0 +1,16 @@
+id: chg-209
+version: v2.14
+type: MODIFY
+target: fsd/[FSD]-ait-lint#[FSD]-ait-lint:format_validator
+author: system
+date: '2026-06-27T11:23:50.685078+00:00'
+message: 'v2.14: generative lint/search/state/context domains'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-lint:format_validator -->
+
+  ## format_validator
+
+  ### 功能描述
+
+  PRD 四段结构、impl 结构、派生命名(DERIVED_NAME)、task id、@extract/code-fence 边界校验；fix_prd_text 英文标题→中文四段。详见 [TDD]-format_validator。'

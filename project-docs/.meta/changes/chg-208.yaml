@@ -1,0 +1,16 @@
+id: chg-208
+version: v2.14
+type: MODIFY
+target: fsd/[FSD]-ait-lint#[FSD]-ait-lint:validator
+author: system
+date: '2026-06-27T11:23:50.672759+00:00'
+message: 'v2.14: generative lint/search/state/context domains'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-lint:validator -->
+
+  ## validator
+
+  ### 功能描述
+
+  校验框架：ValidationIssue/ValidationError(severity E1/E2)、chunk ID 格式、非空、唯一性、@ref 目标存在。详见 [TDD]-validator。'

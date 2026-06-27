@@ -1,0 +1,68 @@
+id: chg-220
+version: v2.14
+type: MODIFY
+target: tdd/[TDD]-state#[TDD]-state
+author: system
+date: '2026-06-27T11:23:51.193318+00:00'
+message: 'v2.14: generative lint/search/state/context domains'
+base_hash: null
+base_content: '<!-- @id:[TDD]-state -->
+
+  ## state TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/state.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  render_state/save_state：三态分布、impl 覆盖、task 状态、title/phase；markdown/json；可保存 versions/<v>/state.md。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（state 相关）：覆盖正常路径、边界与错误路径。'
+new_content: '<!-- @id:[TDD]-state -->
+
+  ## state TDD
+
+  ```yaml
+
+  target_file: skill/ait/ait/state.py
+
+  ```
+
+  ### 技术栈
+
+  Python 3.10+；依赖 `version_manager`、`index_manager`、`specgraph`(combined)、task 读取。
+
+  ### 数据结构
+
+  `@dataclass StatePanel{version,phase,title,prd_locked,impl_locked,merged,prd_chunks,impl_chunks,working,staged,committed,covered,tasks,...;
+  to_dict()}`。
+
+  ### 代码结构
+
+  - `current_or_requested_version(root,version)->str`。
+
+  - `load_version_state(root,version=None)->StatePanel`：汇总版本 index 三态计数、`compute_impl_coverage(graph,version,prd_chunks)`(每
+  PRD chunk 的 impl 覆盖)、`_load_version_tasks`(task 状态)、phase/锁定/title。
+
+  - `render_markdown(panel)->str`(面板表格)；`render_state(root,version,*,fmt="markdown")->dict`(markdown/json)；`save_state(root,version)->Path`(写
+  versions/<v>/state.md)。
+
+  ### 单元测试要求
+
+  `tests/`(state 相关)：三态分布、impl 覆盖、task 进度、markdown/json 渲染、save 写盘。pytest。'

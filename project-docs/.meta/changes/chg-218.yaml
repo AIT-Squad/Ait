@@ -1,0 +1,64 @@
+id: chg-218
+version: v2.14
+type: MODIFY
+target: tdd/[TDD]-search#[TDD]-search
+author: system
+date: '2026-06-27T11:23:51.084559+00:00'
+message: 'v2.14: generative lint/search/state/context domains'
+base_hash: null
+base_content: '<!-- @id:[TDD]-search -->
+
+  ## search TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/search.py
+
+  ```
+
+
+  ### 技术栈
+
+
+  Python 3.10+ / pydantic / PyYAML / click（按需）。
+
+
+  ### 文件职责
+
+
+  search：跨 baseline/version chunk 的全文关键词检索，返回命中 chunk 与位置。
+
+
+  ### 单元测试要求
+
+
+  测试位于 tests/（search 相关）：覆盖正常路径、边界与错误路径。'
+new_content: '<!-- @id:[TDD]-search -->
+
+  ## search TDD
+
+  ```yaml
+
+  target_file: skill/ait/ait/search.py
+
+  ```
+
+  ### 技术栈
+
+  Python 3.10+；依赖 `index_manager`/`chunk_parser`。
+
+  ### 数据结构
+
+  `@dataclass SearchHit{chunk_id,file,line,snippet,...}`。
+
+  ### 代码结构
+
+  - `search_chunks(project_root, query, *, scope=None, regexp=False)->[SearchHit]`：遍历 baseline+version chunk，`_scope_matches`
+  过滤，`match_chunk(content,query,regexp)` 命中则 `extract_snippet(lines,idx,radius=1)`。
+
+  - `_match_entry/match_chunk/extract_snippet/_scope_matches`。
+
+  ### 单元测试要求
+
+  `tests/`(search 相关)：关键词/正则命中、scope 过滤、snippet 上下文。pytest。'
