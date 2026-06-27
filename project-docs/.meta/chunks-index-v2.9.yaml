@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.9
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[FSD]-ait-doc_model'
   file: fsd/[FSD]-ait-doc_model
