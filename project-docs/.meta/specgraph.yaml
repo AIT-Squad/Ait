@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-11T10:50:48.209529+00:00'
+updated: '2026-07-11T10:53:06.222501+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -673,6 +673,9 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
@@ -841,6 +844,9 @@ specs:
   file: tdd/[TDD]-version_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-yaml_io
   title: yaml_io TDD
   type: tdd
