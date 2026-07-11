@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.21
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-version_manager'
   file: tdd/[TDD]-version_manager
