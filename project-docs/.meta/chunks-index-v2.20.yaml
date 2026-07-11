@@ -1,0 +1,158 @@
+version: 1
+scope: version
+version_name: v2.20
+based_on_hash: null
+status: developing
+chunks:
+- id: '[TDD]-new_model_validator'
+  file: tdd/[TDD]-new_model_validator
+  heading: new_model_validator TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-new_model_validator'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-new_model_manager'
+  file: tdd/[TDD]-new_model_manager
+  heading: new_model_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-new_model_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-version_manager'
+  file: tdd/[TDD]-version_manager
+  heading: version_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-version_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-new_model'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_validator
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version'
+  file: fsd/[FSD]-ait-version
+  heading: version FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-version'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:version_manager'
+  file: fsd/[FSD]-ait-version
+  heading: version_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:merge_engine'
+  file: fsd/[FSD]-ait-version
+  heading: merge_engine
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-11T14:06:51.568439+00:00'
+  message: 'six-invariant gates: write-time local + confirm global'
+  chunks:
+  - '[TDD]-new_model_validator'
+  - '[TDD]-new_model_manager'
+  - '[TDD]-version_manager'
+  - '[FSD]-ait-new_model'
+  - '[FSD]-ait-new_model:new_model_manager'
+  - '[FSD]-ait-new_model:new_model_validator'
+  - '[FSD]-ait-version'
+  - '[FSD]-ait-version:version_manager'
+  - '[FSD]-ait-version:merge_engine'
+  req_id: null
+stats:
+  total_chunks: 9
+  by_action:
+    modify: 9
+  by_state:
+    committed: 9
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

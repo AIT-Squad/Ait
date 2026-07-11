@@ -1,0 +1,17 @@
+id: chg-272
+version: v2.20
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:version_manager
+author: system
+date: '2026-07-11T14:06:51.556462+00:00'
+message: 'six-invariant gates: write-time local + confirm global'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:version_manager -->
+
+  ## version_manager
+
+  ### 功能描述
+
+  VersionManager 编排版本全生命周期：三态流转、commit 锁定、原子 confirm（precheck〔task/git/去重/**六不变式门禁**〕→backup→merge→extract→specgraph 提升→git
+  commit，失败 restore 字节级回退）、reset 物理删除。详见 [TDD]-version_manager。'

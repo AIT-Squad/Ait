@@ -659,6 +659,9 @@ class VersionManager:
         idx = self.indexes.load_version_index(version)
         records = [c for c in idx.chunks if c.state == "committed"]
         self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
+        # v2.20: six-invariant global gate — the authoritative completeness
+        # check, BEFORE any mutation. Vacuous for legacy-only projects.
+        self._assert_new_model_invariants(version)
 
         # ── Phase 2: merge (mutates docs/ + .meta, fully reversible) ──
         backup = self._backup_state(version)
@@ -690,6 +693,58 @@ class VersionManager:
             "commit": commit_hash,
             "commit_msg": commit_msg,
         }
+
+    def _assert_new_model_invariants(self, version: str) -> None:
+        """Six-invariant confirm gate on baseline∪version (audit-family closer).
+
+        Shape + legacy dangling edges are checked on the raw merged graph
+        (the combined view drops dangling edges by contract); the six
+        invariants run on the collapsed chunk_id view. Rejection happens
+        before any disk mutation — fix the specs and retry. Vacuous when the
+        project has no new-model chunks.
+        """
+        from .new_model_validator import (
+            validate_invariants,
+            validate_prd_fsd_tdd_graph,
+        )
+        from .specgraph import combined_specgraph, combined_view
+
+        raw = combined_specgraph(self.root, version)
+        violations = validate_prd_fsd_tdd_graph(raw)
+        view = combined_view(self.root, version)
+        targets = self._collect_new_model_target_files(view)
+        violations += validate_invariants(view, targets)
+        if violations:
+            summary = "; ".join(
+                f"{v.code}({v.chunk_id or v.rel or '-'})" for v in violations[:10]
+            )
+            more = f" …+{len(violations) - 10}" if len(violations) > 10 else ""
+            raise VersionManagerError(
+                f"新模型不变式违例，confirm 被拒（修复后可重试）: {summary}{more}",
+                code="INVARIANT_VIOLATION",
+            )
+
+    def _collect_new_model_target_files(self, view) -> list[tuple[str, str | None]]:
+        """(chunk_id, target_file|None) for every new-model TDD node in the view."""
+        import re
+
+        pattern = re.compile(r"^\s*target_file:\s*(\S+)\s*$", re.MULTILINE)
+        entries: list[tuple[str, str | None]] = []
+        for node in view.nodes.values():
+            if node.type != "tdd" or not node.chunk_id.startswith("[TDD]-"):
+                continue
+            base_dir = (
+                self.versions_dir / node.version
+                if node.version != "baseline"
+                else self.root / "docs"
+            )
+            path = base_dir / f"{node.file}.md"
+            if not path.exists():
+                entries.append((node.chunk_id, None))
+                continue
+            match = pattern.search(path.read_text(encoding="utf-8"))
+            entries.append((node.chunk_id, match.group(1) if match else None))
+        return entries
 
     def _backup_state(self, version: str) -> dict:
         """Byte-level in-memory snapshot of confirm-mutable state.

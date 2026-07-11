@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
+from .new_model_validator import check_edge_write, normalize_target_file
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
 from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
@@ -81,6 +82,19 @@ class NewModelManager:
     ) -> DocumentCreateResult:
         if not _target_file(content):
             raise _validation_error("TDD_TARGET_FILE_REQUIRED", "TDD markdown must include target_file")
+        # v2.20 write-time gate: one artifact ↔ one TDD (normalized paths).
+        new_target = normalize_target_file(_target_file(content))
+        for owner_id, _owner_file, owner_target in self.collect_tdd_target_files(
+            combined_specgraph(self.root, version)
+        ):
+            if owner_id == root_chunk_id or not owner_target:
+                continue  # modifying the same TDD keeps its own target
+            if normalize_target_file(owner_target) == new_target:
+                raise _validation_error(
+                    "DUPLICATE_TARGET_FILE",
+                    f"target_file already owned by {owner_id}: {owner_target}",
+                    root_chunk_id,
+                )
         return self._create_document(
             version,
             root_chunk_id,
@@ -118,6 +132,14 @@ class NewModelManager:
                 "new-model relation must be one of: decomposes, details, depends_on",
                 src,
             )
+        # v2.20 write-time local gate: phantom endpoints / second details
+        # parent / second PRD→FSD are never legal — reject before any write.
+        # Global completeness (orphans/traces/cycles) belongs to confirm.
+        view = combined_view(self.root, version)
+        gate = check_edge_write(view, src, dst, rel)
+        if gate:
+            first = gate[0]
+            raise _validation_error(first.code, first.message, first.chunk_id)
         combined = combined_specgraph(self.root, version)
         src_uri = resolve_chunk_uri(self.root, src, version, graph=combined)
         dst_uri = resolve_chunk_uri(self.root, dst, version, graph=combined)

@@ -1,0 +1,18 @@
+id: chg-269
+version: v2.20
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_manager
+author: system
+date: '2026-07-11T14:06:51.479129+00:00'
+message: 'six-invariant gates: write-time local + confirm global'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_manager -->
+
+  ## new_model_manager
+
+  ### 功能描述
+
+  NewModelManager：create_prd/fsd/tdd（_create_document：解析→ensure 版本→write_version_file→注册 chunk→sync_specgraph；create_tdd 写前做归一化
+  target_file 唯一属主门禁）、add_edge（写前 check_edge_write 局部门禁，拒绝＝零落盘可重试）、prepare_codegen（组合视图上溯+依赖+target_file，无版本回退 baseline）、collect_tdd_target_files。详见
+  [TDD]-new_model_manager。'

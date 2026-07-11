@@ -18,6 +18,7 @@ from ait.new_model_validator import (
     validate_target_file_uniqueness,
 )
 from ait.specgraph import combined_specgraph, load_specgraph
+from ait.validator import ValidationError
 from ait.version_manager import VersionManager
 
 
@@ -130,6 +131,8 @@ def test_target_file_uniqueness_pure():
 
 
 def test_target_file_uniqueness_via_collect(tmp_path: Path):
+    """v2.20 起唯一性在写时门禁强制：第二个同 target_file 的 create_tdd 当场被拒
+    （归一化路径变体也判重），换路径重试成功。"""
     root = _new_project(tmp_path)
     vm = VersionManager(root)
     vm.create("v9.0")
@@ -138,13 +141,20 @@ def test_target_file_uniqueness_via_collect(tmp_path: Path):
         "v9.0", "[TDD]-alpha",
         "<!-- @id:[TDD]-alpha -->\n## Alpha\n\n```yaml\ntarget_file: app/shared.py\n```\n",
     )
+    with pytest.raises(ValidationError) as excinfo:
+        mgr.create_tdd(
+            "v9.0", "[TDD]-beta",
+            "<!-- @id:[TDD]-beta -->\n## Beta\n\n```yaml\ntarget_file: ./app\\Shared.py\n```\n",
+        )
+    assert "DUPLICATE_TARGET_FILE" in str(excinfo.value)
+    # 被拒＝零落盘：索引与图中无 beta
+    graph = combined_specgraph(root, "v9.0")
+    assert validate_target_file_uniqueness(mgr.collect_tdd_target_files(graph)) == []
+    # 换路径重试成功（拒后可重试，无终态陷阱）
     mgr.create_tdd(
         "v9.0", "[TDD]-beta",
-        "<!-- @id:[TDD]-beta -->\n## Beta\n\n```yaml\ntarget_file: app/shared.py\n```\n",
+        "<!-- @id:[TDD]-beta -->\n## Beta\n\n```yaml\ntarget_file: app/beta.py\n```\n",
     )
-    graph = combined_specgraph(root, "v9.0")
-    violations = validate_target_file_uniqueness(mgr.collect_tdd_target_files(graph))
-    assert [v.code for v in violations] == ["DUPLICATE_TARGET_FILE"]
 
 
 # ── Work 3: taskless version confirm ────────────────────────────────────────

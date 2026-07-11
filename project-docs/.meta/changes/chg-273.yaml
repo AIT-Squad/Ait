@@ -1,0 +1,16 @@
+id: chg-273
+version: v2.20
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:merge_engine
+author: system
+date: '2026-07-11T14:06:51.564436+00:00'
+message: 'six-invariant gates: write-time local + confirm global'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:merge_engine -->
+
+  ## merge_engine
+
+  ### 功能描述
+
+  纯 chunk 级合并：按 baseline 真实存在性逐 chunk 处理 add/modify/delete，modify=全替换、目标不存在则当 add、绝不丢 chunk。详见 [TDD]-merge_engine。'
