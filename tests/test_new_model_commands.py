@@ -195,3 +195,69 @@ def test_tdd_create_requires_target_file(tmp_path: Path, monkeypatch):
     assert payload["ok"] is False
     assert payload["code"] == "VALIDATION_FAILED"
     assert "target_file" in payload["error"]
+
+
+# ── v2.18: decomposes 环/自环下 prepare_codegen 上溯不爆栈（audit R2-01）──
+
+
+def _init_new_model_project(tmp_path: Path, monkeypatch):
+    root = tmp_path / "project-docs"
+    (root / "docs").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    VersionManager(root).create("v9.0")
+    monkeypatch.chdir(tmp_path)
+    from ait.new_model_manager import NewModelManager
+
+    return NewModelManager(root)
+
+
+def test_prepare_codegen_survives_self_loop_cycle(tmp_path: Path, monkeypatch):
+    """split 反指自己的根（[FSD]-mod:leaf decomposes [FSD]-mod）→ 上溯短路不递归爆栈。"""
+    mgr = _init_new_model_project(tmp_path, monkeypatch)
+    mgr.create_fsd(
+        "v9.0",
+        "[FSD]-mod",
+        "<!-- @id:[FSD]-mod -->\n## Mod\n\n<!-- @id:[FSD]-mod:leaf -->\n## Leaf\n",
+    )
+    mgr.create_tdd(
+        "v9.0",
+        "[TDD]-mod-leaf",
+        "<!-- @id:[TDD]-mod-leaf -->\n## TDD\n\n```yaml\ntarget_file: app/mod/leaf.py\n```\n",
+    )
+    mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[TDD]-mod-leaf", "details")
+    mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[FSD]-mod", "decomposes")
+
+    bundle = mgr.prepare_codegen("v9.0", "[TDD]-mod-leaf")
+
+    ids = [item["id"] for item in bundle.upstream]
+    assert len(ids) == len(set(ids)), f"上溯链存在重复收集: {ids}"
+
+
+def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
+    """两根互指环（A:x decomposes B、B:y decomposes A）→ 上溯每节点至多一次、正常返回。"""
+    mgr = _init_new_model_project(tmp_path, monkeypatch)
+    mgr.create_fsd(
+        "v9.0",
+        "[FSD]-alpha",
+        "<!-- @id:[FSD]-alpha -->\n## Alpha\n\n<!-- @id:[FSD]-alpha:x -->\n## X\n",
+    )
+    mgr.create_fsd(
+        "v9.0",
+        "[FSD]-beta",
+        "<!-- @id:[FSD]-beta -->\n## Beta\n\n<!-- @id:[FSD]-beta:y -->\n## Y\n",
+    )
+    mgr.create_tdd(
+        "v9.0",
+        "[TDD]-alpha-x",
+        "<!-- @id:[TDD]-alpha-x -->\n## TDD\n\n```yaml\ntarget_file: app/alpha/x.py\n```\n",
+    )
+    mgr.add_edge("v9.0", "[FSD]-alpha:x", "[TDD]-alpha-x", "details")
+    mgr.add_edge("v9.0", "[FSD]-beta:y", "[FSD]-alpha", "decomposes")
+    mgr.add_edge("v9.0", "[FSD]-alpha:x", "[FSD]-beta", "decomposes")
+
+    bundle = mgr.prepare_codegen("v9.0", "[TDD]-alpha-x")
+
+    ids = [item["id"] for item in bundle.upstream]
+    assert len(ids) == len(set(ids)), f"上溯链存在重复收集: {ids}"
+    assert "[FSD]-beta:y" in ids and "[FSD]-beta" in ids, "环上节点应各收集一次"

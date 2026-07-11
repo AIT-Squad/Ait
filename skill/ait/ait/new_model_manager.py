@@ -188,7 +188,7 @@ class NewModelManager:
         self._append_context_item(items, seen, parent_split)
 
         parent_root = self._find_spec_by_chunk_id(graph, _parent_chunk_id(parent_split.chunk_id), parent_split.version)
-        if parent_root is not None:
+        if parent_root is not None and parent_root.uri not in seen:
             self._append_context_item(items, seen, parent_root)
             self._walk_upstream_roots(graph, parent_root.uri, items, seen)
         return items
@@ -196,12 +196,12 @@ class NewModelManager:
     def _walk_upstream_roots(self, graph, root_uri: str, items: list[dict], seen: set[str]) -> None:
         for edge in [e for e in graph.edges if e.rel == "decomposes" and e.dst == root_uri]:
             src = graph.specs.get(edge.src)
-            if src is None:
+            if src is None or src.uri in seen:
                 continue
             self._append_context_item(items, seen, src)
             if src.type == "fsd" and ":" in src.chunk_id:
                 parent_root = self._find_spec_by_chunk_id(graph, _parent_chunk_id(src.chunk_id), src.version)
-                if parent_root is not None:
+                if parent_root is not None and parent_root.uri not in seen:
                     self._append_context_item(items, seen, parent_root)
                     self._walk_upstream_roots(graph, parent_root.uri, items, seen)
 

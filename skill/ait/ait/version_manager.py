@@ -660,8 +660,8 @@ class VersionManager:
         records = [c for c in idx.chunks if c.state == "committed"]
         self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
 
-        # ── Phase 2: merge (mutates docs/, fully reversible) ──
-        backup = self._backup_docs()
+        # ── Phase 2: merge (mutates docs/ + .meta, fully reversible) ──
+        backup = self._backup_state(version)
         try:
             merge_result = self.merge(version, conflict_policy="use-version")
             extracted = self._extract_dynamic_global(version)
@@ -678,7 +678,7 @@ class VersionManager:
             commit_msg = meta.title or f"AIT {version} merge"
             commit_hash = self._git_commit(commit_msg)
         except Exception as exc:  # noqa: BLE001 — rollback then re-raise as domain error
-            self._restore_docs(backup)
+            self._restore_state(backup)
             raise VersionManagerError(
                 f"merge/commit 失败已回退: {exc}", code="MERGE_ROLLBACK"
             )
@@ -691,26 +691,65 @@ class VersionManager:
             "commit_msg": commit_msg,
         }
 
-    def _backup_docs(self) -> dict[str, str]:
-        """In-memory snapshot of every docs/ file (path → content)."""
-        docs = self.root / "docs"
-        snap: dict[str, str] = {}
-        if docs.exists():
-            for path in docs.rglob("*.md"):
-                snap[str(path)] = path.read_text(encoding="utf-8")
-        return snap
+    def _backup_state(self, version: str) -> dict:
+        """Byte-level in-memory snapshot of confirm-mutable state.
 
-    def _restore_docs(self, backup: dict[str, str]) -> None:
-        """Restore docs/ to a prior snapshot; remove files created after it."""
+        Covers docs/*.md plus the .meta files the merge phase writes, so a
+        failed confirm rolls back completely — no stray "merged" markers
+        (audit R1-01) and no line-ending rewrites on restore.
+        """
+        docs = self.root / "docs"
+        doc_files: dict[str, bytes] = {}
+        if docs.exists():
+            for path in docs.rglob("*.md"):
+                doc_files[str(path)] = path.read_bytes()
+        meta_files: dict[str, bytes | None] = {}
+        for p in self._confirm_meta_paths(version):
+            meta_files[str(p)] = p.read_bytes() if p.exists() else None
+        snapshot_dir = self.meta_dir / "snapshots" / version
+        return {
+            "docs": doc_files,
+            "meta": meta_files,
+            "snapshot_existed": snapshot_dir.exists(),
+            "version": version,
+        }
+
+    def _confirm_meta_paths(self, version: str) -> list[Path]:
+        """The .meta files confirm's merge phase writes to."""
+        return [
+            self.meta_dir / "chunks-index.yaml",
+            self.meta_dir / "specgraph.yaml",
+            self.version_meta_path(version),
+            self.meta_dir / f"chunks-index-{version}.yaml",
+        ]
+
+    @staticmethod
+    def _write_bytes_atomic(path: Path, data: bytes) -> None:
+        """Byte-faithful atomic write (tmp + replace); no newline translation."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(path.suffix + ".tmp-restore")
+        tmp.write_bytes(data)
+        tmp.replace(path)
+
+    def _restore_state(self, backup: dict) -> None:
+        """Restore docs/ and .meta byte-for-byte; remove files created after snapshot."""
         docs = self.root / "docs"
         if docs.exists():
             for path in docs.rglob("*.md"):
-                if str(path) not in backup:
+                if str(path) not in backup["docs"]:
                     path.unlink(missing_ok=True)
-        for path_str, content in backup.items():
+        for path_str, data in backup["docs"].items():
+            self._write_bytes_atomic(Path(path_str), data)
+        for path_str, data in backup["meta"].items():
             p = Path(path_str)
-            p.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write_text(p, content)
+            if data is None:
+                p.unlink(missing_ok=True)
+            else:
+                self._write_bytes_atomic(p, data)
+        if not backup["snapshot_existed"]:
+            snapshot_dir = self.meta_dir / "snapshots" / backup["version"]
+            if snapshot_dir.exists():
+                shutil.rmtree(snapshot_dir)
 
     def _extract_dynamic_global(self, version: str) -> list[str]:
         """Extract @extract blocks from this version's impl into dynamic global.
