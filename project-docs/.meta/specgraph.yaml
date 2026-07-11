@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-11T17:20:56.931125+00:00'
+updated: '2026-07-11T18:22:10.020017+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -409,9 +409,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version:merge_engine
   title: merge_engine
   type: fsd
@@ -420,9 +417,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-version:version_manager
   title: version_manager
   type: fsd
@@ -431,9 +425,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:cli
   title: cli 分发器
   type: fsd
@@ -586,9 +577,6 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -741,9 +729,6 @@ specs:
   file: tdd/[TDD]-skill_manifest
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-specgraph
   title: specgraph TDD
   type: tdd
@@ -856,9 +841,6 @@ specs:
   file: tdd/[TDD]-version_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-yaml_io
   title: yaml_io TDD
   type: tdd

@@ -115,7 +115,7 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
-        return self._create_document(
+        result = self._create_document(
             version,
             root_chunk_id,
             content,
@@ -124,6 +124,63 @@ class NewModelManager:
             action=action,
             overrides=overrides,
         )
+        # create_prd is the flow entry: start the phase machine.
+        meta = self.versions.load_version_meta(version)
+        if meta.phase in (None, "", "empty"):
+            meta.phase = "prd-creating"
+            self.versions.save_version_meta(meta)
+        return result
+
+    def next_version_name(self) -> str:
+        """Next v{major}.{minor} after the newest existing version (v0.1 if none).
+
+        Used by CLI ``prd create`` to auto-open a version when none is active —
+        the iteration-flow entry point.
+        """
+        best: tuple[int, int] | None = None
+        for meta in self.versions.list_versions():
+            match = re.fullmatch(r"v(\d+)\.(\d+)", meta.version)
+            if not match:
+                continue
+            key = (int(match.group(1)), int(match.group(2)))
+            if best is None or key > best:
+                best = key
+        if best is None:
+            return "v0.1"
+        return f"v{best[0]}.{best[1] + 1}"
+
+    def confirm_prd_layer(self, version: str) -> dict:
+        """Freeze the PRD layer: lock [PRD]- chunks, phase → prd-confirm."""
+        idx = self.indexes.load_version_index(version)
+        prd_ids = [c.id for c in idx.chunks if c.id.startswith("[PRD]-")]
+        if not prd_ids:
+            raise _validation_error(
+                "NO_PRD_CHUNKS", f"version {version} has no PRD chunks", version
+            )
+        working = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[PRD]-") and c.state == "working"
+        ]
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "prd layer confirm")
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "prd-confirm"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "confirmed": working, "phase": "prd-confirm"}
+
+    def revert_prd_layer(self, version: str) -> dict:
+        """The pair of confirm_prd_layer: unlock PRD chunks, phase → prd-creating."""
+        idx = self.indexes.load_version_index(version)
+        prd_ids = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[PRD]-") and c.state in ("committed", "staged")
+        ]
+        result = self.versions.uncommit(version, prd_ids)
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "prd-creating"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "reverted": result["reverted"], "phase": "prd-creating"}
 
     def add_edge(self, version: str, src: str, dst: str, rel: str) -> EdgeCreateResult:
         if rel not in NEW_MODEL_RELS:

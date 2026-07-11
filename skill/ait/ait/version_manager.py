@@ -314,6 +314,31 @@ class VersionManager:
             self.indexes.save_version_index(idx)
         return UnstageResult(unstaged=unstaged, not_found=not_found)
 
+    def uncommit(self, version: str, chunk_ids: list[str]) -> dict:
+        """Layer-rework primitive: committed/staged → working.
+
+        The pair of a layer confirm's freeze (v2.22: prd revert; later fsd/tdd
+        revert). Refused for merged versions — the merged baseline is the only
+        terminal state.
+        """
+        meta = self.load_version_meta(version)
+        if meta.merged_at is not None:
+            raise VersionManagerError(f"Version {version} is already merged")
+        idx = self.indexes.load_version_index(version)
+        reverted: list[str] = []
+        wanted = set(chunk_ids)
+        for entry in idx.chunks:
+            if entry.id in wanted:
+                wanted.discard(entry.id)
+                if entry.state in ("committed", "staged"):
+                    entry.state = "working"
+                    entry.commit_id = None
+                    reverted.append(entry.id)
+        if reverted:
+            self.indexes.save_version_index(idx)
+            self._refresh_state(version)
+        return {"reverted": reverted, "not_found": sorted(wanted)}
+
     def commit(
         self, version: str, message: str, req_id: str | None = None
     ) -> CommitResult:

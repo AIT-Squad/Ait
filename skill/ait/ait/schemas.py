@@ -21,7 +21,14 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 Action = Literal["add", "modify", "delete"]
 State = Literal["working", "staged", "committed"]
-VersionPhase = Literal["empty", "prd_locked", "impl_locked", "coding", "merged"]
+VersionPhase = Literal[
+    # legacy lifecycle
+    "empty", "prd_locked", "impl_locked", "coding",
+    # new-model layer flow (v2.22+)
+    "prd-creating", "prd-confirm",
+    # terminal
+    "merged",
+]
 TaskStatus = Literal["created", "executing", "done", "failed"]
 ReqStatus = Literal[
     "draft", "prd_draft", "prd_confirmed", "impl_progress", "impl_done", "merged"

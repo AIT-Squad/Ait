@@ -989,8 +989,12 @@ def prdv2_create(
 ) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
+    auto_created = None
     if not version:
-        fail("No active version", code="NO_VERSION")
+        # Iteration-flow entry: no active version → auto-open the next one.
+        version = mgr.next_version_name()
+        mgr.versions.create(version)
+        auto_created = version
     try:
         result = mgr.create_prd(
             version,
@@ -1000,9 +1004,45 @@ def prdv2_create(
             action=action,
             overrides=overrides,
         )
-        ok(_json_safe(result))
+        payload = _json_safe(result)
+        payload["auto_created_version"] = auto_created
+        ok(payload)
     except ValidationError as exc:
         fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+
+
+@prdv2_group.command("confirm")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def prdv2_confirm(ctx, version_opt: str | None) -> None:
+    """Freeze the PRD layer: lock [PRD]- chunks, phase → prd-confirm."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(mgr.confirm_prd_layer(version))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "CONFIRM_FAILED"))
+
+
+@prdv2_group.command("revert")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def prdv2_revert(ctx, version_opt: str | None) -> None:
+    """Rework pair of `prd confirm`: unlock PRD chunks, phase → prd-creating."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(mgr.revert_prd_layer(version))
+    except ValidationError as exc:
+        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "REVERT_FAILED"))
 
 
 @prdv2_group.command("link")

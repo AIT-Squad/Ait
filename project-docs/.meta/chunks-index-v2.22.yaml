@@ -1,0 +1,188 @@
+version: 1
+scope: version
+version_name: v2.22
+based_on_hash: null
+status: developing
+chunks:
+- id: '[TDD]-new_model_manager'
+  file: tdd/[TDD]-new_model_manager
+  heading: new_model_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-new_model_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-version_manager'
+  file: tdd/[TDD]-version_manager
+  heading: version_manager TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-version_manager'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-cli'
+  file: tdd/[TDD]-cli
+  heading: cli TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-cli'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-skill_manifest'
+  file: tdd/[TDD]-skill_manifest
+  heading: skill_manifest TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-skill_manifest'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-new_model'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_validator
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version'
+  file: fsd/[FSD]-ait-version
+  heading: version FSD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-version'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:version_manager'
+  file: fsd/[FSD]-ait-version
+  heading: version_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:merge_engine'
+  file: fsd/[FSD]-ait-version
+  heading: merge_engine
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[TDD]-schemas'
+  file: tdd/[TDD]-schemas
+  heading: schemas TDD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[TDD]-schemas'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-11T18:22:09.894959+00:00'
+  message: 'prd layer flow: auto-version entry + confirm/revert pair'
+  chunks:
+  - '[TDD]-new_model_manager'
+  - '[TDD]-version_manager'
+  - '[TDD]-cli'
+  - '[TDD]-skill_manifest'
+  - '[FSD]-ait-new_model'
+  - '[FSD]-ait-new_model:new_model_manager'
+  - '[FSD]-ait-new_model:new_model_validator'
+  - '[FSD]-ait-version'
+  - '[FSD]-ait-version:version_manager'
+  - '[FSD]-ait-version:merge_engine'
+  - '[TDD]-schemas'
+  req_id: null
+stats:
+  total_chunks: 11
+  by_action:
+    modify: 11
+  by_state:
+    committed: 11
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
