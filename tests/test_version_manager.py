@@ -8,7 +8,7 @@ import pytest
 
 from ait.chunk_parser import Chunk
 from ait.validator import ValidationError
-from ait.version_manager import VersionManager
+from ait.version_manager import VersionManager, VersionManagerError
 
 
 @pytest.fixture
@@ -38,10 +38,21 @@ def test_create_version(vm_root: Path):
     vm = VersionManager(vm_root)
     meta = vm.create("v1.1")
     assert meta.version == "v1.1"
-    assert (vm_root / "versions" / "v1.1" / "prd").is_dir()
-    assert (vm_root / "versions" / "v1.1" / "impl").is_dir()
+    # v2.21: create no longer pre-builds legacy prd/impl subdirs; they appear
+    # on demand when a file is written into them.
+    assert not (vm_root / "versions" / "v1.1" / "prd").exists()
+    assert not (vm_root / "versions" / "v1.1" / "impl").exists()
     assert vm.version_meta_path("v1.1").exists()
     assert vm.indexes.version_index_path("v1.1").exists()
+    vm.write_version_file("v1.1", "prd/x", "<!-- @id:x -->\n## X\n")
+    assert (vm_root / "versions" / "v1.1" / "prd").is_dir()
+
+
+def test_create_rejects_duplicate(vm_root: Path):
+    vm = VersionManager(vm_root)
+    vm.create("v1.1")
+    with pytest.raises(VersionManagerError):
+        vm.create("v1.1")
 
 
 def test_current_returns_latest_unmerged(vm_root: Path):

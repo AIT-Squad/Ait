@@ -111,12 +111,17 @@ class VersionManager:
         save_model(self.version_meta_path(meta.version), meta)
 
     def create(self, version: str, based_on: str | None = None) -> VersionMeta:
-        """Create a fresh version: directory skeleton + meta + empty index."""
+        """Create a fresh version: meta + empty index (explicit entry point).
+
+        Workspace subdirectories are NOT pre-built — ``atomic_write_text``
+        creates them on demand, so no legacy ``prd/``/``impl/`` skeleton.
+        Erroring on an existing version is the entry-level kill for ghost
+        versions (audit R3-04): a typo'd ``--version`` can no longer silently
+        materialise.
+        """
         version_dir = self.versions_dir / version
-        if version_dir.exists():
+        if version_dir.exists() or self.version_meta_path(version).exists():
             raise VersionManagerError(f"Version {version} already exists")
-        (version_dir / "prd").mkdir(parents=True)
-        (version_dir / "impl").mkdir(parents=True)
 
         meta = VersionMeta(
             version=version,
@@ -138,13 +143,11 @@ class VersionManager:
         (e.g. created by ``write_version_file`` on the new-model fsd/tdd path) and
         is a no-op when the meta file already exists. Closes the gap where
         new-model documents could be written into a version with no metadata file
-        and therefore could never be confirmed.
+        and therefore could never be confirmed. No legacy subdirectory skeleton
+        is pre-built.
         """
         if self.version_meta_path(version).exists():
             return self.load_version_meta(version)
-        version_dir = self.versions_dir / version
-        (version_dir / "prd").mkdir(parents=True, exist_ok=True)
-        (version_dir / "impl").mkdir(parents=True, exist_ok=True)
         meta = VersionMeta(
             version=version,
             created_at=datetime.now(timezone.utc),
@@ -629,12 +632,20 @@ class VersionManager:
     # Redesign: version confirm — guard → merge → git commit (atomic)
     # ─────────────────────────────────────────────────────
 
-    def confirm(self, version: str, *, allow_dirty_git: bool = False) -> dict:
+    def confirm(
+        self,
+        version: str,
+        *,
+        allow_dirty_git: bool = False,
+        conflict_policy: str = "use-version",
+    ) -> dict:
         """Atomic version confirm: precheck → merge → extract → specgraph → git.
 
-        Two-phase with rollback: if anything in the merge/commit phase fails,
-        docs/ is restored to its pre-merge state. Either fully succeeds (docs
-        updated + git commit) or nothing changes.
+        CLI ``version merge`` maps here (``version confirm`` is the pure
+        :meth:`gate`). Two-phase with rollback: if anything in the
+        merge/commit phase fails, docs/ and the key .meta files are restored
+        byte-for-byte. Either fully succeeds (docs updated + git commit) or
+        nothing changes.
         """
         meta = self.load_version_meta(version)
         if meta.merged_at is not None:
@@ -666,7 +677,7 @@ class VersionManager:
         # ── Phase 2: merge (mutates docs/ + .meta, fully reversible) ──
         backup = self._backup_state(version)
         try:
-            merge_result = self.merge(version, conflict_policy="use-version")
+            merge_result = self.merge(version, conflict_policy=conflict_policy)
             extracted = self._extract_dynamic_global(version)
             # Dynamic globals were written to docs/ AFTER merge's index rebuild;
             # re-index so the new global chunks land in baseline index+specgraph.
@@ -694,14 +705,73 @@ class VersionManager:
             "commit_msg": commit_msg,
         }
 
+    def gate(self, version: str) -> dict:
+        """Pure confirm gate — repeatable, zero disk writes, no merge.
+
+        CLI ``version confirm`` maps here; ``version merge`` runs the same
+        checks inside :meth:`confirm` before touching anything. Reports task
+        completeness, duplicate adds and the six new-model invariants.
+        """
+        meta = self.load_version_meta(version)
+        if meta.merged_at is not None:
+            raise VersionManagerError(f"Version {version} is already merged")
+
+        violations: list[dict] = []
+        from .task_manager import TaskManager
+
+        tasks = TaskManager(self.root).list_tasks(version)
+        for task in tasks:
+            if task.status != "done":
+                violations.append(
+                    {"code": "TASK_NOT_DONE", "message": f"task not done: {task.id}", "chunk_id": task.id}
+                )
+        idx = self.indexes.load_version_index(version)
+        records = [c for c in idx.chunks if c.state == "committed"]
+        try:
+            self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
+        except VersionManagerError as exc:
+            violations.append(
+                {"code": getattr(exc, "code", "DUPLICATE_BASELINE_CHUNK"), "message": str(exc), "chunk_id": None}
+            )
+        violations.extend(
+            {
+                "code": v.code,
+                "message": v.message,
+                "chunk_id": v.chunk_id,
+            }
+            for v in self._collect_new_model_violations(version)
+        )
+        return {
+            "version": version,
+            "passed": not violations,
+            "violations": violations,
+        }
+
     def _assert_new_model_invariants(self, version: str) -> None:
         """Six-invariant confirm gate on baseline∪version (audit-family closer).
 
+        Delegates to :meth:`_collect_new_model_violations` (shared with the
+        repeatable :meth:`gate`). Rejection happens before any disk mutation —
+        fix the specs and retry. Vacuous when the project has no new-model
+        chunks.
+        """
+        violations = self._collect_new_model_violations(version)
+        if violations:
+            summary = "; ".join(
+                f"{v.code}({v.chunk_id or v.rel or '-'})" for v in violations[:10]
+            )
+            more = f" …+{len(violations) - 10}" if len(violations) > 10 else ""
+            raise VersionManagerError(
+                f"新模型不变式违例，confirm 被拒（修复后可重试）: {summary}{more}",
+                code="INVARIANT_VIOLATION",
+            )
+
+    def _collect_new_model_violations(self, version: str):
+        """Shared collection kernel for gate() and _assert_new_model_invariants().
+
         Shape + legacy dangling edges are checked on the raw merged graph
         (the combined view drops dangling edges by contract); the six
-        invariants run on the collapsed chunk_id view. Rejection happens
-        before any disk mutation — fix the specs and retry. Vacuous when the
-        project has no new-model chunks.
+        invariants run on the collapsed chunk_id view.
         """
         from .new_model_validator import (
             validate_invariants,
@@ -714,15 +784,7 @@ class VersionManager:
         view = combined_view(self.root, version)
         targets = self._collect_new_model_target_files(view)
         violations += validate_invariants(view, targets)
-        if violations:
-            summary = "; ".join(
-                f"{v.code}({v.chunk_id or v.rel or '-'})" for v in violations[:10]
-            )
-            more = f" …+{len(violations) - 10}" if len(violations) > 10 else ""
-            raise VersionManagerError(
-                f"新模型不变式违例，confirm 被拒（修复后可重试）: {summary}{more}",
-                code="INVARIANT_VIOLATION",
-            )
+        return violations
 
     def _collect_new_model_target_files(self, view) -> list[tuple[str, str | None]]:
         """(chunk_id, target_file|None) for every new-model TDD node in the view."""

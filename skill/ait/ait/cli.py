@@ -558,33 +558,49 @@ def version_status(ctx, version_name: str) -> None:
 @click.option(
     "--conflict-policy",
     type=click.Choice(["abort", "use-version", "use-baseline"]),
-    default="abort",
+    default="use-version",
 )
+@click.option("--allow-dirty-git", is_flag=True, help="Skip the git-clean precheck.")
 @click.pass_context
-def version_merge(ctx, version_name: str, conflict_policy: str) -> None:
+def version_merge(ctx, version_name: str, conflict_policy: str, allow_dirty_git: bool) -> None:
+    """Atomic merge into baseline: gate (six invariants + task/git) → backup →
+    merge → promote specgraph → git commit. Byte-level rollback on any failure.
+    """
     mgr = VersionManager(_root(ctx))
     try:
-        result = mgr.merge(version_name, conflict_policy=conflict_policy)
+        result = mgr.confirm(
+            version_name,
+            allow_dirty_git=allow_dirty_git,
+            conflict_policy=conflict_policy,
+        )
         ok(result)
     except ValidationError as exc:
         fail(str(exc), code=exc.issues[0].code if exc.issues else "MERGE_FAILED")
     except VersionManagerError as exc:
-        fail(str(exc), code="MERGE_FAILED")
+        fail(str(exc), code=getattr(exc, "code", "MERGE_FAILED"))
 
 
 @version_group.command("confirm")
 @click.argument("version_name")
-@click.option("--allow-dirty-git", is_flag=True, help="Skip the git-clean precheck.")
 @click.pass_context
-def version_confirm(ctx, version_name: str, allow_dirty_git: bool) -> None:
-    """Atomic version confirm: precheck (all tasks done + git clean) → merge to
-    baseline → extract dynamic global from impl @extract → promote specgraph →
-    git commit (message = version title). Rolls back docs/ if anything fails.
+def version_confirm(ctx, version_name: str) -> None:
+    """Pure gate — repeatable, zero disk writes, does NOT merge.
+
+    Reports whether the version passes the confirm checks (all tasks done +
+    six new-model invariants) with per-violation detail. Run ``version merge``
+    to actually commit once this passes.
     """
     mgr = VersionManager(_root(ctx))
     try:
-        result = mgr.confirm(version_name, allow_dirty_git=allow_dirty_git)
-        ok(result)
+        report = mgr.gate(version_name)
+        if report["passed"]:
+            ok(report)
+        else:
+            fail(
+                f"gate failed: {len(report['violations'])} violation(s)",
+                code="INVARIANT_VIOLATION",
+                details=report,
+            )
     except ValidationError as exc:
         fail(str(exc), code=exc.issues[0].code if exc.issues else "CONFIRM_FAILED")
     except VersionManagerError as exc:
@@ -620,12 +636,30 @@ def version_commit(ctx, version_name: str, message: str) -> None:
         fail(str(exc), code=getattr(exc, "code", "COMMIT_FAILED"))
 
 
-@version_group.command("reset")
+@version_group.command("create")
 @click.argument("version_name")
-@click.option("--confirm", is_flag=True, help="Confirm the irreversible reset.")
+@click.option("--based-on", default=None, help="Optional parent version.")
 @click.pass_context
-def version_reset(ctx, version_name: str, confirm: bool) -> None:
-    """Wipe a version workspace and return to a blank state (atomic-version escape hatch)."""
+def version_create(ctx, version_name: str, based_on: str | None) -> None:
+    """Explicitly open a version workspace (meta + empty index).
+
+    Erroring when the version already exists kills ghost versions: a typo'd
+    --version elsewhere can no longer silently materialise a workspace.
+    """
+    mgr = VersionManager(_root(ctx))
+    try:
+        meta = mgr.create(version_name, based_on=based_on)
+        ok({"version": version_name, "created_at": meta.created_at, "based_on": based_on})
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "CREATE_FAILED"))
+
+
+@version_group.command("revert")
+@click.argument("version_name")
+@click.option("--confirm", is_flag=True, help="Confirm the irreversible revert.")
+@click.pass_context
+def version_revert(ctx, version_name: str, confirm: bool) -> None:
+    """Wipe an unmerged version workspace — the any-stage exit (atomic-version escape hatch)."""
     mgr = VersionManager(_root(ctx))
     try:
         result = mgr.reset(version_name, confirmed=confirm)
@@ -634,7 +668,7 @@ def version_reset(ctx, version_name: str, confirm: bool) -> None:
             return
         ok(result)
     except VersionManagerError as exc:
-        fail(str(exc), code="RESET_FAILED")
+        fail(str(exc), code="REVERT_FAILED")
 
 
 # ═══════════════════════════════════════════════════════════

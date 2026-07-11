@@ -158,10 +158,11 @@ def test_end_to_end_happy_path(cli_project: Path):
     parsed = _parse(res.output)["data"]
     assert parsed["commit_id"] == "c2"
 
-    # 7. /ait:version merge
-    res = _run(runner, root, "version", "merge", version)
+    # 7. /ait:version merge —— v2.21 起 merge = 原子合入(门禁前置+git commit,
+    #    git 缺失时 commit 为 None),返回 confirm 形状而非旧 MergeResult。
+    res = _run(runner, root, "version", "merge", version, "--allow-dirty-git")
     parsed = _parse(res.output)["data"]
-    assert parsed["status"] == "completed"
+    assert parsed["version"] == version
     assert "prd-recommend-overview" in parsed["merged_chunks"]
     assert "prd-recommend-rules" in parsed["merged_chunks"]
     assert "impl-recommend-overview-api" in parsed["merged_chunks"]
