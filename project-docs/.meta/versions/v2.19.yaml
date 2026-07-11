@@ -1,0 +1,22 @@
+version: v2.19
+created_at: '2026-07-11T11:41:42.176972+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-257
+- chg-258
+- chg-259
+- chg-260
+- chg-261
+- chg-262
+- chg-263
+- chg-264
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false

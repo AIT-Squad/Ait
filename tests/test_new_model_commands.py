@@ -261,3 +261,71 @@ def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
     ids = [item["id"] for item in bundle.upstream]
     assert len(ids) == len(set(ids)), f"上溯链存在重复收集: {ids}"
     assert "[FSD]-beta:y" in ids and "[FSD]-beta" in ids, "环上节点应各收集一次"
+
+
+# ── v2.19: modify 进版本的 TDD,codegen 上下文完整(v2.18 发现的 URI 二象性缺口)──
+
+
+def test_prepare_codegen_full_upstream_for_modified_tdd(tmp_path: Path, monkeypatch):
+    """TDD 经 --action modify 进版本后,prepare_codegen(version) 仍取得完整上溯链,
+    且 TDD 内容来源切到版本工作区。修复前 upstream/dependencies 均为空。"""
+    root = tmp_path / "project-docs"
+    (root / "docs" / "fsd").mkdir(parents=True)
+    (root / "docs" / "tdd").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    (root / "docs" / "fsd" / "[FSD]-app.md").write_text(
+        "<!-- @id:[FSD]-app -->\n## App\n\n<!-- @id:[FSD]-app:feat -->\n## Feat\n",
+        encoding="utf-8",
+    )
+    (root / "docs" / "fsd" / "[FSD]-app-util.md").write_text(
+        "<!-- @id:[FSD]-app-util -->\n## Util\n\n<!-- @id:[FSD]-app-util:helpers -->\n## Helpers\n",
+        encoding="utf-8",
+    )
+    (root / "docs" / "tdd" / "[TDD]-app-feat.md").write_text(
+        "<!-- @id:[TDD]-app-feat -->\n## TDD baseline\n\n```yaml\ntarget_file: app/feat.py\n```\n",
+        encoding="utf-8",
+    )
+    vm = VersionManager(root)
+    vm.indexes.rebuild_baseline()
+    sync_specgraph(root)
+
+    from ait.specgraph import load_specgraph, make_uri, specgraph_path
+
+    g = load_specgraph(root)
+    fsd_file = "fsd/[FSD]-app"
+    g.add_edge(
+        make_uri("[FSD]-app:feat", "baseline", fsd_file),
+        make_uri("[TDD]-app-feat", "baseline", "tdd/[TDD]-app-feat"),
+        "details",
+        metadata={"source": "new-model-cli"},
+    )
+    g.add_edge(
+        make_uri("[FSD]-app:feat", "baseline", fsd_file),
+        make_uri("[FSD]-app-util:helpers", "baseline", "fsd/[FSD]-app-util"),
+        "depends_on",
+        metadata={"source": "new-model-cli"},
+    )
+    g.save(specgraph_path(root))
+    vm.create("v9.0")
+    monkeypatch.chdir(tmp_path)
+
+    from ait.new_model_manager import NewModelManager
+
+    mgr = NewModelManager(root)
+    mgr.create_tdd(
+        "v9.0",
+        "[TDD]-app-feat",
+        "<!-- @id:[TDD]-app-feat -->\n## TDD v2 modified\n\n```yaml\ntarget_file: app/feat.py\n```\n",
+        action="modify",
+        overrides="[TDD]-app-feat",
+    )
+
+    bundle = mgr.prepare_codegen("v9.0", "[TDD]-app-feat")
+
+    ids = [u["id"] for u in bundle.upstream]
+    assert ids and ids[0] == "[FSD]-app:feat", f"上溯链首项应为父 split,得到 {ids}"
+    assert "[FSD]-app" in ids, f"上溯链应含 FSD 根,得到 {ids}"
+    dep_ids = [u["id"] for u in bundle.dependencies]
+    assert "[FSD]-app-util:helpers" in dep_ids, f"依赖上下文缺失,得到 {dep_ids}"
+    assert "TDD v2 modified" in bundle.chunks[0]["content"], "TDD 内容来源应切到版本工作区"

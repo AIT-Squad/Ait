@@ -1,0 +1,18 @@
+id: chg-258
+version: v2.19
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:specgraph
+author: system
+date: '2026-07-11T12:33:37.748264+00:00'
+message: combined chunk_id view + rewire codegen/impact/deps
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:specgraph -->
+
+  ## specgraph
+
+  ### 功能描述
+
+  SpecGraph(specs/edges) + URI 体系(spec:{type}:{version}:{chunk})。sync_specgraph 从所有 docs/version markdown 的 @ref 重建图，并 _preserve_explicit_edges
+  保留 fsd link 加的显式边（故 reindex 不丢 decomposes/details/depends_on）。CombinedView 在读取时把 baseline∪版本坍缩到 chunk_id 世界（存储格式不变，无数据迁移），成环检测在坍缩视图上进行（合并后才成环的图在合并前即可报出）。详见
+  [TDD]-specgraph。'

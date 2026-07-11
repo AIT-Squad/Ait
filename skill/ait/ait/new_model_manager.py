@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
-from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
+from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
 from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
 
@@ -151,10 +151,9 @@ class NewModelManager:
         if not target_file:
             raise _validation_error("TDD_TARGET_FILE_REQUIRED", "TDD markdown must include target_file", tdd_root_chunk_id)
 
-        graph = combined_specgraph(self.root, version)
-        tdd_uri = resolve_chunk_uri(self.root, tdd_root_chunk_id, version, graph=graph)
-        upstream = self._collect_upstream_context(graph, tdd_uri)
-        dependencies = self._collect_dependency_context(graph, upstream)
+        view = combined_view(self.root, version)
+        upstream = self._collect_upstream_context(view, tdd_root_chunk_id)
+        dependencies = self._collect_dependency_context(view, upstream)
 
         return CodegenBundle(
             version=version if source == "version" else "baseline",
@@ -174,38 +173,37 @@ class NewModelManager:
             dependencies=dependencies,
         )
 
-    def _collect_upstream_context(self, graph, tdd_uri: str) -> list[dict]:
-        incoming_details = [edge for edge in graph.edges if edge.rel == "details" and edge.dst == tdd_uri]
+    def _collect_upstream_context(self, view, tdd_chunk_id: str) -> list[dict]:
+        incoming_details = view.edges_to(tdd_chunk_id, "details")
         if not incoming_details:
             return []
-        parent_split_uri = incoming_details[0].src
         items: list[dict] = []
         seen: set[str] = set()
 
-        parent_split = graph.specs.get(parent_split_uri)
+        parent_split = view.node(incoming_details[0].src)
         if parent_split is None:
             return []
         self._append_context_item(items, seen, parent_split)
 
-        parent_root = self._find_spec_by_chunk_id(graph, _parent_chunk_id(parent_split.chunk_id), parent_split.version)
-        if parent_root is not None and parent_root.uri not in seen:
+        parent_root = view.node(_parent_chunk_id(parent_split.chunk_id))
+        if parent_root is not None and parent_root.chunk_id not in seen:
             self._append_context_item(items, seen, parent_root)
-            self._walk_upstream_roots(graph, parent_root.uri, items, seen)
+            self._walk_upstream_roots(view, parent_root.chunk_id, items, seen)
         return items
 
-    def _walk_upstream_roots(self, graph, root_uri: str, items: list[dict], seen: set[str]) -> None:
-        for edge in [e for e in graph.edges if e.rel == "decomposes" and e.dst == root_uri]:
-            src = graph.specs.get(edge.src)
-            if src is None or src.uri in seen:
+    def _walk_upstream_roots(self, view, root_chunk_id: str, items: list[dict], seen: set[str]) -> None:
+        for edge in view.edges_to(root_chunk_id, "decomposes"):
+            src = view.node(edge.src)
+            if src is None or src.chunk_id in seen:
                 continue
             self._append_context_item(items, seen, src)
             if src.type == "fsd" and ":" in src.chunk_id:
-                parent_root = self._find_spec_by_chunk_id(graph, _parent_chunk_id(src.chunk_id), src.version)
-                if parent_root is not None and parent_root.uri not in seen:
+                parent_root = view.node(_parent_chunk_id(src.chunk_id))
+                if parent_root is not None and parent_root.chunk_id not in seen:
                     self._append_context_item(items, seen, parent_root)
-                    self._walk_upstream_roots(graph, parent_root.uri, items, seen)
+                    self._walk_upstream_roots(view, parent_root.chunk_id, items, seen)
 
-    def _collect_dependency_context(self, graph, upstream: list[dict]) -> list[dict]:
+    def _collect_dependency_context(self, view, upstream: list[dict]) -> list[dict]:
         """Collect depends_on context from every FSD internal split in the upstream
         chain — not just the immediate parent module split.
 
@@ -215,31 +213,30 @@ class NewModelManager:
         has no depends_on of its own; we must climb to the domain split — which is
         already part of the upstream chain — to surface real dependencies.
         """
-        split_uris = [
-            u["uri"] for u in upstream
+        split_ids = [
+            u["id"] for u in upstream
             if u.get("type") == "fsd" and ":" in u.get("id", "")
         ]
         items: list[dict] = []
         seen: set[str] = set()
-        for split_uri in split_uris:
-            for edge in [e for e in graph.edges if e.rel == "depends_on" and e.src == split_uri]:
-                split = graph.specs.get(edge.dst)
+        for split_id in split_ids:
+            for edge in view.edges_from(split_id, "depends_on"):
+                split = view.node(edge.dst)
                 if split is None:
                     continue
                 self._append_context_item(items, seen, split)
-                for child_edge in [
-                    e for e in graph.edges
-                    if e.src == edge.dst and e.rel in {"decomposes", "details"}
-                ]:
-                    child = graph.specs.get(child_edge.dst)
+                for child_edge in view.edges_from(edge.dst):
+                    if child_edge.rel not in {"decomposes", "details"}:
+                        continue
+                    child = view.node(child_edge.dst)
                     if child is not None:
                         self._append_context_item(items, seen, child)
         return items
 
     def _append_context_item(self, items: list[dict], seen: set[str], spec) -> None:
-        if spec.uri in seen:
+        if spec.chunk_id in seen:
             return
-        seen.add(spec.uri)
+        seen.add(spec.chunk_id)
         item = self._context_item_for_spec(spec)
         if item is not None:
             items.append(item)

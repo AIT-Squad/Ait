@@ -1,0 +1,66 @@
+id: chg-264
+version: v2.19
+type: MODIFY
+target: tdd/[TDD]-deps#[TDD]-deps
+author: system
+date: '2026-07-11T12:33:37.874023+00:00'
+message: combined chunk_id view + rewire codegen/impact/deps
+base_hash: null
+base_content: '<!-- @id:[TDD]-deps -->
+
+  ## deps TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/deps.py
+
+  ```
+
+
+  ### 技术栈
+
+  Python 3.10+；依赖 `specgraph.combined_specgraph/resolve_chunk_uri`、`version_manager.VersionManager`。
+
+
+  ### 代码结构
+
+  `query_deps(project_root, target, *, direction="both") -> dict`：version=VersionManager.current()；graph=combined_specgraph(root,version)；uri=resolve_chunk_uri(target)；edges=graph.query(uri,direction)；返回
+  `{target:uri, direction, edges:[edge.__dict__ …]}`。
+
+
+  ### 单元测试要求
+
+  `tests/`（specgraph/deps 相关）：out/in/both 方向返回正确边。pytest。'
+new_content: '<!-- @id:[TDD]-deps -->
+
+  ## deps TDD
+
+
+  ```yaml
+
+  target_file: skill/ait/ait/deps.py
+
+  ```
+
+
+  ### 技术栈
+
+  Python 3.10+；依赖 `specgraph.combined_view`、`version_manager.VersionManager`。
+
+
+  ### 代码结构
+
+  `query_deps(project_root, target, *, direction="both") -> dict`：version=VersionManager.current()；view=combined_view(root,version)；target
+  以 chunk_id 解析；direction∈out/in/both → view.edges_from/edges_to/两者并集；返回 `{target:chunk_id, direction, edges:[{src,dst,rel,metadata}…]}`（端点为
+  chunk_id）。被 modify 进版本的 chunk 查得到其全部既有关系（组合视图消除 URI 二象性）。
+
+
+  ### 边界条件
+
+  target 不存在→edges 为空不报错；同一 (src,dst,rel) 不重复。
+
+
+  ### 单元测试要求
+
+  `tests/`（specgraph/deps 相关）：out/in/both 方向返回正确边（chunk_id 端点）；对版本中 modify 的 chunk 返回 baseline 期关系。pytest。'

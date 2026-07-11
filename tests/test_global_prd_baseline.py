@@ -190,15 +190,16 @@ def test_deps_and_impact_isomorphic_to_multi_file_oracle(tmp_path: Path):
     assert _edges_by_chunk_ids(single_root) == _edges_by_chunk_ids(multi_root)
 
     # deps（出+入双向）的 chunk_id 邻居集合相等
+    # （v2.19 组合视图后 deps/impact 端点即 chunk_id，无需再解析 URI）
     for cid in ["prd-alpha", "prd-beta", "prd-gamma"]:
         single_deps = query_deps(single_root, cid, direction="both")
         multi_deps = query_deps(multi_root, cid, direction="both")
         single_neighbors = {
-            tuple(sorted([parse_uri(e["src"])[2], parse_uri(e["dst"])[2]])) + (e["rel"],)
+            tuple(sorted([e["src"], e["dst"]])) + (e["rel"],)
             for e in single_deps["edges"]
         }
         multi_neighbors = {
-            tuple(sorted([parse_uri(e["src"])[2], parse_uri(e["dst"])[2]])) + (e["rel"],)
+            tuple(sorted([e["src"], e["dst"]])) + (e["rel"],)
             for e in multi_deps["edges"]
         }
         assert single_neighbors == multi_neighbors, f"deps mismatch on {cid}"
@@ -207,6 +208,4 @@ def test_deps_and_impact_isomorphic_to_multi_file_oracle(tmp_path: Path):
     for cid in ["prd-alpha", "prd-beta", "prd-gamma"]:
         single_impacted = analyze_impact(single_root, cid)["impacted"]
         multi_impacted = analyze_impact(multi_root, cid)["impacted"]
-        single_ids = {parse_uri(u)[2] for u in single_impacted}
-        multi_ids = {parse_uri(u)[2] for u in multi_impacted}
-        assert single_ids == multi_ids, f"impact mismatch on {cid}"
+        assert set(single_impacted) == set(multi_impacted), f"impact mismatch on {cid}"

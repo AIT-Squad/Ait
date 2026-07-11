@@ -270,6 +270,126 @@ class SpecGraph:
         return "\n".join(lines) + "\n"
 
 
+# ── Combined view: chunk_id world across baseline ∪ version ─────────────
+
+
+@dataclass
+class ViewNode:
+    """A chunk in the combined view; version/file/uri come from the winning source."""
+
+    chunk_id: str
+    type: str
+    version: str
+    file: str
+    title: str
+    uri: str
+
+
+@dataclass
+class ViewEdge:
+    """An edge with endpoints collapsed to chunk_id."""
+
+    src: str
+    dst: str
+    rel: str
+    metadata: dict = field(default_factory=dict)
+
+
+class CombinedView:
+    """baseline ∪ version collapsed to chunk_id identity.
+
+    Nodes: baseline specs overlaid by version specs (same chunk_id → the
+    version spec wins, so a chunk being modified reads from the version
+    workspace while keeping every relation it had in baseline — this removes
+    the URI duality that blinded codegen/deps/impact to in-flight chunks).
+    Edges: endpoints collapsed URI→chunk_id, deduped by (src, dst, rel);
+    edges with an endpoint that has no node are dropped (write-side integrity
+    belongs to the validators). Read-time only — storage format unchanged.
+    """
+
+    def __init__(self) -> None:
+        self.nodes: dict[str, ViewNode] = {}
+        self.edges: list[ViewEdge] = []
+
+    def node(self, chunk_id: str) -> ViewNode | None:
+        return self.nodes.get(chunk_id)
+
+    def edges_from(self, chunk_id: str, rel: str | None = None) -> list[ViewEdge]:
+        return [
+            e for e in self.edges
+            if e.src == chunk_id and (rel is None or e.rel == rel)
+        ]
+
+    def edges_to(self, chunk_id: str, rel: str | None = None) -> list[ViewEdge]:
+        return [
+            e for e in self.edges
+            if e.dst == chunk_id and (rel is None or e.rel == rel)
+        ]
+
+    def impacted(self, chunk_id: str) -> list[str]:
+        """Transitive impact closure in discovery order (start excluded).
+
+        Forward decomposes/details edges + id-structural children (a colon
+        split ``X:*`` belongs to its root ``X`` with no explicit edge) —
+        spec-tree downstream: change a PRD → its FSD tree → their TDDs —
+        plus reverse depends_on/implements (dependents of the changed chunk).
+        """
+        forward = {"decomposes", "details"}
+        reverse = {"depends_on", "implements"}
+        children: dict[str, list[str]] = {}
+        for cid in self.nodes:
+            if ":" in cid:
+                children.setdefault(cid.split(":", 1)[0], []).append(cid)
+        seen: set[str] = {chunk_id}
+        order: list[str] = []
+        queue = [chunk_id]
+        while queue:
+            current = queue.pop(0)
+            neighbours: list[str] = list(children.get(current, []))
+            for edge in self.edges:
+                if edge.rel in forward and edge.src == current:
+                    neighbours.append(edge.dst)
+                elif edge.rel in reverse and edge.dst == current:
+                    neighbours.append(edge.src)
+            for neighbour in neighbours:
+                if neighbour in seen:
+                    continue
+                seen.add(neighbour)
+                order.append(neighbour)
+                queue.append(neighbour)
+        return order
+
+    def detect_cycle(self, *, rels: set[str]) -> list[str] | None:
+        """Kahn residual on the collapsed chunk_id edges (rels explicit).
+
+        Because endpoints are collapsed to chunk_id, a cycle that would only
+        appear after merging a version into baseline (audit R2-02) is visible
+        here before the merge. Self-loops (X→X) are reported too.
+        """
+        dep_edges = [e for e in self.edges if e.rel in rels]
+        nodes = set(self.nodes)
+        for e in dep_edges:
+            nodes.add(e.src)
+            nodes.add(e.dst)
+        indeg = {n: 0 for n in nodes}
+        adj: dict[str, list[str]] = {n: [] for n in nodes}
+        for e in dep_edges:
+            adj[e.src].append(e.dst)
+            indeg[e.dst] += 1
+        queue = [n for n in nodes if indeg[n] == 0]
+        visited = 0
+        while queue:
+            n = queue.pop()
+            visited += 1
+            for m in adj[n]:
+                indeg[m] -= 1
+                if indeg[m] == 0:
+                    queue.append(m)
+        if visited < len(nodes):
+            return sorted(n for n in nodes if indeg[n] > 0)
+        return None
+
+
 def spec_type(
     chunk_id: str,
     file: str | None = None,
@@ -432,6 +552,69 @@ def combined_specgraph(project_root: Path, version: str | None = None) -> SpecGr
         return base
     vg = load_specgraph(project_root, version)
     return base.dry_run_merge(vg)
+
+
+def combined_view(project_root: Path, version: str | None = None) -> CombinedView:
+    """Read-time collapse of baseline (+ optional version) to the chunk_id world.
+
+    Nodes are baseline specs overlaid by version specs; edges are collapsed to
+    chunk_id endpoints and deduped. No data migration — storage stays URI-keyed.
+    """
+    graphs = [load_specgraph(project_root, "baseline")]
+    if (
+        version
+        and version != "baseline"
+        and specgraph_path(project_root, version).exists()
+    ):
+        graphs.append(load_specgraph(project_root, version))
+
+    view = CombinedView()
+    uri_to_chunk: dict[str, str] = {}
+    for graph in graphs:
+        for spec in graph.specs.values():
+            uri_to_chunk[spec.uri] = spec.chunk_id
+            existing = view.nodes.get(spec.chunk_id)
+            # version-side spec wins over baseline regardless of load order
+            if (
+                existing is not None
+                and existing.version != "baseline"
+                and spec.version == "baseline"
+            ):
+                continue
+            view.nodes[spec.chunk_id] = ViewNode(
+                chunk_id=spec.chunk_id,
+                type=spec.type,
+                version=spec.version,
+                file=spec.file,
+                title=spec.title,
+                uri=spec.uri,
+            )
+
+    def _endpoint(uri: str) -> str | None:
+        if uri in uri_to_chunk:
+            return uri_to_chunk[uri]
+        try:
+            return parse_uri(uri)[2]
+        except ValueError:
+            return None
+
+    seen_edges: set[tuple[str, str, str]] = set()
+    for graph in graphs:
+        for edge in graph.edges:
+            src = _endpoint(edge.src)
+            dst = _endpoint(edge.dst)
+            if src is None or dst is None:
+                continue
+            if src not in view.nodes or dst not in view.nodes:
+                continue  # dangling edge — write-side validators own this
+            key = (src, dst, edge.rel)
+            if key in seen_edges:
+                continue
+            seen_edges.add(key)
+            view.edges.append(
+                ViewEdge(src=src, dst=dst, rel=edge.rel, metadata=dict(edge.metadata))
+            )
+    return view
 
 
 def add_edge(project_root: Path, src: str, dst: str, rel: str) -> SpecGraph:

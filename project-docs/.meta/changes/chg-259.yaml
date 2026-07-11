@@ -1,0 +1,17 @@
+id: chg-259
+version: v2.19
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:deps
+author: system
+date: '2026-07-11T12:33:37.753274+00:00'
+message: combined chunk_id view + rewire codegen/impact/deps
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:deps -->
+
+  ## deps
+
+  ### 功能描述
+
+  `query_deps(target,direction)`：在组合视图上解析 target→chunk_id，返回该 chunk 的 in/out/both 关系边（端点为 chunk_id）。被 modify 进版本的 chunk 查得到其全部既有关系。详见
+  [TDD]-deps。'
