@@ -964,6 +964,8 @@ def tdd_group() -> None:
 @tdd_group.command("create")
 @click.argument("root_chunk_id")
 @click.option("--version", "version_opt", default=None)
+@click.option("--parent", "parent_chunk_id", default=None,
+              help="FSD leaf split; when given, atomically build the details edge.")
 @click.option("--file", "file_opt", default=None, help="TDD file under tdd/ or explicit index path, no .md.")
 @click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
 @click.option("--content", default=None)
@@ -974,6 +976,7 @@ def tdd_create(
     ctx,
     root_chunk_id: str,
     version_opt: str | None,
+    parent_chunk_id: str | None,
     file_opt: str | None,
     content_file: Path | None,
     content: str | None,
@@ -992,10 +995,46 @@ def tdd_create(
             file=file_opt,
             action=action,
             overrides=overrides,
+            parent_chunk_id=parent_chunk_id,
         )
         ok(_json_safe(result))
     except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED",
+             details=getattr(exc, "details", None))
+
+
+@tdd_group.command("confirm")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def tdd_confirm(ctx, version_opt: str | None) -> None:
+    """Freeze the TDD layer: lock [TDD]- chunks, phase → tdd-confirm."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(mgr.confirm_tdd_layer(version))
+    except ValidationError as exc:
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED")
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "CONFIRM_FAILED"))
+
+
+@tdd_group.command("revert")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def tdd_revert(ctx, version_opt: str | None) -> None:
+    """Rework pair of `tdd confirm`: unlock TDD chunks, phase → tdd-creating."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(mgr.revert_tdd_layer(version))
+    except ValidationError as exc:
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED")
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "REVERT_FAILED"))
 
 
 @main.group("codegen")

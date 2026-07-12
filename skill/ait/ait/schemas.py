@@ -26,6 +26,7 @@ VersionPhase = Literal[
     "empty", "prd_locked", "impl_locked", "coding",
     # new-model layer flow (v2.22+)
     "prd-creating", "prd-confirm", "fsd-creating", "fsd-confirm",
+    "tdd-creating", "tdd-confirm",
     # terminal
     "merged",
 ]

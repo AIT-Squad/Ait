@@ -167,6 +167,7 @@ class NewModelManager:
         file: str | None = None,
         action: str = "add",
         overrides: str | None = None,
+        parent_chunk_id: str | None = None,
     ) -> DocumentCreateResult:
         if not _target_file(content):
             raise _validation_error("TDD_TARGET_FILE_REQUIRED", "TDD markdown must include target_file")
@@ -183,7 +184,12 @@ class NewModelManager:
                     f"target_file already owned by {owner_id}: {owner_target}",
                     root_chunk_id,
                 )
-        return self._create_document(
+        # v2.24 "create-is-edge": parent-side details gate front-loaded so a
+        # rejection leaves zero on disk.
+        if parent_chunk_id is not None:
+            view = combined_view(self.root, version)
+            self._precheck_details_parent(view, parent_chunk_id, root_chunk_id)
+        result = self._create_document(
             version,
             root_chunk_id,
             content,
@@ -192,6 +198,66 @@ class NewModelManager:
             action=action,
             overrides=overrides,
         )
+        if parent_chunk_id is not None:
+            self.add_edge(version, parent_chunk_id, root_chunk_id, "details")
+        meta = self.versions.load_version_meta(version)
+        if meta.phase == "fsd-confirm":
+            meta.phase = "tdd-creating"
+            self.versions.save_version_meta(meta)
+        return result
+
+    def _precheck_details_parent(self, view, parent_chunk_id: str, tdd_root: str) -> None:
+        """Parent-side details gate, evaluable before the TDD is written."""
+        parent = view.node(parent_chunk_id)
+        if parent is None:
+            raise _validation_error(
+                "MISSING_ENDPOINT",
+                f"details parent {parent_chunk_id} not in graph",
+                parent_chunk_id,
+            )
+        others = [
+            e.src for e in view.edges_to(tdd_root, "details")
+            if e.src != parent_chunk_id
+        ]
+        if others:
+            raise _validation_error(
+                "TDD_MULTI_PARENT",
+                f"TDD {tdd_root} already has details parent {others}",
+                tdd_root,
+            )
+
+    def confirm_tdd_layer(self, version: str) -> dict:
+        """Freeze the TDD layer: lock [TDD]- chunks, phase → tdd-confirm."""
+        idx = self.indexes.load_version_index(version)
+        tdd_ids = [c.id for c in idx.chunks if c.id.startswith("[TDD]-")]
+        if not tdd_ids:
+            raise _validation_error(
+                "NO_TDD_CHUNKS", f"version {version} has no TDD chunks", version
+            )
+        working = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[TDD]-") and c.state == "working"
+        ]
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "tdd layer confirm")
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "tdd-confirm"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "confirmed": working, "phase": "tdd-confirm"}
+
+    def revert_tdd_layer(self, version: str) -> dict:
+        """The pair of confirm_tdd_layer: unlock TDD chunks, phase → tdd-creating."""
+        idx = self.indexes.load_version_index(version)
+        tdd_ids = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[TDD]-") and c.state in ("committed", "staged")
+        ]
+        result = self.versions.uncommit(version, tdd_ids)
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "tdd-creating"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "reverted": result["reverted"], "phase": "tdd-creating"}
 
     def create_prd(
         self,

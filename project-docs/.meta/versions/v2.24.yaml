@@ -1,0 +1,21 @@
+version: v2.24
+created_at: '2026-07-12T04:10:10.580625+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-298
+- chg-299
+- chg-300
+- chg-301
+- chg-302
+- chg-303
+- chg-304
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false

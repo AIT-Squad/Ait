@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-12T03:46:03.536178+00:00'
+updated: '2026-07-12T05:15:21.276343+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -193,9 +193,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_manager
   title: new_model_manager
   type: fsd
@@ -204,9 +201,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_validator
   title: new_model_validator
   type: fsd
@@ -215,9 +209,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd
   title: prd FSD
   type: fsd
@@ -586,9 +577,6 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -685,9 +673,6 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
@@ -728,9 +713,6 @@ specs:
   file: tdd/[TDD]-schemas
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-search
   title: search TDD
   type: tdd
@@ -747,9 +729,6 @@ specs:
   file: tdd/[TDD]-skill_manifest
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-specgraph
   title: specgraph TDD
   type: tdd

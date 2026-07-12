@@ -182,7 +182,7 @@ def test_tdd_create_requires_target_file(tmp_path: Path, monkeypatch):
     assert result.exit_code == 1
     payload = _payload(result)
     assert payload["ok"] is False
-    assert payload["code"] == "VALIDATION_FAILED"
+    assert payload["code"] == "TDD_TARGET_FILE_REQUIRED"
     assert "target_file" in payload["error"]
 
 
