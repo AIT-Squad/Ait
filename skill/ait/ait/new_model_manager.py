@@ -60,7 +60,7 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
-        return self._create_document(
+        result = self._create_document(
             version,
             root_chunk_id,
             content,
@@ -69,6 +69,94 @@ class NewModelManager:
             action=action,
             overrides=overrides,
         )
+        # FSD layer entry: advance the phase machine off the PRD layer.
+        meta = self.versions.load_version_meta(version)
+        if meta.phase == "prd-confirm":
+            meta.phase = "fsd-creating"
+            self.versions.save_version_meta(meta)
+        return result
+
+    def decompose_fsd(
+        self,
+        version: str,
+        parent_chunk_id: str,
+        child_root_chunk_id: str,
+        *,
+        content: str | None = None,
+        file: str | None = None,
+    ) -> EdgeCreateResult:
+        """FSD "split-is-edge" entry — the retirement path of ``fsd link``.
+
+        Parent-side gate is front-loaded (before any write) so a rejection
+        leaves zero on disk; then the child FSD is written atomically (when
+        ``content`` is given) and the decomposes edge is created through the
+        full write-time gate. rel is always ``decomposes`` (details belongs to
+        the tdd layer).
+        """
+        view = combined_view(self.root, version)
+        self._precheck_decompose_parent(view, parent_chunk_id, child_root_chunk_id)
+        if content is not None:
+            self.create_fsd(version, child_root_chunk_id, content, file=file)
+        edge = self.add_edge(version, parent_chunk_id, child_root_chunk_id, "decomposes")
+        meta = self.versions.load_version_meta(version)
+        if meta.phase == "prd-confirm":
+            meta.phase = "fsd-creating"
+            self.versions.save_version_meta(meta)
+        return edge
+
+    def _precheck_decompose_parent(self, view, parent_chunk_id: str, child_id: str) -> None:
+        """Parent-side decompose gate, evaluable before the child exists."""
+        parent = view.node(parent_chunk_id)
+        if parent is None:
+            raise _validation_error(
+                "MISSING_ENDPOINT",
+                f"decompose parent {parent_chunk_id} not in graph",
+                parent_chunk_id,
+            )
+        if parent.type == "prd":
+            others = [
+                e.dst for e in view.edges_from(parent_chunk_id, "decomposes")
+                if e.dst != child_id
+            ]
+            if others:
+                raise _validation_error(
+                    "PRD_FSD_LINK_NOT_UNIQUE",
+                    f"PRD {parent_chunk_id} already decomposes to {others}",
+                    parent_chunk_id,
+                )
+
+    def confirm_fsd_layer(self, version: str) -> dict:
+        """Freeze the FSD layer: lock [FSD]- chunks, phase → fsd-confirm."""
+        idx = self.indexes.load_version_index(version)
+        fsd_ids = [c.id for c in idx.chunks if c.id.startswith("[FSD]-")]
+        if not fsd_ids:
+            raise _validation_error(
+                "NO_FSD_CHUNKS", f"version {version} has no FSD chunks", version
+            )
+        working = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[FSD]-") and c.state == "working"
+        ]
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "fsd layer confirm")
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "fsd-confirm"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "confirmed": working, "phase": "fsd-confirm"}
+
+    def revert_fsd_layer(self, version: str) -> dict:
+        """The pair of confirm_fsd_layer: unlock FSD chunks, phase → fsd-creating."""
+        idx = self.indexes.load_version_index(version)
+        fsd_ids = [
+            c.id for c in idx.chunks
+            if c.id.startswith("[FSD]-") and c.state in ("committed", "staged")
+        ]
+        result = self.versions.uncommit(version, fsd_ids)
+        meta = self.versions.load_version_meta(version)
+        meta.phase = "fsd-creating"
+        self.versions.save_version_meta(meta)
+        return {"version": version, "reverted": result["reverted"], "phase": "fsd-creating"}
 
     def create_tdd(
         self,

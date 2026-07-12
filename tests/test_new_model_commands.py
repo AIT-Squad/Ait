@@ -97,43 +97,32 @@ target_file: app/services/loan_service.py
     )
     assert tdd["chunks"] == ["[TDD]-book_management-loan_service"]
 
-    edge = _run(
-        runner,
-        [
-            "fsd",
-            "link",
-            "[FSD]-book_management:loan_service",
-            "[TDD]-book_management-loan_service",
-            "--rel",
-            "details",
-            "--version",
-            "v9.0",
-        ],
-    )
-    assert edge["rel"] == "details"
+    # v2.23: fsd link 退役。details/depends_on 边用底层原语 add_edge 搭脚手架
+    # (details 归 tdd 层原子建立;此处直接建图供 codegen 断言),decomposes 走 fsd decompose。
+    from ait.new_model_manager import NewModelManager
 
-    _run(
-        runner,
-        [
-            "fsd",
-            "link",
-            "[FSD]-book_management:loan_service",
-            "[FSD]-book_management:persistence",
-            "--rel",
-            "depends_on",
-            "--version",
-            "v9.0",
-        ],
+    mgr = NewModelManager(root)
+    edge = mgr.add_edge(
+        "v9.0",
+        "[FSD]-book_management:loan_service",
+        "[TDD]-book_management-loan_service",
+        "details",
+    )
+    assert edge.rel == "details"
+
+    mgr.add_edge(
+        "v9.0",
+        "[FSD]-book_management:loan_service",
+        "[FSD]-book_management:persistence",
+        "depends_on",
     )
     _run(
         runner,
         [
             "fsd",
-            "link",
+            "decompose",
             "[FSD]-book_management:persistence",
             "[FSD]-book_management-persistence",
-            "--rel",
-            "decomposes",
             "--version",
             "v9.0",
         ],

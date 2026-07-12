@@ -12,6 +12,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from ait.cli import main
+from ait.new_model_manager import NewModelManager
 from ait.version_manager import VersionManager
 
 
@@ -43,8 +44,9 @@ def _build_valid_version(root: Path, runner: CliRunner, version: str) -> None:
     run("prd", "create", "[PRD]-app", "--version", version, "--content", PRD)
     run("fsd", "create", "[FSD]-app", "--version", version, "--content", FSD)
     run("tdd", "create", "[TDD]-app-feat", "--version", version, "--content", TDD)
-    run("fsd", "link", "[PRD]-app", "[FSD]-app", "--rel", "decomposes")
-    run("fsd", "link", "[FSD]-app:feat", "[TDD]-app-feat", "--rel", "details")
+    run("fsd", "decompose", "[PRD]-app", "[FSD]-app", "--version", version)
+    # details 边由 tdd 层原子建立(v2.24);此处用底层原语搭脚手架
+    NewModelManager(root).add_edge(version, "[FSD]-app:feat", "[TDD]-app-feat", "details")
 
 
 def test_version_create_explicit_and_no_impl_dir(tmp_path: Path, monkeypatch):
@@ -76,7 +78,7 @@ def test_confirm_is_pure_gate_repeatable_zero_write(tmp_path: Path, monkeypatch)
     # 只建 FSD+TDD,缺 PRD → 门禁应报违例
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
-    runner.invoke(main, ["fsd", "link", "[FSD]-app:feat", "[TDD]-app-feat", "--rel", "details"], catch_exceptions=False)
+    NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)
 
     before = (root / ".meta" / "chunks-index.yaml").read_bytes() if (root / ".meta" / "chunks-index.yaml").exists() else None
@@ -118,7 +120,7 @@ def test_merge_blocked_by_gate_before_any_write(tmp_path: Path, monkeypatch):
     # 缺 PRD → 门禁前置应拦 merge
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
-    runner.invoke(main, ["fsd", "link", "[FSD]-app:feat", "[TDD]-app-feat", "--rel", "details"], catch_exceptions=False)
+    NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)
 
     r = runner.invoke(main, ["version", "merge", "v9.0", "--allow-dirty-git"], catch_exceptions=False)

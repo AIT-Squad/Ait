@@ -886,21 +886,74 @@ def fsd_create(
         fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
 
 
-@fsd_group.command("link")
-@click.argument("src_chunk_id")
-@click.argument("dst_chunk_id")
-@click.option("--rel", type=click.Choice(["decomposes", "details", "depends_on"]), required=True)
+@fsd_group.command("decompose")
+@click.argument("parent_chunk_id")
+@click.argument("child_root_chunk_id")
+@click.option("--version", "version_opt", default=None)
+@click.option("--file", "file_opt", default=None, help="Child FSD file under fsd/, no .md.")
+@click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
+@click.option("--content", default=None)
+@click.pass_context
+def fsd_decompose(
+    ctx,
+    parent_chunk_id: str,
+    child_root_chunk_id: str,
+    version_opt: str | None,
+    file_opt: str | None,
+    content_file: Path | None,
+    content: str | None,
+) -> None:
+    """Split-is-edge: atomically write the child FSD (if --content given) and
+    create the parent→child decomposes edge. Replaces `fsd link`."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    child_content = None
+    if content is not None or content_file is not None:
+        child_content = _read_content(content_file, content)
+    try:
+        ok(_json_safe(mgr.decompose_fsd(
+            version, parent_chunk_id, child_root_chunk_id,
+            content=child_content, file=file_opt,
+        )))
+    except ValidationError as exc:
+        code = exc.issues[0].code if exc.issues else "VALIDATION_FAILED"
+        fail(str(exc), code=code, details=getattr(exc, "details", None))
+
+
+@fsd_group.command("confirm")
 @click.option("--version", "version_opt", default=None)
 @click.pass_context
-def fsd_link(ctx, src_chunk_id: str, dst_chunk_id: str, rel: str, version_opt: str | None) -> None:
+def fsd_confirm(ctx, version_opt: str | None) -> None:
+    """Freeze the FSD layer: lock [FSD]- chunks, phase → fsd-confirm."""
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
     if not version:
         fail("No active version", code="NO_VERSION")
     try:
-        ok(_json_safe(mgr.add_edge(version, src_chunk_id, dst_chunk_id, rel)))
+        ok(mgr.confirm_fsd_layer(version))
     except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED")
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "CONFIRM_FAILED"))
+
+
+@fsd_group.command("revert")
+@click.option("--version", "version_opt", default=None)
+@click.pass_context
+def fsd_revert(ctx, version_opt: str | None) -> None:
+    """Rework pair of `fsd confirm`: unlock FSD chunks, phase → fsd-creating."""
+    mgr = NewModelManager(_root(ctx))
+    version = version_opt or mgr.versions.current()
+    if not version:
+        fail("No active version", code="NO_VERSION")
+    try:
+        ok(mgr.revert_fsd_layer(version))
+    except ValidationError as exc:
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED")
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "REVERT_FAILED"))
 
 
 @main.group("tdd")
