@@ -698,6 +698,14 @@ class VersionManager:
         # v2.20: six-invariant global gate — the authoritative completeness
         # check, BEFORE any mutation. Vacuous for legacy-only projects.
         self._assert_new_model_invariants(version)
+        # v2.25: artifact acceptance — run the configured test command (cheap
+        # invariants first, then the test run). Skipped when unconfigured.
+        acceptance = self.run_acceptance()
+        if not acceptance["passed"]:
+            raise VersionManagerError(
+                f"制品验收失败，无法 merge: {acceptance.get('command')}",
+                code="ACCEPTANCE_FAILED",
+            )
 
         # ── Phase 2: merge (mutates docs/ + .meta, fully reversible) ──
         backup = self._backup_state(version)
@@ -766,10 +774,16 @@ class VersionManager:
             }
             for v in self._collect_new_model_violations(version)
         )
+        acceptance = self.run_acceptance()
+        if not acceptance["passed"]:
+            violations.append(
+                {"code": "ACCEPTANCE_FAILED", "message": "artifact acceptance failed", "chunk_id": None}
+            )
         return {
             "version": version,
             "passed": not violations,
             "violations": violations,
+            "acceptance": acceptance,
         }
 
     def _assert_new_model_invariants(self, version: str) -> None:
@@ -1093,6 +1107,77 @@ class VersionManager:
         except Exception:
             # No git / not a repo → treat as clean (don't block on git absence).
             return True
+
+    # ── Artifact acceptance gate (v2.25) ───────────────────────────────
+
+    def _config_path(self) -> Path:
+        return self.meta_dir / "config.yaml"
+
+    def _read_config(self) -> dict:
+        path = self._config_path()
+        if not path.exists():
+            return {}
+        try:
+            import yaml
+
+            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+            return loaded if isinstance(loaded, dict) else {}
+        except Exception:
+            return {}
+
+    def set_acceptance_command(self, command: str | None) -> dict:
+        """Persist ``acceptance_command`` into .meta/config.yaml (other keys kept)."""
+        import yaml
+
+        config = self._read_config()
+        if command:
+            config["acceptance_command"] = command
+        else:
+            config.pop("acceptance_command", None)
+        atomic_write_text(
+            self._config_path(),
+            yaml.safe_dump(config, allow_unicode=True, sort_keys=False),
+        )
+        return {"acceptance_command": config.get("acceptance_command")}
+
+    def run_acceptance(self) -> dict:
+        """Run the project's configured acceptance command; gate merge on it.
+
+        Reads ``acceptance_command`` from config.yaml. Absent/empty → skipped
+        (vacuous pass — legacy and non-test projects unaffected). Otherwise runs
+        it at the project root (parent of project-docs, where tests/artifacts
+        live) and passes iff exit code is 0.
+        """
+        command = (self._read_config().get("acceptance_command") or "").strip()
+        if not command:
+            return {"passed": True, "skipped": True, "command": None}
+        import subprocess
+
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                cwd=self.root.parent,
+                capture_output=True,
+                text=True,
+                timeout=600,
+            )
+            output = (result.stdout or "") + (result.stderr or "")
+            return {
+                "passed": result.returncode == 0,
+                "skipped": False,
+                "command": command,
+                "exit_code": result.returncode,
+                "output_tail": output[-2000:],
+            }
+        except Exception as exc:  # noqa: BLE001 — timeout / spawn failure → fail closed
+            return {
+                "passed": False,
+                "skipped": False,
+                "command": command,
+                "exit_code": None,
+                "output_tail": f"acceptance run failed: {exc}",
+            }
 
     def _git_commit(self, message: str) -> str | None:
         import subprocess

@@ -1055,6 +1055,28 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
         fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
 
 
+@main.group("acceptance")
+def acceptance_group() -> None:
+    """Artifact acceptance — the configured test command that gates merge."""
+
+
+@acceptance_group.command("set")
+@click.argument("command", required=False, default=None)
+@click.pass_context
+def acceptance_set(ctx, command: str | None) -> None:
+    """Set (or clear, if omitted) the acceptance command in config.yaml."""
+    mgr = VersionManager(_root(ctx))
+    ok(mgr.set_acceptance_command(command))
+
+
+@acceptance_group.command("run")
+@click.pass_context
+def acceptance_run(ctx) -> None:
+    """Run the configured acceptance command and report the result."""
+    mgr = VersionManager(_root(ctx))
+    ok(mgr.run_acceptance())
+
+
 @main.group("prd")
 def prdv2_group() -> None:
     """New-model PRD documents — the primary `prd` (legacy old-model moved to `prdv1`)."""

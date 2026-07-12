@@ -11,3 +11,4 @@ initialized: true
 skill_dir: skill/ait
 cli_path: .venv/Scripts/python.exe -m ait.cli
 wrapper_path: project-docs/.ait/ait-cli.cmd
+acceptance_command: .venv\Scripts\python.exe -m pytest -q -p no:cacheprovider
