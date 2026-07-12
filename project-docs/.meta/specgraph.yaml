@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-12T13:32:41.369875+00:00'
+updated: '2026-07-12T13:33:33.060825+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -9,6 +9,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli
   title: cli FSD
   type: fsd
@@ -193,6 +196,9 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_manager
   title: new_model_manager
   type: fsd
@@ -201,6 +207,9 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_validator
   title: new_model_validator
   type: fsd
@@ -209,6 +218,9 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd
   title: prd FSD
   type: fsd
@@ -345,6 +357,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:deps
   title: deps
   type: fsd
@@ -353,6 +368,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -361,6 +379,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:specgraph
   title: specgraph
   type: fsd
@@ -369,6 +390,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state
   title: state FSD
   type: fsd
@@ -433,6 +457,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:context
   title: context 域
   type: fsd
@@ -441,6 +468,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:doc_model
   title: doc-model 基础设施
   type: fsd
@@ -449,6 +479,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:foundation
   title: foundation 基础设施
   type: fsd
@@ -457,6 +490,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:impl
   title: impl 域
   type: fsd
@@ -465,6 +501,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:indexing
   title: indexing 域
   type: fsd
@@ -473,6 +512,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:init
   title: init 域
   type: fsd
@@ -481,6 +523,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:lint
   title: lint 域
   type: fsd
@@ -489,6 +534,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:new_model
   title: new-model 域
   type: fsd
@@ -497,6 +545,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:prd
   title: prd 域
   type: fsd
@@ -505,6 +556,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:search
   title: search 域
   type: fsd
@@ -513,6 +567,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:skill
   title: skill 层
   type: fsd
@@ -521,6 +578,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:specgraph
   title: specgraph 域
   type: fsd
@@ -529,6 +589,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:state
   title: state 域
   type: fsd
@@ -537,6 +600,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:task
   title: task 域
   type: fsd
@@ -545,6 +611,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:version
   title: version 域
   type: fsd
@@ -553,6 +622,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait
   title: ait 产品 PRD
   type: prd
@@ -577,6 +649,9 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -673,6 +748,9 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
@@ -729,6 +807,9 @@ specs:
   file: tdd/[TDD]-skill_manifest
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-specgraph
   title: specgraph TDD
   type: tdd
@@ -737,6 +818,9 @@ specs:
   file: tdd/[TDD]-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-state
   title: state TDD
   type: tdd
@@ -841,6 +925,9 @@ specs:
   file: tdd/[TDD]-version_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-yaml_io
   title: yaml_io TDD
   type: tdd
@@ -1096,420 +1183,6 @@ edges:
   weight: 1.0
   metadata:
     source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:context
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:impl
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:init
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:new_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:prd
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:search
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:state
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:task
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:cli
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:context
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:context
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:context
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:context
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:doc_model
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:state
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:impl
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:indexing
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:indexing
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:indexing
-  dst: spec:fsd:baseline:[FSD]-ait:task
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:init
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:init
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:init
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:init
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:lint
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:new_model
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:new_model
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:new_model
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:new_model
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:new_model
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:state
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:prd
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:search
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:search
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:specgraph
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:specgraph
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:specgraph
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:specgraph
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:state
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:state
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:state
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:state
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:state
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:task
-  dst: spec:fsd:baseline:[FSD]-ait:version
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:doc_model
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:foundation
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:indexing
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:lint
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:specgraph
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:state
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
-- src: spec:fsd:baseline:[FSD]-ait:version
-  dst: spec:fsd:baseline:[FSD]-ait:task
-  rel: depends_on
-  weight: 1.0
-  metadata:
-    source: new-model-cli
 - src: spec:fsd:baseline:[FSD]-ait:skill
   dst: spec:fsd:baseline:[FSD]-ait-skill
   rel: decomposes
@@ -1582,3 +1255,417 @@ edges:
   weight: 1.0
   metadata:
     source: new-model-cli
+- src: spec:fsd:baseline:[FSD]-ait:init
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:init
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:init
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:init
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:state
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:prd
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:state
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:impl
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:state
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:task
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:state
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:version
+  dst: spec:fsd:baseline:[FSD]-ait:task
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:new_model
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:new_model
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:new_model
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:new_model
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:new_model
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:specgraph
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:specgraph
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:specgraph
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:specgraph
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:context
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:context
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:context
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:context
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:state
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:state
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:state
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:state
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:lint
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:search
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:search
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:indexing
+  dst: spec:fsd:baseline:[FSD]-ait:doc_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:indexing
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:indexing
+  dst: spec:fsd:baseline:[FSD]-ait:task
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:context
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:impl
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:indexing
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:init
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:lint
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:new_model
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:prd
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:search
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:specgraph
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:state
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:task
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:cli
+  dst: spec:fsd:baseline:[FSD]-ait:version
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait:doc_model
+  dst: spec:fsd:baseline:[FSD]-ait:foundation
+  rel: depends_on
+  weight: 1.0
+  metadata:
+    source: fsd-declaration
