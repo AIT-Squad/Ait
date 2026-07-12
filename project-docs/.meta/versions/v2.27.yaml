@@ -1,0 +1,21 @@
+version: v2.27
+created_at: '2026-07-12T14:01:57.220840+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-340
+- chg-341
+- chg-342
+- chg-343
+- chg-344
+- chg-345
+- chg-346
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false

@@ -1,0 +1,81 @@
+version: 1
+updated: '2026-07-12T14:58:10.667211+00:00'
+specs:
+- uri: spec:fsd:v2.27:[FSD]-ait-version
+  title: version FSD
+  type: fsd
+  version: v2.27
+  chunk_id: '[FSD]-ait-version'
+  file: fsd/[FSD]-ait-version
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.27:[FSD]-ait-version:merge_engine
+  title: merge_engine
+  type: fsd
+  version: v2.27
+  chunk_id: '[FSD]-ait-version:merge_engine'
+  file: fsd/[FSD]-ait-version
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.27:[FSD]-ait-version:version_manager
+  title: version_manager
+  type: fsd
+  version: v2.27
+  chunk_id: '[FSD]-ait-version:version_manager'
+  file: fsd/[FSD]-ait-version
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.27:[TDD]-cli
+  title: cli TDD
+  type: tdd
+  version: v2.27
+  chunk_id: '[TDD]-cli'
+  file: tdd/[TDD]-cli
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.27:[TDD]-new_model_manager
+  title: new_model_manager TDD
+  type: tdd
+  version: v2.27
+  chunk_id: '[TDD]-new_model_manager'
+  file: tdd/[TDD]-new_model_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.27:[TDD]-skill_manifest
+  title: skill_manifest TDD
+  type: tdd
+  version: v2.27
+  chunk_id: '[TDD]-skill_manifest'
+  file: tdd/[TDD]-skill_manifest
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.27:[TDD]-version_manager
+  title: version_manager TDD
+  type: tdd
+  version: v2.27
+  chunk_id: '[TDD]-version_manager'
+  file: tdd/[TDD]-version_manager
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []

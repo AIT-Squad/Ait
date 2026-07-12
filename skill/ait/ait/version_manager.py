@@ -694,7 +694,9 @@ class VersionManager:
 
         idx = self.indexes.load_version_index(version)
         records = [c for c in idx.chunks if c.state == "committed"]
-        self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
+        effective = self._latest_by_chunk_id(records)
+        self._assert_no_duplicate_adds(effective)
+        self._assert_no_override_conflicts(effective)
         # v2.20: six-invariant global gate — the authoritative completeness
         # check, BEFORE any mutation. Vacuous for legacy-only projects.
         self._assert_new_model_invariants(version)
@@ -736,6 +738,7 @@ class VersionManager:
             "extracted_dynamic": extracted,
             "commit": commit_hash,
             "commit_msg": commit_msg,
+            "git": "committed" if commit_hash else "unavailable",
         }
 
     def gate(self, version: str) -> dict:
@@ -760,12 +763,14 @@ class VersionManager:
                 )
         idx = self.indexes.load_version_index(version)
         records = [c for c in idx.chunks if c.state == "committed"]
-        try:
-            self._assert_no_duplicate_adds(self._latest_by_chunk_id(records))
-        except VersionManagerError as exc:
-            violations.append(
-                {"code": getattr(exc, "code", "DUPLICATE_BASELINE_CHUNK"), "message": str(exc), "chunk_id": None}
-            )
+        effective = self._latest_by_chunk_id(records)
+        for check in (self._assert_no_duplicate_adds, self._assert_no_override_conflicts):
+            try:
+                check(effective)
+            except VersionManagerError as exc:
+                violations.append(
+                    {"code": getattr(exc, "code", "DUPLICATE_BASELINE_CHUNK"), "message": str(exc), "chunk_id": None}
+                )
         violations.extend(
             {
                 "code": v.code,
@@ -1050,6 +1055,39 @@ class VersionManager:
         if issues:
             raise ValidationError(issues)
 
+    def _assert_no_override_conflicts(self, records: list[VersionChunkEntry]) -> None:
+        """Merge-precheck for override collisions (audit R1-07/R1-08).
+
+        - modify-rename: id != overrides while id already exists in baseline —
+          the merge would emit a duplicate ``@id`` (MODIFY_RENAME_COLLISION).
+        - two effective records targeting the same override — later silently
+          overwrites earlier (DUPLICATE_OVERRIDES_TARGET).
+        """
+        baseline_ids = {entry.id for entry in self.indexes.load_baseline().chunks}
+        owners: dict[str, str] = {}
+        for record in records:
+            if record.action not in ("modify", "delete"):
+                continue
+            target = record.overrides or record.id
+            if (
+                record.action == "modify"
+                and record.overrides
+                and record.id != record.overrides
+                and record.id in baseline_ids
+            ):
+                raise VersionManagerError(
+                    f"modify 改名撞已存在 baseline id: '{record.id}'(overrides "
+                    f"'{record.overrides}') —— 合并会产生重复 @id",
+                    code="MODIFY_RENAME_COLLISION",
+                )
+            if target in owners and owners[target] != record.id:
+                raise VersionManagerError(
+                    f"两条记录撞同一 override 目标 '{target}': "
+                    f"'{owners[target]}' 与 '{record.id}' —— 后者会静默覆盖前者",
+                    code="DUPLICATE_OVERRIDES_TARGET",
+                )
+            owners[target] = record.id
+
     def _with_atomic_impl_deletes(
         self, version: str, records: list[VersionChunkEntry]
     ) -> list[VersionChunkEntry]:
@@ -1209,21 +1247,51 @@ class VersionManager:
             }
 
     def _git_commit(self, message: str) -> str | None:
+        """Three-way git-commit semantics (audit R1-06 closer).
+
+        - Not a git repo / git unavailable → None (tolerated; confirm reports
+          ``git: "unavailable"`` — test fixtures and git-less environments).
+        - Repo, but nothing to commit → no-op, return current HEAD.
+        - Repo, and add/commit genuinely fails → raise ``GIT_COMMIT_FAILED``
+          so confirm's rollback machinery restores state (no fake success).
+        """
         import subprocess
 
         try:
-            subprocess.run(["git", "add", "-A"], cwd=self.root, check=True,
-                           capture_output=True, text=True)
-            subprocess.run(["git", "commit", "-m", message], cwd=self.root, check=True,
-                           capture_output=True, text=True)
-            result = subprocess.run(
+            probe = subprocess.run(
+                ["git", "rev-parse", "--is-inside-work-tree"],
+                cwd=self.root, capture_output=True, text=True,
+            )
+        except Exception:
+            return None  # git binary unavailable
+        if probe.returncode != 0:
+            return None  # not a repo
+
+        def _head() -> str:
+            head = subprocess.run(
                 ["git", "rev-parse", "HEAD"], cwd=self.root,
                 capture_output=True, text=True, check=True,
             )
-            return result.stdout.strip()
-        except Exception:
-            # If git isn't available, the doc merge still stands; signal no commit.
-            return None
+            return head.stdout.strip()
+
+        add = subprocess.run(["git", "add", "-A"], cwd=self.root,
+                             capture_output=True, text=True)
+        if add.returncode != 0:
+            raise VersionManagerError(
+                f"git add 失败: {(add.stderr or add.stdout).strip()}",
+                code="GIT_COMMIT_FAILED",
+            )
+        commit = subprocess.run(["git", "commit", "-m", message], cwd=self.root,
+                                capture_output=True, text=True)
+        if commit.returncode != 0:
+            output = (commit.stdout or "") + (commit.stderr or "")
+            if "nothing to commit" in output or "nothing added to commit" in output:
+                return _head()
+            raise VersionManagerError(
+                f"git commit 失败: {output.strip()[-500:]}",
+                code="GIT_COMMIT_FAILED",
+            )
+        return _head()
 
     def _snapshot_baseline_hashes(self) -> dict[str, str]:
         """Return {chunk_id: hash} for every chunk currently in baseline."""

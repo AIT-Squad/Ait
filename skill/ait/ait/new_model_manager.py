@@ -639,7 +639,7 @@ class NewModelManager:
         action: str,
         overrides: str | None,
     ) -> DocumentCreateResult:
-        file = file or f"{kind}/{root_chunk_id}"
+        file = _validated_index_path(file, kind) if file else f"{kind}/{root_chunk_id}"
         parsed = parse_text(content, file=file)
         root = next((chunk for chunk in parsed.chunks if chunk.id == root_chunk_id), None)
         if root is None:
@@ -678,6 +678,36 @@ class NewModelManager:
             chunks=chunk_ids,
             path=str(path.relative_to(self.root)).replace("\\", "/"),
         )
+
+
+def _validated_index_path(file: str, kind: str) -> str:
+    """Sanitize a --file index path (audit R3-02): must stay inside its own
+    kind directory, no escape segments, no .md suffix. Rejection = zero write.
+    """
+    norm = (file or "").strip().replace("\\", "/")
+    segments = norm.split("/")
+    bad = (
+        not norm
+        or norm.endswith(".md")
+        or norm.startswith("/")
+        or norm.startswith(".")
+        or re.match(r"^[A-Za-z]:", norm) is not None
+        or ".." in segments
+        or "" in segments
+    )
+    if bad:
+        raise _validation_error(
+            "INVALID_FILE_NAME",
+            f"--file only accepts a relative index path under {kind}/ (no .md): {file!r}",
+        )
+    if "/" not in norm:
+        norm = f"{kind}/{norm}"
+    if not norm.startswith(f"{kind}/"):
+        raise _validation_error(
+            "INVALID_FILE_NAME",
+            f"--file must stay under {kind}/ (cross-kind rejected): {file!r}",
+        )
+    return norm
 
 
 def _target_file(text: str) -> str | None:

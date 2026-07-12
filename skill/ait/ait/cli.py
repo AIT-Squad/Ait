@@ -117,7 +117,37 @@ def _root(ctx: click.Context) -> Path:
     return ctx.obj["root"]
 
 
-@click.group(help="AIT — AI-assisted document versioning.")
+class JsonGroup(click.Group):
+    """click Group whose usage errors keep the single-JSON stdout contract.
+
+    Unknown command / missing argument / bad Choice → {"ok":false,
+    code:"USAGE_ERROR"} + exit 2 (audit R3-05) instead of bare usage text.
+    --help / normal exits are unchanged.
+    """
+
+    def main(self, *args, **kwargs):  # noqa: D102 — click entry override
+        kwargs.setdefault("standalone_mode", False)
+        try:
+            return super().main(*args, **kwargs)
+        except click.exceptions.Exit as exc:
+            sys.exit(exc.exit_code)
+        except click.UsageError as exc:
+            click.echo(json.dumps(
+                {"ok": False, "error": exc.format_message(), "code": "USAGE_ERROR"},
+                ensure_ascii=False,
+            ))
+            sys.exit(2)
+        except click.ClickException as exc:
+            click.echo(json.dumps(
+                {"ok": False, "error": exc.format_message(), "code": "CLI_ERROR"},
+                ensure_ascii=False,
+            ))
+            sys.exit(exc.exit_code)
+        except click.Abort:
+            sys.exit(1)
+
+
+@click.group(cls=JsonGroup, help="AIT — AI-assisted document versioning.")
 @click.version_option(__version__, prog_name="ait")
 @click.pass_context
 def main(ctx: click.Context) -> None:
