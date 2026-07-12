@@ -76,6 +76,7 @@ def test_confirm_is_pure_gate_repeatable_zero_write(tmp_path: Path, monkeypatch)
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
     # 只建 FSD+TDD,缺 PRD → 门禁应报违例
+    runner.invoke(main, ["version", "create", "v9.0"], catch_exceptions=False)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
     NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
@@ -118,6 +119,7 @@ def test_merge_blocked_by_gate_before_any_write(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(VersionManager, "_git_commit", lambda self, m: "cafe123")
     runner = CliRunner()
     # 缺 PRD → 门禁前置应拦 merge
+    runner.invoke(main, ["version", "create", "v9.0"], catch_exceptions=False)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
     NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")

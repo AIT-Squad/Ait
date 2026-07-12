@@ -1,0 +1,22 @@
+id: chg-331
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:context
+author: system
+date: '2026-07-12T13:32:41.207823+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:context -->
+
+  ## context 域
+
+  ```yaml
+
+  depends_on: [doc_model, indexing, specgraph, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait context`：L1+L2 上下文装配（prd-to-impl / impl-edit 场景）。'

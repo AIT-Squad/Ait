@@ -1,0 +1,22 @@
+id: chg-334
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:search
+author: system
+date: '2026-07-12T13:32:41.222093+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:search -->
+
+  ## search 域
+
+  ```yaml
+
+  depends_on: [doc_model, indexing]
+
+  ```
+
+  ### 功能描述
+
+  `ait search`：跨 chunk 全文检索。'

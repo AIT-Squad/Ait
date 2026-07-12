@@ -1,0 +1,22 @@
+id: chg-326
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:impl
+author: system
+date: '2026-07-12T13:32:41.185301+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:impl -->
+
+  ## impl 域
+
+  ```yaml
+
+  depends_on: [doc_model, foundation, indexing, lint, specgraph, state, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait impl` create/commit/lock/inherit：1 PRD→N impl、@extract、@ref implements、pre-merge 校验。'

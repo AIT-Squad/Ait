@@ -958,6 +958,35 @@ class VersionManager:
 
         base = load_specgraph(self.root, "baseline")
         vg = load_specgraph(self.root, version)
+
+        # v2.26 declaration reconcile: an FSD root touched in this version owns
+        # its sibling depends_on scope — replace baseline's scope wholesale so
+        # removed declarations actually disappear (same rule as combined_view).
+        def _chunk_of(graph, uri: str) -> str:
+            spec = graph.specs.get(uri)
+            if spec is not None:
+                return spec.chunk_id
+            from .specgraph import parse_uri
+
+            try:
+                return parse_uri(uri)[2]
+            except ValueError:
+                return uri
+
+        owned_roots = {
+            spec.chunk_id for spec in vg.specs.values()
+            if spec.type == "fsd" and ":" not in spec.chunk_id
+        }
+        if owned_roots:
+            base.edges = [
+                e for e in base.edges
+                if not (
+                    e.rel == "depends_on"
+                    and ":" in _chunk_of(base, e.src)
+                    and _chunk_of(base, e.src).split(":", 1)[0] in owned_roots
+                )
+            ]
+
         for spec in vg.specs.values():
             base.add_spec(spec)
         for edge in vg.edges:

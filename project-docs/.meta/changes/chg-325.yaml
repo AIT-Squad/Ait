@@ -1,0 +1,22 @@
+id: chg-325
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:prd
+author: system
+date: '2026-07-12T13:32:41.181259+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:prd -->
+
+  ## prd 域
+
+  ```yaml
+
+  depends_on: [doc_model, foundation, indexing, lint, specgraph, state, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait prdv1` create/save-draft/confirm/commit/show：旧模型 PRD 四段结构、req 草稿、确认锁定。'

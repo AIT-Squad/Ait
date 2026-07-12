@@ -1,0 +1,43 @@
+version: v2.26
+created_at: '2026-07-12T11:15:16.622414+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-311
+- chg-312
+- chg-313
+- chg-314
+- chg-315
+- chg-316
+- chg-317
+- chg-318
+- chg-319
+- chg-320
+- chg-321
+- chg-322
+- chg-323
+- chg-324
+- chg-325
+- chg-326
+- chg-327
+- chg-328
+- chg-329
+- chg-330
+- chg-331
+- chg-332
+- chg-333
+- chg-334
+- chg-335
+- chg-336
+- chg-337
+- chg-338
+- chg-339
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false

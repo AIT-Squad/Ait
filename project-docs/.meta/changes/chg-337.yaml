@@ -1,0 +1,22 @@
+id: chg-337
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:doc_model
+author: system
+date: '2026-07-12T13:32:41.239116+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:doc_model -->
+
+  ## doc-model 基础设施
+
+  ```yaml
+
+  depends_on: [foundation]
+
+  ```
+
+  ### 功能描述
+
+  chunk_parser（@id/@ref/@extract 解析）+ schemas（pydantic 数据模型）；被所有域依赖。'

@@ -537,7 +537,7 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
 def _preserve_explicit_edges(previous: SpecGraph, current: SpecGraph) -> None:
     """Carry explicit graph edges across scan-based sync."""
     for edge in previous.edges:
-        if edge.metadata.get("source") not in {"manual", "new-model-cli"}:
+        if edge.metadata.get("source") not in {"manual", "new-model-cli", "fsd-declaration"}:
             continue
         current.add_edge(edge.src, edge.dst, edge.rel, weight=edge.weight, metadata=dict(edge.metadata))
 
@@ -598,8 +598,24 @@ def combined_view(project_root: Path, version: str | None = None) -> CombinedVie
         except ValueError:
             return None
 
+    # v2.26 owned-scope overlay: when an FSD root's file was touched in the
+    # version (its root appears in the version graph), its sibling depends_on
+    # edges come from the version graph ONLY — otherwise a declaration removed
+    # in-version would resurrect from baseline through the union.
+    version_owned_roots: set[str] = set()
+    if len(graphs) > 1:
+        for spec in graphs[1].specs.values():
+            if spec.type == "fsd" and ":" not in spec.chunk_id:
+                version_owned_roots.add(spec.chunk_id)
+
+    def _suppressed(edge_src_chunk: str, rel: str, from_baseline: bool) -> bool:
+        if not from_baseline or rel != "depends_on" or ":" not in edge_src_chunk:
+            return False
+        return edge_src_chunk.split(":", 1)[0] in version_owned_roots
+
     seen_edges: set[tuple[str, str, str]] = set()
-    for graph in graphs:
+    for graph_index, graph in enumerate(graphs):
+        from_baseline = graph_index == 0 and len(graphs) > 1
         for edge in graph.edges:
             src = _endpoint(edge.src)
             dst = _endpoint(edge.dst)
@@ -607,6 +623,8 @@ def combined_view(project_root: Path, version: str | None = None) -> CombinedVie
                 continue
             if src not in view.nodes or dst not in view.nodes:
                 continue  # dangling edge — write-side validators own this
+            if _suppressed(src, edge.rel, from_baseline):
+                continue
             key = (src, dst, edge.rel)
             if key in seen_edges:
                 continue

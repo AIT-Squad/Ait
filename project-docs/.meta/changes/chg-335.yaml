@@ -1,0 +1,22 @@
+id: chg-335
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:indexing
+author: system
+date: '2026-07-12T13:32:41.227839+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:indexing -->
+
+  ## indexing 域
+
+  ```yaml
+
+  depends_on: [doc_model, foundation, task]
+
+  ```
+
+  ### 功能描述
+
+  `ait reindex/baseline-summary/migrate-block-to-chunk`：从文件重建 chunks-index、baseline 摘要、一次性数据迁移。'

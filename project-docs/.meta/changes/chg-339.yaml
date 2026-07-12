@@ -1,0 +1,16 @@
+id: chg-339
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:skill
+author: system
+date: '2026-07-12T13:32:41.249212+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:skill -->
+
+  ## skill 层
+
+  ### 功能描述
+
+  SKILL.md 主清单（路由/全局契约/命令速查/Pipeline）+ 6 个 sub-skills；不是 .py 代码，是 skill 基础设施（生成目标，可作 target_file）。'

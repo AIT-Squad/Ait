@@ -1,0 +1,22 @@
+id: chg-329
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:new_model
+author: system
+date: '2026-07-12T13:32:41.200204+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:new_model -->
+
+  ## new-model 域
+
+  ```yaml
+
+  depends_on: [doc_model, indexing, lint, specgraph, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait prd/fsd/tdd/codegen`：新模型文档创建、显式建边、图校验、target_file 唯一性、codegen 上下文组装。'

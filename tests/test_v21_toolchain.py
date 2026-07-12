@@ -66,7 +66,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
     )
     link = runner.invoke(
         main,
-        ["prd", "link", "[PRD]-shop", "[FSD]-shop", "--rel", "decomposes", "--version", "v9.0"],
+        ["fsd", "decompose", "[PRD]-shop", "[FSD]-shop", "--version", "v9.0"],
         catch_exceptions=False,
     )
     assert link.exit_code == 0, link.output

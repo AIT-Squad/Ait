@@ -1,0 +1,22 @@
+id: chg-332
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:state
+author: system
+date: '2026-07-12T13:32:41.212452+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:state -->
+
+  ## state 域
+
+  ```yaml
+
+  depends_on: [foundation, indexing, specgraph, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait state`：渲染版本进度面板（三态分布、impl 覆盖、task 状态），可保存 state.md。'

@@ -1,0 +1,59 @@
+id: chg-319
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph
+author: system
+date: '2026-07-12T13:32:41.128639+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-specgraph -->
+
+  ## specgraph FSD
+
+
+  ### 功能范围
+
+
+  spec 关系图（块间关系视角，替代 links-index）：spec/edge 模型、URI 体系、从 @ref 重建 + 保留显式边、依赖/影响/成环查询、dot 导出、baseline+per-version 分文件与合并；**组合图视图（chunk_id
+  世界）**——跨 baseline∪版本按 chunk 身份统一查询，供 codegen/deps/impact 消费。提供 deps/impact 查询命令。
+
+
+  ### 交互契约
+
+
+  - 图：`load_specgraph/combined_specgraph(baseline+version)/sync_specgraph/resolve_chunk_uri`。
+
+  - 查询：`SpecGraph.query/dependencies/implementations/impacted/detect_cycle/implements_of`。
+
+  - **组合视图**：`combined_view(root,version)` → `CombinedView`——chunk 身份=chunk_id，版本覆盖 baseline（modify=同节点换内容来源），边端点坍缩为 chunk_id
+  并去重；`edges_from/edges_to/impacted/detect_cycle`。被 modify 进版本的 chunk 在视图中保有 baseline 期建立的全部关系（消除 URI 二象性）。
+
+  - 合并：`dry_run_merge/merge_into_baseline`；`add_edge`。
+
+  - 命令：`query_deps`(deps)、`analyze_impact`(impact)。'
+new_content: '<!-- @id:[FSD]-ait-specgraph -->
+
+  ## specgraph FSD
+
+
+  ### 功能范围
+
+
+  spec 关系图（块间关系视角，替代 links-index）：spec/edge 模型、URI 体系、从 @ref 重建 + 保留显式边、依赖/影响/成环查询、dot 导出、baseline+per-version 分文件与合并；**组合图视图（chunk_id
+  世界）**——跨 baseline∪版本按 chunk 身份统一查询，供 codegen/deps/impact 消费。提供 deps/impact 查询命令。
+
+
+  ### 交互契约
+
+
+  - 图：`load_specgraph/combined_specgraph(baseline+version)/sync_specgraph/resolve_chunk_uri`。
+
+  - 查询：`SpecGraph.query/dependencies/implementations/impacted/detect_cycle/implements_of`。
+
+  - **组合视图**：`combined_view(root,version)` → `CombinedView`——chunk 身份=chunk_id，版本覆盖 baseline（modify=同节点换内容来源），边端点坍缩为 chunk_id
+  并去重；`edges_from/edges_to/impacted/detect_cycle`。被 modify 进版本的 chunk 在视图中保有 baseline 期建立的全部关系（消除 URI 二象性）；depends_on 边按 owned-scope
+  覆盖——版本内出现的 FSD 根，其兄弟依赖边以版本为准，声明删除立即生效。
+
+  - 合并：`dry_run_merge/merge_into_baseline`；`add_edge`。
+
+  - 命令：`query_deps`(deps)、`analyze_impact`(impact)。'

@@ -883,7 +883,8 @@ def fsd_create(
         )
         ok(_json_safe(result))
     except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+        fail(str(exc), code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED",
+             details=getattr(exc, "details", None))
 
 
 @fsd_group.command("decompose")
@@ -1159,21 +1160,9 @@ def prdv2_revert(ctx, version_opt: str | None) -> None:
         fail(str(exc), code=getattr(exc, "code", "REVERT_FAILED"))
 
 
-@prdv2_group.command("link")
-@click.argument("src_chunk_id")
-@click.argument("dst_chunk_id")
-@click.option("--rel", type=click.Choice(["decomposes", "details", "depends_on"]), required=True)
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def prdv2_link(ctx, src_chunk_id: str, dst_chunk_id: str, rel: str, version_opt: str | None) -> None:
-    mgr = NewModelManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-    try:
-        ok(_json_safe(mgr.add_edge(version, src_chunk_id, dst_chunk_id, rel)))
-    except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+# v2.26: `prd link` retired — the last link command. All three relations are
+# born with content creation: depends_on via fsd create's in-split yaml
+# declarations, decomposes via fsd decompose, details via tdd create --parent.
 
 
 @main.command("context")

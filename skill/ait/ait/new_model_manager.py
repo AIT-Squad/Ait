@@ -60,6 +60,10 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
+        # v2.26: sibling depends_on is declared inside split content (yaml
+        # block, like TDD's target_file). Validate BEFORE any write so a bad
+        # declaration leaves zero on disk.
+        declared = self._parse_depends_on_declarations(root_chunk_id, content)
         result = self._create_document(
             version,
             root_chunk_id,
@@ -69,12 +73,98 @@ class NewModelManager:
             action=action,
             overrides=overrides,
         )
+        # Reconcile AFTER _create_document's sync_specgraph (sync preserves old
+        # explicit edges; the reconcile owns this file's sibling-edge scope).
+        self._reconcile_sibling_depends_on(version, root_chunk_id, declared)
         # FSD layer entry: advance the phase machine off the PRD layer.
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
             meta.phase = "fsd-creating"
             self.versions.save_version_meta(meta)
         return result
+
+    def _parse_depends_on_declarations(
+        self, root_chunk_id: str, content: str
+    ) -> dict[str, list[str]]:
+        """Validate and resolve each split's declared sibling dependencies.
+
+        Shorthand names resolve against the same parent (``store`` →
+        ``{root}:store``); full ids must stay same-parent. Rejection happens
+        before any write.
+        """
+        parsed = parse_text(content, file=f"fsd/{root_chunk_id}")
+        prefix = f"{root_chunk_id}:"
+        split_ids = {c.id for c in parsed.chunks if c.id.startswith(prefix)}
+        declared: dict[str, list[str]] = {}
+        for chunk in parsed.chunks:
+            if not chunk.id.startswith(prefix):
+                continue
+            names = _split_depends_on(chunk.content)
+            if not names:
+                continue
+            resolved: list[str] = []
+            for name in names:
+                dep = name if ":" in name else f"{root_chunk_id}:{name}"
+                if ":" in name and _parent_chunk_id(dep) != root_chunk_id:
+                    raise _validation_error(
+                        "DEPENDS_ON_CROSS_LEVEL",
+                        f"{chunk.id} declares cross-parent dependency {dep}",
+                        chunk.id,
+                    )
+                if dep == chunk.id:
+                    raise _validation_error(
+                        "DEPENDS_ON_SELF",
+                        f"{chunk.id} declares a dependency on itself",
+                        chunk.id,
+                    )
+                if dep not in split_ids:
+                    raise _validation_error(
+                        "DEPENDS_ON_UNKNOWN_SIBLING",
+                        f"{chunk.id} declares unknown sibling {dep}",
+                        chunk.id,
+                    )
+                if dep not in resolved:
+                    resolved.append(dep)
+            declared[chunk.id] = resolved
+        return declared
+
+    def _reconcile_sibling_depends_on(
+        self, version: str, root_chunk_id: str, declared: dict[str, list[str]]
+    ) -> None:
+        """Owned-scope reconcile: this file's sibling depends_on edges become a
+        pure function of its declarations (same-parent rule makes every legal
+        depends_on edge intra-file). Removes stale edges, adds declared ones.
+        """
+        graph = load_specgraph(self.root, version)
+        prefix = f"{root_chunk_id}:"
+
+        def _endpoint_chunk_id(uri: str) -> str:
+            spec = graph.specs.get(uri)
+            if spec is not None:
+                return spec.chunk_id
+            try:
+                from .specgraph import parse_uri
+
+                return parse_uri(uri)[2]
+            except ValueError:
+                return uri
+
+        graph.edges = [
+            e for e in graph.edges
+            if not (e.rel == "depends_on" and _endpoint_chunk_id(e.src).startswith(prefix))
+        ]
+        uri_by_chunk = {spec.chunk_id: spec.uri for spec in graph.specs.values()}
+        from .specgraph import make_uri
+
+        for src, dsts in declared.items():
+            src_uri = uri_by_chunk.get(src) or make_uri(src, version)
+            for dst in dsts:
+                dst_uri = uri_by_chunk.get(dst) or make_uri(dst, version)
+                graph.add_edge(
+                    src_uri, dst_uri, "depends_on",
+                    metadata={"source": "fsd-declaration"},
+                )
+        graph.save(specgraph_path(self.root, version))
 
     def decompose_fsd(
         self,
@@ -559,7 +649,17 @@ class NewModelManager:
                 root_chunk_id,
             )
 
-        self.versions.ensure(version)
+        # v2.26 version-entry closure (R3-04 complete): only prd is the entry
+        # layer — fsd/tdd require an existing version, no silent ghost create.
+        if kind in ("fsd", "tdd"):
+            if not self.versions.version_meta_path(version).exists():
+                raise _validation_error(
+                    "VERSION_NOT_FOUND",
+                    f"version {version} does not exist — run `version create` or `prd create` first",
+                    root_chunk_id,
+                )
+        else:
+            self.versions.ensure(version)
         path = self.versions.write_version_file(version, file, content)
         final_parsed = parse_file(path, self.versions.versions_dir / version)
         chunk_ids: list[str] = []
@@ -583,6 +683,23 @@ class NewModelManager:
 def _target_file(text: str) -> str | None:
     match = TARGET_FILE_RE.search(text)
     return match.group(1).strip() if match else None
+
+
+_YAML_FENCE_RE = re.compile(r"```yaml\s*\n(.*?)```", re.DOTALL)
+
+
+def _split_depends_on(chunk_content: str) -> list[str]:
+    """Declared sibling dependencies from a split chunk's yaml fence block."""
+    import yaml
+
+    for block in _YAML_FENCE_RE.findall(chunk_content):
+        try:
+            loaded = yaml.safe_load(block)
+        except Exception:
+            continue
+        if isinstance(loaded, dict) and isinstance(loaded.get("depends_on"), list):
+            return [str(item) for item in loaded["depends_on"]]
+    return []
 
 
 def _parent_chunk_id(chunk_id: str) -> str:

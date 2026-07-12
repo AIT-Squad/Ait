@@ -1,0 +1,22 @@
+id: chg-330
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:specgraph
+author: system
+date: '2026-07-12T13:32:41.204575+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:specgraph -->
+
+  ## specgraph 域
+
+  ```yaml
+
+  depends_on: [doc_model, foundation, indexing, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait specgraph/deps/impact`：spec 关系图、edge 管理、依赖与影响查询、dot 导出、新模型图校验。'

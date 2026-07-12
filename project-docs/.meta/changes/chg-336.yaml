@@ -1,0 +1,22 @@
+id: chg-336
+version: v2.26
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:cli
+author: system
+date: '2026-07-12T13:32:41.234116+00:00'
+message: 'depends_on declarations: born with fsd create content, owned-scope reconcile; prd link retired; ghost version closure'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:cli -->
+
+  ## cli 分发器
+
+  ```yaml
+
+  depends_on: [context, foundation, impl, indexing, init, lint, new_model, prd, search, specgraph, state, task, version]
+
+  ```
+
+  ### 功能描述
+
+  `ait` 入口：click 命令路由、统一 JSON 输出契约、项目根解析；只分发不含业务逻辑。'
