@@ -60,14 +60,16 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
-        # v2.26: sibling depends_on is declared inside split content (yaml
-        # block, like TDD's target_file). Validate BEFORE any write so a bad
-        # declaration leaves zero on disk.
+        # v2.26/v2.31: sibling depends_on is declared in a transient yaml block
+        # inside split content — an input instruction, NOT persisted doc content.
+        # Validate BEFORE any write, then STRIP the block so the document body
+        # carries zero relation declarations (specgraph is the sole store).
         declared = self._parse_depends_on_declarations(root_chunk_id, content)
+        clean_content = _strip_depends_on_blocks(content)
         result = self._create_document(
             version,
             root_chunk_id,
-            content,
+            clean_content,
             kind="fsd",
             file=file,
             action=action,
@@ -716,6 +718,8 @@ def _target_file(text: str) -> str | None:
 
 
 _YAML_FENCE_RE = re.compile(r"```yaml\s*\n(.*?)```", re.DOTALL)
+# Full-fence matcher (incl. delimiters + optional trailing blank line) for stripping.
+_YAML_FENCE_FULL_RE = re.compile(r"```yaml\s*\n(?P<body>.*?)```[ \t]*\n?", re.DOTALL)
 
 
 def _split_depends_on(chunk_content: str) -> list[str]:
@@ -730,6 +734,27 @@ def _split_depends_on(chunk_content: str) -> list[str]:
         if isinstance(loaded, dict) and isinstance(loaded.get("depends_on"), list):
             return [str(item) for item in loaded["depends_on"]]
     return []
+
+
+def _strip_depends_on_blocks(content: str) -> str:
+    """Remove transient ``depends_on:`` yaml fence blocks from FSD markdown.
+
+    The declaration is an input instruction consumed to build specgraph edges,
+    never persisted doc content (a chunk↔chunk relation belongs only in
+    specgraph). Non-depends_on yaml fences are left untouched.
+    """
+    import yaml
+
+    def _drop(match: "re.Match[str]") -> str:
+        try:
+            loaded = yaml.safe_load(match.group("body"))
+        except Exception:
+            return match.group(0)
+        if isinstance(loaded, dict) and "depends_on" in loaded:
+            return ""
+        return match.group(0)
+
+    return _YAML_FENCE_FULL_RE.sub(_drop, content)
 
 
 def _parent_chunk_id(chunk_id: str) -> str:

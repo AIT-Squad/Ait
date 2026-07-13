@@ -40,13 +40,15 @@ PRD 递归分解为 FSD 功能树；叶子 FSD 的内部 split `details` 到 TDD
 |------|----------|--------|
 | `decomposes` | PRD 根 → 根 FSD 根；FSD 内部 split → 子 FSD 根 | `fsd decompose <parent> <child> [--content]`（拆分即建边，父侧门禁前置） |
 | `details` | 叶 FSD 内部 split → TDD 根 | `tdd create <[TDD]-id> --parent <fsd_split>`（创建即建边） |
-| `depends_on` | 同一父 FSD 下的两个**兄弟 internal split** | **fsd create 的 split 内 yaml 声明块**（见 §5） |
+| `depends_on` | 同一父 FSD 下的两个**兄弟 internal split** | **fsd create 时以临时 yaml 块申报**，建边后从正文剥离（见 §5） |
 
 **结构规则**：一个 FSD 节点**不得混用** FSD 子（decomposes）与 TDD 子（details）——要么是分解节点、要么是叶子（`FSD_MIXED_CHILDREN`）。
 
-## 5. depends_on 声明（依赖随内容出生）
+> **文档正文零关系声明（核心）**：PRD/FSD/TDD 的 markdown 正文**不承载任何 chunk↔chunk 关系**。三种关系（decomposes/details/depends_on）只作为 SpecGraph 显式边存在，一律经 `ait deps`/`specgraph` 查询。命令产生边（decompose/tdd --parent）或临时申报（depends_on）——申报块用完即从正文剥离。`target_file` 是制品指向（chunk→文件属性），非 chunk 间关系，故保留在 TDD 正文。
 
-兄弟依赖在 split chunk 正文的 yaml 围栏块里声明（仿 target_file 先例）：
+## 5. depends_on 申报（临时输入，只入 SpecGraph）
+
+兄弟依赖在 `fsd create` 传入内容的 split chunk 正文里，以 `depends_on:` yaml 块**申报**——这是**用完即走的建边输入指令**，不是持久文档内容：
 
 ```markdown
 <!-- @id:[FSD]-app:feat -->
@@ -56,10 +58,10 @@ depends_on: [store, config]
 ```
 ```
 
+- `fsd create` 解析该块 → 建 SpecGraph 边 → **从写入磁盘的 markdown 中剥离**。持久 FSD 正文不含 `depends_on`。
 - **简写按同父解析**（`store` → `[FSD]-app:store`）；完整 id 必须同父（跨父报 `DEPENDS_ON_CROSS_LEVEL`）。
-- 声明指向文件内不存在的兄弟 → `DEPENDS_ON_UNKNOWN_SIBLING`；指向自己 → `DEPENDS_ON_SELF`。拒绝＝零落盘。
-- **owned-scope 对账**：同父约束使全部合法依赖边都是"本文件兄弟边"——文件＝依赖边的所有权边界。`fsd create`（add/modify）后按声明全量对账：**改/删声明即改/删边**，无需独立命令；specgraph 仍是唯一权威存储。
-- 文字性"依赖引用"描述**不建边**，只有声明块才建边。
+- 申报指向文件内不存在的兄弟 → `DEPENDS_ON_UNKNOWN_SIBLING`；指向自己 → `DEPENDS_ON_SELF`。拒绝＝零落盘。
+- **owned-scope 对账**：同父约束使全部合法依赖边都是"本文件兄弟边"——文件＝依赖边的所有权边界。`fsd create`（add/modify）后按申报全量对账：**改/删申报即改/删边**（modify 时须携带完整 depends_on 申报，同 modify=整块全替换的规则）。SpecGraph 是唯一权威存储。
 
 ## 6. target_file 规则
 

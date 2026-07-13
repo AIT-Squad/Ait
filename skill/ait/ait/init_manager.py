@@ -277,14 +277,14 @@ class InitManager:
         prd_id = f"[PRD]-{project_name}"
         fsd_id = f"[FSD]-{project_name}"
 
-        # 1. PRD root — decomposes the root FSD (edge emitted from PRD root @ref).
+        # 1. PRD root — relation-free body (v2.31: docs carry no relations; the
+        #    PRD→FSD decomposes edge is built directly in specgraph in step 4).
         prd_path = docs / "prd" / f"{prd_id}.md"
         if not prd_path.exists():
             prd_path.parent.mkdir(parents=True, exist_ok=True)
             atomic_write_text(
                 prd_path,
                 f"<!-- @id:{prd_id} -->\n"
-                f"<!-- @ref:fsd/{fsd_id}#{fsd_id} rel:decomposes -->\n"
                 f"## {project_name} PRD\n\n"
                 f"<!-- @summary: {project_name} 根 PRD：描述需求意图（why/what），decomposes 根 FSD。 -->\n\n"
                 "### 概述\n\n<!-- 项目需求概述，init 后由 ait prdv2 增量补充。 -->\n",
@@ -316,11 +316,22 @@ class InitManager:
             )
             created.append(self._rel(tdd_readme))
 
-        # 4. Rebuild baseline index + specgraph (decomposes edge from @ref).
+        # 4. Rebuild baseline index + specgraph, then build the PRD→FSD
+        #    decomposes edge as an explicit specgraph edge (v2.31: no @ref in
+        #    doc body). source="new-model-cli" so _preserve_explicit_edges keeps
+        #    it across every reindex, exactly like fsd decompose edges.
         baseline, _links = self.indexes.rebuild_baseline()
-        from .specgraph import sync_specgraph
+        from .specgraph import load_specgraph, specgraph_path, sync_specgraph
 
-        graph = sync_specgraph(self.root)
+        sync_specgraph(self.root)
+        base = load_specgraph(self.root, "baseline")
+        uri_by_chunk = {spec.chunk_id: uri for uri, spec in base.specs.items()}
+        prd_uri = uri_by_chunk.get(prd_id)
+        fsd_uri = uri_by_chunk.get(fsd_id)
+        if prd_uri and fsd_uri:
+            base.add_edge(prd_uri, fsd_uri, "decomposes", metadata={"source": "new-model-cli"})
+            base.save(specgraph_path(self.root, "baseline"))
+        graph = base
 
         skill_dir, cli_path = self._mark_initialized()
         wrapper_path = self._write_project_wrapper(cli_path)

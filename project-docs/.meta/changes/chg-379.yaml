@@ -1,0 +1,43 @@
+id: chg-379
+version: v2.31
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait
+author: system
+date: '2026-07-13T11:59:31.053449+00:00'
+message: 'docs carry zero relations: strip depends_on blocks from FSD bodies + PRD @ref to explicit edge; specgraph is sole
+  store'
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait -->
+
+  ## ait 功能分解根
+
+
+  ### 功能范围
+
+
+  AIT 的功能按 CLI 命令域分解为子 FSD。命令域：init/prd/impl/task/version/new-model/specgraph/context/state/lint/search/indexing；外加分发器 cli、skill
+  层域与两个基础设施域 doc-model、foundation。每个域 decomposes 一个子 FSD，子 FSD details 到 TDD，每个 TDD 唯一映射一个 .py 文件。
+
+
+  ### 功能依赖（域间，详见 specgraph depends_on）
+
+
+  按真实 import 导出的域间依赖（同父 split 层的 depends_on 边，约 69 条）：cli 依赖全部命令域；prd→（doc_model/indexing/version/lint/foundation）；impl→prd
+  等；version/new_model/specgraph/init/context/state/search/indexing 依赖 doc_model/foundation 等基础设施。foundation 与 doc_model 是叶依赖（被依赖、不依赖业务域）。'
+new_content: '<!-- @id:[FSD]-ait -->
+
+  ## ait 功能分解根
+
+
+  ### 功能范围
+
+
+  AIT 的功能按 CLI 命令域分解为子 FSD。命令域：init/prd/impl/task/version/new-model/specgraph/context/state/lint/search/indexing；外加分发器 cli、skill
+  层域与两个基础设施域 doc-model、foundation。每个域 decomposes 一个子 FSD，子 FSD details 到 TDD，每个 TDD 唯一映射一个 .py 文件。
+
+
+  ### 功能依赖（域间，详见 specgraph depends_on）
+
+
+  按真实 import 导出的域间依赖（同父 split 层的 depends_on 边，约 69 条）：cli 依赖全部命令域；prd→（doc_model/indexing/version/lint/foundation）；impl→prd
+  等；version/new_model/specgraph/init/context/state/search/indexing 依赖 doc_model/foundation 等基础设施。foundation 与 doc_model 是叶依赖（被依赖、不依赖业务域）。'

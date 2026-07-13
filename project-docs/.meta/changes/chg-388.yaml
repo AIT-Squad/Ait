@@ -1,0 +1,17 @@
+id: chg-388
+version: v2.31
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:state
+author: system
+date: '2026-07-13T11:59:31.117288+00:00'
+message: 'docs carry zero relations: strip depends_on blocks from FSD bodies + PRD @ref to explicit edge; specgraph is sole
+  store'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:state -->
+
+  ## state 域
+
+  ### 功能描述
+
+  `ait state`：渲染版本进度面板（三态分布、impl 覆盖、task 状态），可保存 state.md。'

@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-13T07:02:39.629105+00:00'
+updated: '2026-07-13T11:59:31.423863+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -249,9 +249,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_chunk_parser
   title: ref_chunk_parser
   type: fsd
@@ -260,9 +257,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_chunk_system
   title: ref_chunk_system
   type: fsd
@@ -271,9 +265,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_index_system
   title: ref_index_system
   type: fsd
@@ -282,9 +273,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_merge_engine
   title: ref_merge_engine
   type: fsd
@@ -293,9 +281,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_new_model_format
   title: ref_new_model_format
   type: fsd
@@ -304,9 +289,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_overview
   title: ref_overview
   type: fsd
@@ -315,9 +297,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:ref_version_manager
   title: ref_version_manager
   type: fsd
@@ -326,9 +305,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:skill_manifest
   title: skill_manifest
   type: fsd
@@ -337,9 +313,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_discuss
   title: subskill_ait_discuss
   type: fsd
@@ -348,9 +321,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_impl_discuss
   title: subskill_ait_impl_discuss
   type: fsd
@@ -359,9 +329,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_init_guide
   title: subskill_ait_init_guide
   type: fsd
@@ -370,9 +337,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_resume
   title: subskill_ait_resume
   type: fsd
@@ -381,9 +345,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_state
   title: subskill_ait_state
   type: fsd
@@ -392,9 +353,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:subskill_ait_task_execute
   title: subskill_ait_task_execute
   type: fsd
@@ -403,9 +361,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_fsd
   title: template_fsd
   type: fsd
@@ -414,9 +369,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_prd
   title: template_prd
   type: fsd
@@ -425,9 +377,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-skill:template_tdd
   title: template_tdd
   type: fsd
@@ -436,9 +385,6 @@ specs:
   file: fsd/[FSD]-ait-skill
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph
   title: specgraph FSD
   type: fsd
@@ -799,9 +745,6 @@ specs:
   file: tdd/[TDD]-ref_chunk_parser
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_chunk_system
   title: ref_chunk_system TDD
   type: tdd
@@ -810,9 +753,6 @@ specs:
   file: tdd/[TDD]-ref_chunk_system
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_index_system
   title: ref_index_system TDD
   type: tdd
@@ -821,9 +761,6 @@ specs:
   file: tdd/[TDD]-ref_index_system
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_merge_engine
   title: ref_merge_engine TDD
   type: tdd
@@ -832,9 +769,6 @@ specs:
   file: tdd/[TDD]-ref_merge_engine
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_new_model_format
   title: ref_new_model_format TDD
   type: tdd
@@ -851,9 +785,6 @@ specs:
   file: tdd/[TDD]-ref_overview
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-ref_version_manager
   title: ref_version_manager TDD
   type: tdd
@@ -862,9 +793,6 @@ specs:
   file: tdd/[TDD]-ref_version_manager
   metadata:
     source: baseline
-    state: committed
-    action: add
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-root
   title: root TDD
   type: tdd

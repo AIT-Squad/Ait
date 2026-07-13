@@ -79,3 +79,18 @@ def test_bootstrap_failed_when_roots_missing(tmp_path: Path, monkeypatch):
     with pytest.raises(InitManagerError) as exc:
         mgr.run(new_model=True, project_name="proj")
     assert exc.value.code == "BOOTSTRAP_FAILED"
+
+
+def test_new_model_bootstrap_relation_free_prd_body(tmp_path: Path):
+    """v2.31: PRD 正文不含 @ref,decomposes 边在 specgraph(source=new-model-cli)。"""
+    root = _fresh(tmp_path)
+    InitManager(root).run(new_model=True, project_name="proj")
+    prd_body = (root / "docs" / "prd" / "[PRD]-proj.md").read_text(encoding="utf-8")
+    assert "@ref" not in prd_body, "PRD 正文不得承载关系声明"
+
+    from ait.specgraph import load_specgraph
+    g = load_specgraph(root)
+    def cid(uri):
+        s = g.specs.get(uri); return s.chunk_id if s else uri
+    dec = {(cid(e.src), cid(e.dst)) for e in g.edges if e.rel == "decomposes"}
+    assert ("[PRD]-proj", "[FSD]-proj") in dec, "decomposes 边应在 specgraph"

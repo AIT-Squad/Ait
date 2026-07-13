@@ -1,0 +1,19 @@
+id: chg-397
+version: v2.31
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_manager
+author: system
+date: '2026-07-13T11:59:31.212855+00:00'
+message: 'docs carry zero relations: strip depends_on blocks from FSD bodies + PRD @ref to explicit edge; specgraph is sole
+  store'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_manager -->
+
+  ## new_model_manager
+
+  ### 功能描述
+
+  NewModelManager：create_prd/fsd/tdd（_create_document：解析→ensure 版本→write_version_file→注册 chunk→sync_specgraph；create_tdd 写前做归一化
+  target_file 唯一属主门禁；create_prd 置阶段机起点）、confirm_prd_layer/revert_prd_layer（PRD 层冻结-返工成对）、next_version_name（自动开版本）、add_edge（写前
+  check_edge_write 局部门禁，拒绝＝零落盘可重试）、prepare_codegen（组合视图上溯+依赖+target_file，无版本回退 baseline）、collect_tdd_target_files。详见 [TDD]-new_model_manager。'

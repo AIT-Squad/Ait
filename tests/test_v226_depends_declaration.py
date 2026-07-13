@@ -214,3 +214,35 @@ def test_fsd_tdd_create_ghost_version_rejected(tmp_path: Path, monkeypatch):
     p = _run(runner, "tdd", "create", "[TDD]-app-x", "--version", "v9.9typo",
              "--content", "<!-- @id:[TDD]-app-x -->\n## T\n```yaml\ntarget_file: a.py\n```\n")
     assert p["ok"] is False and "VERSION_NOT_FOUND" in (p.get("code") or "")
+
+
+# ── v2.31: 文档正文零关系声明 ──────────────────────────────────────
+
+
+def test_declaration_stripped_from_persisted_doc(tmp_path: Path, monkeypatch):
+    """depends_on 块建 specgraph 边后从持久 markdown 剥离;边仍在。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap(runner)
+    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+
+    body = (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").read_text(encoding="utf-8")
+    assert "depends_on" not in body, "持久正文不得含 depends_on 块"
+    assert "## store" in body and "## feat" in body, "非声明内容保留"
+
+    view = combined_view(root, "v0.1")
+    deps = [(e.src, e.dst) for e in view.edges_from("[FSD]-app:feat", "depends_on")]
+    assert deps == [("[FSD]-app:feat", "[FSD]-app:store")], "specgraph 边仍在"
+
+
+def test_strip_preserves_non_depends_yaml(tmp_path: Path, monkeypatch):
+    """只剥离 depends_on 块,其它 yaml 块保留。"""
+    from ait.new_model_manager import _strip_depends_on_blocks
+    content = (
+        "<!-- @id:[FSD]-x:a -->\n## a\n```yaml\ndepends_on: [b]\n```\n\n"
+        "```yaml\nsome_other: keep_me\n```\n"
+    )
+    out = _strip_depends_on_blocks(content)
+    assert "depends_on" not in out
+    assert "some_other: keep_me" in out
