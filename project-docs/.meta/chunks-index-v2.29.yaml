@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.29
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-ref_new_model_format'
   file: tdd/[TDD]-ref_new_model_format

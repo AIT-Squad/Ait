@@ -1,6 +1,6 @@
 version: v2.29
 created_at: '2026-07-13T04:36:46.459241+00:00'
-merged_at: null
+merged_at: '2026-07-13T05:45:55.719913+00:00'
 owner: system
 changes:
 - chg-349
@@ -9,8 +9,8 @@ dependencies:
   based_on: null
   conflicts_with: []
   merge_after: []
-snapshot: null
-phase: empty
+snapshot: snapshots/v2.29/
+phase: merged
 title: null
 prd_locked: false
 impl_locked: false
