@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-13T02:34:00.940445+00:00'
+updated: '2026-07-13T02:35:00.134130+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -577,6 +577,9 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -641,6 +644,9 @@ specs:
   file: tdd/[TDD]-init_manager
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-io_utils
   title: io_utils TDD
   type: tdd
