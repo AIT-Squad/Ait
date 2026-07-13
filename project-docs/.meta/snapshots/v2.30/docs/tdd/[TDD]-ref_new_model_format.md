@@ -1,0 +1,18 @@
+<!-- @id:[TDD]-ref_new_model_format -->
+## ref_new_model_format TDD
+
+```yaml
+target_file: skill/ait/references/new-model-format.md
+```
+
+### 技术栈
+
+Markdown（随 ait skill 分发的格式资产）。
+
+### 文件职责
+
+新模型格式权威规范（单一来源，v2.29 对齐当前命令面）：ID([PRD]/[FSD]/[TDD] 前缀、内部 split <父>:<名>)；三关系(decomposes PRD/FSD→FSD、details 叶FSD→TDD、depends_on 同父兄弟)及合法性——**关系只随内容创建原子出生：depends_on 随 fsd create 的 split 内 yaml 声明块（`depends_on: [兄弟简写]`，owned-scope 对账：文件＝兄弟依赖边所有权边界，改/删声明即改/删边）、decomposes 随 fsd decompose（拆分即建边）、details 随 tdd create --parent（创建即建边）；无任何 link/depend 命令**；**六不变式**(PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、关联经 chunk、无孤儿、可追溯)与错误码映射；target_file 唯一（归一化判重）且可指任意生成目标；**生命周期**：version create（或 prd create 自动开版本）→ 各层 create ＋ confirm/revert 冻结-返工对（phase 阶段机）→ version commit（锁定）→ version confirm（纯门禁：六不变式＋制品验收，可重复零落盘）→ version merge（唯一原子落盘，失败字节级回退）→ version revert（整版退出）；codegen prepare 上下文契约（TDD＋上溯全链＋路径 depends_on）；**错误码全表**（格式/写时门禁/全局门禁/验收/合并/CLI 六组）；validate-new-model 保留为只读诊断。
+
+### 单元测试要求
+
+无单测；格式规则的强制由 new_model_validator / chunk_parser 代码侧承担，本文件是人读规范/模板。
