@@ -248,6 +248,21 @@ class InitManager:
             files={n: "present" for n in GLOBAL_FILES},
         )
 
+    def _validate_project_name(self, name: str) -> None:
+        """Reject names that can't form a valid new-model root chunk id.
+
+        ``[PRD]-{name}`` must land inside NEW_MODEL_CHUNK_ID (``[a-z0-9_]``
+        segments joined by ``-``). This is the R3-01 fix (uppercase/space/CJK
+        names silently yielded a chunkless "success") and simultaneously the
+        R3-03 fix (``/`` and ``..`` can't appear, so no path traversal).
+        """
+        if not re.fullmatch(r"[a-z0-9_]+(?:-[a-z0-9_]+)*", name or ""):
+            raise InitManagerError(
+                f"invalid --name {name!r}: only lowercase letters, digits, '_' "
+                "and '-' separators are allowed (must form a valid chunk id)",
+                code="INVALID_PROJECT_NAME",
+            )
+
     def _run_new_model_bootstrap(self, project_name: str) -> InitResult:
         """Bootstrap a PRD/FSD/TDD new-model baseline under ``docs/``.
 
@@ -256,6 +271,7 @@ class InitManager:
         (carried as an ``@ref`` in the PRD root so ``sync_specgraph`` materializes
         it). Idempotent: existing files are left untouched.
         """
+        self._validate_project_name(project_name)
         created: list[str] = []
         docs = self.root / "docs"
         prd_id = f"[PRD]-{project_name}"
@@ -310,6 +326,18 @@ class InitManager:
         wrapper_path = self._write_project_wrapper(cli_path)
         if wrapper_path and self._rel(wrapper_path) not in created:
             created.append(self._rel(wrapper_path))
+
+        # v2.28 defensive close (R3-01): the roots must actually be in baseline.
+        # Guards against a silent chunks==0 "success" if the ids ever fail to
+        # parse (the very failure mode an unvalidated name produced).
+        baseline_ids = {c.id for c in baseline.chunks}
+        missing = [cid for cid in (prd_id, fsd_id) if cid not in baseline_ids]
+        if missing:
+            raise InitManagerError(
+                f"new-model bootstrap produced no root chunks for {missing}; "
+                "baseline was not materialized",
+                code="BOOTSTRAP_FAILED",
+            )
 
         return InitResult(
             created_files=created,
