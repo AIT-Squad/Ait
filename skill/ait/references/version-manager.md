@@ -1,148 +1,48 @@
-# Version Manager 实现
+# Version Manager 参考（版本生命周期与门禁）
 
-<!-- @id:impl-version-manager-overview -->
-## 概述
+> 随 ait skill 分发的参考。实现在 `skill/ait/ait/version_manager.py`；命令面权威速查见 `SKILL.md`。
 
-`src/ait/version_manager.py` 实现版本生命周期、三阶段提交、和合并入口。
+## 1. 三态与锁定
 
-<!-- @ref:prd/index-system#prd-index-version rel:implements -->
-<!-- @ref:prd/overview#prd-overview-scope rel:implements -->
+chunk 在版本工作区经历 `working → staged → committed`：
 
-依赖：`index_manager` / `chunk_parser` / `hash_utils` / `validator` / `merge_engine`。
+- **working**：可反复 create/modify（同 id 就地替换）。
+- **staged → committed**：`version commit <v>` 一次性把全部 working 锁定（staged 为中间态）。committed 后本版本不可改（改则 `CHUNK_LOCKED`）。
+- **uncommit（层级返工原语）**：committed/staged → working，由各层 `revert` 调用；merged 版本拒绝。
 
-<!-- @id:impl-version-manager-state-model -->
-## 三阶段状态模型
+## 2. version 四件套
 
-```
-working ──stage──► staged ──commit──► committed ──merge──► (baseline)
-   │                  │                    │
-   └─unstage──────────┘                    │
-                                           │
-   ┌─re-edit──────────────────────────────┘
-   ▼
-working (amends c{N})
-```
+| 命令 | 语义 |
+|------|------|
+| `version create <v>` | 显式开版本（已存在报错，杜绝幽灵版本）；`prd create` 无活动版本时也会自动开版本（迭代入口） |
+| `version confirm <v>` | **纯门禁**：task 完成度＋去重/override 冲突＋**六不变式**（组合视图全量）＋**制品验收**（acceptance_command）。可重复跑、零落盘、不合入；报告 `passed` 与违例明细 |
+| `version merge <v>` | **唯一原子落盘点**：内部先过同一门禁 → 备份 → 逐 chunk 合入基线 → specgraph 提升与依赖对账 → git commit。任一步失败**字节级回退**（docs 与 .meta 同步还原，`MERGE_ROLLBACK`），不残留 merged 标记 |
+| `version revert <v> --confirm` | 任意阶段整版退出（物理清空，未合入版本可用） |
 
-| 状态 | 可见性 | 可编辑 | 入 merge | 索引字段 |
-|------|--------|--------|---------|---------|
-| working | `--all` | 是 | 否 | state=working, commit_id=null |
-| staged | `--staged` / `--all` | 是（退回 working） | 否 | state=staged, commit_id=null |
-| committed | 默认 | 否（重编辑产生新 working+amends） | 是 | state=committed, commit_id=cN |
+## 3. 层级冻结-返工对
 
-<!-- @id:impl-version-manager-api -->
-## 公开 API
-
-```python
-class VersionManager:
-    def __init__(self, project_root: Path): ...
-
-    # ── 版本生命周期 ──
-    def create(self, version: str, based_on: str | None = None) -> VersionMeta: ...
-    def list_versions(self) -> list[VersionMeta]: ...
-    def current(self) -> str | None:
-        """返回未合并的最新版本，无则 None。新需求默认进此版本。"""
-
-    # ── 三阶段 ──
-    def stage(self, version: str, chunk_ids: list[str] | None = None) -> StageResult:
-        """chunk_ids=None 表示 --all；只处理 state=working 的记录。"""
-    def unstage(self, version: str, chunk_ids: list[str]) -> UnstageResult: ...
-    def commit(self, version: str, message: str, req_id: str | None = None) -> CommitResult:
-        """提交所有 staged 块。空 commit → 抛 E1。生成 chg-{id}.yaml。"""
-    def status(self, version: str) -> StatusReport: ...
-
-    # ── 合并 ──
-    def merge(self, version: str, *, conflict_policy: str = "abort") -> MergeResult:
-        """conflict_policy: abort / use-version / use-baseline / interactive(CLI 才用)"""
-```
-
-<!-- @id:impl-version-manager-stage-commit -->
-## stage / commit 流程
+每层 `confirm` 冻结该层 chunk（锁定＋phase 推进），`revert` 成对返工（uncommit 解锁＋phase 回退）：
 
 ```
-stage(v, ids):
-  1. 加载版本索引 chunks-index-{v}.yaml
-  2. 若 ids=None：选所有 state=working 的记录
-     否则：按 ids 过滤；不存在的 id 报 E1
-  3. 对每条记录：
-     a. validator.validate_block_content（文件中能找到 @id、内容非空）
-     b. 计算当前内容 hash
-     c. 若 action=modify：base_hash 已在记录中，验证 hash 与基线对应块的 hash
-        若 hash 改变 → 警告但允许 stage（merge 时再判定冲突）
-     d. state: working → staged
-  4. 原子写回版本索引
-
-commit(v, msg, req_id):
-  1. 加载版本索引
-  2. 选所有 state=staged 的记录
-  3. 若为空 → E1 阻断："无暂存变更"
-  4. 生成 commit_id = c{N}（N = 现有 commits 数 + 1）
-  5. 对每条 staged 记录：
-     - state: staged → committed
-     - commit_id 设为 c{N}
-  6. 生成 chg-{auto}.yaml（按 templates/change-record-template.yaml）
-     - 对 modify：base_content 从基线提取，new_content 从版本文件提取
-     - 对 add：base_*=null，new_content 从版本文件提取
-     - 对 delete：new_content=null
-  7. 更新版本元数据 .meta/versions/{v}.yaml 的 commits 列表
-  8. 全部原子写入（任何一步失败回滚）
+prd confirm/revert   phase prd-creating ⇄ prd-confirm
+fsd confirm/revert   phase fsd-creating ⇄ fsd-confirm
+tdd confirm/revert   phase tdd-creating ⇄ tdd-confirm
 ```
 
-<!-- @id:impl-version-manager-merge -->
-## merge 流程
+冻结后 modify 报 `CHUNK_LOCKED`；返工后可继续修改——**每道门禁配返工路径，无终态陷阱**。
 
-<!-- @ref:prd/index-system#prd-index-baseline rel:implements -->
+## 4. git 提交三分语义
 
-```
-merge(v, conflict_policy):
-  1. 加载版本索引 + 基线索引
-  2. 校验：版本中所有块必须 state=committed
-     若有 working/staged → E2 警告："只合并 committed 部分？" 阻断式询问（CLI 层处理）
-  3. 冲突检测：
-     对每条 action=modify/delete 记录：
-       baseline_hash_now = hash(基线中 overrides 指向的块)
-       if baseline_hash_now != record.base_hash:
-         按 conflict_policy 处理：
-           abort         → 终止整个 merge
-           use-version   → 强制覆盖（记录到 merge log）
-           use-baseline  → 跳过此块
-           interactive   → CLI 层弹询问
-  4. 调用 merge_engine.merge_file(file, baseline_blocks, version_blocks, version_index)
-     对每个受影响文件：
-       - 解析基线文件 → 块列表
-       - 应用版本索引中的 add/modify/delete
-       - 原子写回 docs/{file}.md
-  5. 重建基线索引：index_manager.rebuild_baseline()
-  6. 生成快照 .meta/snapshots/{v}/ （复制合并后的 docs/）
-  7. 版本元数据状态 → merged，记录 merged_at
-  8. 返回 MergeResult（成功合并块数、冲突块数、跳过块数）
-```
+merge 的 git 提交（`_git_commit`）：
 
-<!-- @id:impl-version-manager-amends -->
-## 修订已 committed 块
+- 非 git 仓库 / git 不可用 → 容忍，merge 结果带 `git: "unavailable"`（不伪装成功）。
+- 仓库内无变更（nothing to commit）→ no-op，返回当前 HEAD。
+- 仓库内提交真实失败 → `GIT_COMMIT_FAILED`，进入回滚路径。
 
-<!-- @ref:prd/chunk-system#prd-chunk-id-naming rel:implements -->
+## 5. 制品验收
 
-```
-当用户对已 committed 的块再次修改时：
-  1. version_manager 不直接修改原 committed 记录
-  2. 在版本索引中新增一条记录：
-       id 相同
-       action=modify
-       state=working
-       amends=c{N}/{chunk_id}  指向被修订的 commit
-       base_hash=hash(已 committed 版本的内容)
-  3. 版本文件中替换该块内容（保留 @id）
-  4. 查询规则：同 id 多记录时取最新 committed；含 working amends 时按 stage 显示给用户
+`acceptance set "<cmd>"` 写入 `.meta/config.yaml`；confirm 与 merge 在落盘前自动运行该命令（项目根为 cwd），exit≠0 → `ACCEPTANCE_FAILED` 拒绝。未配置则跳过（vacuous）。`acceptance run` 手动执行回显。
 
-merge 时只看 committed 记录，取 commit_id 最大的（最新一次 commit）
-```
+## 6. 常见错误码
 
-<!-- @id:impl-version-manager-tests -->
-## 测试要点
-
-- create → stage --all → commit 流水线，断言版本索引和 chg-yaml 正确生成
-- 空 commit 触发 E1
-- 同 id 修订：committed → 再 stage → commit 产生第二条 committed 记录
-- merge 三场景：纯 add / 含 modify / 含 delete
-- merge 冲突：fork 后基线变动，base_hash 不匹配，按各 conflict_policy 行为正确
-- 事务性：在 commit 写文件中途模拟 IOError，断言版本索引未被部分更新
+`CHUNK_LOCKED` `GIT_DIRTY` `MERGE_ROLLBACK` `GIT_COMMIT_FAILED` `INVARIANT_VIOLATION` `ACCEPTANCE_FAILED` `MODIFY_RENAME_COLLISION` `DUPLICATE_OVERRIDES_TARGET` `DUPLICATE_BASELINE_CHUNK` `VERSION_NOT_FOUND`——恢复指引见 `SKILL.md` Common Pitfalls。

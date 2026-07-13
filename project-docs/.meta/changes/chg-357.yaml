@@ -1,0 +1,18 @@
+id: chg-357
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:subskill_ait_state
+author: system
+date: '2026-07-13T07:01:24.726507+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:subskill_ait_state -->
+
+  ## subskill_ait_state
+
+
+  ### 功能描述
+
+
+  状态面板 sub-skill：调用 state 渲染面板，兼进度查询、未完成项叙述。'

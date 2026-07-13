@@ -1,0 +1,16 @@
+id: chg-365
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:ref_index_system
+author: system
+date: '2026-07-13T07:01:24.775573+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:ref_index_system -->
+
+  ## ref_index_system
+
+  ### 功能描述
+
+  索引体系参考（chunks-index baseline/per-version 语义、specgraph 关系存储；links-index 段属已废弃机制），details [TDD]-ref_index_system。随 skill 分发。'

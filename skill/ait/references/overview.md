@@ -1,68 +1,39 @@
-# 系统概览
+# AIT 设计总览（overview）
 
-<!-- @id:prd-overview-mission -->
-## 使命
+> 随 ait skill 分发的设计参考。现行形态＝**新模型主线**；v1 impl 流为 legacy。命令与格式的权威速查见 `SKILL.md` 与 `references/new-model-format.md`。
 
-AIT（AI-Assisted Document Versioning System）让 AI 参与的 vibe coding 文档写作具备结构化的版本控制能力。
+## 1. 核心矛盾
 
-核心矛盾：传统 Git 以"文件"为版本控制单元，AI 生成的 markdown 文档需要更细颗粒度的"块级"管理；AI 协作过程中产生的需求讨论、PRD 草稿、impl 设计、代码生成需要全程可追溯、可回滚、可上下文复用。
+传统 Git 以"文件"为版本控制单元，而 AI 协作产生的设计文档需要更细颗粒度的**块级（chunk）管理**：需求讨论、PRD、功能分解、技术设计、代码生成需要全程**可追溯、可回滚、可上下文复用**。AIT 用 `<!-- @id -->` 标注的 chunk 作为版本控制与关联的最小单元。
 
-AIT 提供以 `<!-- @id:xxx -->` 为锚点的 Chunk 版本控制，支持从需求到代码的全链路结构化管理。
+## 2. 双模型定位
 
-<!-- @id:prd-overview-target-users -->
-## 目标用户
-
-| 角色 | 使用场景 |
-|------|---------|
-| AI 协作开发者 | 在 AI IDE（Claude Code / Cursor / Continue 等）中用 AIT 命令驱动 PRD→impl→code 流程 |
-| 文档工程师 | 维护大型 PRD/设计文档的版本与依赖关系 |
-| 团队 Tech Lead | 通过 impl 块跟踪关键技术决策的实现状态 |
-| 开源项目维护者 | 让 AI 贡献者按结构化流程提交文档变更 |
-
-<!-- @id:prd-overview-scope -->
-## MVP 范围
-
-MVP 覆盖 **单机** 模式下的核心闭环：
-
-```
-/ait prd <title>          → AI 三阶段讨论 PRD → 写入版本工作区
-/ait prd commit           → 提交 PRD 到 committed
-/ait impl <chunk-id>      → AI 基于 PRD 生成 impl
-/ait impl commit          → 提交 impl
-/ait version merge        → 合并到基线 docs/
-```
-
-MVP 不包含：代码生成、反向同步、多人协作、AI 改 chunk、IDE 跳转编辑、list、reindex。
-
-<!-- @id:prd-overview-roadmap -->
-## 路线图
-
-| 版本 | 范围 | 状态 |
+| 模型 | 管线 | 状态 |
 |------|------|------|
-| V1（MVP） | 7 个核心命令 + 单机闭环 + Claude Code Skill 形态 | 开发中 |
-| V1.1 | `list`/`edit`/`reindex` + 跨 AI IDE 适配（Cursor / Continue / Cline） | 规划 |
-| V2 | 多人协作（基于 Git）+ `/ait impl code` 代码生成 + sync-status 双向同步 | 规划 |
+| **新模型（主线）** | `prd → fsd → tdd → codegen → 制品 → 验收 → merge` | 现行，六不变式治理 |
+| legacy（v1） | `prdv1 → impl → task → code` | 遗留可用，不再演进 |
 
-每个版本结束以"合入基线"为分界。
+新模型的三层规格树：PRD（why/what）递归分解为 FSD 功能树（how 的结构），叶 FSD 细化为 TDD（一文件一映射），`codegen prepare` 沿关系上溯组装聚焦上下文驱动 AI 编码。
 
-<!-- @id:prd-overview-terminology -->
-## 核心术语
+## 3. 治理支柱（新模型）
 
-| 术语 | 定义 |
+- **六不变式**（写时门禁＋confirm 全局门禁双层强制）：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、关联经真实 chunk、无孤儿、制品可追溯到 PRD。
+- **关系只随内容创建原子出生**：depends_on 随 fsd create 的 split 内 yaml 声明、decomposes 随 fsd decompose、details 随 tdd create --parent；无任何 link/depend 命令，幽灵边从入口消灭。
+- **四层命令面**：version/prd/fsd/tdd 各配 create + confirm/revert 冻结-返工对——每道门禁配返工路径，无终态陷阱。
+- **版本原子性**：confirm＝纯门禁（可重复、零落盘）；merge＝唯一落盘点（失败字节级回退）；revert＝任意阶段整版退出。
+- **制品验收**：配置 `acceptance_command` 后，confirm/merge 前自动跑测试，红则拒于落盘前。
+
+## 4. 角色视角
+
+| 角色 | 用法 |
 |------|------|
-| Chunk | 由 `<!-- @id:xxx -->` 标注的最小版本控制单元 |
-| 基线（baseline） | `docs/` 目录，所有版本合并后的真实状态 |
-| 版本（version） | `versions/{vX.Y}/` 下的增量工作区 |
-| 三阶段 | working → staged → committed |
-| @ref | 跨 Chunk 引用，形如 `<!-- @ref:file#chunk-id rel:type -->` |
-| L1~L4 | AI 上下文的四层模型 |
-| Skill | Claude Code 等 AI IDE 的可加载能力包，包含 SKILL.md + 脚本 |
+| 独立开发者 | 与 AI 讨论出 PRD → 逐层分解到 TDD → codegen 驱动编码，规格与代码始终同源 |
+| Tech Lead | 经 specgraph/deps/impact 追踪设计决策的实现映射与改动波及面 |
+| AI（Claude 等） | 按 SKILL.md 契约调 CLI；stdout 恒为单个 JSON |
 
-<!-- @id:prd-overview-design-principles -->
-## 设计原则
+## 5. 设计边界（非目标）
 
-1. **内容与元数据分离**：markdown 只放内容 + `@id`/`@ref`，所有状态/版本信息在 `.meta/` 的 YAML 中
-2. **块级原子**：合并的最小单位是块，不做行级 diff
-3. **AI 友好**：所有命令的输出是结构化 JSON，便于 AI 消费；所有命令的设计避开"魔法"，让 AI 能准确预测系统行为
-4. **跨 IDE 中立**：核心是纯 CLI（Python），各 AI IDE 通过自己的 Skill/Rule 机制包装
-5. **可追溯**：每次 commit 产生 `chg-{id}.yaml`，合并产生快照，任何变更都能回到时间点
+- AI 编码由 Skill 层驱动；CLI 只派生上下文、记录关系与状态，不生成业务代码。
+- 不提供多用户协作锁；不提供系统级全局 `ait`（一律项目本地 wrapper）。
+- 不绕过 CLI 直接改 AIT 管理文档或 `.meta`。
+- chunk delete 与 legacy 退役为后续能力（当前 modify/add 全覆盖，delete 挂起）。

@@ -1,0 +1,16 @@
+id: chg-360
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:template_fsd
+author: system
+date: '2026-07-13T07:01:24.744680+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:template_fsd -->
+
+  ## template_fsd
+
+  ### 功能描述
+
+  新模型 FSD 文档模板（功能分解/交互契约章节），details [TDD]-template_fsd。随 skill 分发。'

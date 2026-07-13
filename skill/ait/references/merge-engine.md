@@ -1,5 +1,7 @@
 # Merge Engine 实现
 
+> **状态注记（v2.30）**：按存在性逐 chunk 合并语义为现行（modify=整块全替换/add=仅新增/绝不丢 chunk）；**合并入口已从 version confirm 改为 version merge**（confirm 现为纯门禁），文中旧入口表述以此为准。
+
 <!-- @id:impl-merge-engine-overview -->
 ## 概述
 

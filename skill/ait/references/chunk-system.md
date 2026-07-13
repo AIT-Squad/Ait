@@ -1,5 +1,7 @@
 # Chunk 体系
 
+> **状态注记（v2.30）**：@id 语法/chunk 边界/ID 命名部分为现行规范；**@ref 关联与 links-index.yaml 段落属 legacy 机制**（新模型关系一律走 specgraph，links-index 已废弃）。完整重写随 legacy 退役进行。
+
 <!-- @id:prd-chunk-format -->
 ## Chunk 标注格式
 

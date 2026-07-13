@@ -1,0 +1,18 @@
+id: chg-354
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:subskill_ait_impl_discuss
+author: system
+date: '2026-07-13T07:01:24.708937+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:subskill_ait_impl_discuss -->
+
+  ## subskill_ait_impl_discuss
+
+
+  ### 功能描述
+
+
+  impl 规划 sub-skill：读上下文、生成 impl chunk（含 @extract）、注册到版本工作区。'

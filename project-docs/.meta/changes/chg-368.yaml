@@ -1,0 +1,17 @@
+id: chg-368
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:ref_version_manager
+author: system
+date: '2026-07-13T07:01:24.793668+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:ref_version_manager -->
+
+  ## ref_version_manager
+
+  ### 功能描述
+
+  版本管理参考（三态 working→staged→committed、四件套 create/confirm纯门禁/merge唯一落盘/revert、层级冻结-返工、验收门禁），details [TDD]-ref_version_manager。随
+  skill 分发。'

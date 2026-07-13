@@ -1,5 +1,7 @@
 # 索引体系
 
+> **状态注记（v2.30）**：chunks-index 与 specgraph 语义为现行；**links-index 段落属已废弃机制**。组合视图（baseline∪版本, chunk_id 世界）见代码 specgraph.combined_view。完整重写随 legacy 退役进行。
+
 <!-- @id:prd-index-baseline -->
 ## 基线索引
 

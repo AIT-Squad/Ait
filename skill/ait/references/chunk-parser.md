@@ -1,5 +1,7 @@
 # Chunk Parser 实现
 
+> **状态注记（v2.30）**：本文为 as-built 解析行为说明；@ref 解析仅服务 legacy 路径（新模型关系不经 @ref）。
+
 <!-- @id:impl-chunk-parser-overview -->
 ## 概述
 

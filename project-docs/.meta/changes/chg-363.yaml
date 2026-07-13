@@ -1,0 +1,16 @@
+id: chg-363
+version: v2.30
+type: MODIFY
+target: fsd/[FSD]-ait-skill#[FSD]-ait-skill:ref_chunk_system
+author: system
+date: '2026-07-13T07:01:24.764362+00:00'
+message: 'references governance: 6 new TDD-covered reference docs + overview/version-manager rewrite'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-skill:ref_chunk_system -->
+
+  ## ref_chunk_system
+
+  ### 功能描述
+
+  chunk 系统参考（@id 语法、chunk 边界、ID 命名规则；@ref/@extract 与 links-index 段属 legacy 机制），details [TDD]-ref_chunk_system。随 skill 分发。'
