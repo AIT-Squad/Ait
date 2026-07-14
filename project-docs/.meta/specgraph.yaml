@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:14:32.769853+00:00'
+updated: '2026-07-14T14:22:12.108794+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -417,9 +417,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:TEST
   title: TEST 集成验收
   type: fsd
@@ -428,9 +425,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:deps
   title: deps
   type: fsd
@@ -439,9 +433,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -450,9 +441,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:specgraph
   title: specgraph
   type: fsd
@@ -461,9 +449,6 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state
   title: state FSD
   type: fsd

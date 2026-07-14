@@ -1,0 +1,31 @@
+id: chg-471
+version: v2.40
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_validator
+author: system
+date: '2026-07-14T14:22:11.960570+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_validator -->
+
+  ## new_model_validator
+
+  ### 功能描述
+
+  纯函数校验器(不读盘、不写盘,输入图/视图输出违例列表),new_model 域的规则内核。提供:validate_prd_fsd_tdd_graph(图合法性——decomposes/details/depends_on 的类型与根-split
+  规则、FSD 不得混用 FSD 子与 TDD 子);normalize_target_file(路径归一化——分隔符/前导 ./ /大小写,用于制品判重);validate_target_file_uniqueness(归一化后同一制品被多
+  TDD 持有报 DUPLICATE_TARGET_FILE);check_edge_write(写时局部门禁——幽灵端点 MISSING_ENDPOINT、TDD 第二 details 父 TDD_MULTI_PARENT、PRD 第二 decomposes
+  FSD PRD_FSD_LINK_NOT_UNIQUE);validate_invariants(六不变式全量校验,吃组合视图:①PRD↔恰1FSD ②TDD 向上恰1FSD 入边且向下恰1制品 ③每制品恰1TDD 持有 ④关联经真实存在的
+  chunk ⑤除树根外无孤儿 chunk ⑥每制品沿 TDD→FSD→…→PRD 可追溯,违例分别 PRD_FSD_LINK_NOT_UNIQUE/TDD_MULTI_PARENT/DUPLICATE_TARGET_FILE/MISSING_ENDPOINT/ORPHAN_CHUNK/TRACE_BROKEN;另检
+  decomposes/details 树关系环 SPEC_CYCLE);violations_to_details(违例转 CLI 输出结构)。孤儿与追溯遍历含 id 结构通道(冒号 split 隶属其根 chunk);视图无新模型节点时全部
+  vacuous 通过(legacy 项目零影响)。
+
+
+  ### 反向要求
+
+  - 不读写磁盘、不改任何状态(纯函数,输入图/视图,输出违例列表;调用与拒绝由 manager/version 编排)。
+
+  - depends_on 环只诊断不作门禁(同父兄弟互依在现实中合法,只有 decomposes/details 树关系环才是 SPEC_CYCLE 硬违例)。
+
+  - 不建边、不创建文档(只判定,不产出制品)。'

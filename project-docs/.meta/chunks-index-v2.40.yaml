@@ -1,0 +1,83 @@
+version: 1
+scope: version
+version_name: v2.40
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model 内部分解
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-new_model'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  heading: new_model_validator
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-new_model:TEST'
+  file: fsd/[FSD]-ait-new_model
+  heading: TEST 集成验收
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-14T14:22:11.972517+00:00'
+  message: new-model commit
+  chunks:
+  - '[FSD]-ait-new_model'
+  - '[FSD]-ait-new_model:new_model_manager'
+  - '[FSD]-ait-new_model:new_model_validator'
+  - '[FSD]-ait-new_model:TEST'
+  req_id: null
+stats:
+  total_chunks: 4
+  by_action:
+    modify: 4
+  by_state:
+    committed: 4
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

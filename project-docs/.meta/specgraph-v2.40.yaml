@@ -1,0 +1,48 @@
+version: 1
+updated: '2026-07-14T14:22:12.393224+00:00'
+specs:
+- uri: spec:fsd:v2.40:[FSD]-ait-new_model
+  title: new_model 内部分解
+  type: fsd
+  version: v2.40
+  chunk_id: '[FSD]-ait-new_model'
+  file: fsd/[FSD]-ait-new_model
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.40:[FSD]-ait-new_model:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: v2.40
+  chunk_id: '[FSD]-ait-new_model:TEST'
+  file: fsd/[FSD]-ait-new_model
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.40:[FSD]-ait-new_model:new_model_manager
+  title: new_model_manager
+  type: fsd
+  version: v2.40
+  chunk_id: '[FSD]-ait-new_model:new_model_manager'
+  file: fsd/[FSD]-ait-new_model
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.40:[FSD]-ait-new_model:new_model_validator
+  title: new_model_validator
+  type: fsd
+  version: v2.40
+  chunk_id: '[FSD]-ait-new_model:new_model_validator'
+  file: fsd/[FSD]-ait-new_model
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []
