@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-07-14T13:57:59.098135+00:00'
+updated: '2026-07-14T14:14:32.069610+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -304,7 +304,7 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait-specgraph'
   file: fsd/[FSD]-ait-specgraph
-  heading: specgraph FSD
+  heading: specgraph 内部分解
   level: 2
   summary: null
   metadata: {}
@@ -323,6 +323,12 @@ chunks:
 - id: '[FSD]-ait-specgraph:impact'
   file: fsd/[FSD]-ait-specgraph
   heading: impact
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:TEST'
+  file: fsd/[FSD]-ait-specgraph
+  heading: TEST 集成验收
   level: 2
   summary: null
   metadata: {}

@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:12:32.066741+00:00'
+updated: '2026-07-14T14:14:32.769853+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -410,13 +410,27 @@ specs:
   metadata:
     source: baseline
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph
-  title: specgraph FSD
+  title: specgraph 内部分解
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait-specgraph'
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-specgraph:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-specgraph:TEST'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:deps
   title: deps
   type: fsd
@@ -425,6 +439,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -433,6 +450,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:specgraph
   title: specgraph
   type: fsd
@@ -441,6 +461,9 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-state
   title: state FSD
   type: fsd
