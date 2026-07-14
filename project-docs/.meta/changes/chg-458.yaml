@@ -1,0 +1,27 @@
+id: chg-458
+version: v2.37
+type: MODIFY
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model:schemas
+author: system
+date: '2026-07-14T13:49:55.009969+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-doc_model:schemas -->
+
+  ## schemas
+
+  ### 功能描述
+
+  全部 .meta YAML 的 pydantic 模型定义。基类 StrictModel 统一约束 extra=forbid(拒未知字段)、populate_by_name。覆盖:ProjectConfig(项目配置)、BaselineIndex/BaselineChunkEntry(基线索引)、VersionIndex/VersionChunkEntry/CommitEntry/VersionIndexStats(版本索引)、VersionMeta/VersionDependencies(版本元数据,含
+  phase 阶段机字段与锁定/title 原子性字段)、RequirementMeta、ChangeRecord、TaskYaml/CodeRef 等。类型别名:Action(add/modify/delete)、State(working/staged/committed)、VersionPhase(阶段机全部合法值)、TaskStatus、ReqStatus、ChangeType。summary
+  字段有 ≤120 字符校验。
+
+
+  ### 反向要求
+
+  - 不含业务逻辑(只定义数据形状与字段校验,行为归各业务域)。
+
+  - 不做 YAML 读写(序列化委托 foundation 的 yaml_io)。
+
+  - 不定义解析产物类型(Chunk/Ref/ParsedFile 归 chunk_parser,本文件只管持久化 schema)。'

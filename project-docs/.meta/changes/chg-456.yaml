@@ -1,0 +1,52 @@
+id: chg-456
+version: v2.37
+type: MODIFY
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model
+author: system
+date: '2026-07-14T13:49:54.965864+00:00'
+message: new-model commit
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-doc_model -->
+
+  ## doc_model FSD
+
+
+  ### 功能范围
+
+
+  文档模型基础设施：把 markdown 解析成 chunk/ref/extract，定义全部持久化数据的 pydantic schema。被所有上层域依赖（解析与数据契约的单一来源）。
+
+
+  ### 交互契约（对上层域提供）
+
+
+  - 解析：`parse_file/parse_text -> ParsedFile(chunks, refs, file_header)`；`parse_extract_blocks -> [ExtractBlock]`。
+
+  - 数据类型：`Chunk/Ref/ExtractBlock/ParsedFile`（解析产物）。
+
+  - Schema：`BaselineIndex/VersionIndex/VersionMeta/RequirementMeta/ChangeRecord/TaskYaml/ProjectConfig` 等 + 类型别名 `Action/State/VersionPhase/TaskStatus/ReqStatus/ChangeType`。'
+new_content: '<!-- @id:[FSD]-ait-doc_model -->
+
+  ## doc_model 内部分解
+
+
+  ### 功能描述
+
+  doc_model 域的实现分解。该域是文档模型基础设施:把 markdown 解析成 chunk/ref/extract 结构,并定义全部持久化数据的 pydantic schema。被所有上层域依赖——它是"文档如何被解析"与"数据长什么样"这两件事的单一权威来源。实现拆为两个文件:chunk_parser(markdown→结构化
+  chunk 解析)与 schemas(全部 .meta YAML 的 pydantic 模型)。
+
+
+  ### 反向要求
+
+  - 不管理索引或关系图(解析产物如何入索引归 indexing 域、如何建关系归 specgraph 域)。
+
+  - 不做文件 IO 的原子写与路径守卫(归 foundation 域的 io_utils)。
+
+  - 本文件不定义域对外公共接口(域契约在顶层文件 [FSD]-ait 的 doc_model 域块,本文件是内部实现分解)。
+
+
+  ### 分解视图
+
+  - chunk_parser 叶(details → [TDD]-chunk_parser):markdown 的 chunk 级解析
+
+  - schemas 叶(details → [TDD]-schemas):全部持久化数据的 pydantic 模型'

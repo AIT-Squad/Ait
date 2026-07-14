@@ -1,0 +1,24 @@
+id: chg-459
+version: v2.37
+type: MODIFY
+target: fsd/[FSD]-ait-doc_model#[FSD]-ait-doc_model:TEST
+author: system
+date: '2026-07-14T13:49:55.018339+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-doc_model:TEST -->
+
+  ## TEST 集成验收
+
+  doc_model 域所有部件(chunk_parser + schemas)合并到一起、作为整体的集成验收:
+
+  1. WHEN 解析含多个 @id 的 markdown THEN 得到 ParsedFile,chunks 按 @id 边界切分、file_header 为首个 @id 前内容、每个 @ref 归属其所在 chunk。
+
+  2. WHEN markdown 的 code-fence 内出现 @id/@ref 字样 THEN 这些被屏蔽不计入解析结果(不误当真标记)。
+
+  3. WHEN @extract 块嵌套或未闭合 THEN 抛 ExtractError;成对闭合则解析为 ExtractBlock 列表。
+
+  4. WHEN 用含未知字段的 dict 校验任一 schema THEN 因 extra=forbid 校验失败;summary 超过 120 字符校验失败。
+
+  5. WHEN 加载旧版本(无 phase 字段)的 VersionMeta THEN 因字段有默认值仍能加载(向后兼容)。'

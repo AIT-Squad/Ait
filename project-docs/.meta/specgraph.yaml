@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T13:24:12.538889+00:00'
+updated: '2026-07-14T13:49:55.205119+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -73,9 +73,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:TEST
   title: TEST 集成验收
   type: fsd
@@ -84,9 +81,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:hash_utils
   title: hash_utils
   type: fsd
@@ -95,9 +89,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:io_utils
   title: io_utils
   type: fsd
@@ -106,9 +97,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:root
   title: root
   type: fsd
@@ -117,9 +105,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation:yaml_io
   title: yaml_io
   type: fsd
@@ -128,9 +113,6 @@ specs:
   file: fsd/[FSD]-ait-foundation
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-impl
   title: impl FSD
   type: fsd
