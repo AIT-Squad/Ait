@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:27:14.152639+00:00'
+updated: '2026-07-14T14:29:27.518508+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -10,13 +10,27 @@ specs:
   metadata:
     source: baseline
 - uri: spec:fsd:baseline:[FSD]-ait-cli
-  title: cli FSD
+  title: cli 内部分解
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-cli:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-cli:TEST'
+  file: fsd/[FSD]-ait-cli
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli:cli
   title: cli
   type: fsd
@@ -25,6 +39,9 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-context
   title: context FSD
   type: fsd

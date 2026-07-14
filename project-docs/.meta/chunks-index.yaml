@@ -1,16 +1,22 @@
 version: 1
 scope: global
-updated: '2026-07-14T14:23:39.963429+00:00'
+updated: '2026-07-14T14:29:26.819725+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
-  heading: cli FSD
+  heading: cli 内部分解
   level: 2
   summary: null
   metadata: {}
 - id: '[FSD]-ait-cli:cli'
   file: fsd/[FSD]-ait-cli
   heading: cli
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-cli:TEST'
+  file: fsd/[FSD]-ait-cli
+  heading: TEST 集成验收
   level: 2
   summary: null
   metadata: {}
