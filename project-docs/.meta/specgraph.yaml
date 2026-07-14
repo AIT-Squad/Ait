@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:23:40.635197+00:00'
+updated: '2026-07-14T14:27:14.152639+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -217,9 +217,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:TEST
   title: TEST 集成验收
   type: fsd
@@ -228,9 +225,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_manager
   title: new_model_manager
   type: fsd
@@ -239,9 +233,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_validator
   title: new_model_validator
   type: fsd
@@ -250,9 +241,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-prd
   title: prd FSD
   type: fsd
