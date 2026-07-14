@@ -30,7 +30,7 @@ PRD 递归分解为 FSD 功能树；叶子 FSD 的内部 split `details` 到 TDD
 ## 3. chunk ID 格式
 
 - **根 chunk**：`[PRD]-<name>` / `[FSD]-<name>` / `[TDD]-<name>`，且**文件名 = 根 chunk id**（如 `fsd/[FSD]-ait.md`）。
-- **内部 split**：`<父根id>:<split名>`，如 `[FSD]-ait:version`。split 名用 `_` 连接多词。
+- **内部 split**：`<父根id>:<split名>`，如 `[FSD]-ait:version`。split 名用 `_` 连接多词。**`:TEST` 是唯一的保留大写标记**——每个 FSD 文件的验收节点 chunk（见 §5b）；其余 split 名一律小写。
 - **前缀**：必须是 `[PRD]` / `[FSD]` / `[TDD]`（方括号）。名内用 `_`，层级用 `-`；字符集 `[a-z0-9_]`。
 - 解析见 `chunk_parser.py`：`@id` 注释、代码围栏屏蔽、bracket 前缀、`:` split。
 
@@ -61,7 +61,28 @@ depends_on: [store, config]
 - `fsd create` 解析该块 → 建 SpecGraph 边 → **从写入磁盘的 markdown 中剥离**。持久 FSD 正文不含 `depends_on`。
 - **简写按同父解析**（`store` → `[FSD]-app:store`）；完整 id 必须同父（跨父报 `DEPENDS_ON_CROSS_LEVEL`）。
 - 申报指向文件内不存在的兄弟 → `DEPENDS_ON_UNKNOWN_SIBLING`；指向自己 → `DEPENDS_ON_SELF`。拒绝＝零落盘。
-- **owned-scope 对账**：同父约束使全部合法依赖边都是"本文件兄弟边"——文件＝依赖边的所有权边界。`fsd create`（add/modify）后按申报全量对账：**改/删申报即改/删边**（modify 时须携带完整 depends_on 申报，同 modify=整块全替换的规则）。SpecGraph 是唯一权威存储。
+- **owned-scope 对账（v2.32 preserve 语义）**：同父约束使全部合法依赖边都是"本文件兄弟边"——文件＝依赖边的所有权边界。`fsd create`（add/modify）后按申报对账，但**无 `depends_on` 块的 split 保留其现有边（不 wipe）**：改依赖＝带块 modify（该 split 权威覆盖），清空＝显式 `depends_on: []`，不动＝不带块。⇒ 重排 FSD 正文（不带块）不丢依赖边。SpecGraph 是唯一权威存储。
+
+## 5b. FSD 文件结构与能力契约（v2.33 三类分化）
+
+**每个 FSD 文件递归同构** ＝ root ＋ N 个功能 split ＋ 恰 1 个 `:TEST`：
+
+- **root chunk**：功能域职责边界（承接哪部分上游、负责/不负责）＋ **分解视图**（列子块结构，不列签名）。
+- **功能 split**：功能描述 ＋ **能力契约（provide-only）**。
+- **`:TEST` chunk**（保留大写标记）：本文件所有块合并的**集成验收**。是本文件的验收落点——一个 decompose 出子文件的 split，其验收看子文件的 `:TEST`；叶子 split 的验收由本文件 `:TEST` 覆盖。**功能 split 上不写验收标准**。
+
+**能力契约 = 只写"本块对外提供什么"（黑盒接口，消费方开发依据）**：
+- `提供方式`：HTTP 端点 / 模块函数 / CLI 命令 / 事件…
+- `接口`：方法/端点 ＋ 参数名与类型 ＋ 返回结构与类型 ＋ 错误语义。
+- **绝不写"需要/依赖什么"**（那是 depends_on 关系，只在 SpecGraph）；**不写函数内部实现/算法**（那是 TDD）。
+
+**FSD vs TDD 边界**：FSD 能力契约＝对外接口（黑盒，别的块怎么调）；TDD＝实现蓝图（白盒，这个文件内部怎么建：技术栈/内部函数/算法/单测）。签名在叶子处会重合，但 TDD 额外扛全部实现细节。
+
+**能力契约放"父级 split"（decompose 边的上方）**：depends_on 边落在父级域 split，契约随之放父级 split → codegen 顺 depends_on 一跳取到对端公共接口。多人协作的所有权分层：**接口层（父 FSD 文件＝拆分者 owns 域契约＋依赖）／实现层（子 FSD 文件＋TDD＝开发者 owns）；decompose 边＝所有权交接线**。对外接口变更是架构决策，走父层可见受控；实现完全自治。
+
+**codegen 契约**：为某 TDD 组装上下文 ＝ TDD 正文 ＋ 向上全链（details/decomposes 到 PRD）＋ 沿 SpecGraph depends_on 拉入对端的能力契约（对外接口）作开发依据。依赖不在正文，全靠 specgraph 一层层找。
+
+> **`:TEST` 是验收节点**（既非 decompose 节点、也非 details 叶子）——冒号 split 结构隶属 root，不触发孤儿/追溯校验。将来（P9）从它 `details` 出 `target_file: tests/*.py` 的测试 TDD，把项目测试也纳入制品治理。
 
 ## 6. target_file 规则
 

@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T05:03:21.407112+00:00'
+updated: '2026-07-14T05:27:21.682951+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -617,9 +617,6 @@ specs:
   file: tdd/[TDD]-chunk_parser
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-cli
   title: cli TDD
   type: tdd
@@ -724,9 +721,6 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
