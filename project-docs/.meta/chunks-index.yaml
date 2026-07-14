@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-07-14T05:28:34.367670+00:00'
+updated: '2026-07-14T07:27:53.089767+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -334,7 +334,7 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait-version'
   file: fsd/[FSD]-ait-version
-  heading: version FSD
+  heading: version 内部分解
   level: 2
   summary: null
   metadata: {}
@@ -347,6 +347,12 @@ chunks:
 - id: '[FSD]-ait-version:merge_engine'
   file: fsd/[FSD]-ait-version
   heading: merge_engine
+  level: 2
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:TEST'
+  file: fsd/[FSD]-ait-version
+  heading: TEST 集成验收
   level: 2
   summary: null
   metadata: {}
