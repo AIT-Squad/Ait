@@ -1,0 +1,18 @@
+<!-- @id:[TDD]-ref_overview -->
+## ref_overview TDD
+
+```yaml
+target_file: skill/ait/references/overview.md
+```
+
+### 技术栈
+
+Markdown（随 ait skill 分发的参考资产）。
+
+### 文件职责
+
+AIT 设计总览（v2.30 重写对齐）：核心矛盾（块级版本控制+AI 协作可追溯）;**双模型定位——新模型主线 prd→fsd→tdd→codegen（六不变式治理、四层命令面、验收门禁）为现行形态，v1 impl 流为 legacy**;设计边界与非目标。
+
+### 单元测试要求
+
+无单测；本文件是人读参考，规则强制在代码侧门禁。

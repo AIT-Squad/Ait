@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.32
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-chunk_parser'
   file: tdd/[TDD]-chunk_parser
