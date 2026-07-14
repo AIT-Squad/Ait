@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:31:27.733344+00:00'
+updated: '2026-07-14T14:32:36.351976+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -178,13 +178,27 @@ specs:
   metadata:
     source: baseline
 - uri: spec:fsd:baseline:[FSD]-ait-init
-  title: init FSD
+  title: init 内部分解
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait-init'
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-init:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-init:TEST'
+  file: fsd/[FSD]-ait-init
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-init:init_manager
   title: init_manager
   type: fsd
@@ -193,6 +207,9 @@ specs:
   file: fsd/[FSD]-ait-init
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-lint
   title: lint FSD
   type: fsd

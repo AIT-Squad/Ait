@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T14:31:28.021133+00:00'
+updated: '2026-07-14T14:32:36.083230+00:00'
 specs:
 - uri: spec:fsd:v2.42:[FSD]-ait-init
   title: init 内部分解
