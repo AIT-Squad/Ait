@@ -1,0 +1,83 @@
+version: 1
+scope: version
+version_name: v2.38
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-indexing'
+  file: fsd/[FSD]-ait-indexing
+  heading: indexing 内部分解
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-indexing'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-indexing:index_manager'
+  file: fsd/[FSD]-ait-indexing
+  heading: index_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-indexing:migrations'
+  file: fsd/[FSD]-ait-indexing
+  heading: migrations
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-indexing:TEST'
+  file: fsd/[FSD]-ait-indexing
+  heading: TEST 集成验收
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-14T13:56:04.637063+00:00'
+  message: new-model commit
+  chunks:
+  - '[FSD]-ait-indexing'
+  - '[FSD]-ait-indexing:index_manager'
+  - '[FSD]-ait-indexing:migrations'
+  - '[FSD]-ait-indexing:TEST'
+  req_id: null
+stats:
+  total_chunks: 4
+  by_action:
+    modify: 4
+  by_state:
+    committed: 4
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

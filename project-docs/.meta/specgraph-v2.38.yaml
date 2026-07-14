@@ -1,0 +1,48 @@
+version: 1
+updated: '2026-07-14T13:56:05.266809+00:00'
+specs:
+- uri: spec:fsd:v2.38:[FSD]-ait-indexing
+  title: indexing 内部分解
+  type: fsd
+  version: v2.38
+  chunk_id: '[FSD]-ait-indexing'
+  file: fsd/[FSD]-ait-indexing
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.38:[FSD]-ait-indexing:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: v2.38
+  chunk_id: '[FSD]-ait-indexing:TEST'
+  file: fsd/[FSD]-ait-indexing
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.38:[FSD]-ait-indexing:index_manager
+  title: index_manager
+  type: fsd
+  version: v2.38
+  chunk_id: '[FSD]-ait-indexing:index_manager'
+  file: fsd/[FSD]-ait-indexing
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.38:[FSD]-ait-indexing:migrations
+  title: migrations
+  type: fsd
+  version: v2.38
+  chunk_id: '[FSD]-ait-indexing:migrations'
+  file: fsd/[FSD]-ait-indexing
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []
