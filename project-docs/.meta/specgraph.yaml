@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-14T13:49:55.205119+00:00'
+updated: '2026-07-14T13:51:46.525177+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -42,13 +42,27 @@ specs:
   metadata:
     source: baseline
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model
-  title: doc_model FSD
+  title: doc_model 内部分解
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait-doc_model'
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:baseline:[FSD]-ait-doc_model:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-doc_model:TEST'
+  file: fsd/[FSD]-ait-doc_model
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model:chunk_parser
   title: chunk_parser
   type: fsd
@@ -57,6 +71,9 @@ specs:
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-doc_model:schemas
   title: schemas
   type: fsd
@@ -65,6 +82,9 @@ specs:
   file: fsd/[FSD]-ait-doc_model
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-foundation
   title: foundation 内部分解
   type: fsd
