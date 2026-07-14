@@ -1,0 +1,25 @@
+id: chg-466
+version: v2.39
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:deps
+author: system
+date: '2026-07-14T14:12:31.911260+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:deps -->
+
+  ## deps
+
+  ### 功能描述
+
+  依赖关系查询。`query_deps(project_root, target, *, direction="both") -> dict`:在当前版本的组合视图上,按 chunk_id 解析 target,返回其关系边——direction=out
+  取出边、in 取入边、both 取两者并去重;返回 {target, direction, edges}(每条边含 src/dst/rel,端点均为 chunk_id)。被 modify 进版本的 chunk 也能查到其全部既有关系(组合视图消除
+  URI 二象性)。
+
+
+  ### 反向要求
+
+  - 不建边、不改图(只读查询)。
+
+  - 不做传递闭包(单跳邻接边;下游闭包归 impact)。'

@@ -1,0 +1,25 @@
+id: chg-467
+version: v2.39
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:impact
+author: system
+date: '2026-07-14T14:12:31.919037+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:impact -->
+
+  ## impact
+
+  ### 功能描述
+
+  下游影响分析。`analyze_impact(project_root, target) -> dict`:在当前版本组合视图上求 target 的影响传递闭包——正向 decomposes/details 边 ＋ id 结构子(冒号 split
+  隶属其根)＋ 反向 depends_on/implements(依赖方),供迭代流转"沿关联逐层向下改"定位波及面。target 不在图中返回 {found: false, impacted: [], count: 0};在图中返回 {found:
+  true, impacted, count}。
+
+
+  ### 反向要求
+
+  - 不建边、不改图(只读查询)。
+
+  - 不做修改编排(只报影响面,改哪些 chunk 由使用者决定)。'

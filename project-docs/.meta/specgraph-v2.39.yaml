@@ -1,0 +1,59 @@
+version: 1
+updated: '2026-07-14T14:12:32.336636+00:00'
+specs:
+- uri: spec:fsd:v2.39:[FSD]-ait-specgraph
+  title: specgraph 内部分解
+  type: fsd
+  version: v2.39
+  chunk_id: '[FSD]-ait-specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.39:[FSD]-ait-specgraph:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: v2.39
+  chunk_id: '[FSD]-ait-specgraph:TEST'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.39:[FSD]-ait-specgraph:deps
+  title: deps
+  type: fsd
+  version: v2.39
+  chunk_id: '[FSD]-ait-specgraph:deps'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.39:[FSD]-ait-specgraph:impact
+  title: impact
+  type: fsd
+  version: v2.39
+  chunk_id: '[FSD]-ait-specgraph:impact'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.39:[FSD]-ait-specgraph:specgraph
+  title: specgraph
+  type: fsd
+  version: v2.39
+  chunk_id: '[FSD]-ait-specgraph:specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []

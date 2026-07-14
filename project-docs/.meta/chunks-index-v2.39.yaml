@@ -1,0 +1,98 @@
+version: 1
+scope: version
+version_name: v2.39
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait-specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph 内部分解
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-specgraph'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:specgraph'
+  file: fsd/[FSD]-ait-specgraph
+  heading: specgraph
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:deps'
+  file: fsd/[FSD]-ait-specgraph
+  heading: deps
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:impact'
+  file: fsd/[FSD]-ait-specgraph
+  heading: impact
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-specgraph:TEST'
+  file: fsd/[FSD]-ait-specgraph
+  heading: TEST 集成验收
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-14T14:12:31.929902+00:00'
+  message: new-model commit
+  chunks:
+  - '[FSD]-ait-specgraph'
+  - '[FSD]-ait-specgraph:specgraph'
+  - '[FSD]-ait-specgraph:deps'
+  - '[FSD]-ait-specgraph:impact'
+  - '[FSD]-ait-specgraph:TEST'
+  req_id: null
+stats:
+  total_chunks: 5
+  by_action:
+    modify: 5
+  by_state:
+    committed: 5
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0

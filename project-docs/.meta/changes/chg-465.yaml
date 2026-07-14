@@ -1,0 +1,28 @@
+id: chg-465
+version: v2.39
+type: MODIFY
+target: fsd/[FSD]-ait-specgraph#[FSD]-ait-specgraph:specgraph
+author: system
+date: '2026-07-14T14:12:31.904794+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-specgraph:specgraph -->
+
+  ## specgraph
+
+  ### 功能描述
+
+  关系图核心。SpecGraph 持有 specs(节点)与 edges(边),节点 URI 形如 spec:{type}:{version}:{chunk_id}。sync_specgraph 从所有 docs/version markdown
+  的 @ref 重建图,并经 _preserve_explicit_edges 保留命令写入的显式边(source 标记的 decomposes/details/depends_on),使 reindex 不丢关系。CombinedView
+  在读取时把 baseline∪版本坍缩到 chunk_id 世界(存储格式不变、无数据迁移):同一 chunk_id 版本覆盖 baseline(modify 换内容来源)、边端点坍缩为 chunk_id 并去重;depends_on 按
+  owned-scope 覆盖(版本内出现的 FSD 根,其兄弟依赖边以版本为准,声明删除立即生效);消除 URI 二象性使被 modify 的 chunk 保有其 baseline 期全部关系。成环检测在坍缩视图上做,合并后才成环的图在合并前即可报出。公开面:load_specgraph/combined_specgraph/combined_view/sync_specgraph/resolve_chunk_uri/add_edge,以及
+  SpecGraph 的 query/dependencies/implementations/impacted/detect_cycle/implements_of/dry_run_merge/merge_into_baseline 与 CombinedView
+  的 edges_from/edges_to/impacted/detect_cycle。
+
+
+  ### 反向要求
+
+  - 不判定关系是否合法(六不变式/基数约束归 new_model 校验器,本层只忠实存取)。
+
+  - 不写业务文档(只维护 .meta 下的关系图文件)。'
