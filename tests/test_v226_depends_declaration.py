@@ -51,6 +51,9 @@ FSD_REDECLARED = """<!-- @id:[FSD]-app -->
 
 <!-- @id:[FSD]-app:feat -->
 ## feat
+```yaml
+depends_on: []
+```
 
 <!-- @id:[FSD]-app:store -->
 ## store
@@ -155,7 +158,7 @@ def test_view_suppresses_baseline_scope_for_owned_root(tmp_path: Path, monkeypat
     _run(runner, "version", "create", "v0.2")
     p = _run(runner, "fsd", "create", "[FSD]-app",
              "--action", "modify", "--overrides", "[FSD]-app",
-             "--content", FSD_DECLARED.replace("```yaml\ndepends_on: [store]\n```\n", ""))
+             "--content", FSD_DECLARED.replace("depends_on: [store]", "depends_on: []"))
     assert p["ok"] is True
 
     view = combined_view(root, "v0.2")
@@ -246,3 +249,75 @@ def test_strip_preserves_non_depends_yaml(tmp_path: Path, monkeypatch):
     out = _strip_depends_on_blocks(content)
     assert "depends_on" not in out
     assert "some_other: keep_me" in out
+
+
+# ── v2.32: preserve 语义 + :TEST 验收节点 ──────────────────────────
+
+
+FSD_PROSE_ONLY = """<!-- @id:[FSD]-app -->
+## App FSD (改了描述,没带 depends_on 块)
+
+<!-- @id:[FSD]-app:feat -->
+## feat 改后的描述
+
+<!-- @id:[FSD]-app:store -->
+## store 改后的描述
+"""
+
+
+def test_modify_without_block_preserves_edges(tmp_path: Path, monkeypatch):
+    """v2.32 核心:重排 FSD 内容(不带 depends_on 块)不再 wipe 依赖边。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap(runner)
+    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+    assert combined_view(root, "v0.1").edges_from("[FSD]-app:feat", "depends_on"), "前置:边已建"
+
+    # 改描述、不带任何 depends_on 块
+    p = _run(runner, "fsd", "create", "[FSD]-app",
+             "--action", "modify", "--overrides", "[FSD]-app", "--content", FSD_PROSE_ONLY)
+    assert p["ok"] is True
+    deps = [e.dst for e in combined_view(root, "v0.1").edges_from("[FSD]-app:feat", "depends_on")]
+    assert deps == ["[FSD]-app:store"], "无块 modify 必须保留现有边(preserve)"
+
+
+def test_explicit_empty_clears_that_split_only(tmp_path: Path, monkeypatch):
+    """显式 depends_on: [] 清空该 split;未提及的 split 不受影响。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap(runner)
+    # feat→store, store→feat 两条
+    two = FSD_DECLARED.replace("## store\n", "## store\n```yaml\ndepends_on: [feat]\n```\n")
+    _run(runner, "fsd", "create", "[FSD]-app", "--content", two)
+    v = combined_view(root, "v0.1")
+    assert v.edges_from("[FSD]-app:feat", "depends_on") and v.edges_from("[FSD]-app:store", "depends_on")
+
+    # 只清 feat(显式 []),不提 store
+    clear_feat = two.replace("depends_on: [store]", "depends_on: []")
+    _run(runner, "fsd", "create", "[FSD]-app",
+         "--action", "modify", "--overrides", "[FSD]-app", "--content", clear_feat)
+    v = combined_view(root, "v0.1")
+    assert v.edges_from("[FSD]-app:feat", "depends_on") == [], "feat 被显式清空"
+    assert [e.dst for e in v.edges_from("[FSD]-app:store", "depends_on")] == ["[FSD]-app:feat"], "store 边保留"
+
+
+def test_fsd_with_test_chunk_passes_gate(tmp_path: Path, monkeypatch):
+    """含 :TEST 验收节点的 FSD:可解析、过门禁(非孤儿、不误判)。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap(runner)
+    fsd = (
+        "<!-- @id:[FSD]-app -->\n## App FSD\n\n"
+        "<!-- @id:[FSD]-app:feat -->\n## feat\n\n"
+        "<!-- @id:[FSD]-app:TEST -->\n## TEST 集成验收\n所有部分合并的验收。\n"
+    )
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", fsd)
+    assert p["ok"] is True, p
+    assert combined_view(root, "v0.1").node("[FSD]-app:TEST") is not None, ":TEST chunk 已入图"
+    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    _run(runner, "version", "commit", "v0.1")
+    m = _run(runner, "version", "merge", "v0.1")
+    assert m["ok"] is True, f":TEST 节点应过六不变式门禁: {m}"

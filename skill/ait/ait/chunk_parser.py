@@ -18,7 +18,7 @@ from pathlib import Path
 from .io_utils import strip_md_ext, to_posix_rel
 
 LEGACY_CHUNK_ID = r"[a-z0-9][a-z0-9-]*"
-NEW_MODEL_CHUNK_ID = r"\[(?:PRD|FSD|TDD)\]-[a-z0-9_]+(?:-[a-z0-9_]+)*(?::[a-z0-9_]+)?"
+NEW_MODEL_CHUNK_ID = r"\[(?:PRD|FSD|TDD)\]-[a-z0-9_]+(?:-[a-z0-9_]+)*(?::(?:[a-z0-9_]+|TEST))?"
 CHUNK_ID_PATTERN = rf"(?:{LEGACY_CHUNK_ID}|{NEW_MODEL_CHUNK_ID})"
 
 ID_PATTERN = re.compile(rf"^<!--\s*@id:({CHUNK_ID_PATTERN})\s*-->\s*$")

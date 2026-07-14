@@ -65,6 +65,17 @@ class NewModelManager:
         # Validate BEFORE any write, then STRIP the block so the document body
         # carries zero relation declarations (specgraph is the sole store).
         declared = self._parse_depends_on_declarations(root_chunk_id, content)
+        # v2.32 preserve semantic: splits WITHOUT a depends_on block keep their
+        # current edges (hydrated) — reformatting an FSD's prose no longer wipes
+        # deps. Declared splits (incl. explicit `[]`) authoritatively override.
+        prefix = f"{root_chunk_id}:"
+        view_before = combined_view(self.root, version)
+        hydrated: dict[str, list[str]] = {}
+        for cid in view_before.nodes:
+            if cid.startswith(prefix) and cid not in declared:
+                deps = [e.dst for e in view_before.edges_from(cid, "depends_on")]
+                if deps:
+                    hydrated[cid] = deps
         clean_content = _strip_depends_on_blocks(content)
         result = self._create_document(
             version,
@@ -75,9 +86,11 @@ class NewModelManager:
             action=action,
             overrides=overrides,
         )
-        # Reconcile AFTER _create_document's sync_specgraph (sync preserves old
-        # explicit edges; the reconcile owns this file's sibling-edge scope).
-        self._reconcile_sibling_depends_on(version, root_chunk_id, declared)
+        # Reconcile AFTER _create_document's sync_specgraph. final_deps carries
+        # the file's FULL authoritative set (hydrated preserved + declared), so
+        # combined_view/merge per-root scoping stays correct.
+        final_deps = {**hydrated, **declared}
+        self._reconcile_sibling_depends_on(version, root_chunk_id, final_deps)
         # FSD layer entry: advance the phase machine off the PRD layer.
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
@@ -102,8 +115,8 @@ class NewModelManager:
             if not chunk.id.startswith(prefix):
                 continue
             names = _split_depends_on(chunk.content)
-            if not names:
-                continue
+            if names is None:
+                continue  # no block → not declared (preserved via hydrate)
             resolved: list[str] = []
             for name in names:
                 dep = name if ":" in name else f"{root_chunk_id}:{name}"
@@ -722,8 +735,14 @@ _YAML_FENCE_RE = re.compile(r"```yaml\s*\n(.*?)```", re.DOTALL)
 _YAML_FENCE_FULL_RE = re.compile(r"```yaml\s*\n(?P<body>.*?)```[ \t]*\n?", re.DOTALL)
 
 
-def _split_depends_on(chunk_content: str) -> list[str]:
-    """Declared sibling dependencies from a split chunk's yaml fence block."""
+def _split_depends_on(chunk_content: str) -> list[str] | None:
+    """Declared sibling dependencies from a split chunk's yaml fence block.
+
+    v2.32 distinguishes "not declared" from "explicitly cleared":
+      - no yaml block with a ``depends_on`` key → ``None`` (preserve existing)
+      - ``depends_on: []`` / null → ``[]`` (explicit clear)
+      - ``depends_on: [a, b]`` → ``["a", "b"]``
+    """
     import yaml
 
     for block in _YAML_FENCE_RE.findall(chunk_content):
@@ -731,9 +750,12 @@ def _split_depends_on(chunk_content: str) -> list[str]:
             loaded = yaml.safe_load(block)
         except Exception:
             continue
-        if isinstance(loaded, dict) and isinstance(loaded.get("depends_on"), list):
-            return [str(item) for item in loaded["depends_on"]]
-    return []
+        if isinstance(loaded, dict) and "depends_on" in loaded:
+            value = loaded["depends_on"]
+            if isinstance(value, list):
+                return [str(item) for item in value]
+            return []
+    return None
 
 
 def _strip_depends_on_blocks(content: str) -> str:
