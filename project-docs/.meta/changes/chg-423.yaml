@@ -1,0 +1,18 @@
+id: chg-423
+version: v2.34
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:merge_engine
+author: system
+date: '2026-07-14T07:24:28.496068+00:00'
+message: 'migrate version domain to new format: capability contract (real signatures) + :TEST integration acceptance'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:merge_engine -->
+
+  ## merge_engine
+
+  ### 功能描述
+
+  纯 chunk 级合并算法,version 域内部件(仅被 version_manager 的 confirm 调用,不对其它域暴露)。接口:`merge_file(base:ParsedFile, ops:list[VersionChunkOp])
+  -> MergedFile`、`merge_new_file(file, ops) -> MergedFile`、`serialize(file_header, chunks) -> str`。语义:按 baseline 真实存在性逐 chunk
+  处理——modify=整块全替换、目标不在 baseline 当 add、add 撞已存在报错——绝不丢 chunk。详见 [TDD]-merge_engine。'

@@ -1,0 +1,27 @@
+id: chg-424
+version: v2.34
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:TEST
+author: system
+date: '2026-07-14T07:24:28.503762+00:00'
+message: 'migrate version domain to new format: capability contract (real signatures) + :TEST integration acceptance'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:TEST -->
+
+  ## TEST 集成验收
+
+  version 域所有部件(version_manager + merge_engine)合并到一起、作为整体的集成验收:
+
+  1. WHEN 含 committed chunk 的合规版本 gate 通过(六不变式+验收绿)→ confirm THEN baseline 原子更新 + 一次 git commit,version 标 merged,返回 merged_chunks
+  与 commit。
+
+  2. IF confirm 任一步失败(specgraph 提升 / git commit 真实失败)THEN docs 与 .meta 关键状态字节级回退(MERGE_ROLLBACK),merged 标记不残留、快照目录清除,回退后可直接重试。
+
+  3. IF 版本违反六不变式(孤儿/断链/制品撞车/树关系环)THEN gate passed=false、confirm 报 INVARIANT_VIOLATION 拒于任何落盘之前。
+
+  4. IF 配置了 acceptance_command 且测试红 THEN confirm 报 ACCEPTANCE_FAILED 拒于落盘之前;未配置则跳过(vacuous)。
+
+  5. merge_engine:整块 modify 替换后不丢兄弟 chunk、modify 目标不在 baseline 当 add 追加、add 撞已存在 baseline id 报 DUPLICATE_BASELINE_CHUNK。
+
+  6. 非 git 环境 confirm 成功但结果标 git:"unavailable"(不伪装 commit)。'

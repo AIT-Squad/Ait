@@ -1,0 +1,16 @@
+id: chg-411
+version: v2.34
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:specgraph
+author: system
+date: '2026-07-14T07:24:28.378257+00:00'
+message: 'migrate version domain to new format: capability contract (real signatures) + :TEST integration acceptance'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:specgraph -->
+
+  ## specgraph 域
+
+  ### 功能描述
+
+  `ait specgraph/deps/impact`：spec 关系图、edge 管理、依赖与影响查询、dot 导出、新模型图校验。'

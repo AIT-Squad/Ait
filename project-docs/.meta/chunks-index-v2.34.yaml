@@ -1,0 +1,338 @@
+version: 1
+scope: version
+version_name: v2.34
+based_on_hash: null
+status: developing
+chunks:
+- id: '[FSD]-ait'
+  file: fsd/[FSD]-ait
+  heading: ait 功能分解根
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: ait 根 FSD：功能分解与交互契约入口。
+  metadata: {}
+- id: '[FSD]-ait:init'
+  file: fsd/[FSD]-ait
+  heading: init 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:prd'
+  file: fsd/[FSD]-ait
+  heading: prd 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:impl'
+  file: fsd/[FSD]-ait
+  heading: impl 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:task'
+  file: fsd/[FSD]-ait
+  heading: task 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:version'
+  file: fsd/[FSD]-ait
+  heading: version 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:new_model'
+  file: fsd/[FSD]-ait
+  heading: new-model 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:specgraph'
+  file: fsd/[FSD]-ait
+  heading: specgraph 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:context'
+  file: fsd/[FSD]-ait
+  heading: context 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:state'
+  file: fsd/[FSD]-ait
+  heading: state 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:lint'
+  file: fsd/[FSD]-ait
+  heading: lint 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:search'
+  file: fsd/[FSD]-ait
+  heading: search 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:indexing'
+  file: fsd/[FSD]-ait
+  heading: indexing 域
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:cli'
+  file: fsd/[FSD]-ait
+  heading: cli 分发器
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:doc_model'
+  file: fsd/[FSD]-ait
+  heading: doc-model 基础设施
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:foundation'
+  file: fsd/[FSD]-ait
+  heading: foundation 基础设施
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait:skill'
+  file: fsd/[FSD]-ait
+  heading: skill 层
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version'
+  file: fsd/[FSD]-ait-version
+  heading: version 内部分解
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[FSD]-ait-version'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:version_manager'
+  file: fsd/[FSD]-ait-version
+  heading: version_manager
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:merge_engine'
+  file: fsd/[FSD]-ait-version
+  heading: merge_engine
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+- id: '[FSD]-ait-version:TEST'
+  file: fsd/[FSD]-ait-version
+  heading: TEST 集成验收
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: null
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-14T07:24:28.506761+00:00'
+  message: 'migrate version domain to new format: capability contract (real signatures) + :TEST integration acceptance'
+  chunks:
+  - '[FSD]-ait'
+  - '[FSD]-ait:init'
+  - '[FSD]-ait:prd'
+  - '[FSD]-ait:impl'
+  - '[FSD]-ait:task'
+  - '[FSD]-ait:version'
+  - '[FSD]-ait:new_model'
+  - '[FSD]-ait:specgraph'
+  - '[FSD]-ait:context'
+  - '[FSD]-ait:state'
+  - '[FSD]-ait:lint'
+  - '[FSD]-ait:search'
+  - '[FSD]-ait:indexing'
+  - '[FSD]-ait:cli'
+  - '[FSD]-ait:doc_model'
+  - '[FSD]-ait:foundation'
+  - '[FSD]-ait:skill'
+  - '[FSD]-ait-version'
+  - '[FSD]-ait-version:version_manager'
+  - '[FSD]-ait-version:merge_engine'
+  - '[FSD]-ait-version:TEST'
+  req_id: null
+stats:
+  total_chunks: 21
+  by_action:
+    modify: 21
+  by_state:
+    committed: 21
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
