@@ -1,0 +1,24 @@
+id: chg-454
+version: v2.36
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:hash_utils
+author: system
+date: '2026-07-14T13:14:46.564325+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:hash_utils -->
+
+  ## hash_utils
+
+  ### 功能描述
+
+  chunk 内容指纹。提供:`normalize(text) -> str`(CRLF/CR→LF 归一 + 首尾去空白);`chunk_hash(content) -> str`(对规范化内容做 SHA-256 取前 8 位十六进制);`file_hash(path_content)`
+  同算法,供 .doc-sync/ 跟踪代码文件用。哈希稳定性由 normalize 保证(跨平台换行差异不影响指纹)。
+
+
+  ### 反向要求
+
+  - 不读文件(输入是已读入的字符串,IO 归 io_utils)。
+
+  - 不保证密码学抗碰撞用途(仅作内容变更检测的短指纹,非安全场景)。'

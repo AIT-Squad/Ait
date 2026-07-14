@@ -1,0 +1,26 @@
+id: chg-451
+version: v2.36
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:root
+author: system
+date: '2026-07-14T13:14:46.545716+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:root -->
+
+  ## root
+
+  ### 功能描述
+
+  解析并校验 AIT 唯一合法工作根 `<CWD>/project-docs/`。提供 `resolve_project_root() -> ProjectRoot`,返回冻结数据类 `ProjectRoot(cwd, root, docs,
+  meta)`(一次 CLI 调用期内不可变)。校验三类错误各带独立错误码:CWD 本身位于 project-docs/ 内部报 CWD_INSIDE_PROJECT_DOCS、CWD 下不存在 project-docs/ 子目录报 NOT_AT_PROJECT_ROOT、project-docs/
+  存在但缺 docs/ 或 .meta/ 子目录报 PROJECT_DOCS_MALFORMED。刻意不接受任何形式的覆盖:不读 --root/-C/AIT_ROOT 命令行或环境变量、不向上递归查找 marker 文件、目录名 project-docs
+  硬编不可配。
+
+
+  ### 反向要求
+
+  - 不向上递归、不猜测、不接受配置覆盖工作根(唯一规则就是 `<CWD>/project-docs/`)。
+
+  - 不创建缺失的目录(只校验并报错,初始化归 init 域)。'

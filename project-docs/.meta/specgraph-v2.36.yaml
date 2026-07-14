@@ -1,0 +1,70 @@
+version: 1
+updated: '2026-07-14T13:14:47.134366+00:00'
+specs:
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation
+  title: foundation 内部分解
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation:TEST
+  title: TEST 集成验收
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation:TEST'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation:hash_utils
+  title: hash_utils
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation:hash_utils'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation:io_utils
+  title: io_utils
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation:io_utils'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation:root
+  title: root
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation:root'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:fsd:v2.36:[FSD]-ait-foundation:yaml_io
+  title: yaml_io
+  type: fsd
+  version: v2.36
+  chunk_id: '[FSD]-ait-foundation:yaml_io'
+  file: fsd/[FSD]-ait-foundation
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []

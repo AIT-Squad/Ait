@@ -1,0 +1,25 @@
+id: chg-453
+version: v2.36
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:yaml_io
+author: system
+date: '2026-07-14T13:14:46.558406+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:yaml_io -->
+
+  ## yaml_io
+
+  ### 功能描述
+
+  pydantic 模型与 YAML 文件互转。提供:`load_yaml(path) -> dict`(文件不存在或空返回 {});`load_model(path, model)` 加载 YAML 并按 pydantic 模型校验;`dump_model(model)
+  -> str` 把模型转 YAML 字符串,风格稳定(allow_unicode、sort_keys=False、default_flow_style=False 块状不流式、width=120),datetime/date 转 isoformat;`save_model(path,
+  model)` 经 io_utils 的 atomic_write_text 原子落盘。
+
+
+  ### 反向要求
+
+  - 不自行写文件(落盘委托 io_utils 的原子写)。
+
+  - 不定义业务模型(只做转换,模型 schema 归 doc_model 域)。'

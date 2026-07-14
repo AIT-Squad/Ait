@@ -1,0 +1,25 @@
+id: chg-455
+version: v2.36
+type: MODIFY
+target: fsd/[FSD]-ait-foundation#[FSD]-ait-foundation:TEST
+author: system
+date: '2026-07-14T13:14:46.571830+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-foundation:TEST -->
+
+  ## TEST 集成验收
+
+  foundation 域所有部件(root + io_utils + yaml_io + hash_utils)合并到一起、作为整体的集成验收:
+
+  1. WHEN 从含 project-docs/docs 与 .meta 的目录调 resolve_project_root() THEN 返回 ProjectRoot,其 root/docs/meta 指向正确子目录;从 project-docs/
+  内部调则报 CWD_INSIDE_PROJECT_DOCS,缺子目录报 PROJECT_DOCS_MALFORMED,无 project-docs 报 NOT_AT_PROJECT_ROOT。
+
+  2. WHEN atomic_write_text 写入目标 THEN 内容以 LF 换行落盘且无 .tmp 残留;写入过程抛异常时目标文件保持原样(无半写)。
+
+  3. WHEN ensure_within 收到越界 target(如 ../外部路径)THEN 抛 PathOutsideProjectError;合法子路径返回解析后的绝对路径。
+
+  4. WHEN save_model 写模型再 load_model 读回 THEN 得到等价模型(round-trip),YAML 为块状风格、键序保留、datetime 为 isoformat 字符串。
+
+  5. WHEN 对同一内容的 CRLF 与 LF 两种换行分别 chunk_hash THEN 得到相同的 8 位十六进制指纹(normalize 消除换行差异)。'
