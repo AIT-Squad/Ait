@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.35
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-template_prd'
   file: tdd/[TDD]-template_prd
