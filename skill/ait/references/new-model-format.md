@@ -82,6 +82,11 @@ depends_on: [store, config]
 
 **codegen 契约**：为某 TDD 组装上下文 ＝ TDD 正文 ＋ 向上全链（details/decomposes 到 PRD）＋ 沿 SpecGraph depends_on 拉入对端的能力契约（对外接口）作开发依据。依赖不在正文，全靠 specgraph 一层层找。
 
+**三条通用书写规约（PRD/FSD/TDD 全部正文适用）**：
+1. **详实自包含**：每块完整讲清自己（行为/职责/约束），禁"参见/详见 X"式引用甩锅。功能描述（做什么）、能力契约（对外接口）、TDD（怎么实现）角度不同，各自完整。
+2. **反向要求必填**：每块明确"不实现什么/不涉及什么/不负责什么（及归属）"——PRD 的范围"不包含"、FSD 的"反向要求"section、TDD 的"本文件不负责"。
+3. **术语就地展开**：总结性用语（如"六不变式"）在使用处展开其完整含义，不裸用名词、不设集中术语表、不指向别处——保证所有信息明确在文档中。
+
 > **`:TEST` 是验收节点**（既非 decompose 节点、也非 details 叶子）——冒号 split 结构隶属 root，不触发孤儿/追溯校验。将来（P9）从它 `details` 出 `target_file: tests/*.py` 的测试 TDD，把项目测试也纳入制品治理。
 
 ## 6. target_file 规则
@@ -94,9 +99,9 @@ depends_on: [store, config]
 ## 7. 章节结构
 
 各类文档的章节骨架见模板（指引性，代码不强制章节）：
-- `templates/TEMPLATE-PRD-AIT-DRAFT.md`：背景/目标/范围/用户故事/验收（只写 why/what，不拆模块）。
-- `templates/TEMPLATE-FSD-AIT-DRAFT.md`：功能总览/交互契约（split 段含 depends_on 声明块示例，可递归拆子 FSD）。
-- `templates/TEMPLATE-TDD-AIT-DRAFT.md`：target_file/技术栈/文件职责/核心逻辑/单元测试要求（一文件一映射）。
+- `templates/TEMPLATE-PRD-AIT-DRAFT.md`：概述/范围（含+不含〔反向要求〕）/用户角色/目标度量/风险＋需求项（用户故事+不做+用户级验收）。零技术。
+- `templates/TEMPLATE-FSD-AIT-DRAFT.md`：root（功能描述+反向要求+分解视图）＋功能 split（功能描述+反向要求+能力契约）＋`:TEST` 集成验收。可递归拆子 FSD。
+- `templates/TEMPLATE-TDD-AIT-DRAFT.md`：target_file/技术栈约束/文件职责（负责+不负责〔反向要求〕）/代码结构/核心实现逻辑/错误边界/单元测试要求（一文件一映射）。
 
 ## 8. 生命周期（四层命令面）
 

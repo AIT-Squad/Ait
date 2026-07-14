@@ -1,0 +1,17 @@
+id: chg-436
+version: v2.35
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:specgraph
+author: system
+date: '2026-07-14T10:09:02.424275+00:00'
+message: 'template finalization: three universal writing rules (self-contained, reverse-requirements, inline term expansion)
+  + version-domain rework'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:specgraph -->
+
+  ## specgraph 域
+
+  ### 功能描述
+
+  `ait specgraph/deps/impact`：spec 关系图、edge 管理、依赖与影响查询、dot 导出、新模型图校验。'

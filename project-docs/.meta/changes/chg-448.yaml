@@ -1,0 +1,28 @@
+id: chg-448
+version: v2.35
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:merge_engine
+author: system
+date: '2026-07-14T10:09:02.515626+00:00'
+message: 'template finalization: three universal writing rules (self-contained, reverse-requirements, inline term expansion)
+  + version-domain rework'
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:merge_engine -->
+
+  ## merge_engine
+
+  ### 功能描述
+
+  纯 chunk 级合并算法,version 域内部件(仅被 version_manager 的 confirm 调用,不对其它域暴露)。接口:`merge_file(base:ParsedFile, ops:list[VersionChunkOp])
+  -> MergedFile`、`merge_new_file(file, ops) -> MergedFile`、`serialize(file_header, chunks) -> str`。语义:按 baseline 真实存在性逐 chunk
+  处理——modify=整块全替换(version 侧须自带完整最终内容)、modify 目标不在 baseline 则当 add 追加、add 撞已存在报错——绝不静默丢 chunk。
+
+
+  ### 反向要求
+
+  - 不读写磁盘(纯内存转换,落盘由 version_manager 负责)。
+
+  - 不做冲突策略决策(hash 冲突的取舍由调用方传入)。
+
+  - 不处理关系图(specgraph 的提升由 version_manager 编排)。'
