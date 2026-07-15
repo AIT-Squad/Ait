@@ -1,0 +1,16 @@
+id: chg-508
+version: v2.44
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:indexing
+author: system
+date: '2026-07-15T01:45:34.854132+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: "<!-- @id:[FSD]-ait:indexing -->\n## indexing 索引域\n\n### 功能描述\nchunks-index 的重建、加载、查询与一次性历史迁移。chunks-index 记录\"\
+  块自身状态\"(action/state/统计),与 specgraph 记录\"块间关系\"互补。内部分解见 [FSD]-ait-indexing。\n\n### 能力契约\n- **提供方式**:Python 类与函数(ait.index_manager.IndexManager\
+  \ / ait.migrations)\n- **接口**:\n  - `rebuild_baseline() -> (BaselineIndex, LinksIndex)`——从 docs/ 全量重建基线索引\n  - `query_baseline(chunk_id)\
+  \ -> BaselineChunkEntry|None`、`query_version(version, chunk_id) -> VersionChunkEntry|None`、`all_version_records(version,\
+  \ chunk_id) -> list`\n  - `load_baseline() / load_version_index(version) / save_version_index(index)`——索引读写(经 foundation\
+  \ 原子写)\n  - `list_versions() -> list[str]`\n  - `migrate_block_to_chunk(meta_dir, dry_run) -> MigrationReport`——block→chunk\
+  \ 术语一次性迁移,dry_run 预览\n- 统计(三态/action/task 计数)在 save 时自动重算\n\n### 反向要求\n- 不管块间关系(归 specgraph 域)。\n- 不解析 markdown(委托 doc_model)。"

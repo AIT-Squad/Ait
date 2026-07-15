@@ -1,0 +1,16 @@
+id: chg-500
+version: v2.44
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:task
+author: system
+date: '2026-07-15T01:45:34.797765+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:task -->
+
+  ## task 域
+
+  ### 功能描述
+
+  `ait task` create/execute/complete/fail/list/show：从 specgraph 派生 task、聚焦上下文、回写 code_refs。'
