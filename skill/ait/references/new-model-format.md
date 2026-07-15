@@ -105,16 +105,18 @@ depends_on: [store, config]
 
 ## 8. 生命周期（四层命令面）
 
+**P7 全严格自顶向下**：每个入口写盘前校验版本 phase，不满足则拒（零落盘可重试）。phase 推进链：`empty →(prd create) prd-creating →(prd confirm) prd-confirm →(fsd create/decompose) fsd-creating →(fsd confirm) fsd-confirm →(tdd create) tdd-creating →(tdd confirm) tdd-confirm →(merge) merged`。add 与 modify 同等门禁——改任一层都须从 prd 逐层向下（迭代亦然）。
+
 ```
-version create <v>            显式开版本（或 prd create 无活动版本时自动开——迭代入口）
-prd  create / confirm / revert     PRD 层：创建讨论 → 冻结 / 成对返工（phase 阶段机）
-fsd  create / decompose / confirm / revert   FSD 层：写文档(含依赖声明) → 下钻建边 → 冻结/返工
-tdd  create --parent / confirm / revert      TDD 层：创建即建 details 边 → 冻结/返工
+version create <v>            唯一开版本入口（已存在报错；有活动未 merged 版本报 ACTIVE_VERSION_EXISTS——一次只一个开放版本）
+prd  create / confirm / revert     PRD 层：需已有活动版本（无则 NO_ACTIVE_VERSION，不再自动开版本）；create 需 phase∈{empty,prd-creating}(否则 PRD_LAYER_CLOSED)；confirm 需 prd-creating
+fsd  create / decompose / confirm / revert   FSD 层：create/decompose 需 phase∈{prd-confirm,fsd-creating}(否则 PRD_NOT_CONFIRMED)；confirm 需 fsd-creating
+tdd  create --parent / confirm / revert      TDD 层：create 需 phase∈{fsd-confirm,tdd-creating}(否则 FSD_NOT_CONFIRMED)；confirm 需 tdd-creating
 version commit <v>            全部 working chunk → committed（锁定）
 version confirm <v>           纯门禁：六不变式＋制品验收（acceptance_command），可重复跑、零落盘
 version merge <v>             唯一原子落盘：门禁前置 → 合入基线 → git commit；失败字节级回退
-version revert <v> --confirm  任意阶段整版退出（未合入）
-codegen prepare <[TDD]-id>    上下文契约：TDD 正文＋上溯全链（FSD→PRD）＋路径 depends_on 兄弟契约
+version revert <v> --confirm  任意阶段整版退出（未合入）——死锁逃生；各层 revert 则单层回退
+codegen prepare <[TDD]-id>    活动版本需 phase==tdd-confirm(否则 TDD_NOT_CONFIRMED)；version=None/已 merged=baseline codegen 不门禁。上下文契约：TDD 正文＋上溯全链（FSD→PRD）＋路径 depends_on 兄弟契约
 ```
 
 制品验收：`acceptance set "<cmd>"` 配置后，confirm/merge 前自动跑，红（exit≠0）→ `ACCEPTANCE_FAILED` 拒于落盘前；未配置则跳过。

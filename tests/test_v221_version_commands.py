@@ -33,20 +33,32 @@ TDD = "<!-- @id:[TDD]-app-feat -->\n## T\n\n```yaml\ntarget_file: app/feat.py\n`
 PRD = "<!-- @id:[PRD]-app -->\n## P\n"
 
 
+def _set_phase(root: Path, version: str, phase: str) -> None:
+    """P7 脚手架:直接置 phase,以构造本文件要测的「缺 PRD → 六不变式违例」
+    图形态(相位门禁本身在 test_v222/223/224 专测;这里测 confirm/merge 门禁)。"""
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
 def _build_valid_version(root: Path, runner: CliRunner, version: str) -> None:
-    """A minimally invariant-compliant new-model version via CLI."""
+    """A minimally invariant-compliant new-model version via CLI (P7 分层)。"""
     def run(*args):
         r = runner.invoke(main, list(args), catch_exceptions=False)
         assert r.exit_code == 0, r.output
         assert _payload(r)["ok"] is True, r.output
         return _payload(r)["data"]
 
+    run("version", "create", version)
     run("prd", "create", "[PRD]-app", "--version", version, "--content", PRD)
+    run("prd", "confirm", "--version", version)
     run("fsd", "create", "[FSD]-app", "--version", version, "--content", FSD)
-    run("tdd", "create", "[TDD]-app-feat", "--version", version, "--content", TDD)
     run("fsd", "decompose", "[PRD]-app", "[FSD]-app", "--version", version)
-    # details 边由 tdd 层原子建立(v2.24);此处用底层原语搭脚手架
-    NewModelManager(root).add_edge(version, "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    run("fsd", "confirm", "--version", version)
+    run("tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat",
+        "--version", version, "--content", TDD)
+    run("tdd", "confirm", "--version", version)
 
 
 def test_version_create_explicit_and_no_impl_dir(tmp_path: Path, monkeypatch):
@@ -77,7 +89,9 @@ def test_confirm_is_pure_gate_repeatable_zero_write(tmp_path: Path, monkeypatch)
     runner = CliRunner()
     # 只建 FSD+TDD,缺 PRD → 门禁应报违例
     runner.invoke(main, ["version", "create", "v9.0"], catch_exceptions=False)
+    _set_phase(root, "v9.0", "prd-confirm")  # 越过 PRD 层直建 FSD(测的是缺 PRD 的六不变式违例)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
+    _set_phase(root, "v9.0", "fsd-confirm")
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
     NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)
@@ -120,7 +134,9 @@ def test_merge_blocked_by_gate_before_any_write(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     # 缺 PRD → 门禁前置应拦 merge
     runner.invoke(main, ["version", "create", "v9.0"], catch_exceptions=False)
+    _set_phase(root, "v9.0", "prd-confirm")  # 越过 PRD 层直建 FSD(测的是缺 PRD 的六不变式违例)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
+    _set_phase(root, "v9.0", "fsd-confirm")
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
     NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)

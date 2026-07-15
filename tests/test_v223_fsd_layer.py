@@ -1,4 +1,4 @@
-"""v2.23 fsd 层流转:decompose 拆分即建边(取代 link) + confirm/revert 成对。"""
+"""v2.23→v2.51 fsd 层流转:P7 收——decompose 拆分即建边 + confirm/revert 成对(prd confirm 前置)。"""
 
 from __future__ import annotations
 
@@ -24,10 +24,12 @@ def _project(tmp_path: Path) -> Path:
 
 
 def _bootstrap_prd(runner):
-    """prd create auto-opens v0.1 with a PRD root."""
+    """P7 收:显式 version create → prd create → prd confirm(FSD 层可达)。"""
+    runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
     runner.invoke(main, ["prd", "create", "[PRD]-app",
                          "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
                   catch_exceptions=False)
+    runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
 
 
 FSD_ROOT = "<!-- @id:[FSD]-app -->\n## App FSD root\n"
@@ -40,6 +42,27 @@ def test_link_command_retired(tmp_path: Path, monkeypatch):
     r = CliRunner().invoke(main, ["fsd", "link", "[FSD]-a", "[FSD]-b", "--rel", "decomposes"])
     assert r.exit_code != 0, "fsd link 应已退役(no such command)"
     assert "No such command" in r.output or "no such command" in r.output.lower()
+
+
+def test_fsd_create_requires_prd_confirm_p7(tmp_path: Path, monkeypatch):
+    """P7 收:PRD 未 confirm(phase=prd-creating)时 fsd create 拒 PRD_NOT_CONFIRMED,零落盘。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
+    runner.invoke(main, ["prd", "create", "[PRD]-app",
+                         "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
+                  catch_exceptions=False)
+
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT])
+    p = _payload(r)
+    assert p["ok"] is False and p["code"] == "PRD_NOT_CONFIRMED", p
+    assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").exists(), "拒绝须零落盘"
+
+    # prd confirm 后重试成功(拒绝非终态)
+    runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    assert _payload(r)["ok"] is True
 
 
 def test_decompose_atomic_write_child_and_edge(tmp_path: Path, monkeypatch):
@@ -107,7 +130,6 @@ def test_fsd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
     vm = VersionManager(root)
     assert vm.load_version_meta("v0.1").phase == "fsd-creating", "create_fsd 应把 phase 推进到 fsd-creating"
@@ -117,13 +139,15 @@ def test_fsd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     assert p["ok"] is True and p["data"]["phase"] == "fsd-confirm"
     assert "[FSD]-app" in p["data"]["confirmed"]
 
-    # 冻结是真的
+    # 冻结是真的:P7 下先撞 PRD_NOT_CONFIRMED 相位门禁(phase=fsd-confirm 不在允许集)
     r = runner.invoke(
         main,
         ["fsd", "create", "[FSD]-app", "--action", "modify", "--overrides", "[FSD]-app", "--content", FSD_ROOT],
         catch_exceptions=False,
     )
-    assert _payload(r)["ok"] is False
+    p = _payload(r)
+    assert p["ok"] is False
+    assert p["code"] == "PRD_NOT_CONFIRMED", p
 
     # revert 成对返工
     r = runner.invoke(main, ["fsd", "revert"], catch_exceptions=False)
@@ -146,6 +170,7 @@ def test_fsd_confirm_requires_fsd_chunks(tmp_path: Path, monkeypatch):
     _project(tmp_path)
     runner = CliRunner()
     runner.invoke(main, ["version", "create", "v3.0"], catch_exceptions=False)
+    # P7:fresh 版本 phase=empty,先撞 FSD_LAYER_NOT_OPEN 相位门禁
     r = runner.invoke(main, ["fsd", "confirm", "--version", "v3.0"], catch_exceptions=False)
     p = _payload(r)
-    assert p["ok"] is False and "NO_FSD_CHUNKS" in (p.get("code") or "") + p["error"]
+    assert p["ok"] is False and "FSD_LAYER_NOT_OPEN" in (p.get("code") or "") + p["error"]

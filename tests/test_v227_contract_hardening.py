@@ -34,6 +34,15 @@ def _run(runner, *args):
     return _payload(runner.invoke(main, list(args), catch_exceptions=False))
 
 
+def _set_phase(root: Path, version: str, phase: str) -> None:
+    """P7 脚手架:置 phase,以到达本文件要测的层(相位门禁本身在
+    test_v222/223/224 专测;这里测 --file 清洗 / git 三分 / 回滚)。"""
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
 # ── R1-06: _git_commit 三分 ──────────────────────────────────────────
 
 
@@ -66,7 +75,9 @@ def test_confirm_reports_git_unavailable(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     root = _project(tmp_path)
     runner = CliRunner()
+    _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-app", "--content", "<!-- @id:[PRD]-app -->\n## P\n")
+    _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
     _run(runner, "version", "commit", "v0.1")
@@ -81,7 +92,9 @@ def test_git_commit_failure_rolls_back(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     root = _project(tmp_path)
     runner = CliRunner()
+    _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-app", "--content", "<!-- @id:[PRD]-app -->\n## P\n")
+    _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
     _run(runner, "version", "commit", "v0.1")
@@ -156,6 +169,7 @@ def test_file_escape_rejected_zero_write(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v9.0")
+    _set_phase(root, "v9.0", "prd-confirm")  # 到 FSD 层以测 --file 清洗
 
     for bad in ("../../ESCAPED", "fsd/../../x", "abs.md", "/etc/x", "C:/evil"):
         p = _run(runner, "fsd", "create", "[FSD]-app", "--version", "v9.0",
@@ -171,11 +185,13 @@ def test_file_cross_kind_rejected_and_shortname_ok(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     _run(runner, "version", "create", "v9.0")
 
+    _set_phase(root, "v9.0", "fsd-confirm")  # 到 TDD 层以测跨 kind --file 拒
     p = _run(runner, "tdd", "create", "[TDD]-x", "--version", "v9.0",
              "--file", "fsd/x",
              "--content", "<!-- @id:[TDD]-x -->\n## T\n```yaml\ntarget_file: a.py\n```\n")
     assert p["ok"] is False and p["code"] == "INVALID_FILE_NAME", "跨 kind 拒"
 
+    _set_phase(root, "v9.0", "prd-confirm")  # 回 FSD 层以测简名补前缀
     p = _run(runner, "fsd", "create", "[FSD]-app", "--version", "v9.0",
              "--file", "custom_name", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     assert p["ok"] is True

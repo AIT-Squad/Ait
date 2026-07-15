@@ -1,0 +1,25 @@
+id: chg-549
+version: v2.51
+type: MODIFY
+target: prd/[PRD]-ait#[PRD]-ait:mainline_pipeline
+author: system
+date: '2026-07-15T09:44:44.193957+00:00'
+message: prd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[PRD]-ait:mainline_pipeline -->
+
+  ### 需求:PRD→FSD→TDD→codegen 主线管线
+
+
+  **用户故事:** 作为 AI 协作开发者,我希望从 PRD 出发与 AI 讨论逐层分解为 FSD 功能树、再细化为文件级 TDD、最后由 codegen 驱动编码,以便让需求到代码的每一步都结构化、可门禁。
+
+
+  #### 验收标准
+
+  1. WHEN 依次 prd create → fsd create/decompose → tdd create --parent → codegen prepare THEN 每层文档写入版本工作区,关系边随内容创建原子出生,codegen
+  输出目标文件的聚焦上下文。
+
+  2. WHEN 每层 confirm 后不满意执行 revert THEN 冻结解除、可继续修改,无终态陷阱(门禁配返工)。
+
+  3. IF 关系申报违反基数或引用不存在的 chunk THEN 拒于落盘之前且零残留,修正后可重试。'

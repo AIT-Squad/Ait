@@ -1082,7 +1082,12 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
     try:
         ok(_json_safe(mgr.prepare_codegen(version, tdd_root_chunk_id)))
     except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+        # 领域错误码透传(契约见 [FSD]-ait:cli):不吞成笼统 VALIDATION_FAILED。
+        fail(
+            str(exc),
+            code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED",
+            details=exc.details,
+        )
 
 
 @main.group("acceptance")
@@ -1133,12 +1138,14 @@ def prdv2_create(
 ) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
-    auto_created = None
+    # P7 rule #2: prd create requires an already-created active version — no
+    # auto-open. Run `version create` first.
     if not version:
-        # Iteration-flow entry: no active version → auto-open the next one.
-        version = mgr.next_version_name()
-        mgr.versions.create(version)
-        auto_created = version
+        fail(
+            "no active version — run `version create <v>` first",
+            code="NO_ACTIVE_VERSION",
+        )
+        return
     try:
         result = mgr.create_prd(
             version,
@@ -1149,7 +1156,6 @@ def prdv2_create(
             overrides=overrides,
         )
         payload = _json_safe(result)
-        payload["auto_created_version"] = auto_created
         ok(payload)
     except ValidationError as exc:
         # 领域错误码透传(与 fsd/tdd create 一致,契约见 [FSD]-ait:cli):

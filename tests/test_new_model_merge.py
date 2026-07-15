@@ -25,12 +25,21 @@ def test_new_model_merge_preserves_file_containers_and_edges(tmp_path: Path):
     prd = parse_file(prd_path, vm.versions_dir / "v9.0").chunks[0]
     vm.add_chunk("v9.0", chunk=prd, action="add")
 
+    # P7 脚手架:PRD 经 write_version_file 直写(未走 create_prd),手动置 phase
+    # 到 prd-confirm 以放行 FSD 层(本测试测的是 merge 保留文件容器与边)。
+    _meta = vm.load_version_meta("v9.0")
+    _meta.phase = "prd-confirm"  # type: ignore[assignment]
+    vm.save_version_meta(_meta)
+
     mgr.create_fsd(
         "v9.0",
         "[FSD]-book_management",
         "<!-- @id:[FSD]-book_management -->\n## Book Management\n\n"
         "<!-- @id:[FSD]-book_management:book_model -->\n## Book Model\n",
     )
+    _meta = vm.load_version_meta("v9.0")
+    _meta.phase = "fsd-confirm"  # type: ignore[assignment]
+    vm.save_version_meta(_meta)
     mgr.create_tdd(
         "v9.0",
         "[TDD]-book_model",

@@ -34,6 +34,15 @@ def _new_project(tmp_path: Path) -> Path:
     return root
 
 
+def _set_phase(root: Path, version: str, phase: str) -> None:
+    """P7 脚手架:直接置 phase 以到达要测的层(相位门禁本身在
+    test_v222/223/224 专测;这里测建边/唯一性/taskless confirm)。"""
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
 # ── Work 1: new-model PRD command (ait prdv2) ───────────────────────────────
 
 
@@ -55,6 +64,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
     assert prd.exit_code == 0, prd.output
     assert _payload(prd)["data"]["chunks"] == ["[PRD]-shop"]
 
+    runner.invoke(main, ["prd", "confirm", "--version", "v9.0"], catch_exceptions=False)
     runner.invoke(
         main,
         [
@@ -137,6 +147,7 @@ def test_target_file_uniqueness_via_collect(tmp_path: Path):
     vm = VersionManager(root)
     vm.create("v9.0")
     mgr = NewModelManager(root)
+    _set_phase(root, "v9.0", "fsd-confirm")  # 到 TDD 层(本测试测 target_file 唯一性写时门禁)
     mgr.create_tdd(
         "v9.0", "[TDD]-alpha",
         "<!-- @id:[TDD]-alpha -->\n## Alpha\n\n```yaml\ntarget_file: app/shared.py\n```\n",
@@ -178,12 +189,14 @@ def test_taskless_new_model_confirm(tmp_path: Path):
     vm.create("v1.0")
 
     mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys PRD\n")
+    _set_phase(root, "v1.0", "prd-confirm")
     mgr.create_fsd(
         "v1.0", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## App FSD\n\n"
         "<!-- @id:[FSD]-app:svc -->\n## Service\n\n"
         "<!-- @id:[FSD]-app:store -->\n## Store\n",
     )
+    _set_phase(root, "v1.0", "fsd-confirm")
     mgr.create_tdd(
         "v1.0", "[TDD]-svc",
         "<!-- @id:[TDD]-svc -->\n## Service TDD\n\n```yaml\ntarget_file: app/svc.py\n```\n",

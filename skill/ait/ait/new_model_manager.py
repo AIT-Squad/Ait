@@ -50,6 +50,28 @@ class NewModelManager:
         self.versions = VersionManager(self.root)
         self.indexes = IndexManager(self.root)
 
+    def _require_phase(self, version: str, allowed: tuple[str, ...], code: str, op: str):
+        """P7 top-down gate (收 strict mode): reject an entry-point call whose
+        version phase is not one of ``allowed`` — zero-write, retryable. A
+        missing version → VERSION_NOT_FOUND (it must be created first; no
+        auto-create). Layers only advance prd→fsd→tdd when the parent layer is
+        confirmed; ``revert`` steps a layer back, ``version revert`` escapes."""
+        if not self.versions.version_meta_path(version).exists():
+            raise _validation_error(
+                "VERSION_NOT_FOUND",
+                f"version {version} does not exist — run `version create` first",
+                version,
+            )
+        meta = self.versions.load_version_meta(version)
+        phase = meta.phase or "empty"
+        if phase not in allowed:
+            raise _validation_error(
+                code,
+                f"{op} requires version phase in {list(allowed)}, current: {phase}",
+                version,
+            )
+        return meta
+
     def create_fsd(
         self,
         version: str,
@@ -60,6 +82,11 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
+        # P7 收: FSD layer requires the PRD layer confirmed (phase prd-confirm)
+        # or the FSD layer already open (fsd-creating).
+        self._require_phase(
+            version, ("prd-confirm", "fsd-creating"), "PRD_NOT_CONFIRMED", "fsd create"
+        )
         # v2.26/v2.31: sibling depends_on is declared in a transient yaml block
         # inside split content — an input instruction, NOT persisted doc content.
         # Validate BEFORE any write, then STRIP the block so the document body
@@ -198,6 +225,10 @@ class NewModelManager:
         full write-time gate. rel is always ``decomposes`` (details belongs to
         the tdd layer).
         """
+        # P7 收: decompose is an FSD-layer op — requires PRD confirmed / FSD open.
+        self._require_phase(
+            version, ("prd-confirm", "fsd-creating"), "PRD_NOT_CONFIRMED", "fsd decompose"
+        )
         view = combined_view(self.root, version)
         self._precheck_decompose_parent(view, parent_chunk_id, child_root_chunk_id)
         if content is not None:
@@ -232,6 +263,7 @@ class NewModelManager:
 
     def confirm_fsd_layer(self, version: str) -> dict:
         """Freeze the FSD layer: lock [FSD]- chunks, phase → fsd-confirm."""
+        self._require_phase(version, ("fsd-creating",), "FSD_LAYER_NOT_OPEN", "fsd confirm")
         idx = self.indexes.load_version_index(version)
         fsd_ids = [c.id for c in idx.chunks if c.id.startswith("[FSD]-")]
         if not fsd_ids:
@@ -274,6 +306,11 @@ class NewModelManager:
         overrides: str | None = None,
         parent_chunk_id: str | None = None,
     ) -> DocumentCreateResult:
+        # P7 收: TDD layer requires the FSD layer confirmed (phase fsd-confirm)
+        # or the TDD layer already open (tdd-creating).
+        self._require_phase(
+            version, ("fsd-confirm", "tdd-creating"), "FSD_NOT_CONFIRMED", "tdd create"
+        )
         if not _target_file(content):
             raise _validation_error("TDD_TARGET_FILE_REQUIRED", "TDD markdown must include target_file")
         # v2.20 write-time gate: one artifact ↔ one TDD (normalized paths).
@@ -333,6 +370,7 @@ class NewModelManager:
 
     def confirm_tdd_layer(self, version: str) -> dict:
         """Freeze the TDD layer: lock [TDD]- chunks, phase → tdd-confirm."""
+        self._require_phase(version, ("tdd-creating",), "TDD_LAYER_NOT_OPEN", "tdd confirm")
         idx = self.indexes.load_version_index(version)
         tdd_ids = [c.id for c in idx.chunks if c.id.startswith("[TDD]-")]
         if not tdd_ids:
@@ -374,6 +412,11 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
     ) -> DocumentCreateResult:
+        # P7 收: PRD layer must be open — a fresh version (empty) or still
+        # authoring PRD (prd-creating). Past that, `prd revert` re-opens it.
+        self._require_phase(
+            version, ("empty", "prd-creating"), "PRD_LAYER_CLOSED", "prd create"
+        )
         result = self._create_document(
             version,
             root_chunk_id,
@@ -410,6 +453,7 @@ class NewModelManager:
 
     def confirm_prd_layer(self, version: str) -> dict:
         """Freeze the PRD layer: lock [PRD]- chunks, phase → prd-confirm."""
+        self._require_phase(version, ("prd-creating",), "PRD_LAYER_NOT_OPEN", "prd confirm")
         idx = self.indexes.load_version_index(version)
         prd_ids = [c.id for c in idx.chunks if c.id.startswith("[PRD]-")]
         if not prd_ids:
@@ -465,6 +509,10 @@ class NewModelManager:
         return EdgeCreateResult(version=version, src=src_uri, dst=dst_uri, rel=rel)
 
     def prepare_codegen(self, version: str | None, tdd_root_chunk_id: str) -> CodegenBundle:
+        # P7 收: codegen on an active version requires the TDD layer confirmed.
+        # (version=None or a merged/absent version → baseline codegen, no gate.)
+        if version is not None and self.versions.version_meta_path(version).exists():
+            self._require_phase(version, ("tdd-confirm",), "TDD_NOT_CONFIRMED", "codegen")
         if version is None:
             entry = self.indexes.query_baseline(tdd_root_chunk_id)
             base_dir = self.root / "docs"
@@ -684,17 +732,15 @@ class NewModelManager:
                     chunk.id,
                 )
 
-        # v2.26 version-entry closure (R3-04 complete): only prd is the entry
-        # layer — fsd/tdd require an existing version, no silent ghost create.
-        if kind in ("fsd", "tdd"):
-            if not self.versions.version_meta_path(version).exists():
-                raise _validation_error(
-                    "VERSION_NOT_FOUND",
-                    f"version {version} does not exist — run `version create` or `prd create` first",
-                    root_chunk_id,
-                )
-        else:
-            self.versions.ensure(version)
+        # P7: every layer requires an already-created version — no auto-create,
+        # no ghost. `version create` is the sole entry (prd create no longer
+        # bootstraps a version). Missing → VERSION_NOT_FOUND.
+        if not self.versions.version_meta_path(version).exists():
+            raise _validation_error(
+                "VERSION_NOT_FOUND",
+                f"version {version} does not exist — run `version create` first",
+                root_chunk_id,
+            )
         path = self.versions.write_version_file(version, file, content)
         final_parsed = parse_file(path, self.versions.versions_dir / version)
         chunk_ids: list[str] = []

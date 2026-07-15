@@ -14,7 +14,7 @@ chunk 在版本工作区经历 `working → staged → committed`：
 
 | 命令 | 语义 |
 |------|------|
-| `version create <v>` | 显式开版本（已存在报错，杜绝幽灵版本）；`prd create` 无活动版本时也会自动开版本（迭代入口） |
+| `version create <v>` | 显式开版本（已存在报错；**P7:有活动未 merged 版本报 ACTIVE_VERSION_EXISTS**）；`prd create` 不再自动开版本（P7:须先 version create） |
 | `version confirm <v>` | **纯门禁**：task 完成度＋去重/override 冲突＋**六不变式**（组合视图全量）＋**制品验收**（acceptance_command）。可重复跑、零落盘、不合入；报告 `passed` 与违例明细 |
 | `version merge <v>` | **唯一原子落盘点**：内部先过同一门禁 → 备份 → 逐 chunk 合入基线 → specgraph 提升与依赖对账 → git commit。任一步失败**字节级回退**（docs 与 .meta 同步还原，`MERGE_ROLLBACK`），不残留 merged 标记 |
 | `version revert <v> --confirm` | 任意阶段整版退出（物理清空，未合入版本可用） |

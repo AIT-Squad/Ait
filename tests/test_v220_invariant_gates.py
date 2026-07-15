@@ -33,6 +33,15 @@ def _project(tmp_path: Path) -> Path:
     return root
 
 
+def _set_phase(root: Path, version: str, phase: str) -> None:
+    """P7 测试脚手架:直接置 phase 以构造本文件要测的图形态(相位门禁
+    本身在 test_v222/v223/v224 专测;这里测的是边写/confirm 门禁)。"""
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
 def _node(chunk_id: str, type_: str, file: str) -> ViewNode:
     return ViewNode(
         chunk_id=chunk_id, type=type_, version="baseline",
@@ -59,6 +68,7 @@ PRD = "<!-- @id:[PRD]-app -->\n## P\n"
 def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
+    _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
 
     with pytest.raises(ValidationError) as excinfo:
@@ -66,6 +76,7 @@ def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
     assert "MISSING_ENDPOINT" in str(excinfo.value)
     assert load_specgraph(root, "v9.0").edges == [], "拒绝必须零落盘"
 
+    _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
     mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 重试成功
 
@@ -73,11 +84,13 @@ def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
 def test_add_edge_rejects_second_details_parent(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
+    _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     mgr.create_fsd(
         "v9.0", "[FSD]-other",
         "<!-- @id:[FSD]-other -->\n## O\n\n<!-- @id:[FSD]-other:x -->\n## X\n",
     )
+    _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
     mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
 
@@ -92,6 +105,7 @@ def test_add_edge_rejects_second_prd_fsd_link(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
     mgr.create_prd("v9.0", "[PRD]-app", PRD)
+    _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     mgr.create_fsd("v9.0", "[FSD]-second", "<!-- @id:[FSD]-second -->\n## S\n")
     mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "decomposes")
@@ -104,7 +118,9 @@ def test_add_edge_rejects_second_prd_fsd_link(tmp_path: Path):
 def test_add_edge_same_edge_is_idempotent(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
+    _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
     mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 同边重放不拒
@@ -120,7 +136,9 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
     monkeypatch.setattr(VersionManager, "_git_commit", lambda self, m: "cafe123")
 
     # 只有 FSD+TDD、无 PRD → 孤儿+断链
+    _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
     mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     vm.stage("v9.0")
@@ -133,6 +151,7 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
     assert vm.load_version_meta("v9.0").merged_at is None, "门禁拒绝须零落盘"
 
     # 补齐 PRD 与 decomposes 边 → 重试成功（拒后可重试，无终态陷阱）
+    _set_phase(root, "v9.0", "prd-creating")
     mgr.create_prd("v9.0", "[PRD]-app", PRD)
     mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "decomposes")
     vm.stage("v9.0")

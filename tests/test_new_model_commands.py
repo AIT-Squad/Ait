@@ -23,6 +23,17 @@ def _run(runner: CliRunner, args: list[str]):
     return payload["data"]
 
 
+def _set_phase(root: Path, version: str, phase: str) -> None:
+    """P7 脚手架:置 phase 以到达要测的层(相位门禁本身在 test_v222/223/224
+    专测;这里测建边/codegen 上溯/前缀强制/target_file)。"""
+    from ait.version_manager import VersionManager
+
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
 def test_fsd_tdd_codegen_commands(tmp_path: Path, monkeypatch):
     root = tmp_path / "project-docs"
     (root / "docs").mkdir(parents=True)
@@ -51,6 +62,7 @@ target_file: app/services/loan_service.py
 ```
 """
     runner = CliRunner()
+    _set_phase(root, "v9.0", "prd-confirm")  # 到 FSD 层
 
     fsd = _run(
         runner,
@@ -83,6 +95,7 @@ target_file: app/services/loan_service.py
         ],
     )
 
+    _set_phase(root, "v9.0", "fsd-confirm")  # 到 TDD 层
     tdd = _run(
         runner,
         [
@@ -116,6 +129,7 @@ target_file: app/services/loan_service.py
         "[FSD]-book_management:persistence",
         "depends_on",
     )
+    _set_phase(root, "v9.0", "fsd-creating")  # decompose 需 prd-confirm/fsd-creating
     _run(
         runner,
         [
@@ -134,6 +148,7 @@ target_file: app/services/loan_service.py
     graph_after_sync = yaml.safe_load((root / ".meta" / "specgraph-v9.0.yaml").read_text(encoding="utf-8"))
     assert {item["rel"] for item in graph_after_sync["edges"]} == {"details", "depends_on", "decomposes"}
 
+    _set_phase(root, "v9.0", "tdd-confirm")  # codegen 需 tdd-confirm
     bundle = _run(
         runner,
         [
@@ -165,6 +180,7 @@ def test_tdd_create_requires_target_file(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
     runner = CliRunner()
+    _set_phase(root, "v9.0", "fsd-confirm")  # 到 TDD 层(本测试测缺 target_file 拒)
     result = runner.invoke(
         main,
         [
@@ -196,6 +212,7 @@ def _init_new_model_project(tmp_path: Path, monkeypatch):
     (root / ".meta" / "changes").mkdir(parents=True)
     VersionManager(root).create("v9.0")
     monkeypatch.chdir(tmp_path)
+    _set_phase(root, "v9.0", "prd-confirm")  # 到 FSD 层(cycle 测试随后 _set_phase 逐层推进)
     from ait.new_model_manager import NewModelManager
 
     return NewModelManager(root)
@@ -209,6 +226,7 @@ def test_prepare_codegen_survives_self_loop_cycle(tmp_path: Path, monkeypatch):
         "[FSD]-mod",
         "<!-- @id:[FSD]-mod -->\n## Mod\n\n<!-- @id:[FSD]-mod:leaf -->\n## Leaf\n",
     )
+    _set_phase(mgr.root, "v9.0", "fsd-confirm")
     mgr.create_tdd(
         "v9.0",
         "[TDD]-mod-leaf",
@@ -217,6 +235,7 @@ def test_prepare_codegen_survives_self_loop_cycle(tmp_path: Path, monkeypatch):
     mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[TDD]-mod-leaf", "details")
     mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[FSD]-mod", "decomposes")
 
+    _set_phase(mgr.root, "v9.0", "tdd-confirm")
     bundle = mgr.prepare_codegen("v9.0", "[TDD]-mod-leaf")
 
     ids = [item["id"] for item in bundle.upstream]
@@ -236,6 +255,7 @@ def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
         "[FSD]-beta",
         "<!-- @id:[FSD]-beta -->\n## Beta\n\n<!-- @id:[FSD]-beta:y -->\n## Y\n",
     )
+    _set_phase(mgr.root, "v9.0", "fsd-confirm")  # 到 TDD 层
     mgr.create_tdd(
         "v9.0",
         "[TDD]-alpha-x",
@@ -245,6 +265,7 @@ def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
     mgr.add_edge("v9.0", "[FSD]-beta:y", "[FSD]-alpha", "decomposes")
     mgr.add_edge("v9.0", "[FSD]-alpha:x", "[FSD]-beta", "decomposes")
 
+    _set_phase(mgr.root, "v9.0", "tdd-confirm")
     bundle = mgr.prepare_codegen("v9.0", "[TDD]-alpha-x")
 
     ids = [item["id"] for item in bundle.upstream]
@@ -302,6 +323,7 @@ def test_prepare_codegen_full_upstream_for_modified_tdd(tmp_path: Path, monkeypa
     from ait.new_model_manager import NewModelManager
 
     mgr = NewModelManager(root)
+    _set_phase(root, "v9.0", "fsd-confirm")  # 到 TDD 层
     mgr.create_tdd(
         "v9.0",
         "[TDD]-app-feat",
@@ -310,6 +332,7 @@ def test_prepare_codegen_full_upstream_for_modified_tdd(tmp_path: Path, monkeypa
         overrides="[TDD]-app-feat",
     )
 
+    _set_phase(root, "v9.0", "tdd-confirm")  # codegen 需 tdd-confirm
     bundle = mgr.prepare_codegen("v9.0", "[TDD]-app-feat")
 
     ids = [u["id"] for u in bundle.upstream]
@@ -336,27 +359,29 @@ def test_create_rejects_non_prefix_chunk_id_gap4(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
 
-    # ① 无前缀 root id 被拒
+    # ① 无前缀 root id 被拒(phase=empty,prd create 可达 gap-4 检查)
     p = _fail(runner, ["prd", "create", "myprd", "--version", "v9.0",
                        "--content", "<!-- @id:myprd -->\n## P\n"])
     assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
     assert not (root / "versions" / "v9.0" / "prd" / "myprd.md").exists(), "拒绝须零落盘"
 
+    # ④ 补前缀重试成功(拒绝非终态陷阱)——phase 仍 empty,prd create 可达
+    good = _run(runner, ["prd", "create", "[PRD]-myprd", "--version", "v9.0",
+                         "--content", "<!-- @id:[PRD]-myprd -->\n## P\n"])
+    assert "[PRD]-myprd" in good["chunks"]
+
     # ② root 带前缀但内容混入无前缀 chunk 也被拒(splits/杂散全拦)
+    _set_phase(root, "v9.0", "prd-confirm")  # P7:到 FSD 层才能测 fsd create 的 gap-4 检查
     bad_fsd = ("<!-- @id:[FSD]-app -->\n## App\n\n"
                "<!-- @id:stray-chunk -->\n## Stray\n")
     p = _fail(runner, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", bad_fsd])
     assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
 
     # ③ tdd 同样强制
+    _set_phase(root, "v9.0", "fsd-confirm")  # P7:到 TDD 层
     p = _fail(runner, ["tdd", "create", "loose-tdd", "--version", "v9.0",
                        "--content", "<!-- @id:loose-tdd -->\n## T\n```yaml\ntarget_file: a.py\n```\n"])
     assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
-
-    # ④ 补前缀重试成功(拒绝非终态陷阱)
-    good = _run(runner, ["prd", "create", "[PRD]-myprd", "--version", "v9.0",
-                         "--content", "<!-- @id:[PRD]-myprd -->\n## P\n"])
-    assert "[PRD]-myprd" in good["chunks"]
 
 
 def test_specgraph_add_edge_retired_gap3(tmp_path: Path, monkeypatch):

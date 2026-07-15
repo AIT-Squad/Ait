@@ -64,7 +64,11 @@ depends_on: [feat]
 
 
 def _bootstrap(runner):
+    # P7 收: explicit version create (no auto-open), then prd create + confirm
+    # so the FSD layer is reachable (phase → prd-confirm).
+    _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "confirm")
 
 
 def test_declaration_creates_edges(tmp_path: Path, monkeypatch):
@@ -156,6 +160,10 @@ def test_view_suppresses_baseline_scope_for_owned_root(tmp_path: Path, monkeypat
 
     # 新版本 modify 同文件,删除声明
     _run(runner, "version", "create", "v0.2")
+    # P7 收: iteration re-enters top-down from the PRD layer before touching FSD.
+    _run(runner, "prd", "create", "[PRD]-app", "--action", "modify",
+         "--overrides", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "confirm")
     p = _run(runner, "fsd", "create", "[FSD]-app",
              "--action", "modify", "--overrides", "[FSD]-app",
              "--content", FSD_DECLARED.replace("depends_on: [store]", "depends_on: []"))
@@ -178,6 +186,10 @@ def test_merge_reconciles_baseline_edges(tmp_path: Path, monkeypatch):
     assert _run(runner, "version", "merge", "v0.1")["ok"] is True
 
     _run(runner, "version", "create", "v0.2")
+    # P7 收: iteration re-enters top-down from the PRD layer before touching FSD.
+    _run(runner, "prd", "create", "[PRD]-app", "--action", "modify",
+         "--overrides", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-app",
          "--action", "modify", "--overrides", "[FSD]-app",
          "--content", FSD_REDECLARED)

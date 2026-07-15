@@ -119,6 +119,14 @@ class VersionManager:
         versions (audit R3-04): a typo'd ``--version`` can no longer silently
         materialise.
         """
+        # P7 rule #1: one open version at a time — the previous version must be
+        # merged (or reverted) before a new one can be created.
+        active = self.current()
+        if active is not None:
+            raise VersionManagerError(
+                f"active version {active} must be merged or reverted before creating {version}",
+                code="ACTIVE_VERSION_EXISTS",
+            )
         version_dir = self.versions_dir / version
         if version_dir.exists() or self.version_meta_path(version).exists():
             raise VersionManagerError(f"Version {version} already exists")
