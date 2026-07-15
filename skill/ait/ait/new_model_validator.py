@@ -227,8 +227,13 @@ def validate_invariants(
     prds = [n for n in new_nodes.values() if n.type == "prd"]
     tdds = [n for n in new_nodes.values() if n.type == "tdd"]
 
-    # ① PRD ↔ exactly one FSD
+    # ① PRD ↔ exactly one FSD — only the PRD ROOT chunk (no colon) decomposes
+    # an FSD. PRD colon splits are requirement items (content chunks), not
+    # decomposition nodes; they are exempt (their structural membership under
+    # the PRD root satisfies ⑤/⑥ via the id channel).
     for prd in prds:
+        if ":" in prd.chunk_id:
+            continue
         fsd_targets = sorted(e.dst for e in view.edges_from(prd.chunk_id, "decomposes"))
         if len(fsd_targets) != 1:
             violations.append(

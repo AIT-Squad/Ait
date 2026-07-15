@@ -243,3 +243,32 @@ def test_check_edge_write_and_normalize_unit():
     assert [v.code for v in check_edge_write(view, "[FSD]-x:s", "[TDD]-ghost", "details")] == ["MISSING_ENDPOINT"]
     assert check_edge_write(view, "[FSD]-x:s", "[TDD]-t", "details") == []
     assert normalize_target_file("./src\\Sub/..\\App.PY") == "src/app.py"
+
+
+def test_invariants_prd_requirement_split_exempt_from_rule_1():
+    """PRD 需求项 split 不该被①要求 decompose FSD——只有 PRD 根受约束。
+    回归 v2.46 dogfood 暴露的校验器缺陷:PRD chunk 化后 split 误触
+    PRD_FSD_LINK_NOT_UNIQUE。"""
+    view = _view(
+        [_node("[PRD]-app", "prd", "prd/[PRD]-app"),
+         _node("[PRD]-app:capture", "prd", "prd/[PRD]-app"),      # 需求项 split
+         _node("[PRD]-app:complete", "prd", "prd/[PRD]-app"),     # 需求项 split
+         _node("[FSD]-app", "fsd", "fsd/[FSD]-app"),
+         _node("[FSD]-app:feat", "fsd", "fsd/[FSD]-app"),
+         _node("[TDD]-app-feat", "tdd", "tdd/[TDD]-app-feat")],
+        [("[PRD]-app", "[FSD]-app", "decomposes"),
+         ("[FSD]-app:feat", "[TDD]-app-feat", "details")],
+    )
+    codes = [v.code for v in validate_invariants(view, [("[TDD]-app-feat", "app/feat.py")])]
+    assert "PRD_FSD_LINK_NOT_UNIQUE" not in codes, f"PRD split 误触①: {codes}"
+
+
+def test_invariants_prd_root_still_requires_one_fsd():
+    """确认修复未削弱①对 PRD 根的约束:根 decompose 0 个 FSD 仍报违例。"""
+    view = _view(
+        [_node("[PRD]-app", "prd", "prd/[PRD]-app"),
+         _node("[PRD]-app:capture", "prd", "prd/[PRD]-app")],
+        [],  # 根无 decomposes 边
+    )
+    codes = [v.code for v in validate_invariants(view, [])]
+    assert "PRD_FSD_LINK_NOT_UNIQUE" in codes, "PRD 根缺 FSD 应仍报违例"
