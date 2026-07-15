@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-15T01:41:47.084299+00:00'
+updated: '2026-07-15T01:43:01.508968+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -9,6 +9,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait-cli
   title: cli 内部分解
   type: fsd
@@ -545,6 +548,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:context
   title: context 域
   type: fsd
@@ -553,22 +559,31 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:doc_model
-  title: doc-model 基础设施
+  title: doc_model 文档模型域
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait:doc_model'
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:foundation
-  title: foundation 基础设施
+  title: foundation 基础设施域
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait:foundation'
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:impl
   title: impl 域
   type: fsd
@@ -577,14 +592,20 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:indexing
-  title: indexing 域
+  title: indexing 索引域
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait:indexing'
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:init
   title: init 域
   type: fsd
@@ -593,6 +614,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:lint
   title: lint 域
   type: fsd
@@ -601,6 +625,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:new_model
   title: new-model 域
   type: fsd
@@ -609,6 +636,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:prd
   title: prd 域
   type: fsd
@@ -617,6 +647,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:search
   title: search 域
   type: fsd
@@ -625,6 +658,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:skill
   title: skill 层
   type: fsd
@@ -633,14 +669,20 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:specgraph
-  title: specgraph 域
+  title: specgraph 关系图域
   type: fsd
   version: baseline
   chunk_id: '[FSD]-ait:specgraph'
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:state
   title: state 域
   type: fsd
@@ -649,6 +691,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:task
   title: task 域
   type: fsd
@@ -657,6 +702,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:fsd:baseline:[FSD]-ait:version
   title: version 域
   type: fsd
@@ -665,6 +713,9 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait
   title: ait 产品 PRD
   type: prd
