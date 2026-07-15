@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-07-15T03:01:49.918117+00:00'
+updated: '2026-07-15T03:03:46.936334+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -511,6 +511,36 @@ chunks:
   heading: ait 产品 PRD
   level: 2
   summary: ait 根 PRD：描述需求意图（why/what），decomposes 根 FSD。
+  metadata: {}
+- id: '[PRD]-ait:chunk_versioning'
+  file: prd/[PRD]-ait
+  heading: 需求:chunk 级原子版本控制
+  level: 3
+  summary: null
+  metadata: {}
+- id: '[PRD]-ait:mainline_pipeline'
+  file: prd/[PRD]-ait
+  heading: 需求:PRD→FSD→TDD→codegen 主线管线
+  level: 3
+  summary: null
+  metadata: {}
+- id: '[PRD]-ait:traceability'
+  file: prd/[PRD]-ait
+  heading: 需求:可追溯——spec→代码(目标1)
+  level: 3
+  summary: null
+  metadata: {}
+- id: '[PRD]-ait:parallel_isolation'
+  file: prd/[PRD]-ait
+  heading: 需求:可拆分——并行不冲突(目标2)
+  level: 3
+  summary: null
+  metadata: {}
+- id: '[PRD]-ait:invariant_governance'
+  file: prd/[PRD]-ait
+  heading: 需求:六不变式的代码级强制
+  level: 3
+  summary: null
   metadata: {}
 - id: '[TDD]-chunk_parser'
   file: tdd/[TDD]-chunk_parser

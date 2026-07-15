@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-15T03:02:36.816890+00:00'
+updated: '2026-07-15T03:03:47.710964+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -681,6 +681,64 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:baseline:[PRD]-ait:chunk_versioning
+  title: 需求:chunk 级原子版本控制
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:chunk_versioning'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:baseline:[PRD]-ait:invariant_governance
+  title: 需求:六不变式的代码级强制
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:invariant_governance'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:baseline:[PRD]-ait:mainline_pipeline
+  title: 需求:PRD→FSD→TDD→codegen 主线管线
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:mainline_pipeline'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:baseline:[PRD]-ait:parallel_isolation
+  title: 需求:可拆分——并行不冲突(目标2)
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:parallel_isolation'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:prd:baseline:[PRD]-ait:traceability
+  title: 需求:可追溯——spec→代码(目标1)
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:traceability'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
+    state: committed
+    action: modify
+    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-chunk_parser
   title: chunk_parser TDD
   type: tdd
