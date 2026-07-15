@@ -1,0 +1,16 @@
+id: chg-521
+version: v2.45
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:context
+author: system
+date: '2026-07-15T01:54:07.518358+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:context -->
+
+  ## context 域
+
+  ### 功能描述
+
+  `ait context`：L1+L2 上下文装配（prd-to-impl / impl-edit 场景）。'

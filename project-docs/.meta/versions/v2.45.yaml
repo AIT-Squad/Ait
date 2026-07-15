@@ -1,0 +1,32 @@
+version: v2.45
+created_at: '2026-07-15T01:54:04.495265+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-513
+- chg-514
+- chg-515
+- chg-516
+- chg-517
+- chg-518
+- chg-519
+- chg-520
+- chg-521
+- chg-522
+- chg-523
+- chg-524
+- chg-525
+- chg-526
+- chg-527
+- chg-528
+- chg-529
+- chg-530
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false
