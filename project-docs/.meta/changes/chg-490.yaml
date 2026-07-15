@@ -1,0 +1,16 @@
+id: chg-490
+version: v2.43
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:search
+author: system
+date: '2026-07-15T01:41:46.879191+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:search -->
+
+  ## search 域
+
+  ### 功能描述
+
+  `ait search`：跨 chunk 全文检索。'

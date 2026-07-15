@@ -1,0 +1,16 @@
+id: chg-481
+version: v2.43
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:prd
+author: system
+date: '2026-07-15T01:41:46.817594+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:prd -->
+
+  ## prd 域
+
+  ### 功能描述
+
+  `ait prdv1` create/save-draft/confirm/commit/show：旧模型 PRD 四段结构、req 草稿、确认锁定。'
