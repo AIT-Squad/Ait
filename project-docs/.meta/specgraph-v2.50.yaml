@@ -1,0 +1,26 @@
+version: 1
+updated: '2026-07-15T06:35:10.483507+00:00'
+specs:
+- uri: spec:tdd:v2.50:[TDD]-cli
+  title: cli TDD
+  type: tdd
+  version: v2.50
+  chunk_id: '[TDD]-cli'
+  file: tdd/[TDD]-cli
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+- uri: spec:tdd:v2.50:[TDD]-specgraph
+  title: specgraph TDD
+  type: tdd
+  version: v2.50
+  chunk_id: '[TDD]-specgraph'
+  file: tdd/[TDD]-specgraph
+  metadata:
+    source: version
+    state: committed
+    action: modify
+    commit_id: c1
+edges: []

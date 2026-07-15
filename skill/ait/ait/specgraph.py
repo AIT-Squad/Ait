@@ -635,13 +635,6 @@ def combined_view(project_root: Path, version: str | None = None) -> CombinedVie
     return view
 
 
-def add_edge(project_root: Path, src: str, dst: str, rel: str) -> SpecGraph:
-    graph = load_specgraph(project_root)
-    graph.add_edge(src, dst, rel, metadata={"source": "manual"})
-    graph.save(specgraph_path(project_root))
-    return graph
-
-
 def resolve_chunk_uri(
     project_root: Path,
     chunk_id_or_uri: str,

@@ -357,3 +357,23 @@ def test_create_rejects_non_prefix_chunk_id_gap4(tmp_path: Path, monkeypatch):
     good = _run(runner, ["prd", "create", "[PRD]-myprd", "--version", "v9.0",
                          "--content", "<!-- @id:[PRD]-myprd -->\n## P\n"])
     assert "[PRD]-myprd" in good["chunks"]
+
+
+def test_specgraph_add_edge_retired_gap3(tmp_path: Path, monkeypatch):
+    """gap-3:specgraph add-edge 退役——它直写 baseline、绕 check_edge_write
+    与六不变式门禁,是唯一用户可注入违规边的路径。退役后 no-such-command。"""
+    root = tmp_path / "project-docs"
+    (root / "docs").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    monkeypatch.chdir(tmp_path)
+    r = CliRunner().invoke(main, ["specgraph", "add-edge", "[FSD]-a", "[FSD]-b", "--rel", "depends_on"])
+    assert r.exit_code != 0
+    out = r.output.lower()
+    assert "no such command" in out or "usage_error" in out, r.output
+
+
+def test_specgraph_module_has_no_raw_add_edge_gap3():
+    """模块级 add_edge(直写 baseline 的绕门禁函数)已删除。"""
+    import ait.specgraph as sg
+    assert not hasattr(sg, "add_edge"), "raw module add_edge 应已退役"

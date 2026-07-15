@@ -1,0 +1,16 @@
+version: v2.50
+created_at: '2026-07-15T06:22:18.801576+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-545
+- chg-546
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: empty
+title: null
+prd_locked: false
+impl_locked: false

@@ -40,7 +40,6 @@ from .new_model_manager import NewModelManager
 from .prd_manager import PrdManager
 from .search import search_chunks
 from .root import RootResolutionError, resolve_project_root
-from .specgraph import add_edge as add_specgraph_edge
 from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
@@ -1463,16 +1462,6 @@ def specgraph_group() -> None:
 def specgraph_sync(ctx) -> None:
     graph = sync_specgraph(_root(ctx))
     ok({"specs": len(graph.specs), "edges": len(graph.edges), "file": ".meta/specgraph.yaml"})
-
-
-@specgraph_group.command("add-edge")
-@click.argument("src")
-@click.argument("dst")
-@click.option("--rel", required=True)
-@click.pass_context
-def specgraph_add_edge(ctx, src: str, dst: str, rel: str) -> None:
-    graph = add_specgraph_edge(_root(ctx), src, dst, rel)
-    ok({"src": src, "dst": dst, "rel": rel, "edges": len(graph.edges)})
 
 
 @specgraph_group.command("query")
