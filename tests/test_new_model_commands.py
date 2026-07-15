@@ -318,3 +318,42 @@ def test_prepare_codegen_full_upstream_for_modified_tdd(tmp_path: Path, monkeypa
     dep_ids = [u["id"] for u in bundle.dependencies]
     assert "[FSD]-app-util:helpers" in dep_ids, f"依赖上下文缺失,得到 {dep_ids}"
     assert "TDD v2 modified" in bundle.chunks[0]["content"], "TDD 内容来源应切到版本工作区"
+
+
+def _fail(runner: CliRunner, args: list[str]):
+    result = runner.invoke(main, args, catch_exceptions=False)
+    return _payload(result)
+
+
+def test_create_rejects_non_prefix_chunk_id_gap4(tmp_path: Path, monkeypatch):
+    """gap-4:新模型 create 必须强制 [PRD]/[FSD]/[TDD] 前缀,否则无前缀 chunk
+    占 target_file 却逃六不变式取样(_is_new_model_spec 按前缀判)。零落盘可重试。"""
+    root = tmp_path / "project-docs"
+    (root / "docs").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    VersionManager(root).create("v9.0")
+    monkeypatch.chdir(tmp_path)
+    runner = CliRunner()
+
+    # ① 无前缀 root id 被拒
+    p = _fail(runner, ["prd", "create", "myprd", "--version", "v9.0",
+                       "--content", "<!-- @id:myprd -->\n## P\n"])
+    assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
+    assert not (root / "versions" / "v9.0" / "prd" / "myprd.md").exists(), "拒绝须零落盘"
+
+    # ② root 带前缀但内容混入无前缀 chunk 也被拒(splits/杂散全拦)
+    bad_fsd = ("<!-- @id:[FSD]-app -->\n## App\n\n"
+               "<!-- @id:stray-chunk -->\n## Stray\n")
+    p = _fail(runner, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", bad_fsd])
+    assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
+
+    # ③ tdd 同样强制
+    p = _fail(runner, ["tdd", "create", "loose-tdd", "--version", "v9.0",
+                       "--content", "<!-- @id:loose-tdd -->\n## T\n```yaml\ntarget_file: a.py\n```\n"])
+    assert p["ok"] is False and p["code"] == "CHUNK_ID_PREFIX_REQUIRED", p
+
+    # ④ 补前缀重试成功(拒绝非终态陷阱)
+    good = _run(runner, ["prd", "create", "[PRD]-myprd", "--version", "v9.0",
+                         "--content", "<!-- @id:[PRD]-myprd -->\n## P\n"])
+    assert "[PRD]-myprd" in good["chunks"]

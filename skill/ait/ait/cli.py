@@ -1153,7 +1153,13 @@ def prdv2_create(
         payload["auto_created_version"] = auto_created
         ok(payload)
     except ValidationError as exc:
-        fail(str(exc), code="VALIDATION_FAILED", details=exc.details)
+        # 领域错误码透传(与 fsd/tdd create 一致,契约见 [FSD]-ait:cli):
+        # 不吞成笼统 VALIDATION_FAILED。
+        fail(
+            str(exc),
+            code=exc.issues[0].code if exc.issues else "VALIDATION_FAILED",
+            details=exc.details,
+        )
 
 
 @prdv2_group.command("confirm")

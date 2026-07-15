@@ -655,6 +655,19 @@ class NewModelManager:
         overrides: str | None,
     ) -> DocumentCreateResult:
         file = _validated_index_path(file, kind) if file else f"{kind}/{root_chunk_id}"
+        # gap-4 closure: every chunk in a new-model doc must carry the kind's
+        # bracket prefix. A non-prefixed chunk would get type=prd/fsd/tdd (by
+        # file location) yet escape the six-invariant sampling — the validator's
+        # _is_new_model_spec keys on the prefix — so it could occupy a
+        # target_file / graph node while dodging orphan/traceability/uniqueness.
+        # Reject at the entry, before any write: zero-write, retryable.
+        prefix = _NEW_MODEL_PREFIX_BY_KIND[kind]
+        if not root_chunk_id.startswith(prefix):
+            raise _validation_error(
+                "CHUNK_ID_PREFIX_REQUIRED",
+                f"{kind} root chunk id must start with '{prefix}', got: {root_chunk_id}",
+                root_chunk_id,
+            )
         parsed = parse_text(content, file=file)
         root = next((chunk for chunk in parsed.chunks if chunk.id == root_chunk_id), None)
         if root is None:
@@ -663,6 +676,13 @@ class NewModelManager:
                 f"{kind.upper()} markdown must include root chunk {root_chunk_id}",
                 root_chunk_id,
             )
+        for chunk in parsed.chunks:
+            if not chunk.id.startswith(prefix):
+                raise _validation_error(
+                    "CHUNK_ID_PREFIX_REQUIRED",
+                    f"every {kind} chunk id must start with '{prefix}', got: {chunk.id}",
+                    chunk.id,
+                )
 
         # v2.26 version-entry closure (R3-04 complete): only prd is the entry
         # layer — fsd/tdd require an existing version, no silent ghost create.
@@ -785,6 +805,9 @@ def _parent_chunk_id(chunk_id: str) -> str:
 
 def _file_stem(file: str) -> str:
     return file.rsplit("/", 1)[-1]
+
+
+_NEW_MODEL_PREFIX_BY_KIND = {"prd": "[PRD]-", "fsd": "[FSD]-", "tdd": "[TDD]-"}
 
 
 def _validation_error(code: str, message: str, chunk_id: str | None = None) -> ValidationError:
