@@ -1,0 +1,24 @@
+id: chg-542
+version: v2.48
+type: MODIFY
+target: prd/[PRD]-ait#[PRD]-ait:parallel_isolation
+author: system
+date: '2026-07-15T03:02:36.651100+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[PRD]-ait:parallel_isolation -->
+
+  ### 需求:可拆分——并行不冲突(目标2)
+
+
+  **用户故事:** 作为维护者,我希望把系统递归分解成互不重叠的功能子树、不同人领不同子树,并保证不同 TDD 不会落到同一文件,以便多人/多 agent 并行开发时零文件冲突。
+
+
+  #### 验收标准
+
+  1. WHEN 两个 TDD 声明同一 target_file(归一化后)THEN 系统 SHALL 报 DUPLICATE_TARGET_FILE 拒于落盘之前。
+
+  2. WHEN 校验版本图 THEN 结构合法性(decomposes/details/depends_on 的类型与根-split 规则、FSD 不混子)通过。
+
+  3. 每个制品文件恰由 1 个 TDD 持有(六不变式第 3 条,门禁强制)。'
