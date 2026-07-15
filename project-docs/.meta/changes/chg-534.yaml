@@ -1,0 +1,24 @@
+id: chg-534
+version: v2.46
+type: MODIFY
+target: prd/[PRD]-ait#[PRD]-ait:traceability
+author: system
+date: '2026-07-15T02:12:35.890097+00:00'
+message: new-model commit
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[PRD]-ait:traceability -->
+
+  ### 需求:可追溯——spec→代码(目标1)
+
+
+  **用户故事:** 作为维护者,我希望任一代码制品都能唯一追溯回它的 PRD,并让 codegen 沿这条链为 AI 组装上下文,以便定位待改代码并给 AI 完整依据。
+
+
+  #### 验收标准
+
+  1. WHEN 对任一叶 TDD 执行 codegen prepare THEN 输出含其唯一 target_file、上溯的 FSD/PRD 全链、以及路径上 depends_on 兄弟的能力契约。
+
+  2. WHEN 无活动版本 THEN codegen 从 baseline 解析,行为一致。
+
+  3. 每个制品文件沿 `TDD → FSD → PRD` 的关系链可唯一追溯到 PRD(六不变式第 6 条,门禁强制)。'

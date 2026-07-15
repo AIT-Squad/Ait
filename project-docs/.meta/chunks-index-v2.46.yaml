@@ -1,0 +1,113 @@
+version: 1
+scope: version
+version_name: v2.46
+based_on_hash: null
+status: developing
+chunks:
+- id: '[PRD]-ait'
+  file: prd/[PRD]-ait
+  heading: ait 产品 PRD
+  level: 2
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: '[PRD]-ait'
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: AIT——面向 AI 协作的 chunk 级规格版本控制与实现编排系统
+  metadata: {}
+- id: '[PRD]-ait:chunk_versioning'
+  file: prd/[PRD]-ait
+  heading: 需求:chunk 级原子版本控制
+  level: 3
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 以 chunk 为单位的三态版本控制,版本是全有或全无的原子单元
+  metadata: {}
+- id: '[PRD]-ait:mainline_pipeline'
+  file: prd/[PRD]-ait
+  heading: 需求:PRD→FSD→TDD→codegen 主线管线
+  level: 3
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 与 AI 讨论逐层分解,从需求走到代码
+  metadata: {}
+- id: '[PRD]-ait:traceability'
+  file: prd/[PRD]-ait
+  heading: 需求:可追溯——spec→代码(目标1)
+  level: 3
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 每个制品沿 TDD→FSD→PRD 唯一可追溯,codegen 一跳组装上下文
+  metadata: {}
+- id: '[PRD]-ait:parallel_isolation'
+  file: prd/[PRD]-ait
+  heading: 需求:可拆分——并行不冲突(目标2)
+  level: 3
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: FSD 分区把系统拆成互不重叠子树,每个制品唯一属主
+  metadata: {}
+- id: '[PRD]-ait:invariant_governance'
+  file: prd/[PRD]-ait
+  heading: 需求:六不变式的代码级强制
+  level: 3
+  action: modify
+  state: committed
+  commit_id: c1
+  overrides: null
+  amends: null
+  insert_after: null
+  base_hash: null
+  source_req: null
+  summary: 六条规格治理不变式由 AIT 自身门禁强制,非文档约定
+  metadata: {}
+commits:
+- id: c1
+  timestamp: '2026-07-15T02:12:35.909851+00:00'
+  message: new-model commit
+  chunks:
+  - '[PRD]-ait'
+  - '[PRD]-ait:chunk_versioning'
+  - '[PRD]-ait:mainline_pipeline'
+  - '[PRD]-ait:traceability'
+  - '[PRD]-ait:parallel_isolation'
+  - '[PRD]-ait:invariant_governance'
+  req_id: null
+stats:
+  total_chunks: 6
+  by_action:
+    modify: 6
+  by_state:
+    committed: 6
+  tasks_summary:
+    created: 0
+    executing: 0
+    done: 0
+    failed: 0
