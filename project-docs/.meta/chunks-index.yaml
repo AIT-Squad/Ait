@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-07-15T01:43:00.670549+00:00'
+updated: '2026-07-15T01:46:45.241445+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -406,7 +406,7 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait:init'
   file: fsd/[FSD]-ait
-  heading: init 域
+  heading: init 初始化域
   level: 2
   summary: null
   metadata: {}
@@ -430,13 +430,13 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait:version'
   file: fsd/[FSD]-ait
-  heading: version 域
+  heading: version 版本域
   level: 2
   summary: null
   metadata: {}
 - id: '[FSD]-ait:new_model'
   file: fsd/[FSD]-ait
-  heading: new-model 域
+  heading: new_model 新模型域
   level: 2
   summary: null
   metadata: {}
@@ -478,7 +478,7 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait:cli'
   file: fsd/[FSD]-ait
-  heading: cli 分发器
+  heading: cli 命令分发域
   level: 2
   summary: null
   metadata: {}
@@ -496,7 +496,7 @@ chunks:
   metadata: {}
 - id: '[FSD]-ait:skill'
   file: fsd/[FSD]-ait
-  heading: skill 层
+  heading: skill 分发资产域
   level: 2
   summary: null
   metadata: {}
