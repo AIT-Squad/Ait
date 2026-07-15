@@ -2,7 +2,7 @@ version: 1
 scope: version
 version_name: v2.50
 based_on_hash: null
-status: developing
+status: merged
 chunks:
 - id: '[TDD]-cli'
   file: tdd/[TDD]-cli
