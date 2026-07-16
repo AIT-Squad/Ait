@@ -14,7 +14,7 @@ from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
 
 TARGET_FILE_RE = re.compile(r"^\s*target_file:\s*(\S+)\s*$", re.MULTILINE)
-NEW_MODEL_RELS = {"decomposes", "details", "depends_on"}
+NEW_MODEL_RELS = {"derives", "decomposes", "details", "depends_on"}
 
 
 @dataclass(frozen=True)
@@ -81,12 +81,18 @@ class NewModelManager:
         file: str | None = None,
         action: str = "add",
         overrides: str | None = None,
+        parent_chunk_id: str | None = None,
     ) -> DocumentCreateResult:
         # P7 收: FSD layer requires the PRD layer confirmed (phase prd-confirm)
         # or the FSD layer already open (fsd-creating).
         self._require_phase(
             version, ("prd-confirm", "fsd-creating"), "PRD_NOT_CONFIRMED", "fsd create"
         )
+        # v2.52: --parent (a PRD root) makes create_fsd the birthplace of the
+        # derives edge (PRD→FSD tree root, 1:1 派生). Parent-side gate runs
+        # before any write so a rejection leaves zero on disk.
+        if parent_chunk_id is not None:
+            self._precheck_derives_parent(version, parent_chunk_id, root_chunk_id)
         # v2.26/v2.31: sibling depends_on is declared in a transient yaml block
         # inside split content — an input instruction, NOT persisted doc content.
         # Validate BEFORE any write, then STRIP the block so the document body
@@ -118,6 +124,10 @@ class NewModelManager:
         # combined_view/merge per-root scoping stays correct.
         final_deps = {**hydrated, **declared}
         self._reconcile_sibling_depends_on(version, root_chunk_id, final_deps)
+        # v2.52: birth the derives edge now that both endpoints exist in the
+        # view (check_edge_write runs the full write-time gate).
+        if parent_chunk_id is not None:
+            self.add_edge(version, parent_chunk_id, root_chunk_id, "derives")
         # FSD layer entry: advance the phase machine off the PRD layer.
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
@@ -249,17 +259,37 @@ class NewModelManager:
                 f"decompose parent {parent_chunk_id} not in graph",
                 parent_chunk_id,
             )
+        # v2.52: decompose is FSD-internal only. PRD→FSD is a derives relation
+        # (via `fsd create --parent`), not decompose.
         if parent.type == "prd":
-            others = [
-                e.dst for e in view.edges_from(parent_chunk_id, "decomposes")
-                if e.dst != child_id
-            ]
-            if others:
-                raise _validation_error(
-                    "PRD_FSD_LINK_NOT_UNIQUE",
-                    f"PRD {parent_chunk_id} already decomposes to {others}",
-                    parent_chunk_id,
-                )
+            raise _validation_error(
+                "INVALID_DECOMPOSES_TYPES",
+                f"PRD {parent_chunk_id} does not decompose — use `fsd create --parent` (derives)",
+                parent_chunk_id,
+            )
+
+    def _precheck_derives_parent(self, version: str, parent_chunk_id: str, child_id: str) -> None:
+        """Parent-side derives gate (v2.52): parent must be a PRD in the view and
+        must not already derive a different FSD (invariant ①, 1:1). Evaluable
+        before the child FSD is written."""
+        view = combined_view(self.root, version)
+        parent = view.node(parent_chunk_id)
+        if parent is None:
+            raise _validation_error(
+                "MISSING_ENDPOINT",
+                f"derives parent {parent_chunk_id} not in graph",
+                parent_chunk_id,
+            )
+        others = [
+            e.dst for e in view.edges_from(parent_chunk_id, "derives")
+            if e.dst != child_id
+        ]
+        if others:
+            raise _validation_error(
+                "PRD_FSD_LINK_NOT_UNIQUE",
+                f"PRD {parent_chunk_id} already derives {others}",
+                parent_chunk_id,
+            )
 
     def confirm_fsd_layer(self, version: str) -> dict:
         """Freeze the FSD layer: lock [FSD]- chunks, phase → fsd-confirm."""
@@ -588,6 +618,12 @@ class NewModelManager:
                 if parent_root is not None and parent_root.chunk_id not in seen:
                     self._append_context_item(items, seen, parent_root)
                     self._walk_upstream_roots(view, parent_root.chunk_id, items, seen)
+        # v2.52: an FSD tree root traces up to its PRD via a derives edge.
+        for edge in view.edges_to(root_chunk_id, "derives"):
+            src = view.node(edge.src)
+            if src is None or src.chunk_id in seen:
+                continue
+            self._append_context_item(items, seen, src)
 
     def _collect_dependency_context(self, view, upstream: list[dict]) -> list[dict]:
         """Collect depends_on context from every FSD internal split in the upstream

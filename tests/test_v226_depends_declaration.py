@@ -144,8 +144,7 @@ def test_view_suppresses_baseline_scope_for_owned_root(tmp_path: Path, monkeypat
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_DECLARED)
     # 简化直通:锁全部 chunk 后合入 baseline
     _run(runner, "version", "commit", "v0.1")
     # 补齐不变式(feat/store 是叶 split,需 TDD 才可追溯?不——不变式⑤⑥只约束
@@ -180,8 +179,7 @@ def test_merge_reconciles_baseline_edges(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_DECLARED)
     _run(runner, "version", "commit", "v0.1")
     assert _run(runner, "version", "merge", "v0.1")["ok"] is True
 
@@ -326,10 +324,9 @@ def test_fsd_with_test_chunk_passes_gate(tmp_path: Path, monkeypatch):
         "<!-- @id:[FSD]-app:feat -->\n## feat\n\n"
         "<!-- @id:[FSD]-app:TEST -->\n## TEST 集成验收\n所有部分合并的验收。\n"
     )
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", fsd)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", fsd)
     assert p["ok"] is True, p
     assert combined_view(root, "v0.1").node("[FSD]-app:TEST") is not None, ":TEST chunk 已入图"
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
     _run(runner, "version", "commit", "v0.1")
     m = _run(runner, "version", "merge", "v0.1")
     assert m["ok"] is True, f":TEST 节点应过六不变式门禁: {m}"

@@ -152,9 +152,8 @@ def test_four_layer_pipeline_end_to_end(tmp_path: Path, monkeypatch):
     # PRD 层
     _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
     _run(runner, "prd", "confirm")
-    # FSD 层:decompose 建 PRD→FSD 边
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD)
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    # FSD 层:create --parent 建 PRD→FSD derives 边
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
     _run(runner, "fsd", "confirm")
     # TDD 层:create --parent 建 FSD split→TDD details 边
     _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)

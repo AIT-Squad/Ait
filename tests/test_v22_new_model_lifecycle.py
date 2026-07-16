@@ -66,7 +66,7 @@ def test_new_model_full_lifecycle(tmp_path: Path, monkeypatch):
         "v1.0", "[FSD]-sys",
         "<!-- @id:[FSD]-sys -->\n## Sys FSD\n\n<!-- @id:[FSD]-sys:core -->\n## Core\n",
     )
-    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-sys", "decomposes")
+    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-sys", "derives")
     mgr.confirm_fsd_layer("v1.0")
     mgr.create_tdd(
         "v1.0", "[TDD]-core",
@@ -119,7 +119,7 @@ def test_codegen_climbs_to_domain_level_depends_on(tmp_path: Path):
         "<!-- @id:[FSD]-app-svc -->\n## svc FSD\n\n<!-- @id:[FSD]-app-svc:core -->\n## core\n",
     )
     mgr.create_fsd("v1.0", "[FSD]-app-store", "<!-- @id:[FSD]-app-store -->\n## store FSD\n")
-    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "decomposes")
+    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
     mgr.add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app-svc", "decomposes")
     mgr.add_edge("v1.0", "[FSD]-app:store", "[FSD]-app-store", "decomposes")
     # domain-level dependency: svc domain depends on store domain

@@ -1,0 +1,48 @@
+version: v2.52
+created_at: '2026-07-16T06:47:00.405803+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-567
+- chg-568
+- chg-569
+- chg-570
+- chg-571
+- chg-572
+- chg-573
+- chg-574
+- chg-575
+- chg-576
+- chg-577
+- chg-578
+- chg-579
+- chg-580
+- chg-581
+- chg-582
+- chg-583
+- chg-584
+- chg-585
+- chg-586
+- chg-587
+- chg-588
+- chg-589
+- chg-590
+- chg-591
+- chg-592
+- chg-593
+- chg-594
+- chg-595
+- chg-596
+- chg-597
+- chg-598
+- chg-599
+- chg-600
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: tdd-confirm
+title: null
+prd_locked: false
+impl_locked: false

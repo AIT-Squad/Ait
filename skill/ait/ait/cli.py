@@ -881,6 +881,8 @@ def fsd_group() -> None:
 @fsd_group.command("create")
 @click.argument("root_chunk_id")
 @click.option("--version", "version_opt", default=None)
+@click.option("--parent", "parent_chunk_id", default=None,
+              help="PRD root chunk to derive from (births the PRD→FSD derives edge).")
 @click.option("--file", "file_opt", default=None, help="FSD file under fsd/ or explicit index path, no .md.")
 @click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
 @click.option("--content", default=None)
@@ -891,6 +893,7 @@ def fsd_create(
     ctx,
     root_chunk_id: str,
     version_opt: str | None,
+    parent_chunk_id: str | None,
     file_opt: str | None,
     content_file: Path | None,
     content: str | None,
@@ -909,6 +912,7 @@ def fsd_create(
             file=file_opt,
             action=action,
             overrides=overrides,
+            parent_chunk_id=parent_chunk_id,
         )
         ok(_json_safe(result))
     except ValidationError as exc:

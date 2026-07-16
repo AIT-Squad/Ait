@@ -78,8 +78,7 @@ def test_confirm_reports_git_unavailable(tmp_path: Path, monkeypatch):
     _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-app", "--content", "<!-- @id:[PRD]-app -->\n## P\n")
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     _run(runner, "version", "commit", "v0.1")
 
     p = _run(runner, "version", "merge", "v0.1")
@@ -95,8 +94,7 @@ def test_git_commit_failure_rolls_back(tmp_path: Path, monkeypatch):
     _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-app", "--content", "<!-- @id:[PRD]-app -->\n## P\n")
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
-    _run(runner, "fsd", "decompose", "[PRD]-app", "[FSD]-app")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     _run(runner, "version", "commit", "v0.1")
 
     def boom(self, message):

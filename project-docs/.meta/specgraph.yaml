@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-15T09:54:03.382169+00:00'
+updated: '2026-07-16T07:56:48.710330+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -17,9 +17,6 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-cli:TEST
   title: TEST 集成验收
   type: fsd
@@ -28,9 +25,6 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-cli:cli
   title: cli
   type: fsd
@@ -39,9 +33,6 @@ specs:
   file: fsd/[FSD]-ait-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-context
   title: context FSD
   type: fsd
@@ -242,9 +233,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:TEST
   title: TEST 集成验收
   type: fsd
@@ -253,9 +241,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_manager
   title: new_model_manager
   type: fsd
@@ -264,9 +249,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-new_model:new_model_validator
   title: new_model_validator
   type: fsd
@@ -275,9 +257,6 @@ specs:
   file: fsd/[FSD]-ait-new_model
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-prd
   title: prd FSD
   type: fsd
@@ -534,9 +513,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-version:TEST
   title: TEST 集成验收
   type: fsd
@@ -545,9 +521,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-version:merge_engine
   title: merge_engine
   type: fsd
@@ -556,9 +529,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-version:version_manager
   title: version_manager
   type: fsd
@@ -567,9 +537,6 @@ specs:
   file: fsd/[FSD]-ait-version
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:TEST
   title: TEST 系统级集成验收
   type: fsd
@@ -714,9 +681,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:chunk_versioning
   title: 需求:chunk 级原子版本控制
   type: prd
@@ -725,9 +689,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:invariant_governance
   title: 需求:六不变式的代码级强制
   type: prd
@@ -736,9 +697,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:mainline_pipeline
   title: 需求:PRD→FSD→TDD→codegen 主线管线
   type: prd
@@ -747,9 +705,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:parallel_isolation
   title: 需求:可拆分——并行不冲突(目标2)
   type: prd
@@ -758,9 +713,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:traceability
   title: 需求:可追溯——spec→代码(目标1)
   type: prd
@@ -769,9 +721,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-chunk_parser
   title: chunk_parser TDD
   type: tdd
@@ -788,9 +737,6 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c3
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -887,9 +833,6 @@ specs:
   file: tdd/[TDD]-new_model_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c3
 - uri: spec:tdd:baseline:[TDD]-new_model_validator
   title: new_model_validator TDD
   type: tdd
@@ -1106,9 +1049,6 @@ specs:
   file: tdd/[TDD]-version_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c3
 - uri: spec:tdd:baseline:[TDD]-yaml_io
   title: yaml_io TDD
   type: tdd
@@ -1468,7 +1408,7 @@ edges:
     source: new-model-cli
 - src: spec:prd:baseline:[PRD]-ait
   dst: spec:fsd:baseline:[FSD]-ait
-  rel: decomposes
+  rel: derives
   weight: 1.0
   metadata:
     source: new-model-cli

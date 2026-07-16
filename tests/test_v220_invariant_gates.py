@@ -108,10 +108,10 @@ def test_add_edge_rejects_second_prd_fsd_link(tmp_path: Path):
     _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     mgr.create_fsd("v9.0", "[FSD]-second", "<!-- @id:[FSD]-second -->\n## S\n")
-    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "decomposes")
+    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
 
     with pytest.raises(ValidationError) as excinfo:
-        mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-second", "decomposes")
+        mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-second", "derives")
     assert "PRD_FSD_LINK_NOT_UNIQUE" in str(excinfo.value)
 
 
@@ -150,10 +150,10 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
     assert "TRACE_BROKEN" in str(excinfo.value) or "ORPHAN_CHUNK" in str(excinfo.value)
     assert vm.load_version_meta("v9.0").merged_at is None, "门禁拒绝须零落盘"
 
-    # 补齐 PRD 与 decomposes 边 → 重试成功（拒后可重试，无终态陷阱）
+    # 补齐 PRD 与 derives 边 → 重试成功（拒后可重试，无终态陷阱）
     _set_phase(root, "v9.0", "prd-creating")
     mgr.create_prd("v9.0", "[PRD]-app", PRD)
-    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "decomposes")
+    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
     vm.stage("v9.0")
     vm.commit("v9.0", "lock prd")
     result = vm.confirm("v9.0", allow_dirty_git=True)
@@ -169,7 +169,7 @@ def test_invariants_prd_link_not_unique():
         [_node("[PRD]-a", "prd", "prd/[PRD]-a"),
          _node("[FSD]-x", "fsd", "fsd/[FSD]-x"),
          _node("[FSD]-y", "fsd", "fsd/[FSD]-y")],
-        [("[PRD]-a", "[FSD]-x", "decomposes"), ("[PRD]-a", "[FSD]-y", "decomposes")],
+        [("[PRD]-a", "[FSD]-x", "derives"), ("[PRD]-a", "[FSD]-y", "derives")],
     )
     codes = [v.code for v in validate_invariants(view, [])]
     assert "PRD_FSD_LINK_NOT_UNIQUE" in codes
@@ -275,7 +275,7 @@ def test_invariants_prd_requirement_split_exempt_from_rule_1():
          _node("[FSD]-app", "fsd", "fsd/[FSD]-app"),
          _node("[FSD]-app:feat", "fsd", "fsd/[FSD]-app"),
          _node("[TDD]-app-feat", "tdd", "tdd/[TDD]-app-feat")],
-        [("[PRD]-app", "[FSD]-app", "decomposes"),
+        [("[PRD]-app", "[FSD]-app", "derives"),
          ("[FSD]-app:feat", "[TDD]-app-feat", "details")],
     )
     codes = [v.code for v in validate_invariants(view, [("[TDD]-app-feat", "app/feat.py")])]

@@ -1,0 +1,19 @@
+id: chg-580
+version: v2.52
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:specgraph
+author: system
+date: '2026-07-16T06:53:12.592339+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: "<!-- @id:[FSD]-ait:specgraph -->\n## specgraph 关系图域\n\n### 功能描述\n块间关系(derives/decomposes/details/depends_on/implements)的权威存储与查询:从\
+  \ markdown 重建+保留命令建的显式边、组合视图(baseline∪版本坍缩到 chunk_id 世界)、依赖/影响/成环查询。是 codegen 上溯、六不变式校验、迭代定位的关系数据来源。内部分解见 [FSD]-ait-specgraph。\n\
+  \n### 能力契约\n- **提供方式**:Python 模块函数与类(ait.specgraph / ait.deps / ait.impact),CLI 命令 `ait deps` / `ait impact`\n- **接口**:\n\
+  \  - `load_specgraph(root, version=\"baseline\") -> SpecGraph`、`sync_specgraph(root)`——重建并保留显式边(source 标记的边跨 reindex 存活)\n\
+  \  - `combined_view(root, version=None) -> CombinedView`——chunk_id 世界:版本覆盖 baseline、边端点坍缩去重、depends_on 按 owned-scope 覆盖;`edges_from(id,\
+  \ rel=None)` / `edges_to(id, rel=None)` / `impacted(id)` / `detect_cycle()`\n  - `add_edge(root, version, src, dst, rel,\
+  \ source)`——底层建边原语(仅供 new_model 域调用,无用户命令)\n  - `query_deps(project_root, target, *, direction=\"both\") -> {target, direction,\
+  \ edges}`——单跳邻接查询\n  - `analyze_impact(project_root, target) -> {found, impacted, count}`——下游影响传递闭包(正向 derives/decomposes/details\
+  \ + id 结构子 + 反向 depends_on/implements)\n\n### 反向要求\n- 不判定关系合法性(六不变式与基数约束归 new_model 校验器,本域忠实存取)。\n- 不提供任何用户可用的 link/depend\
+  \ 建边命令(关系只随内容创建出生)。"

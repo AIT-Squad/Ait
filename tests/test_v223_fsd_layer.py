@@ -70,10 +70,9 @@ def test_decompose_atomic_write_child_and_edge(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    # 一级 FSD:PRD decompose FSD 根(先写 FSD 根)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
-    r = runner.invoke(main, ["fsd", "decompose", "[PRD]-app", "[FSD]-app"], catch_exceptions=False)
-    assert _payload(r)["ok"] is True, "PRD→FSD 建边"
+    # 一级 FSD:PRD derives FSD 根(create --parent 建 derives 边)
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    assert _payload(r)["ok"] is True, "PRD→FSD 建 derives 边"
 
     # decompose 原子写子 FSD + 建边(child 不预先存在)
     r = runner.invoke(
@@ -92,22 +91,23 @@ def test_decompose_atomic_write_child_and_edge(tmp_path: Path, monkeypatch):
     assert (root / "versions" / "v0.1" / "fsd" / "[FSD]-app-svc.md").exists()
 
 
-def test_decompose_prd_second_fsd_rejected_zero_write(tmp_path: Path, monkeypatch):
+def test_decompose_prd_rejected_zero_write(tmp_path: Path, monkeypatch):
+    """v2.52: PRD 不再 decompose(改用 derives via `fsd create --parent`)。
+    对 PRD 调 `fsd decompose` 当场被 INVALID_DECOMPOSES_TYPES 拒,零落盘。"""
     monkeypatch.chdir(tmp_path)
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
-    runner.invoke(main, ["fsd", "decompose", "[PRD]-app", "[FSD]-app"], catch_exceptions=False)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
 
-    # PRD 已 decompose 一个 FSD;再拆第二个 → 父侧门禁拒,零落盘
+    # PRD 派生一个 FSD 后,试图让 PRD decompose 另一个 FSD → 父侧门禁拒,零落盘
     r = runner.invoke(
         main,
         ["fsd", "decompose", "[PRD]-app", "[FSD]-other", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
         catch_exceptions=False,
     )
     p = _payload(r)
-    assert p["ok"] is False and "PRD_FSD_LINK_NOT_UNIQUE" in (p.get("code") or "")
+    assert p["ok"] is False and "INVALID_DECOMPOSES_TYPES" in (p.get("code") or "")
     assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-other.md").exists(), "拒绝必须零落盘"
 
 
@@ -174,3 +174,57 @@ def test_fsd_confirm_requires_fsd_chunks(tmp_path: Path, monkeypatch):
     r = runner.invoke(main, ["fsd", "confirm", "--version", "v3.0"], catch_exceptions=False)
     p = _payload(r)
     assert p["ok"] is False and "FSD_LAYER_NOT_OPEN" in (p.get("code") or "") + p["error"]
+
+
+# ── v2.52: PRD→FSD 关系拆分(decomposes → derives)回归 ──────────────────
+
+
+def test_fsd_create_parent_builds_derives_edge(tmp_path: Path, monkeypatch):
+    """回归:`fsd create --parent [PRD]-x` 是 PRD→FSD derives 边的出生地。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap_prd(runner)
+
+    p = _payload(runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False))
+    assert p["ok"] is True
+
+    # derives 边真的建了:deps 查得到,且 rel=="derives"(非 decomposes)
+    d = _payload(runner.invoke(main, ["deps", "[PRD]-app", "--direction", "out"], catch_exceptions=False))
+    triples = {(e["src"], e["dst"], e["rel"]) for e in d["data"]["edges"]}
+    assert ("[PRD]-app", "[FSD]-app", "derives") in triples, f"应生成 derives 边: {triples}"
+    assert not any(r == "decomposes" for _, _, r in triples), "PRD 不再 decomposes"
+
+
+def test_fsd_create_second_parent_derives_rejected_zero_write(tmp_path: Path, monkeypatch):
+    """回归:PRD 已 derives 一个 FSD,再 `create --parent` 第二个 → PRD_FSD_LINK_NOT_UNIQUE,零落盘。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap_prd(runner)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+
+    p = _payload(runner.invoke(
+        main,
+        ["fsd", "create", "[FSD]-other", "--parent", "[PRD]-app", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
+        catch_exceptions=False,
+    ))
+    assert p["ok"] is False and "PRD_FSD_LINK_NOT_UNIQUE" in (p.get("code") or "")
+    assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-other.md").exists(), "拒绝必须零落盘"
+
+
+def test_fsd_decompose_prd_parent_type_rejected_zero_write(tmp_path: Path, monkeypatch):
+    """回归:`fsd decompose [PRD]-x [FSD]-y` → INVALID_DECOMPOSES_TYPES(PRD 只 derives),零落盘。"""
+    monkeypatch.chdir(tmp_path)
+    root = _project(tmp_path)
+    runner = CliRunner()
+    _bootstrap_prd(runner)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+
+    p = _payload(runner.invoke(
+        main,
+        ["fsd", "decompose", "[PRD]-app", "[FSD]-y", "--content", "<!-- @id:[FSD]-y -->\n## Y\n"],
+        catch_exceptions=False,
+    ))
+    assert p["ok"] is False and "INVALID_DECOMPOSES_TYPES" in (p.get("code") or "")
+    assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-y.md").exists(), "拒绝必须零落盘"

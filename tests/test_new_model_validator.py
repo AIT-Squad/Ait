@@ -37,7 +37,7 @@ def test_new_model_validator_accepts_valid_graph():
     catalog_fsd = _add_spec(graph, "[FSD]-book_management-book_catalog", "fsd/[FSD]-book_management-book_catalog")
     storage_fsd = _add_spec(graph, "[FSD]-book_management-persistence", "fsd/[FSD]-book_management-persistence")
 
-    graph.add_edge(prd, root_fsd, "decomposes")
+    graph.add_edge(prd, root_fsd, "derives")
     graph.add_edge(catalog_split, catalog_fsd, "decomposes")
     graph.add_edge(storage_split, storage_fsd, "decomposes")
     graph.add_edge(catalog_split, storage_split, "depends_on")
@@ -82,7 +82,7 @@ def test_specgraph_validate_new_model_cli(tmp_path: Path, monkeypatch):
     (project_docs_root / "docs" / "prd" / "[PRD]-book_system.md").write_text(
         "<!-- @id:[PRD]-book_system -->\n"
         "## Book System\n\n"
-        "<!-- @ref:fsd/[FSD]-book_management#[FSD]-book_management rel:decomposes -->\n",
+        "<!-- @ref:fsd/[FSD]-book_management#[FSD]-book_management rel:derives -->\n",
         encoding="utf-8",
     )
     (project_docs_root / "docs" / "fsd" / "[FSD]-book_management.md").write_text(

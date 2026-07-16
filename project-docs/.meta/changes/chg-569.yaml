@@ -1,0 +1,28 @@
+id: chg-569
+version: v2.52
+type: MODIFY
+target: prd/[PRD]-ait#[PRD]-ait:mainline_pipeline
+author: system
+date: '2026-07-16T06:49:09.524000+00:00'
+message: prd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[PRD]-ait:mainline_pipeline -->
+
+  ### 需求:PRD→FSD→TDD→codegen 主线管线
+
+
+  **用户故事:** 作为 AI 协作开发者,我希望从 PRD 出发与 AI 讨论逐层分解为 FSD 功能树、再细化为文件级 TDD、最后由 codegen 驱动编码,以便让需求到代码的每一步都结构化、可门禁。
+
+
+  #### 验收标准
+
+  1. WHEN 依次 prd create → fsd create --parent(从 PRD 派生功能树根)→ fsd decompose(功能树向下拆分)→ tdd create --parent(叶子细化)→ codegen prepare
+  THEN 每层文档写入版本工作区,四种关系(派生/拆分/细化/依赖)各自随其创建命令原子出生——派生随 fsd create --parent、拆分随 fsd decompose、细化随 tdd create --parent、依赖随 fsd
+  create 的声明,codegen 输出目标文件的聚焦上下文。
+
+  1a. 派生与拆分是两种关系:PRD 与其唯一 FSD 功能树根之间是"派生"(问题到方案的承接,恰一对一);FSD 内部父子之间是"拆分"(整体到部分的分解)。二者语义、基数、校验规则各自独立。
+
+  2. WHEN 每层 confirm 后不满意执行 revert THEN 冻结解除、可继续修改,无终态陷阱(门禁配返工)。
+
+  3. IF 关系申报违反基数或引用不存在的 chunk THEN 拒于落盘之前且零残留,修正后可重试。'

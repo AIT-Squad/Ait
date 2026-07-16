@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from .specgraph import Edge, Spec, SpecGraph
 
-ALLOWED_RELS = {"decomposes", "details", "depends_on"}
+ALLOWED_RELS = {"derives", "decomposes", "details", "depends_on"}
 NEW_MODEL_TYPES = {"prd", "fsd", "tdd"}
 NEW_MODEL_PREFIXES = ("[PRD]-", "[FSD]-", "[TDD]-")
 
@@ -41,13 +41,15 @@ def validate_prd_fsd_tdd_graph(graph: SpecGraph) -> list[NewModelViolation]:
                 _violation(
                     edge,
                     "UNSUPPORTED_RELATION",
-                    "new-model graph relations must be one of: decomposes, details, depends_on",
+                    "new-model graph relations must be one of: derives, decomposes, details, depends_on",
                     src,
                 )
             )
             continue
 
-        if edge.rel == "decomposes":
+        if edge.rel == "derives":
+            violations.extend(_validate_derives(edge, src, dst))
+        elif edge.rel == "decomposes":
             violations.extend(_validate_decomposes(edge, src, dst))
             if src.type == "fsd" and dst.type == "fsd" and _is_internal_split(src):
                 child_kinds_by_parent.setdefault(_parent_chunk_id(src.chunk_id), set()).add("fsd")
@@ -185,21 +187,31 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
                     chunk_id=dst, rel=rel, src=src, dst=dst,
                 )
             )
-    if rel == "decomposes":
+    if rel == "derives":
         src_node = view.node(src)
         if src_node is not None and src_node.type == "prd":
-            other_fsds = [e.dst for e in view.edges_from(src, "decomposes") if e.dst != dst]
+            other_fsds = [e.dst for e in view.edges_from(src, "derives") if e.dst != dst]
             if other_fsds:
                 violations.append(
                     NewModelViolation(
                         code="PRD_FSD_LINK_NOT_UNIQUE",
                         message=(
-                            f"PRD {src} already decomposes into: "
+                            f"PRD {src} already derives: "
                             + ", ".join(sorted(other_fsds))
                         ),
                         chunk_id=src, rel=rel, src=src, dst=dst,
                     )
                 )
+    if rel == "decomposes":
+        src_node = view.node(src)
+        if src_node is not None and src_node.type == "prd":
+            violations.append(
+                NewModelViolation(
+                    code="INVALID_DECOMPOSES_TYPES",
+                    message=f"PRD {src} does not decompose — PRD→FSD is a derives relation",
+                    chunk_id=src, rel=rel, src=src, dst=dst,
+                )
+            )
     return violations
 
 
@@ -234,7 +246,7 @@ def validate_invariants(
     for prd in prds:
         if ":" in prd.chunk_id:
             continue
-        fsd_targets = sorted(e.dst for e in view.edges_from(prd.chunk_id, "decomposes"))
+        fsd_targets = sorted(e.dst for e in view.edges_from(prd.chunk_id, "derives"))
         if len(fsd_targets) != 1:
             violations.append(
                 NewModelViolation(
@@ -292,6 +304,7 @@ def validate_invariants(
     while queue:
         current = queue.pop(0)
         neighbours = list(children.get(current, []))
+        neighbours += [e.dst for e in view.edges_from(current, "derives")]
         neighbours += [e.dst for e in view.edges_from(current, "decomposes")]
         neighbours += [e.dst for e in view.edges_from(current, "details")]
         for n in neighbours:
@@ -336,7 +349,7 @@ def validate_invariants(
     tree_edges: list[tuple[str, str]] = [
         (e.src, e.dst)
         for e in view.edges
-        if e.rel in ("decomposes", "details")
+        if e.rel in ("derives", "decomposes", "details")
     ]
     for root_id, split_ids in children.items():
         tree_edges.extend((root_id, split_id) for split_id in split_ids)
@@ -392,20 +405,46 @@ def _traces_to_prd(view, new_nodes: dict, tdd_chunk_id: str) -> bool:
             return True
         stack.extend(e.src for e in view.edges_to(current, "details"))
         stack.extend(e.src for e in view.edges_to(current, "decomposes"))
+        stack.extend(e.src for e in view.edges_to(current, "derives"))
         if ":" in current:
             stack.append(current.split(":", 1)[0])
     return False
 
 
-def _validate_decomposes(edge: Edge, src: Spec, dst: Spec) -> list[NewModelViolation]:
+def _validate_derives(edge: Edge, src: Spec, dst: Spec) -> list[NewModelViolation]:
+    """derives = PRD root → FSD root (problem-to-solution 派生, exactly 1:1).
+    Only the PRD root chunk derives the FSD tree root; any other endpoint
+    combination is INVALID_DERIVES."""
     if src.type == "prd" and dst.type == "fsd":
         if _is_root_chunk(src) and _is_root_chunk(dst):
             return []
         return [
             _violation(
                 edge,
-                "INVALID_PRD_DECOMPOSES",
-                "PRD decomposes must connect the PRD root chunk to the root FSD root chunk",
+                "INVALID_DERIVES",
+                "derives must connect the PRD root chunk to the root FSD root chunk",
+                src,
+            )
+        ]
+    return [
+        _violation(
+            edge,
+            "INVALID_DERIVES",
+            "derives is only legal from a PRD root to an FSD root",
+            src,
+        )
+    ]
+
+
+def _validate_decomposes(edge: Edge, src: Spec, dst: Spec) -> list[NewModelViolation]:
+    """decomposes = FSD internal split → child FSD root (whole-to-part 拆分).
+    PRD no longer decomposes (it derives); a PRD endpoint is INVALID_DECOMPOSES_TYPES."""
+    if src.type == "prd" or dst.type == "prd":
+        return [
+            _violation(
+                edge,
+                "INVALID_DECOMPOSES_TYPES",
+                "PRD does not decompose — PRD→FSD is a derives relation",
                 src,
             )
         ]

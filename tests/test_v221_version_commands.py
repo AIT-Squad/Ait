@@ -53,8 +53,8 @@ def _build_valid_version(root: Path, runner: CliRunner, version: str) -> None:
     run("version", "create", version)
     run("prd", "create", "[PRD]-app", "--version", version, "--content", PRD)
     run("prd", "confirm", "--version", version)
-    run("fsd", "create", "[FSD]-app", "--version", version, "--content", FSD)
-    run("fsd", "decompose", "[PRD]-app", "[FSD]-app", "--version", version)
+    run("fsd", "create", "[FSD]-app", "--parent", "[PRD]-app",
+        "--version", version, "--content", FSD)
     run("fsd", "confirm", "--version", version)
     run("tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat",
         "--version", version, "--content", TDD)

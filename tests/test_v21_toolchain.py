@@ -65,22 +65,26 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
     assert _payload(prd)["data"]["chunks"] == ["[PRD]-shop"]
 
     runner.invoke(main, ["prd", "confirm", "--version", "v9.0"], catch_exceptions=False)
-    runner.invoke(
+    fsd = runner.invoke(
         main,
         [
             "fsd", "create", "[FSD]-shop",
             "--version", "v9.0",
+            "--parent", "[PRD]-shop",
             "--content", "<!-- @id:[FSD]-shop -->\n## Shop FSD\n",
         ],
         catch_exceptions=False,
     )
+    assert fsd.exit_code == 0, fsd.output
+    # v2.52: PRD→FSD is a derives edge, born by `fsd create --parent`.
     link = runner.invoke(
         main,
-        ["fsd", "decompose", "[PRD]-shop", "[FSD]-shop", "--version", "v9.0"],
+        ["deps", "[PRD]-shop", "--direction", "out"],
         catch_exceptions=False,
     )
     assert link.exit_code == 0, link.output
-    assert _payload(link)["data"]["rel"] == "decomposes"
+    derives = {e["dst"] for e in _payload(link)["data"]["edges"] if e["rel"] == "derives"}
+    assert derives == {"[FSD]-shop"}
 
     # create_prd must NOT require target_file (unlike create_tdd).
     assert NewModelManager(root).create_prd is not None
@@ -103,7 +107,7 @@ def test_init_new_model_bootstrap(tmp_path: Path):
         (graph.specs[e.src].chunk_id, e.rel, graph.specs[e.dst].chunk_id)
         for e in graph.edges
     }
-    assert ("[PRD]-demo", "decomposes", "[FSD]-demo") in triples
+    assert ("[PRD]-demo", "derives", "[FSD]-demo") in triples
     assert validate_prd_fsd_tdd_graph(graph) == []
 
 
@@ -205,7 +209,7 @@ def test_taskless_new_model_confirm(tmp_path: Path):
         "v1.0", "[TDD]-store",
         "<!-- @id:[TDD]-store -->\n## Store TDD\n\n```yaml\ntarget_file: app/store.py\n```\n",
     )
-    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "decomposes")
+    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
     mgr.add_edge("v1.0", "[FSD]-app:svc", "[TDD]-svc", "details")
     mgr.add_edge("v1.0", "[FSD]-app:store", "[TDD]-store", "details")
     mgr.add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app:store", "depends_on")
@@ -232,6 +236,6 @@ def test_taskless_new_model_confirm(tmp_path: Path):
         (baseline.specs[e.src].chunk_id, e.rel, baseline.specs[e.dst].chunk_id)
         for e in baseline.edges
     }
-    assert ("[PRD]-sys", "decomposes", "[FSD]-app") in rels
+    assert ("[PRD]-sys", "derives", "[FSD]-app") in rels
     assert ("[FSD]-app:svc", "details", "[TDD]-svc") in rels
     assert ("[FSD]-app:svc", "depends_on", "[FSD]-app:store") in rels

@@ -6,7 +6,7 @@
 ## 1. 模型概览
 
 ```
-[PRD]-<name> ──decomposes──▶ [FSD]-<name>（根 FSD）
+[PRD]-<name> ──derives──▶ [FSD]-<name>（根 FSD,派生:问题→方案,恰 1:1）
 [FSD]-x ──(内部 split)──▶ [FSD]-x:<split> ──decomposes──▶ [FSD]-y（子 FSD 根）
                                             └─details──▶ [TDD]-z（叶子，绑 target_file）
 [FSD]-x:<a> ──depends_on──▶ [FSD]-x:<b>（同父兄弟 split）
@@ -34,17 +34,18 @@ PRD 递归分解为 FSD 功能树；叶子 FSD 的内部 split `details` 到 TDD
 - **前缀**：必须是 `[PRD]` / `[FSD]` / `[TDD]`（方括号）。名内用 `_`，层级用 `-`；字符集 `[a-z0-9_]`。
 - 解析见 `chunk_parser.py`：`@id` 注释、代码围栏屏蔽、bracket 前缀、`:` split。
 
-## 4. 关系（仅三种；只随内容创建原子出生，无 link/depend 命令）
+## 4. 关系（仅四种；只随内容创建原子出生，无 link/depend 命令）
 
 | 关系 | 合法连接 | 出生地 |
 |------|----------|--------|
-| `decomposes` | PRD 根 → 根 FSD 根；FSD 内部 split → 子 FSD 根 | `fsd decompose <parent> <child> [--content]`（拆分即建边，父侧门禁前置） |
+| `derives` | PRD 根 → 根 FSD 根（派生,恰 1:1;不变式①沿此判定） | `fsd create <id> --parent <PRD根>`（派生即建边，父侧门禁前置） |
+| `decomposes` | FSD 内部 split → 子 FSD 根（拆分;PRD 不经此——报 INVALID_DECOMPOSES_TYPES） | `fsd decompose <parent> <child> [--content]`（拆分即建边，父侧门禁前置） |
 | `details` | 叶 FSD 内部 split → TDD 根 | `tdd create <[TDD]-id> --parent <fsd_split>`（创建即建边） |
 | `depends_on` | 同一父 FSD 下的两个**兄弟 internal split** | **fsd create 时以临时 yaml 块申报**，建边后从正文剥离（见 §5） |
 
 **结构规则**：一个 FSD 节点**不得混用** FSD 子（decomposes）与 TDD 子（details）——要么是分解节点、要么是叶子（`FSD_MIXED_CHILDREN`）。
 
-> **文档正文零关系声明（核心）**：PRD/FSD/TDD 的 markdown 正文**不承载任何 chunk↔chunk 关系**。三种关系（decomposes/details/depends_on）只作为 SpecGraph 显式边存在，一律经 `ait deps`/`specgraph` 查询。命令产生边（decompose/tdd --parent）或临时申报（depends_on）——申报块用完即从正文剥离。`target_file` 是制品指向（chunk→文件属性），非 chunk 间关系，故保留在 TDD 正文。
+> **文档正文零关系声明（核心）**：PRD/FSD/TDD 的 markdown 正文**不承载任何 chunk↔chunk 关系**。四种关系（derives/decomposes/details/depends_on）只作为 SpecGraph 显式边存在，一律经 `ait deps`/`specgraph` 查询。命令产生边（fsd create --parent/decompose/tdd --parent）或临时申报（depends_on）——申报块用完即从正文剥离。`target_file` 是制品指向（chunk→文件属性），非 chunk 间关系，故保留在 TDD 正文。
 
 ## 5. depends_on 申报（临时输入，只入 SpecGraph）
 
@@ -80,7 +81,7 @@ depends_on: [store, config]
 
 **能力契约放"父级 split"（decompose 边的上方）**：depends_on 边落在父级域 split，契约随之放父级 split → codegen 顺 depends_on 一跳取到对端公共接口。多人协作的所有权分层：**接口层（父 FSD 文件＝拆分者 owns 域契约＋依赖）／实现层（子 FSD 文件＋TDD＝开发者 owns）；decompose 边＝所有权交接线**。对外接口变更是架构决策，走父层可见受控；实现完全自治。
 
-**codegen 契约**：为某 TDD 组装上下文 ＝ TDD 正文 ＋ 向上全链（details/decomposes 到 PRD）＋ 沿 SpecGraph depends_on 拉入对端的能力契约（对外接口）作开发依据。依赖不在正文，全靠 specgraph 一层层找。
+**codegen 契约**：为某 TDD 组装上下文 ＝ TDD 正文 ＋ 向上全链（details/decomposes/derives 到 PRD）＋ 沿 SpecGraph depends_on 拉入对端的能力契约（对外接口）作开发依据。依赖不在正文，全靠 specgraph 一层层找。
 
 **三条通用书写规约（PRD/FSD/TDD 全部正文适用）**：
 1. **详实自包含**：每块完整讲清自己（行为/职责/约束），禁"参见/详见 X"式引用甩锅。功能描述（做什么）、能力契约（对外接口）、TDD（怎么实现）角度不同，各自完整。
@@ -134,7 +135,7 @@ codegen prepare <[TDD]-id>    活动版本需 phase==tdd-confirm(否则 TDD_NOT_
 | 组 | 错误码 |
 |----|--------|
 | 格式/解析 | `ROOT_CHUNK_REQUIRED` `INVALID_PROJECT_NAME` `INVALID_FILE_NAME` |
-| 关系合法性 | `INVALID_PRD_DECOMPOSES` `INVALID_FSD_DECOMPOSES` `INVALID_DETAILS` `INVALID_DEPENDS_ON_TYPES` `DEPENDS_ON_ROOT_CHUNK` `DEPENDS_ON_CROSS_LEVEL` `FSD_MIXED_CHILDREN` |
+| 关系合法性 | `INVALID_DERIVES` `INVALID_DECOMPOSES_TYPES` `INVALID_FSD_DECOMPOSES` `INVALID_DETAILS` `INVALID_DEPENDS_ON_TYPES` `DEPENDS_ON_ROOT_CHUNK` `DEPENDS_ON_CROSS_LEVEL` `FSD_MIXED_CHILDREN` |
 | 依赖声明 | `DEPENDS_ON_UNKNOWN_SIBLING` `DEPENDS_ON_SELF` |
 | 写时门禁 | `MISSING_ENDPOINT` `TDD_MULTI_PARENT` `PRD_FSD_LINK_NOT_UNIQUE` `DUPLICATE_TARGET_FILE` `TDD_TARGET_FILE_REQUIRED` `VERSION_NOT_FOUND` |
 | 全局门禁 | `INVARIANT_VIOLATION`（明细含 `ORPHAN_CHUNK` `TRACE_BROKEN` `SPEC_CYCLE` 等）`ACCEPTANCE_FAILED` |

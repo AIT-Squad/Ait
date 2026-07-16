@@ -40,12 +40,12 @@ def test_valid_name_materializes_roots(tmp_path: Path, good: str):
     baseline = InitManager(root).indexes.load_baseline()
     ids = {c.id for c in baseline.chunks}
     assert f"[PRD]-{good}" in ids and f"[FSD]-{good}" in ids
-    # decomposes 边建立(PRD→FSD)
+    # derives 边建立(PRD→FSD)
     from ait.specgraph import load_specgraph
     g = load_specgraph(root)
     def cid(uri):
         s = g.specs.get(uri); return s.chunk_id if s else uri
-    dec = {(cid(e.src), cid(e.dst)) for e in g.edges if e.rel == "decomposes"}
+    dec = {(cid(e.src), cid(e.dst)) for e in g.edges if e.rel == "derives"}
     assert (f"[PRD]-{good}", f"[FSD]-{good}") in dec
 
 
@@ -82,7 +82,7 @@ def test_bootstrap_failed_when_roots_missing(tmp_path: Path, monkeypatch):
 
 
 def test_new_model_bootstrap_relation_free_prd_body(tmp_path: Path):
-    """v2.31: PRD 正文不含 @ref,decomposes 边在 specgraph(source=new-model-cli)。"""
+    """v2.31: PRD 正文不含 @ref,derives 边在 specgraph(source=new-model-cli)。"""
     root = _fresh(tmp_path)
     InitManager(root).run(new_model=True, project_name="proj")
     prd_body = (root / "docs" / "prd" / "[PRD]-proj.md").read_text(encoding="utf-8")
@@ -92,5 +92,5 @@ def test_new_model_bootstrap_relation_free_prd_body(tmp_path: Path):
     g = load_specgraph(root)
     def cid(uri):
         s = g.specs.get(uri); return s.chunk_id if s else uri
-    dec = {(cid(e.src), cid(e.dst)) for e in g.edges if e.rel == "decomposes"}
-    assert ("[PRD]-proj", "[FSD]-proj") in dec, "decomposes 边应在 specgraph"
+    dec = {(cid(e.src), cid(e.dst)) for e in g.edges if e.rel == "derives"}
+    assert ("[PRD]-proj", "[FSD]-proj") in dec, "derives 边应在 specgraph"

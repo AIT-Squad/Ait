@@ -334,7 +334,7 @@ class CombinedView:
         spec-tree downstream: change a PRD → its FSD tree → their TDDs —
         plus reverse depends_on/implements (dependents of the changed chunk).
         """
-        forward = {"decomposes", "details"}
+        forward = {"derives", "decomposes", "details"}
         reverse = {"depends_on", "implements"}
         children: dict[str, list[str]] = {}
         for cid in self.nodes:

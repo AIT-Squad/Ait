@@ -267,7 +267,7 @@ class InitManager:
         """Bootstrap a PRD/FSD/TDD new-model baseline under ``docs/``.
 
         Creates ``docs/prd``, ``docs/fsd``, ``docs/tdd`` with one ``[PRD]`` root
-        document and one ``[FSD]`` root document, wired by a ``decomposes`` edge
+        document and one ``[FSD]`` root document, wired by a ``derives`` edge
         (carried as an ``@ref`` in the PRD root so ``sync_specgraph`` materializes
         it). Idempotent: existing files are left untouched.
         """
@@ -278,7 +278,7 @@ class InitManager:
         fsd_id = f"[FSD]-{project_name}"
 
         # 1. PRD root — relation-free body (v2.31: docs carry no relations; the
-        #    PRD→FSD decomposes edge is built directly in specgraph in step 4).
+        #    PRD→FSD derives edge is built directly in specgraph in step 4).
         prd_path = docs / "prd" / f"{prd_id}.md"
         if not prd_path.exists():
             prd_path.parent.mkdir(parents=True, exist_ok=True)
@@ -286,7 +286,7 @@ class InitManager:
                 prd_path,
                 f"<!-- @id:{prd_id} -->\n"
                 f"## {project_name} PRD\n\n"
-                f"<!-- @summary: {project_name} 根 PRD：描述需求意图（why/what），decomposes 根 FSD。 -->\n\n"
+                f"<!-- @summary: {project_name} 根 PRD：描述需求意图（why/what），derives 根 FSD。 -->\n\n"
                 "### 概述\n\n<!-- 项目需求概述，init 后由 ait prdv2 增量补充。 -->\n",
             )
             created.append(self._rel(prd_path))
@@ -317,7 +317,7 @@ class InitManager:
             created.append(self._rel(tdd_readme))
 
         # 4. Rebuild baseline index + specgraph, then build the PRD→FSD
-        #    decomposes edge as an explicit specgraph edge (v2.31: no @ref in
+        #    derives edge as an explicit specgraph edge (v2.31: no @ref in
         #    doc body). source="new-model-cli" so _preserve_explicit_edges keeps
         #    it across every reindex, exactly like fsd decompose edges.
         baseline, _links = self.indexes.rebuild_baseline()
@@ -329,7 +329,7 @@ class InitManager:
         prd_uri = uri_by_chunk.get(prd_id)
         fsd_uri = uri_by_chunk.get(fsd_id)
         if prd_uri and fsd_uri:
-            base.add_edge(prd_uri, fsd_uri, "decomposes", metadata={"source": "new-model-cli"})
+            base.add_edge(prd_uri, fsd_uri, "derives", metadata={"source": "new-model-cli"})
             base.save(specgraph_path(self.root, "baseline"))
         graph = base
 
