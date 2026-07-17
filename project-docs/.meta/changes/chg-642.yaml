@@ -1,0 +1,26 @@
+id: chg-642
+version: v2.54
+type: MODIFY
+target: prd/[PRD]-ait#[PRD]-ait:blank_slate_bootstrap
+author: system
+date: '2026-07-17T09:13:55.802528+00:00'
+message: prd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[PRD]-ait:blank_slate_bootstrap -->
+
+  ### 需求:白板起步——从空目录初始化项目
+
+
+  **用户故事:** 作为首次采用 AIT 的开发者,我希望在一个还没有 project-docs 的空目录里直接运行 init 就能把项目初始化好,以便无需手工预建任何目录即可开始第一个版本的迭代。
+
+
+  #### 验收标准
+
+  1. WHEN 在不含 project-docs 的目录运行 init THEN 系统 SHALL 自建 project-docs 骨架(docs 与元数据存储目录)、空基线存储,并完成基线引导,不因缺少目录而拒绝。
+
+  2. WHEN init 之外的命令在不含 project-docs 的目录运行 THEN 系统 SHALL 仍要求先有项目根(仅 init 是白板入口)。
+
+  3. WHEN init 后从零走 version→prd→fsd→tdd→codegen→merge THEN 全流程 SHALL 无需任何手工建目录即可推进到合入。
+
+  4. WHEN 对已初始化项目重跑 init THEN SHALL 幂等,不破坏既有内容。'

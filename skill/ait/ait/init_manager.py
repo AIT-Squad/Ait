@@ -134,6 +134,14 @@ class InitManager:
     # entrypoint
     # ──────────────────────────────────────────────────
 
+    def _ensure_project_docs_skeleton(self) -> None:
+        """Create the project-docs/ directory skeleton if absent (blank-slate
+        bootstrap). ``self.root`` is ``<cwd>/project-docs`` — create it and its
+        docs/ + .meta/{versions,changes} subdirs. Idempotent (exist_ok)."""
+        (self.root / "docs").mkdir(parents=True, exist_ok=True)
+        (self.root / ".meta" / "versions").mkdir(parents=True, exist_ok=True)
+        (self.root / ".meta" / "changes").mkdir(parents=True, exist_ok=True)
+
     def _ensure_empty_baseline_stores(self) -> None:
         """Ensure baseline index + specgraph files exist (empty if fresh)."""
         meta = self.root / ".meta"
@@ -145,7 +153,8 @@ class InitManager:
             sync_specgraph(self.root)
 
     def run(
-        self,        *,
+        self,
+        *,
         check_only: bool = False,
         skip: Iterable[str] | None = None,
         new_model: bool = False,
@@ -164,6 +173,11 @@ class InitManager:
             project_name: semantic name used for the `[PRD]`/`[FSD]` root chunks.
         """
         if not check_only:
+            # v2.54 blank-slate bootstrap: on a brand-new directory project-docs/
+            # doesn't exist yet — `ait init` is the command that creates it. Build
+            # the skeleton (docs/ + .meta/versions + .meta/changes) FIRST so root
+            # resolution and every store below has real directories to write into.
+            self._ensure_project_docs_skeleton()
             # v2.53 迭代连续性地基: guarantee empty baseline stores exist from
             # day one — 初始 = 现状为空的迭代, background retrieval zero-branch.
             self._ensure_empty_baseline_stores()

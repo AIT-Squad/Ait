@@ -39,7 +39,7 @@ from .new_model_validator import violations_to_details as new_model_violations_t
 from .new_model_manager import NewModelManager
 from .prd_manager import PrdManager
 from .search import search_chunks
-from .root import RootResolutionError, resolve_project_root
+from .root import NotAtProjectRoot, RootResolutionError, resolve_project_root
 from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
@@ -153,6 +153,15 @@ def main(ctx: click.Context) -> None:
     ctx.ensure_object(dict)
     try:
         resolved = resolve_project_root()
+    except NotAtProjectRoot as exc:
+        # Bootstrap escape hatch: `ait init` on a blank directory (no
+        # project-docs yet) must be able to run — it is the command that
+        # CREATES project-docs. Point root at the to-be-created dir; InitManager
+        # builds the skeleton. Any other command still hard-fails (need a root).
+        if ctx.invoked_subcommand == "init":
+            ctx.obj["root"] = Path.cwd().resolve() / "project-docs"
+            return
+        fail(str(exc), code=exc.code)
     except RootResolutionError as exc:
         fail(str(exc), code=exc.code)
     ctx.obj["root"] = resolved.root
