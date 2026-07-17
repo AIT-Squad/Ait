@@ -134,9 +134,18 @@ class InitManager:
     # entrypoint
     # ──────────────────────────────────────────────────
 
+    def _ensure_empty_baseline_stores(self) -> None:
+        """Ensure baseline index + specgraph files exist (empty if fresh)."""
+        meta = self.root / ".meta"
+        if not (meta / "chunks-index.yaml").exists():
+            self.indexes.rebuild_baseline()
+        if not (meta / "specgraph.yaml").exists():
+            from .specgraph import sync_specgraph
+
+            sync_specgraph(self.root)
+
     def run(
-        self,
-        *,
+        self,        *,
         check_only: bool = False,
         skip: Iterable[str] | None = None,
         new_model: bool = False,
@@ -154,6 +163,10 @@ class InitManager:
                         are never overwritten.
             project_name: semantic name used for the `[PRD]`/`[FSD]` root chunks.
         """
+        if not check_only:
+            # v2.53 迭代连续性地基: guarantee empty baseline stores exist from
+            # day one — 初始 = 现状为空的迭代, background retrieval zero-branch.
+            self._ensure_empty_baseline_stores()
         if new_model and not check_only:
             return self._run_new_model_bootstrap(project_name)
 

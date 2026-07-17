@@ -1,0 +1,58 @@
+id: chg-626
+version: v2.53
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model
+author: system
+date: '2026-07-17T01:28:47.271290+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-new_model -->
+
+  ## new_model 内部分解
+
+
+  ### 功能描述
+
+  new_model 域的实现分解。该域是新模型主线(PRD→FSD→TDD→codegen)的引擎:创建三类文档、在写内容时原子建立关系边、校验图合法性与六不变式、为 codegen 组装上溯上下文。它把"文档如何被创建、关系如何出生、规格如何被校验、代码生成需要什么上下文"这四件事统一在一处。实现拆为两个文件:new_model_manager(文档创建与流转编排)与
+  new_model_validator(纯函数校验器)。
+
+
+  ### 反向要求
+
+  - 不存储关系图(建边委托 specgraph 域的 add_edge 与 sync;本域只决定"何时建什么边")。
+
+  - 不解析 markdown 语法(委托 doc_model 域的 chunk_parser)、不做版本合并与门禁落盘(委托 version 域)。
+
+  - 本文件不定义域对外公共接口(域契约在顶层文件 [FSD]-ait 的 new_model 域块,本文件是内部实现分解)。
+
+
+  ### 分解视图
+
+  - new_model_manager 叶(details → [TDD]-new_model_manager):文档创建、层级流转、codegen 上下文组装
+
+  - new_model_validator 叶(details → [TDD]-new_model_validator):纯函数图校验与写时门禁'
+new_content: '<!-- @id:[FSD]-ait-new_model -->
+
+  ## new_model 内部分解
+
+
+  ### 功能描述
+
+  new_model 域的实现分解。该域是新模型主线(PRD→FSD→TDD→codegen)的引擎:创建三类文档、在写内容时原子建立关系边、校验图合法性与六不变式、为 codegen 组装上溯上下文。它把"文档如何被创建、关系如何出生、规格如何被校验、代码生成需要什么上下文"这四件事统一在一处。实现拆为两个文件:new_model_manager(文档创建与流转编排)与
+  new_model_validator(纯函数校验器)。
+
+
+  ### 反向要求
+
+  - 不存储关系图(建边委托 specgraph 域的 add_edge 与 sync;本域只决定"何时建什么边")。
+
+  - 不解析 markdown 语法(委托 doc_model 域的 chunk_parser)、不做版本合并与门禁落盘(委托 version 域)。
+
+  - 本文件不定义域对外公共接口(域契约在顶层文件 [FSD]-ait 的 new_model 域块,本文件是内部实现分解)。
+
+
+  ### 分解视图
+
+  - new_model_manager 叶(details → [TDD]-new_model_manager):文档创建、层级流转、codegen 上下文组装
+
+  - new_model_validator 叶(details → [TDD]-new_model_validator):纯函数图校验与写时门禁'

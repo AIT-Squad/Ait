@@ -1,0 +1,15 @@
+id: chg-621
+version: v2.53
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:cli
+author: system
+date: '2026-07-17T01:28:47.193785+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: "<!-- @id:[FSD]-ait:cli -->\n## cli 命令分发域\n\n### 功能描述\nait 命令行分发器:click 命令树把用户命令路由到各领域,统一 JSON 输出契约。只分发不含业务逻辑。内部分解见\
+  \ [FSD]-ait-cli。\n\n### 能力契约\n- **提供方式**:CLI 入口(项目本地 wrapper `project-docs/.ait/ait-cli` → python -m ait.cli)\n- **接口**:\n\
+  \  - 命令面:version(create/confirm/merge/revert/commit/status)、prd/fsd/tdd(create/confirm/revert + fsd decompose)、codegen(prepare)、deps/impact/specgraph、acceptance(set/run)、init、reindex;legacy(prdv1/impl/task/state/search/context/lint)\n\
+  \  - 输出契约:stdout 恒为单个 JSON——成功 `{\"ok\":true,\"data\":{...}}`,失败 `{\"ok\":false,\"error\":\"...\",\"code\":\"...\"}`;click\
+  \ 用法错误也转 `{\"ok\":false,\"code\":\"USAGE_ERROR\"}`(不裸文本);--help 正常输出帮助\n  - 领域错误码透传(issues[0].code),不吞成笼统码\n  - 项目根解析:每次调用经\
+  \ foundation 的 resolve_project_root,根错误以 JSON 报出\n\n### 反向要求\n- 不实现业务规则(只调 manager 转发结果与错误码)。\n- 不维护任何跨调用状态。"

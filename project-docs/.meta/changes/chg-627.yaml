@@ -1,0 +1,37 @@
+id: chg-627
+version: v2.53
+type: MODIFY
+target: fsd/[FSD]-ait-new_model#[FSD]-ait-new_model:new_model_manager
+author: system
+date: '2026-07-17T01:28:47.279855+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-new_model:new_model_manager -->
+
+  ## new_model_manager
+
+  ### 功能描述
+
+  NewModelManager 类,新模型三类文档的创建者与四层流转(PRD/FSD/TDD/codegen)的编排者。职责:create_prd/create_fsd/create_tdd 把文档写入版本工作区(解析→ensure 版本→写文件→注册
+  chunk→同步关系图);create_prd 是流转入口,置阶段机起点(phase→prd-creating),CLI 无活动版本时经 next_version_name 自动开版本;create_fsd 可带 parent_chunk_id(PRD
+  根):创建即建 derives 派生边(父侧预检:parent 须为 PRD 根且尚无 derives 出边,否则拒且零落盘),并解析 split 内 `depends_on` 声明块,建兄弟依赖边后从正文剥离(owned-scope 全量对账:该文件的兄弟依赖边完全由声明决定);create_tdd
+  可带 parent_chunk_id,创建即建 details 边(父侧预检:parent 不在视图报 MISSING_ENDPOINT、TDD 已有他者 details 入边报 TDD_MULTI_PARENT),且写入前按归一化路径做制品唯一属主门禁(撞车报
+  DUPLICATE_TARGET_FILE);decompose_fsd 拆分即建 decomposes 边(仅限 FSD split 为 parent——PRD→FSD 走 derives 不走 decompose;父侧预检后原子写子 FSD);三层各有
+  confirm_*_layer/revert_*_layer 冻结-返工对(锁定/解锁 chunk + 推进/回退 phase);add_edge 是底层建边原语,落盘前经 check_edge_write 局部门禁;prepare_codegen
+  在组合视图上溯 TDD→FSD→PRD 全链、旁取路径上的 depends_on 兄弟契约,组装 CodegenBundle(无活动版本回退 baseline)。fsd/tdd create 对不存在的版本报 VERSION_NOT_FOUND(prd
+  create 保留自动开版本)。
+
+
+  **讨论背景组装(v2.53,迭代连续性原则的工具化)**:create_prd/create_fsd/create_tdd 在未提供内容时走 prepare_discussion 路径——沿组合视图(baseline∪活动版本)提取:上层在本版本的改动
+  chunk 全文(anchors,修改方向的载体)、每个锚点经边一跳关联的 chunk 全文(related,受波及现状)、目标 chunk 既有全文(target,演进而非新建);锚定式变体(tdd --parent / decompose
+  child 缺失)以命名父块为中心:父块全文+全部邻接+上溯链+既有子。结构完整性(六不变式)是检索可靠性的前提;零写入、不动 phase、过同层相位门禁。
+
+
+  ### 反向要求
+
+  - 不自己存关系边(委托 specgraph 的 add_edge/sync)、不自己算六不变式细节(委托 new_model_validator,本类只在写时/流转点调用并按结果拒绝)。
+
+  - 不做版本 commit/merge/门禁落盘(委托 version 域;本类只写版本工作区与推进 phase)。
+
+  - 不生成代码(prepare_codegen 只组装上下文包,实际编码由 skill 层驱动 AI 完成)。'

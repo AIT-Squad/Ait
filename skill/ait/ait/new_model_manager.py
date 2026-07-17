@@ -655,6 +655,130 @@ class NewModelManager:
                         self._append_context_item(items, seen, child)
         return items
 
+    def prepare_discussion(
+        self,
+        version: str,
+        layer: str,
+        target_id: str,
+        parent_id: str | None = None,
+    ) -> dict:
+        """v2.53 迭代连续性: assemble the discussion background for a layer's
+        create — 现状(经关联检索) + 修改方向(上层已落地的改动) → 讨论出新 chunk.
+
+        Zero-write, phase untouched; gated by the same layer phase as the write
+        path. Two shapes:
+        - 发现式 (no parent_id): anchors = this version's upper-layer changed
+          chunks; related = one-hop neighbours of each anchor (combined view).
+        - 锚定式 (parent_id given): anchor = the named parent chunk; linked =
+          all its adjacent chunks; upstream = its chain up to the PRD.
+        Empty baseline → empty background (初始 = 现状为空的迭代, zero branch).
+        """
+        gates = {
+            "prd": (("empty", "prd-creating"), "PRD_LAYER_CLOSED", "prd create"),
+            "fsd": (("prd-confirm", "fsd-creating"), "PRD_NOT_CONFIRMED", "fsd create"),
+            "tdd": (("fsd-confirm", "tdd-creating"), "FSD_NOT_CONFIRMED", "tdd create"),
+        }
+        allowed, code, op = gates[layer]
+        self._require_phase(version, allowed, code, op)
+        view = combined_view(self.root, version)
+
+        bundle: dict = {"mode": "discussion-context", "layer": layer, "version": version}
+        tnode = view.node(target_id)
+        target: dict = {"id": target_id, "exists": tnode is not None}
+        if tnode is not None:
+            item = self._context_item_for_spec(tnode)
+            if item is not None:
+                target["file"] = item["file"]
+                target["content"] = item["content"]
+        bundle["target"] = target
+
+        if layer == "prd":
+            # 现状 = baseline∪版本视图中的全部 PRD chunk(修改方向在用户对话里)
+            related: list[dict] = []
+            seen: set[str] = set()
+            for cid in sorted(view.nodes):
+                if cid.startswith("[PRD]-"):
+                    self._append_context_item(related, seen, view.nodes[cid])
+            bundle["related"] = related
+            return bundle
+
+        if parent_id is not None:
+            # 锚定式: the command names the anchor.
+            pnode = view.node(parent_id)
+            if pnode is None:
+                raise _validation_error(
+                    "MISSING_ENDPOINT", f"parent {parent_id} not found", parent_id
+                )
+            anchor_items: list[dict] = []
+            self._append_context_item(anchor_items, set(), pnode)
+            bundle["anchor"] = anchor_items[0] if anchor_items else {"id": parent_id}
+            linked: list[dict] = []
+            lseen: set[str] = {parent_id}
+            for edge in [*view.edges_from(parent_id), *view.edges_to(parent_id)]:
+                other = edge.dst if edge.src == parent_id else edge.src
+                if other in lseen:
+                    continue
+                node = view.node(other)
+                if node is None:
+                    continue
+                lseen.add(other)
+                item = self._context_item_for_spec(node)
+                if item is not None:
+                    item["rel"] = edge.rel
+                    item["direction"] = "out" if edge.src == parent_id else "in"
+                    linked.append(item)
+            bundle["linked"] = linked
+            # upstream: parent split → structural root → derives/decomposes climb.
+            upstream: list[dict] = []
+            useen: set[str] = {parent_id}
+            if ":" in parent_id:
+                root_node = view.node(_parent_chunk_id(parent_id))
+                if root_node is not None:
+                    self._append_context_item(upstream, useen, root_node)
+                    self._walk_upstream_roots(view, root_node.chunk_id, upstream, useen)
+            else:
+                self._walk_upstream_roots(view, parent_id, upstream, useen)
+            bundle["upstream"] = upstream
+            return bundle
+
+        # 发现式: anchors = this version's upper-layer changed chunks.
+        upper_prefix = "[PRD]-" if layer == "fsd" else "[FSD]-"
+        idx = self.indexes.load_version_index(version)
+        anchors: list[dict] = []
+        aseen: set[str] = set()
+        for entry in idx.chunks:
+            if not entry.id.startswith(upper_prefix) or entry.action not in ("add", "modify"):
+                continue
+            if entry.id in aseen:
+                continue
+            node = view.node(entry.id)
+            if node is None:
+                continue
+            aseen.add(entry.id)
+            item = self._context_item_for_spec(node)
+            if item is not None:
+                item["action"] = entry.action
+                anchors.append(item)
+        bundle["anchors"] = anchors
+        related = []
+        rseen: set[str] = set(aseen) | {target_id}
+        for a in anchors:
+            for edge in [*view.edges_from(a["id"]), *view.edges_to(a["id"])]:
+                other = edge.dst if edge.src == a["id"] else edge.src
+                if other in rseen:
+                    continue
+                node = view.node(other)
+                if node is None:
+                    continue
+                rseen.add(other)
+                item = self._context_item_for_spec(node)
+                if item is not None:
+                    item["via"] = edge.rel
+                    item["anchor"] = a["id"]
+                    related.append(item)
+        bundle["related"] = related
+        return bundle
+
     def _append_context_item(self, items: list[dict], seen: set[str], spec) -> None:
         if spec.chunk_id in seen:
             return

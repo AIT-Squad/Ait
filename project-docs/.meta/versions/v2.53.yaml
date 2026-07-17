@@ -1,0 +1,48 @@
+version: v2.53
+created_at: '2026-07-17T01:19:22.955301+00:00'
+merged_at: null
+owner: system
+changes:
+- chg-601
+- chg-602
+- chg-603
+- chg-604
+- chg-605
+- chg-606
+- chg-607
+- chg-608
+- chg-609
+- chg-610
+- chg-611
+- chg-612
+- chg-613
+- chg-614
+- chg-615
+- chg-616
+- chg-617
+- chg-618
+- chg-619
+- chg-620
+- chg-621
+- chg-622
+- chg-623
+- chg-624
+- chg-625
+- chg-626
+- chg-627
+- chg-628
+- chg-629
+- chg-630
+- chg-631
+- chg-632
+- chg-633
+- chg-634
+dependencies:
+  based_on: null
+  conflicts_with: []
+  merge_after: []
+snapshot: null
+phase: tdd-confirm
+title: null
+prd_locked: false
+impl_locked: false

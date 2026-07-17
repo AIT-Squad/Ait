@@ -104,6 +104,20 @@ depends_on: [store, config]
 - `templates/TEMPLATE-FSD-AIT-DRAFT.md`：root（功能描述+反向要求+分解视图）＋功能 split（功能描述+反向要求+能力契约）＋`:TEST` 集成验收。可递归拆子 FSD。
 - `templates/TEMPLATE-TDD-AIT-DRAFT.md`：target_file/技术栈约束/文件职责（负责+不负责〔反向要求〕）/代码结构/核心实现逻辑/错误边界/单元测试要求（一文件一映射）。
 
+## 7b. 讨论背景契约（v2.53 迭代连续性）
+
+**关联关系的目的论**：完整性(六不变式)→可靠检索(关系=现状检索路径)→修改连续性(现状+修改方向→新 chunk)。每层 create **省略 --content** 即返回该层讨论背景(mode=discussion-context,零写入、过同层相位门禁)：
+
+| 调用 | 形态 | 背景内容 |
+|---|---|---|
+| `prd create <id>` | 现状 | baseline∪版本全部 PRD chunk 全文 + 目标既有内容 |
+| `fsd create <id>` | 发现式 | anchors=本版本 [PRD]- 改动 chunk 全文 + 每锚一跳关联 chunk 全文 + 目标既有内容 |
+| `fsd decompose <p> <c>`(c 未建) | 锚定式 | 父块全文 + 全部邻接(rel/方向) + 上溯链(derives/decomposes)到 PRD + 目标既有内容 |
+| `tdd create <id> --parent <s>` | 锚定式 | 同上(锚=叶 split) |
+| `tdd create <id>`(无 parent) | 发现式 | anchors=本版本 [FSD]- 改动 chunk |
+
+空 baseline → 空背景(初始=现状为空的迭代,零分支;init 保证空基线文件落盘)。带 --content 时为原写入路径,行为不变。
+
 ## 8. 生命周期（四层命令面）
 
 **P7 全严格自顶向下**：每个入口写盘前校验版本 phase，不满足则拒（零落盘可重试）。phase 推进链：`empty →(prd create) prd-creating →(prd confirm) prd-confirm →(fsd create/decompose) fsd-creating →(fsd confirm) fsd-confirm →(tdd create) tdd-creating →(tdd confirm) tdd-confirm →(merge) merged`。add 与 modify 同等门禁——改任一层都须从 prd 逐层向下（迭代亦然）。

@@ -905,6 +905,10 @@ def fsd_create(
     if not version:
         fail("No active version", code="NO_VERSION")
     try:
+        if content is None and content_file is None:
+            # v2.53 讨论背景模式: 无内容=返回该层讨论背景,零写入。
+            ok(_json_safe(mgr.prepare_discussion(version, "fsd", root_chunk_id, parent_id=None)))
+            return
         result = mgr.create_fsd(
             version,
             root_chunk_id,
@@ -947,6 +951,16 @@ def fsd_decompose(
     if content is not None or content_file is not None:
         child_content = _read_content(content_file, content)
     try:
+        if child_content is None:
+            # v2.53: no content + child not yet in view → 锚定式讨论背景
+            # (formerly a bare MISSING_ENDPOINT error path). Child exists →
+            # link-only decompose, unchanged.
+            from .specgraph import combined_view as _cv
+            if _cv(_root(ctx), version).node(child_root_chunk_id) is None:
+                ok(_json_safe(mgr.prepare_discussion(
+                    version, "fsd", child_root_chunk_id, parent_id=parent_chunk_id,
+                )))
+                return
         ok(_json_safe(mgr.decompose_fsd(
             version, parent_chunk_id, child_root_chunk_id,
             content=child_content, file=file_opt,
@@ -1022,6 +1036,10 @@ def tdd_create(
     if not version:
         fail("No active version", code="NO_VERSION")
     try:
+        if content is None and content_file is None:
+            # v2.53 讨论背景模式: --parent 给定=锚定式,否则发现式;零写入。
+            ok(_json_safe(mgr.prepare_discussion(version, "tdd", root_chunk_id, parent_id=parent_chunk_id)))
+            return
         result = mgr.create_tdd(
             version,
             root_chunk_id,
@@ -1151,6 +1169,10 @@ def prdv2_create(
         )
         return
     try:
+        if content is None and content_file is None:
+            # v2.53 讨论背景模式: baseline∪版本的 PRD 现状(修改方向在对话里)。
+            ok(_json_safe(mgr.prepare_discussion(version, "prd", root_chunk_id)))
+            return
         result = mgr.create_prd(
             version,
             root_chunk_id,

@@ -1,0 +1,16 @@
+id: chg-619
+version: v2.53
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:search
+author: system
+date: '2026-07-17T01:28:47.175348+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:search -->
+
+  ## search 域
+
+  ### 功能描述
+
+  `ait search`：跨 chunk 全文检索。'

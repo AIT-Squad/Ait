@@ -1,0 +1,18 @@
+id: chg-622
+version: v2.53
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:doc_model
+author: system
+date: '2026-07-17T01:28:47.202345+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: "<!-- @id:[FSD]-ait:doc_model -->\n## doc_model 文档模型域\n\n### 功能描述\n文档模型底座:把 markdown 解析成 chunk/ref/extract 结构(边界由\
+  \ `<!-- @id -->` 注释决定),并定义全部 .meta 持久化数据的 pydantic schema。是\"文档如何被解析\"与\"数据长什么样\"的单一权威来源。内部分解见 [FSD]-ait-doc_model。\n\n\
+  ### 能力契约\n- **提供方式**:Python 模块函数与 pydantic 模型(ait.chunk_parser / ait.schemas)\n- **接口**:\n  - `parse_file(path, base_dir)\
+  \ -> ParsedFile`、`parse_text(text, file) -> ParsedFile`——ParsedFile(file, file_header, chunks, refs);Chunk 带 id/heading/level/content/行号/no_impl/summary;Ref\
+  \ 带 source_chunk_id/target_file/target_chunk_id/rel\n  - `parse_extract_blocks(text) -> list[ExtractBlock]`——@extract 成对解析,嵌套/未闭合抛\
+  \ ExtractError\n  - code-fence 内的 @id/@ref 被屏蔽;chunk id 支持 legacy 与 [PRD]/[FSD]/[TDD] 前缀(冒号 split 含保留大写 :TEST)\n  - schema\
+  \ 类:ProjectConfig/BaselineIndex/VersionIndex/VersionChunkEntry/VersionMeta(含 phase 阶段机与锁定字段)/RequirementMeta/ChangeRecord/TaskYaml\
+  \ 等;类型别名 Action/State/VersionPhase/TaskStatus;StrictModel 基类 extra=forbid;summary ≤120 校验\n\n### 反向要求\n- 不建关系图、不校验六不变式(解析归此,语义校验归\
+  \ new_model 域)。\n- 不做文件 IO(读写与原子性归 foundation)。"
