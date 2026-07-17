@@ -1,6 +1,6 @@
 version: 1
 scope: global
-updated: '2026-07-17T02:34:57.495463+00:00'
+updated: '2026-07-17T09:37:36.902314+00:00'
 chunks:
 - id: '[FSD]-ait-cli'
   file: fsd/[FSD]-ait-cli
@@ -545,6 +545,12 @@ chunks:
 - id: '[PRD]-ait:iteration_continuity'
   file: prd/[PRD]-ait
   heading: 需求:迭代连续性——现状驱动的分层讨论
+  level: 3
+  summary: null
+  metadata: {}
+- id: '[PRD]-ait:blank_slate_bootstrap'
+  file: prd/[PRD]-ait
+  heading: 需求:白板起步——从空目录初始化项目
   level: 3
   summary: null
   metadata: {}
