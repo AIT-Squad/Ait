@@ -1,0 +1,18 @@
+<!-- @id:[TDD]-ref_index_system -->
+## ref_index_system TDD
+
+```yaml
+target_file: skill/ait/references/index-system.md
+```
+
+### 技术栈
+
+Markdown（随 ait skill 分发的参考资产）。
+
+### 文件职责
+
+索引体系参考：chunks-index 的 baseline/per-version 语义、specgraph 关系存储与组合视图定位。**links-index 段落属已废弃机制**——顶部含状态注记;完整重写随 legacy 退役进行。
+
+### 单元测试要求
+
+无单测；本文件是人读参考，规则强制在代码侧门禁。
