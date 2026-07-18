@@ -178,6 +178,10 @@ class VersionMeta(StrictModel):
     title: str | None = None        # summarized in prd discuss; used as git commit msg
     prd_locked: bool = False
     impl_locked: bool = False
+    # v2.55 cross-repo binding fields (docs/code isolation)
+    docs_commit: str | None = None   # docs-repo commit sha produced by version merge
+    code_base:   str | None = None   # host HEAD at merge time (read-only snapshot)
+    code_result: str | None = None   # host HEAD after acceptance (filled by skill layer)
 
 
 # ─────────────────────────────────────────────────────────────

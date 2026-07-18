@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-17T09:37:37.822862+00:00'
+updated: '2026-07-18T06:49:38.816495+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -9,9 +9,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait-cli
   title: cli 内部分解
   type: fsd
@@ -548,9 +545,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:cli
   title: cli 命令分发域
   type: fsd
@@ -559,9 +553,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:context
   title: context 域
   type: fsd
@@ -570,9 +561,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:doc_model
   title: doc_model 文档模型域
   type: fsd
@@ -581,9 +569,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:foundation
   title: foundation 基础设施域
   type: fsd
@@ -592,9 +577,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:impl
   title: impl 域
   type: fsd
@@ -603,9 +585,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:indexing
   title: indexing 索引域
   type: fsd
@@ -614,9 +593,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:init
   title: init 初始化域
   type: fsd
@@ -625,9 +601,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:lint
   title: lint 域
   type: fsd
@@ -636,9 +609,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:new_model
   title: new_model 新模型域
   type: fsd
@@ -647,9 +617,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:prd
   title: prd 域
   type: fsd
@@ -658,9 +625,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:search
   title: search 域
   type: fsd
@@ -669,9 +633,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:skill
   title: skill 分发资产域
   type: fsd
@@ -680,9 +641,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:specgraph
   title: specgraph 关系图域
   type: fsd
@@ -691,9 +649,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:state
   title: state 域
   type: fsd
@@ -702,9 +657,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:task
   title: task 域
   type: fsd
@@ -713,9 +665,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:fsd:baseline:[FSD]-ait:version
   title: version 版本域
   type: fsd
@@ -724,9 +673,6 @@ specs:
   file: fsd/[FSD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c2
 - uri: spec:prd:baseline:[PRD]-ait
   title: ait 产品 PRD
   type: prd
@@ -735,9 +681,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:blank_slate_bootstrap
   title: 需求:白板起步——从空目录初始化项目
   type: prd
@@ -746,9 +689,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:chunk_versioning
   title: 需求:chunk 级原子版本控制
   type: prd
@@ -757,9 +697,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:invariant_governance
   title: 需求:六不变式的代码级强制
   type: prd
@@ -768,9 +705,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:iteration_continuity
   title: 需求:迭代连续性——现状驱动的分层讨论
   type: prd
@@ -779,9 +713,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:mainline_pipeline
   title: 需求:PRD→FSD→TDD→codegen 主线管线
   type: prd
@@ -790,9 +721,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:parallel_isolation
   title: 需求:可拆分——并行不冲突(目标2)
   type: prd
@@ -801,9 +729,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:prd:baseline:[PRD]-ait:traceability
   title: 需求:可追溯——spec→代码(目标1)
   type: prd
@@ -812,9 +737,6 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c1
 - uri: spec:tdd:baseline:[TDD]-chunk_parser
   title: chunk_parser TDD
   type: tdd
@@ -831,9 +753,6 @@ specs:
   file: tdd/[TDD]-cli
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c3
 - uri: spec:tdd:baseline:[TDD]-context_assembler
   title: context_assembler TDD
   type: tdd
@@ -898,9 +817,6 @@ specs:
   file: tdd/[TDD]-init_manager
   metadata:
     source: baseline
-    state: committed
-    action: modify
-    commit_id: c3
 - uri: spec:tdd:baseline:[TDD]-io_utils
   title: io_utils TDD
   type: tdd

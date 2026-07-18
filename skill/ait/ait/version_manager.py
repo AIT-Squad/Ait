@@ -694,11 +694,11 @@ class VersionManager:
             raise VersionManagerError(
                 f"存在未完成 task，无法 confirm: {not_done}", code="TASK_NOT_DONE"
             )
-        if not allow_dirty_git and not self._git_clean():
-            raise VersionManagerError(
-                "git 工作区不干净，请先提交或暂存改动（或加 --allow-dirty-git）",
-                code="GIT_DIRTY",
-            )
+        # v2.55: GIT_DIRTY pre-check removed — the docs repo is intentionally
+        # dirty throughout the version lifecycle (every prd/fsd/tdd create writes
+        # files); checking dirty state here would always fail. The docs repo is
+        # committed atomically at merge time. --allow-dirty-git is kept for API
+        # compatibility but has no effect.
 
         idx = self.indexes.load_version_index(version)
         records = [c for c in idx.chunks if c.state == "committed"]
@@ -739,6 +739,28 @@ class VersionManager:
             raise VersionManagerError(
                 f"merge/commit 失败已回退: {exc}", code="MERGE_ROLLBACK"
             )
+
+        # v2.55: record cross-repo binding fields in version meta.
+        # Reload meta first — self.merge() saved it with merged_at already set;
+        # operating on the stale pre-merge `meta` would clobber that.
+        meta = self.load_version_meta(version)
+        if commit_hash:
+            meta.docs_commit = commit_hash
+        try:
+            import subprocess as _sp
+            _r = _sp.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.root.parent,
+                capture_output=True, text=True,
+            )
+            if _r.returncode == 0:
+                meta.code_base = _r.stdout.strip()
+        except Exception:
+            pass
+        self.save_version_meta(meta)
+        # Commit the meta update so the docs repo has no dirty tail after merge.
+        # _git_commit handles "nothing to commit" gracefully (returns HEAD sha).
+        self._git_commit(f"AIT {version} meta: record docs_commit binding")
 
         return {
             "version": version,

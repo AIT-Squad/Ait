@@ -1,0 +1,34 @@
+id: chg-694
+version: v2.55
+type: MODIFY
+target: fsd/[FSD]-ait-version#[FSD]-ait-version:version_manager
+author: system
+date: '2026-07-18T06:43:10.468970+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait-version:version_manager -->
+
+  ## version_manager
+
+  ### 功能描述
+
+  VersionManager 类,版本全生命周期的编排者。职责:版本元数据与索引的创建读写;chunk 三态流转与 commit 锁定(锁定后修改报错,uncommit 可把 committed/staged 打回 working 作层级返工);纯门禁
+  gate——汇集 task 完成度、重复/改名冲突、六不变式(①PRD↔1FSD ②TDD↑1FSD↓1制品 ③制品↔1TDD ④关联经真实 chunk ⑤无孤儿 ⑥制品可追溯到 PRD)与制品验收(配置的测试命令)的校验报告,可重复跑、零落盘;原子
+  confirm——同一套门禁前置,通过后备份 docs 与 .meta 关键状态、逐文件合并 chunk、提升关系图入基线、git 提交,任一步失败按字节还原并报 MERGE_ROLLBACK,成功则版本标记 merged;reset 物理清空未合入版本。git
+  提交三分语义:非 git 环境容忍(结果标 git:"unavailable")、无变更时返回当前 HEAD、真实失败进回滚路径(不伪装成功)。
+
+
+  - **v2.55 GIT_DIRTY 去除**:版本生命周期内 docs 仓故意 dirty,confirm 不再预检 git 状态;`_git_clean()` 保留但 confirm 不调用(留作诊断工具)。
+
+  - **v2.55 merge 绑定字段**:merge 成功后将 `_git_commit` 返回的 sha 写入 meta.docs_commit;以只读方式调 `git rev-parse HEAD cwd=root.parent`
+  取宿主 HEAD 写入 meta.code_base(守红线:只读不写宿主;宿主非 git 仓时 code_base=None)。
+
+
+  ### 反向要求
+
+  - 不做 chunk 内容合并的具体算法(委托 merge_engine)。
+
+  - 不校验 chunk 语法(委托 doc_model 域的解析器)、不计算六不变式细节(委托 new_model 域的校验器,本类只编排调用与拒绝)。
+
+  - 不直接被其它域实例化用于合并以外的用途(其它域经域契约使用)。'

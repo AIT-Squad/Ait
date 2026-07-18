@@ -1,0 +1,56 @@
+id: chg-690
+version: v2.55
+type: MODIFY
+target: fsd/[FSD]-ait-init#[FSD]-ait-init
+author: system
+date: '2026-07-18T06:43:10.409432+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: '<!-- @id:[FSD]-ait-init -->
+
+  ## init 内部分解
+
+
+  ### 功能描述
+
+  init 域的实现分解。该域负责 `ait init` 项目初始化:把一个空目录或既有项目引导为 AIT 可管理的项目——生成 project-docs 骨架、写项目本地 wrapper 与 .meta/config.yaml、并按当前状态选择全量
+  bootstrap 或增量补全。支持两种基线形态:legacy global 基线(overview/tech-stack 等静态 global chunk),与新模型骨架(--new-model:生成 docs/{prd,fsd,tdd}
+  与 [PRD]/[FSD] 根 + 二者间的 decomposes 边)。幂等——已存在的文件不覆盖,重跑只补缺失项。实现为单文件 init_manager。
+
+
+  ### 反向要求
+
+  - 不做后续的 PRD/FSD/TDD 内容创作(init 只搭骨架,内容创作归 prd/fsd/tdd 各域的 create 流)。
+
+  - 不校验六不变式、不建业务关系边(除 bootstrap 时 PRD→FSD 的初始 decomposes 边);关系维护归 specgraph/new_model 域。
+
+  - 本文件不定义域对外公共接口(域契约在顶层文件 [FSD]-ait 的 init 域块,本文件是内部实现分解)。
+
+
+  ### 分解视图
+
+  - init_manager 叶(details → [TDD]-init_manager):InitManager 类,项目初始化的全部逻辑'
+new_content: '<!-- @id:[FSD]-ait-init -->
+
+  ## init 内部分解
+
+
+  ### 功能描述
+
+  init 域的实现分解。该域负责 `ait init` 项目初始化:把一个空目录或既有项目引导为 AIT 可管理的项目——生成 project-docs 骨架、写项目本地 wrapper 与 .meta/config.yaml、并按当前状态选择全量
+  bootstrap 或增量补全。支持两种基线形态:legacy global 基线(overview/tech-stack 等静态 global chunk),与新模型骨架(--new-model:生成 docs/{prd,fsd,tdd}
+  与 [PRD]/[FSD] 根 + 二者间的 decomposes 边)。幂等——已存在的文件不覆盖,重跑只补缺失项。实现为单文件 init_manager。
+
+
+  ### 反向要求
+
+  - 不做后续的 PRD/FSD/TDD 内容创作(init 只搭骨架,内容创作归 prd/fsd/tdd 各域的 create 流)。
+
+  - 不校验六不变式、不建业务关系边(除 bootstrap 时 PRD→FSD 的初始 decomposes 边);关系维护归 specgraph/new_model 域。
+
+  - 本文件不定义域对外公共接口(域契约在顶层文件 [FSD]-ait 的 init 域块,本文件是内部实现分解)。
+
+
+  ### 分解视图
+
+  - init_manager 叶(details → [TDD]-init_manager):InitManager 类,项目初始化的全部逻辑'

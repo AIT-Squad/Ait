@@ -1,0 +1,16 @@
+id: chg-674
+version: v2.55
+type: MODIFY
+target: fsd/[FSD]-ait#[FSD]-ait:prd
+author: system
+date: '2026-07-18T06:43:10.229194+00:00'
+message: fsd layer confirm
+base_hash: null
+base_content: null
+new_content: '<!-- @id:[FSD]-ait:prd -->
+
+  ## prd 域
+
+  ### 功能描述
+
+  `ait prdv1` create/save-draft/confirm/commit/show：旧模型 PRD 四段结构、req 草稿、确认锁定。'

@@ -134,6 +134,53 @@ class InitManager:
     # entrypoint
     # ──────────────────────────────────────────────────
 
+    def _ensure_docs_git_repo(self) -> None:
+        """v2.55: make project-docs an independent git repo so AIT's commits
+        stay inside its own boundary and never touch the host repo.
+
+        Three idempotent steps:
+        1. git init inside project-docs/ (no-op when .git already exists).
+        2. Append "project-docs/" to the host root .gitignore (creates the file
+           if absent; skips if the line is already present).
+        3. Ensure project-docs/.gitignore contains "versions/*/state.md"
+           (state is a derived panel — regeneratable, should not be tracked).
+        """
+        import subprocess
+
+        # 1. git init in project-docs/ if not already a repo
+        if not (self.root / ".git").exists():
+            subprocess.run(
+                ["git", "init", "-q"],
+                cwd=self.root,
+                capture_output=True,
+            )
+
+        # 2. host root .gitignore — append project-docs/ if absent
+        host_ignore = self.root.parent / ".gitignore"
+        line = "project-docs/"
+        if host_ignore.exists():
+            existing = host_ignore.read_text(encoding="utf-8")
+        else:
+            existing = ""
+        if line not in existing.splitlines():
+            with host_ignore.open("a", encoding="utf-8") as f:
+                if existing and not existing.endswith("\n"):
+                    f.write("\n")
+                f.write(line + "\n")
+
+        # 3. docs-repo .gitignore — ensure versions/*/state.md is excluded
+        docs_ignore = self.root / ".gitignore"
+        state_pattern = "versions/*/state.md"
+        if docs_ignore.exists():
+            di_content = docs_ignore.read_text(encoding="utf-8")
+        else:
+            di_content = ""
+        if state_pattern not in di_content.splitlines():
+            with docs_ignore.open("a", encoding="utf-8") as f:
+                if di_content and not di_content.endswith("\n"):
+                    f.write("\n")
+                f.write(state_pattern + "\n")
+
     def _ensure_project_docs_skeleton(self) -> None:
         """Create the project-docs/ directory skeleton if absent (blank-slate
         bootstrap). ``self.root`` is ``<cwd>/project-docs`` — create it and its
@@ -178,6 +225,9 @@ class InitManager:
             # the skeleton (docs/ + .meta/versions + .meta/changes) FIRST so root
             # resolution and every store below has real directories to write into.
             self._ensure_project_docs_skeleton()
+            # v2.55 docs/code isolation: make project-docs an independent git repo
+            # so AIT commits never touch the host repo.
+            self._ensure_docs_git_repo()
             # v2.53 迭代连续性地基: guarantee empty baseline stores exist from
             # day one — 初始 = 现状为空的迭代, background retrieval zero-branch.
             self._ensure_empty_baseline_stores()
