@@ -50,6 +50,6 @@ phase: merged
 title: null
 prd_locked: false
 impl_locked: false
-docs_commit: null
-code_base: null
+docs_commit: e87f94da8e83edd1762bf7d3767153bcafb06a29
+code_base: e87f94da8e83edd1762bf7d3767153bcafb06a29
 code_result: null
