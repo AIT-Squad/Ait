@@ -1505,6 +1505,25 @@ def specgraph_sync(ctx) -> None:
     ok({"specs": len(graph.specs), "edges": len(graph.edges), "file": ".meta/specgraph.yaml"})
 
 
+@specgraph_group.command("graph-md")
+@click.option("--version", "version_opt", default=None,
+              help="Generate from combined_view of this version; omit for baseline.")
+@click.pass_context
+def specgraph_graph_md(ctx, version_opt: str | None) -> None:
+    """Generate a Mermaid subgraph Markdown file from the specgraph.
+
+    Without --version writes docs/graph.md (baseline).
+    With --version writes versions/<v>/graph.md (combined view).
+    """
+    from .graph_md import write_graph_md
+    root = _root(ctx)
+    try:
+        result = write_graph_md(root, version_opt)
+        ok(result)
+    except Exception as exc:
+        fail(str(exc), code="GRAPH_MD_FAILED")
+
+
 @specgraph_group.command("query")
 @click.argument("target")
 @click.option("--deps", is_flag=True)
