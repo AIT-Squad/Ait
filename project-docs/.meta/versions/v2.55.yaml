@@ -1,6 +1,6 @@
 version: v2.55
 created_at: '2026-07-18T06:27:17.891241+00:00'
-merged_at: null
+merged_at: '2026-07-18T07:22:17.424428+00:00'
 owner: system
 changes:
 - chg-663
@@ -45,8 +45,11 @@ dependencies:
   based_on: null
   conflicts_with: []
   merge_after: []
-snapshot: null
-phase: tdd-confirm
+snapshot: snapshots/v2.55/
+phase: merged
 title: null
 prd_locked: false
 impl_locked: false
+docs_commit: null
+code_base: null
+code_result: null
