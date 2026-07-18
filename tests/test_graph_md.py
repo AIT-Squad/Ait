@@ -1,4 +1,4 @@
-"""tests/test_graph_md.py — v2.56 Mermaid spec-graph generation."""
+"""tests/test_graph_md.py — v2.57 HTML spec-tree generation."""
 
 from __future__ import annotations
 
@@ -9,12 +9,11 @@ import pytest
 from click.testing import CliRunner
 
 from ait.cli import main
-from ait.graph_md import _node_id, generate_graph_md, write_graph_md
+from ait.graph_md import generate_graph_html, write_graph_html
 from ait.specgraph import SpecGraph, specgraph_path
 from ait.version_manager import VersionManager
 from ait.new_model_manager import NewModelManager
-from ait.io_utils import atomic_write_text
-import yaml
+import subprocess
 
 
 def _project(tmp_path: Path) -> Path:
@@ -25,38 +24,11 @@ def _project(tmp_path: Path) -> Path:
     return root
 
 
-# ── unit: node id escaping ─────────────────────────────────────────────────
-
-
-def test_node_id_escapes_special_chars():
-    assert "[" not in _node_id("[PRD]-ait")
-    assert "]" not in _node_id("[PRD]-ait")
-    assert ":" not in _node_id("[FSD]-ait:version")
-    # produces a valid identifier (no mermaid-special chars)
-    assert _node_id("[FSD]-ait:version") == "FSD_ait__version"
-
-
-def test_node_id_plain_name():
-    assert _node_id("PRD_ait") == "PRD_ait"
-
-
-# ── unit: empty specgraph ──────────────────────────────────────────────────
-
-
-def test_generate_graph_md_empty_specgraph(tmp_path: Path):
-    root = _project(tmp_path)
-    # no specgraph.yaml → empty graph
-    content = generate_graph_md(root)
-    assert "graph TD" in content
-    assert "```mermaid" in content
-
-
-# ── integration: baseline graph with real pipeline ─────────────────────────
+# ── integration helpers ────────────────────────────────────────────────────
 
 
 def _build_mini_project(root: Path) -> None:
     """Create a minimal PRD→FSD→TDD project and merge it so baseline has data."""
-    import subprocess
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v0.1")
@@ -74,7 +46,6 @@ def _build_mini_project(root: Path) -> None:
         parent_chunk_id="[FSD]-demo:core",
     )
     mgr.confirm_tdd_layer("v0.1")
-    # git init so merge can commit
     subprocess.run(["git", "init", "-q"], cwd=root, capture_output=True)
     subprocess.run(["git", "config", "user.email", "a@b.c"], cwd=root, capture_output=True)
     subprocess.run(["git", "config", "user.name", "x"], cwd=root, capture_output=True)
@@ -83,31 +54,63 @@ def _build_mini_project(root: Path) -> None:
     vm.confirm("v0.1", allow_dirty_git=True)
 
 
-def test_generate_graph_md_baseline_has_subgraphs(tmp_path: Path):
+# ── unit: empty specgraph ──────────────────────────────────────────────────
+
+
+def test_generate_graph_html_empty_specgraph(tmp_path: Path):
+    root = _project(tmp_path)
+    content = generate_graph_html(root)
+    assert "<!DOCTYPE html>" in content
+    assert "(empty)" in content
+
+
+# ── unit: HTML tree structure ──────────────────────────────────────────────
+
+
+def test_generate_graph_html_has_tree_nodes(tmp_path: Path):
     root = _project(tmp_path)
     _build_mini_project(root)
-    content = generate_graph_md(root)
-    assert "subgraph" in content
+    content = generate_graph_html(root)
+    assert "<!DOCTYPE html>" in content
     assert "[PRD]-demo" in content
     assert "[FSD]-demo" in content
     assert "[TDD]-demo-core" in content
-    # edges
-    assert "derives" in content or "decomposes" in content or "details" in content
 
 
-def test_write_graph_md_creates_file_at_correct_path(tmp_path: Path):
+def test_generate_graph_html_tree_relations(tmp_path: Path):
     root = _project(tmp_path)
     _build_mini_project(root)
-    result = write_graph_md(root)
-    out = root / "docs" / "graph.md"
-    assert out.exists(), f"baseline graph.md not created at {out}"
-    assert result["path"] == "docs/graph.md"
+    content = generate_graph_html(root)
+    # tree edges appear as rel-tag spans, not Mermaid arrows
+    assert "mermaid" not in content
+    assert "-->" not in content
+    # derives/decomposes/details appear as inline relation labels
+    assert any(r in content for r in ("derives", "decomposes", "details"))
+
+
+def test_generate_graph_html_depends_on_as_chips(tmp_path: Path):
+    """depends_on edges must appear as dep-chip spans, not tree edges."""
+    root = _project(tmp_path)
+    _build_mini_project(root)
+    content = generate_graph_html(root)
+    # no depends_on tree arrows; chips only if any deps exist
+    assert "dep-chip" in content or "depends_on" not in content
+
+
+# ── integration: file paths ───────────────────────────────────────────────
+
+
+def test_write_graph_html_baseline_path(tmp_path: Path):
+    root = _project(tmp_path)
+    _build_mini_project(root)
+    result = write_graph_html(root)
+    out = root / "docs" / "graph.html"
+    assert out.exists(), f"baseline graph.html not created at {out}"
+    assert result["path"] == "docs/graph.html"
     assert result["nodes"] > 0
-    assert result["edges"] >= 0
 
 
-def test_write_graph_md_version_path(tmp_path: Path, monkeypatch):
-    """version graph goes to versions/<v>/graph.md."""
+def test_write_graph_html_version_path(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     vm = VersionManager(root)
     mgr = NewModelManager(root)
@@ -115,31 +118,30 @@ def test_write_graph_md_version_path(tmp_path: Path, monkeypatch):
     mgr.create_prd("v0.1", "[PRD]-x", "<!-- @id:[PRD]-x -->\n## X\n")
     monkeypatch.setattr(VersionManager, "_git_commit", lambda self, m: "cafe123")
     mgr.confirm_prd_layer("v0.1")
-    result = write_graph_md(root, "v0.1")
-    out = root / "versions" / "v0.1" / "graph.md"
-    assert out.exists(), f"version graph.md not at {out}"
-    assert result["path"] == "versions/v0.1/graph.md"
+    result = write_graph_html(root, "v0.1")
+    out = root / "versions" / "v0.1" / "graph.html"
+    assert out.exists(), f"version graph.html not at {out}"
+    assert result["path"] == "versions/v0.1/graph.html"
 
 
-def test_write_graph_md_idempotent(tmp_path: Path):
+def test_write_graph_html_idempotent(tmp_path: Path):
     root = _project(tmp_path)
     _build_mini_project(root)
-    write_graph_md(root)
-    write_graph_md(root)  # second call overwrites, no error
-    out = root / "docs" / "graph.md"
-    assert out.exists()
+    write_graph_html(root)
+    write_graph_html(root)  # second call overwrites cleanly
+    assert (root / "docs" / "graph.html").exists()
 
 
-# ── CLI integration ────────────────────────────────────────────────────────
+# ── CLI integration ───────────────────────────────────────────────────────
 
 
-def test_cli_graph_md_baseline(tmp_path: Path, monkeypatch):
+def test_cli_graph_html_baseline(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     monkeypatch.chdir(tmp_path)
     _build_mini_project(root)
     runner = CliRunner()
-    r = runner.invoke(main, ["specgraph", "graph-md"], catch_exceptions=False)
+    r = runner.invoke(main, ["specgraph", "graph-html"], catch_exceptions=False)
     p = json.loads(r.output.strip().splitlines()[-1])
     assert p["ok"] is True
-    assert p["data"]["path"] == "docs/graph.md"
-    assert (root / "docs" / "graph.md").exists()
+    assert p["data"]["path"] == "docs/graph.html"
+    assert (root / "docs" / "graph.html").exists()

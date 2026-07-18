@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-18T10:01:50.051719+00:00'
+updated: '2026-07-18T12:33:16.094056+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -457,6 +457,14 @@ specs:
   file: fsd/[FSD]-ait-specgraph
   metadata:
     source: baseline
+- uri: spec:fsd:baseline:[FSD]-ait-specgraph:graph_md
+  title: graph_md
+  type: fsd
+  version: baseline
+  chunk_id: '[FSD]-ait-specgraph:graph_md'
+  file: fsd/[FSD]-ait-specgraph
+  metadata:
+    source: baseline
 - uri: spec:fsd:baseline:[FSD]-ait-specgraph:impact
   title: impact
   type: fsd
@@ -737,6 +745,14 @@ specs:
   file: prd/[PRD]-ait
   metadata:
     source: baseline
+- uri: spec:prd:baseline:[PRD]-ait:specgraph_visualization
+  title: 需求:规格图可视化——生成 Mermaid chunk 关系图
+  type: prd
+  version: baseline
+  chunk_id: '[PRD]-ait:specgraph_visualization'
+  file: prd/[PRD]-ait
+  metadata:
+    source: baseline
 - uri: spec:prd:baseline:[PRD]-ait:traceability
   title: 需求:可追溯——spec→代码(目标1)
   type: prd
@@ -783,6 +799,14 @@ specs:
   version: baseline
   chunk_id: '[TDD]-format_validator'
   file: tdd/[TDD]-format_validator
+  metadata:
+    source: baseline
+- uri: spec:tdd:baseline:[TDD]-graph_md
+  title: graph_md 文件级技术设计
+  type: tdd
+  version: baseline
+  chunk_id: '[TDD]-graph_md'
+  file: tdd/[TDD]-graph_md
   metadata:
     source: baseline
 - uri: spec:tdd:baseline:[TDD]-hash_utils
