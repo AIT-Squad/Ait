@@ -512,6 +512,22 @@ class VersionManager:
                 cwd=self.root, capture_output=True, text=True,
             )
 
+            # 3. Host repo rollback: reset to code_result if available.
+            code_result = meta.code_result
+            host_reset = None
+            if code_result:
+                host_result = subprocess.run(
+                    ["git", "reset", "--hard", code_result],
+                    cwd=self.root.parent, capture_output=True, text=True,
+                )
+                if host_result.returncode != 0:
+                    raise VersionManagerError(
+                        f"host git reset --hard {code_result[:8]} failed: "
+                        f"{host_result.stderr.strip() or host_result.stdout.strip()}",
+                        code="HOST_RESET_FAILED",
+                    )
+                host_reset = code_result[:8]
+
             # 3. Remove artefacts for later versions + active untracked version.
             to_clean = later_versions + ([active] if active else [])
             for v in to_clean:
@@ -536,6 +552,8 @@ class VersionManager:
                 "ok": True,
                 "reverted_to": version,
                 "git_reset": docs_commit[:8],
+                "host_reset": host_reset,
+                "code_result_missing": code_result is None,
                 "invalidated": sorted(later_versions),
                 "dropped_active": active,
             }
