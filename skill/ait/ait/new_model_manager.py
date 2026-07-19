@@ -310,6 +310,7 @@ class NewModelManager:
         meta = self.versions.load_version_meta(version)
         meta.phase = "fsd-confirm"
         self.versions.save_version_meta(meta)
+        self.versions._git_commit(f"AIT {version} fsd-confirm")
         return {"version": version, "confirmed": working, "phase": "fsd-confirm"}
 
     def revert_fsd_layer(self, version: str) -> dict:
@@ -417,6 +418,7 @@ class NewModelManager:
         meta = self.versions.load_version_meta(version)
         meta.phase = "tdd-confirm"
         self.versions.save_version_meta(meta)
+        self.versions._git_commit(f"AIT {version} tdd-confirm")
         return {"version": version, "confirmed": working, "phase": "tdd-confirm"}
 
     def revert_tdd_layer(self, version: str) -> dict:
@@ -500,6 +502,7 @@ class NewModelManager:
         meta = self.versions.load_version_meta(version)
         meta.phase = "prd-confirm"
         self.versions.save_version_meta(meta)
+        self.versions._git_commit(f"AIT {version} prd-confirm")
         return {"version": version, "confirmed": working, "phase": "prd-confirm"}
 
     def revert_prd_layer(self, version: str) -> dict:

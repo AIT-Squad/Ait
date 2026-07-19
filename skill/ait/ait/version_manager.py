@@ -473,25 +473,28 @@ class VersionManager:
                     "cannot git-reset (was it merged before v2.55?)",
                     code="REVERT_FAILED",
                 )
+            # Collect cleanup targets BEFORE git reset (meta files disappear after).
+            later_versions = [
+                m.version for m in self.list_versions()
+                if m.merged_at is not None
+                and m.version != version
+                and m.merged_at > meta.merged_at
+            ]
+            active = self.current()
+
             if not confirmed:
-                later = [
-                    m.version for m in self.list_versions()
-                    if m.merged_at is not None
-                    and m.version != version
-                    and m.merged_at > meta.merged_at
-                ]
-                active = self.current()
                 return {
                     "ok": False,
                     "code": "NEED_CONFIRM",
                     "warning": (
                         f"将把 project-docs git 回滚到 {version} 合入时的状态 "
                         f"(commit {docs_commit[:8]})，"
-                        f"其后合入的版本 {later} 及活动版本 {active!r} 将被删除。"
+                        f"其后合入的版本 {later_versions} 及活动版本 {active!r} 将被删除。"
                         "不可恢复。请加 --confirm"
                     ),
                 }
-            # 1. git reset --hard in the docs repo
+
+            # 1. git reset --hard in the docs repo.
             result = subprocess.run(
                 ["git", "reset", "--hard", docs_commit],
                 cwd=self.root, capture_output=True, text=True,
@@ -502,20 +505,33 @@ class VersionManager:
                     f"{result.stderr.strip() or result.stdout.strip()}",
                     code="REVERT_FAILED",
                 )
-            # 2. delete artefacts for versions merged after target + active version
-            later_versions = [
-                m.version for m in self.list_versions()
-                if m.merged_at is not None
-                and m.version != version
-                and m.merged_at > meta.merged_at
-            ]
-            active = self.current()
+
+            # 2. git clean: remove untracked workspace residuals (graph.html etc.)
+            subprocess.run(
+                ["git", "clean", "-fd", "versions/"],
+                cwd=self.root, capture_output=True, text=True,
+            )
+
+            # 3. Remove artefacts for later versions + active untracked version.
             to_clean = later_versions + ([active] if active else [])
             for v in to_clean:
                 shutil.rmtree(self.versions_dir / v, ignore_errors=True)
                 (self.meta_dir / f"chunks-index-{v}.yaml").unlink(missing_ok=True)
                 (self.meta_dir / f"specgraph-{v}.yaml").unlink(missing_ok=True)
                 (self.version_meta_dir / f"{v}.yaml").unlink(missing_ok=True)
+
+            # 4. Clean .meta/changes/ entries for reverted versions.
+            changes_dir = self.meta_dir / "changes"
+            if changes_dir.exists():
+                for chg_file in changes_dir.glob("chg-*.yaml"):
+                    try:
+                        import yaml as _yaml
+                        chg = _yaml.safe_load(chg_file.read_text(encoding="utf-8")) or {}
+                        if chg.get("version") in to_clean:
+                            chg_file.unlink(missing_ok=True)
+                    except Exception:
+                        pass
+
             return {
                 "ok": True,
                 "reverted_to": version,
@@ -796,15 +812,15 @@ class VersionManager:
                 f"merge/commit 失败已回退: {exc}", code="MERGE_ROLLBACK"
             )
 
-        # v2.55: record cross-repo binding fields in version meta.
-        # Reload meta first — self.merge() saved it with merged_at already set;
-        # operating on the stale pre-merge `meta` would clobber that.
+        # v2.55+v2.58: record cross-repo binding fields in version meta.
+        # code_result was already captured by gate(); just record docs_commit here.
         meta = self.load_version_meta(version)
         if commit_hash:
             meta.docs_commit = commit_hash
+        # code_base: snapshot of host HEAD at merge time (informational only).
         try:
-            import subprocess as _sp
-            _r = _sp.run(
+            import subprocess as _sp2
+            _r = _sp2.run(
                 ["git", "rev-parse", "HEAD"],
                 cwd=self.root.parent,
                 capture_output=True, text=True,
@@ -814,8 +830,7 @@ class VersionManager:
         except Exception:
             pass
         self.save_version_meta(meta)
-        # Commit the meta update so the docs repo has no dirty tail after merge.
-        # _git_commit handles "nothing to commit" gracefully (returns HEAD sha).
+        # Single final commit: docs_commit + code_base in meta, no dirty tail.
         self._git_commit(f"AIT {version} meta: record docs_commit binding")
 
         return {
@@ -828,12 +843,15 @@ class VersionManager:
         }
 
     def gate(self, version: str) -> dict:
-        """Pure confirm gate — repeatable, zero disk writes, no merge.
+        """Confirm gate: checks + docs git commit + code_result capture.
 
-        CLI ``version confirm`` maps here; ``version merge`` runs the same
-        checks inside :meth:`confirm` before touching anything. Reports task
-        completeness, duplicate adds and the six new-model invariants.
+        Runs invariants and acceptance. On pass:
+        - Rejects if host repo is dirty (HOST_DIRTY) — user must commit code first.
+        - Commits docs repo ("AIT <v> confirmed") as a layer-freeze anchor.
+        - Records host HEAD in meta.code_result for later binding at merge.
         """
+        import subprocess as _sp
+
         meta = self.load_version_meta(version)
         if meta.merged_at is not None:
             raise VersionManagerError(f"Version {version} is already merged")
@@ -870,10 +888,54 @@ class VersionManager:
             violations.append(
                 {"code": "ACCEPTANCE_FAILED", "message": "artifact acceptance failed", "chunk_id": None}
             )
+
+        if violations:
+            return {
+                "version": version,
+                "passed": False,
+                "violations": violations,
+                "acceptance": acceptance,
+            }
+
+        # Gate passed — check host repo is clean (option A: reject if dirty).
+        try:
+            _host_status = _sp.run(
+                ["git", "status", "--porcelain"],
+                cwd=self.root.parent,
+                capture_output=True, text=True,
+            )
+            if _host_status.returncode == 0 and _host_status.stdout.strip():
+                raise VersionManagerError(
+                    "host repo has uncommitted changes; commit your code before version confirm",
+                    code="HOST_DIRTY",
+                )
+        except VersionManagerError:
+            raise
+        except Exception:
+            pass  # git unavailable in host — tolerated
+
+        # Docs git commit: layer-freeze anchor.
+        self._git_commit(f"AIT {version} confirmed")
+
+        # Capture host HEAD as code_result binding candidate.
+        try:
+            _r = _sp.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=self.root.parent,
+                capture_output=True, text=True,
+            )
+            if _r.returncode == 0:
+                meta = self.load_version_meta(version)
+                meta.code_result = _r.stdout.strip()
+                self.save_version_meta(meta)
+                self._git_commit(f"AIT {version} confirmed meta: code_result binding")
+        except Exception:
+            pass
+
         return {
             "version": version,
-            "passed": not violations,
-            "violations": violations,
+            "passed": True,
+            "violations": [],
             "acceptance": acceptance,
         }
 

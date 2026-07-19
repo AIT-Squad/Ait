@@ -1,5 +1,5 @@
 version: 1
-updated: '2026-07-18T13:10:01.106069+00:00'
+updated: '2026-07-19T06:50:46.615536+00:00'
 specs:
 - uri: spec:fsd:baseline:[FSD]-ait
   title: ait 功能分解根
@@ -1874,3 +1874,9 @@ edges:
   weight: 1.0
   metadata:
     source: fsd-declaration
+- src: spec:fsd:baseline:[FSD]-ait-specgraph:graph_md
+  dst: spec:tdd:baseline:[TDD]-graph_md
+  rel: details
+  weight: 1.0
+  metadata:
+    source: new-model-cli
