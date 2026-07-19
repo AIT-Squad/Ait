@@ -453,29 +453,85 @@ class VersionManager:
         self.save_version_meta(meta)
 
     def reset(self, version: str, *, confirmed: bool) -> dict:
-        """Physically delete the version workspace and return to a blank state.
+        """Roll back to a specific version's merged state, or wipe an unmerged workspace.
 
-        The sole escape hatch for the atomic-version model. No snapshot kept.
-        Merged versions cannot be reset.
+        Merged version: git reset --hard to docs_commit, then delete all version
+        artefacts that were created after this version (including any open version).
+        Unmerged version: physically delete workspace (original behaviour).
         """
-        import shutil
+        import shutil, subprocess
 
         meta_path = self.version_meta_path(version)
-        if meta_path.exists():
-            meta = self.load_version_meta(version)
-            if meta.merged_at is not None:
+        meta = self.load_version_meta(version) if meta_path.exists() else None
+
+        if meta is not None and meta.merged_at is not None:
+            # ── Merged-version rollback path ──────────────────────────────────
+            docs_commit = meta.docs_commit
+            if not docs_commit:
                 raise VersionManagerError(
-                    f"version {version} is merged and cannot be reset"
+                    f"version {version} has no docs_commit recorded; "
+                    "cannot git-reset (was it merged before v2.55?)",
+                    code="REVERT_FAILED",
                 )
+            if not confirmed:
+                later = [
+                    m.version for m in self.list_versions()
+                    if m.merged_at is not None
+                    and m.version != version
+                    and m.merged_at > meta.merged_at
+                ]
+                active = self.current()
+                return {
+                    "ok": False,
+                    "code": "NEED_CONFIRM",
+                    "warning": (
+                        f"将把 project-docs git 回滚到 {version} 合入时的状态 "
+                        f"(commit {docs_commit[:8]})，"
+                        f"其后合入的版本 {later} 及活动版本 {active!r} 将被删除。"
+                        "不可恢复。请加 --confirm"
+                    ),
+                }
+            # 1. git reset --hard in the docs repo
+            result = subprocess.run(
+                ["git", "reset", "--hard", docs_commit],
+                cwd=self.root, capture_output=True, text=True,
+            )
+            if result.returncode != 0:
+                raise VersionManagerError(
+                    f"git reset --hard {docs_commit[:8]} failed: "
+                    f"{result.stderr.strip() or result.stdout.strip()}",
+                    code="REVERT_FAILED",
+                )
+            # 2. delete artefacts for versions merged after target + active version
+            later_versions = [
+                m.version for m in self.list_versions()
+                if m.merged_at is not None
+                and m.version != version
+                and m.merged_at > meta.merged_at
+            ]
+            active = self.current()
+            to_clean = later_versions + ([active] if active else [])
+            for v in to_clean:
+                shutil.rmtree(self.versions_dir / v, ignore_errors=True)
+                (self.meta_dir / f"chunks-index-{v}.yaml").unlink(missing_ok=True)
+                (self.meta_dir / f"specgraph-{v}.yaml").unlink(missing_ok=True)
+                (self.version_meta_dir / f"{v}.yaml").unlink(missing_ok=True)
+            return {
+                "ok": True,
+                "reverted_to": version,
+                "git_reset": docs_commit[:8],
+                "invalidated": sorted(later_versions),
+                "dropped_active": active,
+            }
+
+        # ── Unmerged-version path (original behaviour) ────────────────────────
         if not confirmed:
             return {
                 "ok": False,
                 "code": "NEED_CONFIRM",
                 "warning": f"将物理删除版本 {version} 的所有工作区内容，不可恢复。请加 --confirm",
             }
-        # 1. version workspace (also covers versions/{version}/tasks/)
         shutil.rmtree(self.versions_dir / version, ignore_errors=True)
-        # 2. indices + meta + specgraph (split file → clean delete)
         (self.meta_dir / f"chunks-index-{version}.yaml").unlink(missing_ok=True)
         (self.meta_dir / f"specgraph-{version}.yaml").unlink(missing_ok=True)
         meta_path.unlink(missing_ok=True)
