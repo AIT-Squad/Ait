@@ -42,6 +42,7 @@ class CodegenBundle:
     chunks: list[dict]
     upstream: list[dict]
     dependencies: list[dict]
+    target_file_content: str | None = None
 
 
 class NewModelManager:
@@ -574,6 +575,15 @@ class NewModelManager:
         upstream = self._collect_upstream_context(view, tdd_root_chunk_id)
         dependencies = self._collect_dependency_context(view, upstream)
 
+        # v2.60: read target_file current content so the AI has spec + code together.
+        target_file_content: str | None = None
+        if target_file:
+            try:
+                tf_path = self.root.parent / target_file
+                target_file_content = tf_path.read_text(encoding="utf-8")
+            except Exception:
+                pass  # file absent or unreadable — bundle still valid
+
         return CodegenBundle(
             version=version if source == "version" else "baseline",
             tdd_root=tdd_root_chunk_id,
@@ -590,6 +600,7 @@ class NewModelManager:
             ],
             upstream=upstream,
             dependencies=dependencies,
+            target_file_content=target_file_content,
         )
 
     def _collect_upstream_context(self, view, tdd_chunk_id: str) -> list[dict]:
