@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-# AIT project-local wrapper -- pinned to this repository for dogfood development.
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$SCRIPT_DIR/../../.venv/Scripts/python.exe" -m ait.cli "$@"
