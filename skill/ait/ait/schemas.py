@@ -15,6 +15,7 @@ Field conventions follow project-docs/docs/prd/index-system.md.
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import PurePosixPath
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -164,6 +165,87 @@ class VersionDependencies(StrictModel):
     merge_after: list[str] = Field(default_factory=list)
 
 
+class ReconciliationOperation(StrictModel):
+    """One deterministic, file-scoped action frozen by ``version confirm``."""
+
+    file: str
+    chunk_id: str
+    action: Action
+    target_id: str | None = None
+    insert_after: str | None = None
+    base_hash: str | None = None
+    new_content: str | None = None
+
+    @field_validator("file")
+    @classmethod
+    def _validate_file(cls, value: str) -> str:
+        path = PurePosixPath(value)
+        if not value or "\\" in value or path.is_absolute() or any(part in {".", ".."} for part in path.parts):
+            raise ValueError("reconciliation operation file must be a relative docs path")
+        return value
+
+    @field_validator("new_content")
+    @classmethod
+    def _require_content_for_write(cls, value: str | None, info) -> str | None:
+        if info.data.get("action") in ("add", "modify") and not value:
+            raise ValueError("add/modify reconciliation operations require new_content")
+        return value
+
+
+class ReconciliationPlan(StrictModel):
+    """The canonical merge plan and the fingerprint of every planning input."""
+
+    operations: list[ReconciliationOperation] = Field(default_factory=list)
+    input_fingerprint: str
+    conflict_policy: Literal["abort", "use-version", "use-baseline"]
+
+    @field_validator("input_fingerprint")
+    @classmethod
+    def _validate_fingerprint(cls, value: str) -> str:
+        if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+            raise ValueError("input_fingerprint must be a lowercase SHA-256 hex digest")
+        return value
+
+
+class RevertAnchor(StrictModel):
+    """A non-self-referential ref to the binding commit retained after reset."""
+
+    docs_ref: str
+    code_result: str | None = None
+
+    @field_validator("docs_ref")
+    @classmethod
+    def _validate_docs_ref(cls, value: str) -> str:
+        if not value.startswith("refs/tags/"):
+            raise ValueError("docs_ref must be a persistent git tag ref")
+        return value
+
+
+class RecoveryJournal(StrictModel):
+    docs_head: str
+    host_head: str | None = None
+    docs_target: str
+    host_target: str | None = None
+    later_versions: list[str] = Field(default_factory=list)
+    phase: Literal["prepared", "applying", "compensating", "recovery_pending"] = "prepared"
+    diagnostic: str | None = None
+
+
+class HistoricalAnchorRepair(StrictModel):
+    version: str
+    source: str
+    docs_ref: str
+    verified: bool = True
+    repaired_at: datetime = Field(default_factory=datetime.now)
+
+    @field_validator("docs_ref")
+    @classmethod
+    def _validate_repaired_ref(cls, value: str) -> str:
+        if not value.startswith("refs/tags/"):
+            raise ValueError("docs_ref must be a persistent git tag ref")
+        return value
+
+
 class VersionMeta(StrictModel):
     version: str
     created_at: datetime
@@ -182,6 +264,11 @@ class VersionMeta(StrictModel):
     docs_commit: str | None = None   # docs-repo commit sha produced by version merge
     code_base:   str | None = None   # host HEAD at merge time (read-only snapshot)
     code_result: str | None = None   # host HEAD after acceptance (filled by skill layer)
+    # v2.61 confirm/merge/revert durable state. Defaults retain historical YAML compatibility.
+    confirmed_plan: ReconciliationPlan | None = None
+    revert_anchor: RevertAnchor | None = None
+    recovery_journal: RecoveryJournal | None = None
+    historical_anchor_repairs: list[HistoricalAnchorRepair] = Field(default_factory=list)
 
 
 # ─────────────────────────────────────────────────────────────

@@ -12,22 +12,36 @@ Public API (Phase 2 — Phase 3 adds `merge`):
 from __future__ import annotations
 
 import shutil
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-from .chunk_parser import Chunk, parse_file, parse_text
+import yaml
+
+from .chunk_parser import Chunk, ParsedFile, parse_file
 from .hash_utils import chunk_hash
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
-from .merge_engine import MergedFile, VersionChunkOp, merge_file, merge_new_file
+from .merge_engine import (
+    VersionChunkOp,
+    execute_plan,
+    merge_file,
+    merge_new_file,
+    plan_reconciliation,
+    reconciliation_input_fingerprint,
+)
 from .schemas import (
     Action,
     ChangeRecord,
     ChangeType,
     CommitEntry,
-    State,
+    HistoricalAnchorRepair,
+    ReconciliationOperation,
+    ReconciliationPlan,
+    RecoveryJournal,
+    RevertAnchor,
     VersionChunkEntry,
     VersionDependencies,
     VersionIndex,
@@ -459,101 +473,154 @@ class VersionManager:
         artefacts that were created after this version (including any open version).
         Unmerged version: physically delete workspace (original behaviour).
         """
-        import shutil, subprocess
+        import shutil
+        import subprocess
 
         meta_path = self.version_meta_path(version)
         meta = self.load_version_meta(version) if meta_path.exists() else None
 
         if meta is not None and meta.merged_at is not None:
-            # ── Merged-version rollback path ──────────────────────────────────
-            docs_commit = meta.docs_commit
-            if not docs_commit:
+            # The v2.61 tag targets the binding commit, whose meta still contains
+            # this tag reference. It avoids the prior self-referential SHA trap.
+            anchor = meta.revert_anchor
+            if anchor is None and not meta.docs_commit:
+                anchor = self._repair_historical_anchor(meta)
+            docs_target = anchor.docs_ref if anchor is not None else meta.docs_commit
+            code_target = anchor.code_result if anchor is not None else meta.code_result
+            if not docs_target:
                 raise VersionManagerError(
-                    f"version {version} has no docs_commit recorded; "
-                    "cannot git-reset (was it merged before v2.55?)",
-                    code="REVERT_FAILED",
+                    f"version {version} has no verifiable docs revert anchor",
+                    code="REVERT_ANCHOR_INVALID",
                 )
-            # Collect cleanup targets BEFORE git reset (meta files disappear after).
+
+            def object_exists(repo: Path, ref: str) -> bool:
+                result = subprocess.run(
+                    ["git", "cat-file", "-e", f"{ref}^{{commit}}"],
+                    cwd=repo, capture_output=True, text=True,
+                )
+                return result.returncode == 0
+
+            docs_head = self._git_head(self.root)
+            if docs_head is None or not object_exists(self.root, docs_target):
+                raise VersionManagerError(
+                    f"docs revert anchor is unavailable: {docs_target}",
+                    code="REVERT_PRECHECK_FAILED",
+                )
+            host_head = self._git_head(self.root.parent)
+            if code_target and (host_head is None or not object_exists(self.root.parent, code_target)):
+                raise VersionManagerError(
+                    f"host revert anchor is unavailable: {code_target}",
+                    code="REVERT_PRECHECK_FAILED",
+                )
+
             later_versions = [
-                m.version for m in self.list_versions()
-                if m.merged_at is not None
-                and m.version != version
-                and m.merged_at > meta.merged_at
+                item.version for item in self.list_versions()
+                if item.merged_at is not None
+                and item.version != version
+                and item.merged_at > meta.merged_at
             ]
             active = self.current()
-
+            to_clean = list(dict.fromkeys(later_versions + ([active] if active and active != version else [])))
             if not confirmed:
                 return {
                     "ok": False,
                     "code": "NEED_CONFIRM",
                     "warning": (
-                        f"将把 project-docs git 回滚到 {version} 合入时的状态 "
-                        f"(commit {docs_commit[:8]})，"
-                        f"其后合入的版本 {later_versions} 及活动版本 {active!r} 将被删除。"
+                        f"将把 project-docs git 回滚到 {version} 的最终锚点 "
+                        f"({docs_target})，其后版本 {later_versions} 及活动版本 {active!r} 将被删除。"
                         "不可恢复。请加 --confirm"
                     ),
                 }
 
-            # 1. git reset --hard in the docs repo.
-            result = subprocess.run(
-                ["git", "reset", "--hard", docs_commit],
-                cwd=self.root, capture_output=True, text=True,
+            journal = RecoveryJournal(
+                docs_head=docs_head,
+                host_head=host_head,
+                docs_target=docs_target,
+                host_target=code_target,
+                later_versions=to_clean,
+                phase="applying",
             )
-            if result.returncode != 0:
-                raise VersionManagerError(
-                    f"git reset --hard {docs_commit[:8]} failed: "
-                    f"{result.stderr.strip() or result.stdout.strip()}",
-                    code="REVERT_FAILED",
+            meta.recovery_journal = journal
+            self.save_version_meta(meta)
+            docs_switched = False
+            host_switched = False
+            try:
+                docs_result = subprocess.run(
+                    ["git", "reset", "--hard", docs_target],
+                    cwd=self.root, capture_output=True, text=True,
                 )
-
-            # 2. git clean: remove untracked workspace residuals (graph.html etc.)
-            subprocess.run(
-                ["git", "clean", "-fd", "versions/"],
-                cwd=self.root, capture_output=True, text=True,
-            )
-
-            # 3. Host repo rollback: reset to code_result if available.
-            code_result = meta.code_result
-            host_reset = None
-            if code_result:
-                host_result = subprocess.run(
-                    ["git", "reset", "--hard", code_result],
-                    cwd=self.root.parent, capture_output=True, text=True,
-                )
-                if host_result.returncode != 0:
+                if docs_result.returncode != 0:
                     raise VersionManagerError(
-                        f"host git reset --hard {code_result[:8]} failed: "
-                        f"{host_result.stderr.strip() or host_result.stdout.strip()}",
-                        code="HOST_RESET_FAILED",
+                        f"docs git reset failed: {(docs_result.stderr or docs_result.stdout).strip()}",
+                        code="REVERT_FAILED",
                     )
-                host_reset = code_result[:8]
+                docs_switched = True
+                if code_target:
+                    host_result = subprocess.run(
+                        ["git", "reset", "--hard", code_target],
+                        cwd=self.root.parent, capture_output=True, text=True,
+                    )
+                    if host_result.returncode != 0:
+                        raise VersionManagerError(
+                            f"host git reset failed: {(host_result.stderr or host_result.stdout).strip()}",
+                            code="HOST_RESET_FAILED",
+                        )
+                    host_switched = True
 
-            # 3. Remove artefacts for later versions + active untracked version.
-            to_clean = later_versions + ([active] if active else [])
-            for v in to_clean:
-                shutil.rmtree(self.versions_dir / v, ignore_errors=True)
-                (self.meta_dir / f"chunks-index-{v}.yaml").unlink(missing_ok=True)
-                (self.meta_dir / f"specgraph-{v}.yaml").unlink(missing_ok=True)
-                (self.version_meta_dir / f"{v}.yaml").unlink(missing_ok=True)
-
-            # 4. Clean .meta/changes/ entries for reverted versions.
-            changes_dir = self.meta_dir / "changes"
-            if changes_dir.exists():
-                for chg_file in changes_dir.glob("chg-*.yaml"):
-                    try:
-                        import yaml as _yaml
-                        chg = _yaml.safe_load(chg_file.read_text(encoding="utf-8")) or {}
-                        if chg.get("version") in to_clean:
-                            chg_file.unlink(missing_ok=True)
-                    except Exception:
-                        pass
+                for item in to_clean:
+                    workspace = self.versions_dir / item
+                    if workspace.exists():
+                        shutil.rmtree(workspace, ignore_errors=False)
+                    (self.meta_dir / f"chunks-index-{item}.yaml").unlink(missing_ok=True)
+                    (self.meta_dir / f"specgraph-{item}.yaml").unlink(missing_ok=True)
+                    (self.version_meta_dir / f"{item}.yaml").unlink(missing_ok=True)
+                clean_result = subprocess.run(
+                    ["git", "clean", "-fd", "versions/"],
+                    cwd=self.root, capture_output=True, text=True,
+                )
+                if clean_result.returncode != 0:
+                    raise VersionManagerError(
+                        f"docs workspace clean failed: {(clean_result.stderr or clean_result.stdout).strip()}",
+                        code="REVERT_RECOVERY_PENDING",
+                    )
+            except Exception as exc:  # noqa: BLE001
+                compensation_errors: list[str] = []
+                if host_switched and host_head:
+                    result = subprocess.run(
+                        ["git", "reset", "--hard", host_head],
+                        cwd=self.root.parent, capture_output=True, text=True,
+                    )
+                    if result.returncode != 0:
+                        compensation_errors.append("host")
+                if docs_switched:
+                    result = subprocess.run(
+                        ["git", "reset", "--hard", docs_head],
+                        cwd=self.root, capture_output=True, text=True,
+                    )
+                    if result.returncode != 0:
+                        compensation_errors.append("docs")
+                try:
+                    restored = self.load_version_meta(version)
+                    restored.recovery_journal = journal.model_copy(
+                        update={"phase": "recovery_pending", "diagnostic": str(exc)}
+                    )
+                    self.save_version_meta(restored)
+                except Exception:
+                    compensation_errors.append("journal")
+                if compensation_errors:
+                    raise VersionManagerError(
+                        f"revert recovery pending after {exc}: {', '.join(compensation_errors)}",
+                        code="REVERT_RECOVERY_PENDING",
+                    ) from exc
+                if isinstance(exc, VersionManagerError):
+                    raise
+                raise VersionManagerError(f"revert failed and was compensated: {exc}", code="REVERT_FAILED") from exc
 
             return {
                 "ok": True,
                 "reverted_to": version,
-                "git_reset": docs_commit[:8],
-                "host_reset": host_reset,
-                "code_result_missing": code_result is None,
+                "git_reset": docs_target,
+                "host_reset": code_target,
                 "invalidated": sorted(later_versions),
                 "dropped_active": active,
             }
@@ -589,7 +656,7 @@ class VersionManager:
         return issues
 
     def _detect_intra_version_dup(self, version: str) -> list[str]:
-        from .chunk_parser import parse_file, parse_extract_blocks, ExtractError
+        from .chunk_parser import ExtractError, parse_extract_blocks, parse_file
 
         issues: list[str] = []
         version_dir = self.versions_dir / version
@@ -611,6 +678,335 @@ class VersionManager:
             f"@extract target conflict: {t}" for t, n in seen_targets.items() if n > 1
         ]
         return issues
+
+    # ─────────────────────────────────────────────────────
+    # Confirmed reconciliation planning (v2.61)
+    # ─────────────────────────────────────────────────────
+
+    def _reconciliation_inputs(
+        self, version: str
+    ) -> tuple[list[VersionChunkEntry], list[ReconciliationOperation], dict[str, ParsedFile]]:
+        """Collect every explicit input needed to plan or validate a merge."""
+        idx = self.indexes.load_version_index(version)
+        records = self._latest_by_chunk_id(
+            [record for record in idx.chunks if record.state == "committed"]
+        )
+        if not records:
+            raise VersionManagerError(
+                f"Version {version} has no committed chunks", code="MERGE_NO_COMMITTED"
+            )
+        self._assert_no_duplicate_adds(records)
+        self._assert_no_override_conflicts(records)
+        records = self._with_atomic_impl_deletes(version, records)
+
+        version_root = self.versions_dir / version
+        source_chunks: dict[str, Chunk] = {}
+        if version_root.exists():
+            for source_path in sorted(version_root.rglob("*.md")):
+                parsed = parse_file(source_path, version_root)
+                for chunk in parsed.chunks:
+                    source_chunks.setdefault(chunk.id, chunk)
+
+        operations: list[ReconciliationOperation] = []
+        baseline_files: dict[str, ParsedFile] = {}
+        for record in records:
+            base_entry = (
+                self.indexes.query_baseline(record.overrides or record.id)
+                if record.action in ("modify", "delete")
+                else None
+            )
+            target_file = base_entry.file if base_entry is not None else record.file
+            if target_file is None:
+                raise VersionManagerError(
+                    f"Cannot determine merge target for chunk {record.id}",
+                    code="MERGE_TARGET_MISSING",
+                )
+            if self._should_route_legacy_prd_to_global(target_file, [record]):
+                target_file = "prd/global"
+            baseline_path = self.root / "docs" / f"{target_file}.md"
+            if baseline_path.exists() and target_file not in baseline_files:
+                baseline_files[target_file] = parse_file(baseline_path, self.root / "docs")
+
+            new_content: str | None = None
+            if record.action in ("add", "modify"):
+                source = source_chunks.get(record.id)
+                if source is None:
+                    raise VersionManagerError(
+                        f"Version file is missing chunk {record.id} required by record",
+                        code="MERGE_SOURCE_MISSING",
+                    )
+                new_content = source.content
+            operations.append(
+                ReconciliationOperation(
+                    file=target_file,
+                    chunk_id=record.id,
+                    action=record.action,
+                    target_id=record.overrides or record.id,
+                    insert_after=record.insert_after,
+                    base_hash=record.base_hash,
+                    new_content=new_content,
+                )
+            )
+        return records, operations, baseline_files
+
+    def _select_reconciliation_records(
+        self,
+        records: list[VersionChunkEntry],
+        conflict_policy: ConflictPolicy,
+    ) -> list[VersionChunkEntry]:
+        """Apply the existing optimistic conflict rule before a plan is frozen."""
+        baseline_hashes = self._snapshot_baseline_hashes()
+        conflicts: list[ConflictReport] = []
+        for record in records:
+            if record.action not in ("modify", "delete") or not record.base_hash:
+                continue
+            current = baseline_hashes.get(record.overrides or record.id)
+            if current is None:
+                conflicts.append(ConflictReport(record.id, "baseline_missing", record.base_hash, None))
+            elif current != record.base_hash:
+                conflicts.append(ConflictReport(record.id, "hash_mismatch", record.base_hash, current))
+        if conflicts and conflict_policy == "abort":
+            details = ", ".join(f"{item.chunk_id}:{item.reason}" for item in conflicts)
+            raise VersionManagerError(f"merge conflict: {details}", code="MERGE_CONFLICT")
+        if conflict_policy == "use-baseline":
+            conflicting = {item.chunk_id for item in conflicts}
+            return [record for record in records if record.id not in conflicting]
+        return records
+
+    def _reconciliation_specgraph_inputs(self, version: str) -> dict[str, str]:
+        """Return exact graph files whose content is promoted by a merge."""
+        from .specgraph import specgraph_path
+
+        paths = {
+            "baseline": specgraph_path(self.root, "baseline"),
+            "version": specgraph_path(self.root, version),
+        }
+        return {
+            name: path.read_text(encoding="utf-8") if path.exists() else ""
+            for name, path in paths.items()
+        }
+
+    def confirm_plan(
+        self,
+        version: str,
+        *,
+        conflict_policy: ConflictPolicy = "use-version",
+    ) -> dict:
+        """Run gates once and persist the sole plan that a later merge may execute."""
+        meta = self.load_version_meta(version)
+        if meta.merged_at is not None:
+            raise VersionManagerError(f"Version {version} is already merged")
+        records, all_operations, baseline_files = self._reconciliation_inputs(version)
+        selected = self._select_reconciliation_records(records, conflict_policy)
+        selected_ids = {record.id for record in selected}
+        selected_operations = [
+            operation for operation in all_operations if operation.chunk_id in selected_ids
+        ]
+        fingerprint = reconciliation_input_fingerprint(
+            baseline_files,
+            all_operations,
+            conflict_policy,
+            specgraph_inputs=self._reconciliation_specgraph_inputs(version),
+        )
+        plan = plan_reconciliation(
+            baseline_files,
+            selected_operations,
+            conflict_policy=conflict_policy,
+            input_fingerprint=fingerprint,
+        )
+        meta.confirmed_plan = plan
+        meta.recovery_journal = None
+        self.save_version_meta(meta)
+        return {
+            "version": version,
+            "passed": True,
+            "plan_fingerprint": plan.input_fingerprint,
+            "planned_operations": len(plan.operations),
+            "conflict_policy": plan.conflict_policy,
+        }
+
+    def _docs_plan_path(self, file_key: str) -> Path:
+        """Resolve a plan file key while enforcing containment in ``docs/``."""
+        docs_root = (self.root / "docs").resolve()
+        path = (docs_root / f"{file_key}.md").resolve()
+        if path != docs_root and docs_root not in path.parents:
+            raise VersionManagerError(
+                f"reconciliation plan target escapes docs/: {file_key}",
+                code="MERGE_PLAN_INVALID",
+            )
+        return path
+
+    def _apply_confirmed_plan(self, plan: ReconciliationPlan) -> list[str]:
+        baseline_files: dict[str, ParsedFile] = {}
+        for operation in plan.operations:
+            path = self._docs_plan_path(operation.file)
+            if path.exists() and operation.file not in baseline_files:
+                baseline_files[operation.file] = parse_file(path, self.root / "docs")
+        merged_files = execute_plan(plan, baseline_files)
+        for merged in merged_files:
+            path = self._docs_plan_path(merged.file)
+            atomic_write_text(path, merged.new_content)
+        return [operation.chunk_id for operation in plan.operations]
+
+    def merge_confirmed(self, version: str) -> dict:
+        """Atomically execute a still-valid plan persisted by :meth:`confirm_plan`."""
+        meta = self.load_version_meta(version)
+        plan = meta.confirmed_plan
+        if plan is None:
+            # Preserve the actionable invariant diagnosis that legacy `version
+            # merge` callers received before plans were introduced.
+            self._assert_new_model_invariants(version)
+            raise VersionManagerError(
+                f"Version {version} has no confirmed reconciliation plan",
+                code="CONFIRMATION_REQUIRED",
+            )
+        records, all_operations, baseline_files = self._reconciliation_inputs(version)
+        selected = self._select_reconciliation_records(records, plan.conflict_policy)
+        selected_ids = {record.id for record in selected}
+        selected_operations = [
+            operation for operation in all_operations if operation.chunk_id in selected_ids
+        ]
+        fingerprint = reconciliation_input_fingerprint(
+            baseline_files,
+            all_operations,
+            plan.conflict_policy,
+            specgraph_inputs=self._reconciliation_specgraph_inputs(version),
+        )
+        expected_plan = plan_reconciliation(
+            baseline_files,
+            selected_operations,
+            conflict_policy=plan.conflict_policy,
+            input_fingerprint=fingerprint,
+        )
+        if plan != expected_plan:
+            raise VersionManagerError(
+                f"Version {version} changed after confirm; run version confirm again",
+                code="CONFIRMATION_STALE",
+            )
+
+        backup = self._backup_state(version)
+        try:
+            merged_chunks = self._apply_confirmed_plan(plan)
+            self.indexes.rebuild_baseline()
+            from .specgraph import sync_specgraph
+
+            sync_specgraph(self.root)
+            self._create_snapshot(version)
+            self._merge_specgraph_to_baseline(version)
+            self._assert_no_orphan_impl_refs()
+
+            meta = self.load_version_meta(version)
+            meta.merged_at = datetime.now(timezone.utc)
+            meta.snapshot = f"snapshots/{version}/"
+            meta.phase = "merged"
+            self.save_version_meta(meta)
+            idx = self.indexes.load_version_index(version)
+            idx.status = "merged"
+            self.indexes.save_version_index(idx)
+            commit_msg = meta.title or f"AIT {version} merge"
+            merge_commit = self._git_commit(commit_msg)
+
+            meta = self.load_version_meta(version)
+            if merge_commit:
+                meta.docs_commit = merge_commit
+            host_head = self._git_head(self.root.parent)
+            if host_head is not None:
+                meta.code_base = host_head
+                meta.code_result = meta.code_result or host_head
+            anchor_ref = f"refs/tags/ait/{version}"
+            meta.revert_anchor = RevertAnchor(
+                docs_ref=anchor_ref,
+                code_result=meta.code_result,
+            )
+            self.save_version_meta(meta)
+            self._refresh_state(version)
+            binding_commit = self._git_commit(f"AIT {version} meta: record bindings")
+            if binding_commit is not None:
+                self._create_git_tag(anchor_ref, binding_commit)
+        except Exception as exc:  # noqa: BLE001
+            self._restore_state(backup)
+            raise VersionManagerError(
+                f"merge/commit failed and was rolled back: {exc}", code="MERGE_ROLLBACK"
+            ) from exc
+        return {
+            "version": version,
+            "merged_chunks": merged_chunks,
+            "commit": binding_commit,
+            "git": "committed" if binding_commit else "unavailable",
+            "plan_fingerprint": plan.input_fingerprint,
+        }
+
+    def _repair_historical_anchor(self, meta: VersionMeta) -> RevertAnchor | None:
+        """Recover an old binding only when Git history proves one unique target."""
+        path = f".meta/versions/{meta.version}.yaml"
+        history = subprocess.run(
+            ["git", "log", "--format=%H", "--all", "--", path],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+        )
+        if history.returncode != 0:
+            return None
+
+        candidates: list[tuple[str, str | None]] = []
+        for commit in history.stdout.splitlines():
+            shown = subprocess.run(
+                ["git", "show", f"{commit}:{path}"],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+            )
+            if shown.returncode != 0:
+                continue
+            data = yaml.safe_load(shown.stdout) or {}
+            if not isinstance(data, dict):
+                continue
+            docs_commit = data.get("docs_commit")
+            if isinstance(docs_commit, str) and docs_commit:
+                candidates.append((commit, data.get("code_result")))
+
+        unique = {(commit, code_result) for commit, code_result in candidates}
+        if len(unique) != 1:
+            return None
+        binding_commit, code_result = unique.pop()
+        ref = f"refs/tags/ait/{meta.version}"
+        self._create_git_tag(ref, binding_commit)
+        anchor = RevertAnchor(docs_ref=ref, code_result=code_result)
+        meta.revert_anchor = anchor
+        meta.historical_anchor_repairs.append(
+            HistoricalAnchorRepair(
+                version=meta.version,
+                source=f"git-history:{binding_commit}",
+                docs_ref=ref,
+            )
+        )
+        self.save_version_meta(meta)
+        return anchor
+
+    def _git_head(self, repo: Path) -> str | None:
+        result = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=repo, capture_output=True, text=True
+        )
+        return result.stdout.strip() if result.returncode == 0 else None
+
+    def _create_git_tag(self, ref: str, commit: str) -> bool:
+        """Create the external rollback anchor; tolerate non-git test fixtures."""
+        probe = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=self.root, capture_output=True, text=True,
+        )
+        if probe.returncode != 0:
+            return False
+        tag = ref.removeprefix("refs/tags/")
+        result = subprocess.run(
+            ["git", "tag", "-f", tag, commit], cwd=self.root, capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            raise VersionManagerError(
+                f"git tag {tag} failed: {(result.stderr or result.stdout).strip()}",
+                code="GIT_TAG_FAILED",
+            )
+        return True
 
     # ─────────────────────────────────────────────────────
     # merge — write committed chunks back into the baseline
@@ -760,114 +1156,47 @@ class VersionManager:
         version: str,
         *,
         allow_dirty_git: bool = False,
-        conflict_policy: str = "use-version",
+        conflict_policy: ConflictPolicy = "use-version",
     ) -> dict:
-        """Atomic version confirm: precheck → merge → extract → specgraph → git.
-
-        CLI ``version merge`` maps here (``version confirm`` is the pure
-        :meth:`gate`). Two-phase with rollback: if anything in the
-        merge/commit phase fails, docs/ and the key .meta files are restored
-        byte-for-byte. Either fully succeeds (docs updated + git commit) or
-        nothing changes.
-        """
-        meta = self.load_version_meta(version)
-        if meta.merged_at is not None:
-            raise VersionManagerError(f"Version {version} is already merged")
-
-        # ── Phase 1: precheck guards (no file mutation) ──
-        from .task_manager import TaskManager
-
-        tm = TaskManager(self.root)
-        tasks = tm.list_tasks(version)
-        not_done = [t.id for t in tasks if t.status != "done"]
-        if not_done:
-            raise VersionManagerError(
-                f"存在未完成 task，无法 confirm: {not_done}", code="TASK_NOT_DONE"
-            )
-        # v2.55: GIT_DIRTY pre-check removed — the docs repo is intentionally
-        # dirty throughout the version lifecycle (every prd/fsd/tdd create writes
-        # files); checking dirty state here would always fail. The docs repo is
-        # committed atomically at merge time. --allow-dirty-git is kept for API
-        # compatibility but has no effect.
-
-        idx = self.indexes.load_version_index(version)
-        records = [c for c in idx.chunks if c.state == "committed"]
-        effective = self._latest_by_chunk_id(records)
-        self._assert_no_duplicate_adds(effective)
-        self._assert_no_override_conflicts(effective)
-        # v2.20: six-invariant global gate — the authoritative completeness
-        # check, BEFORE any mutation. Vacuous for legacy-only projects.
-        self._assert_new_model_invariants(version)
-        # v2.25: artifact acceptance — run the configured test command (cheap
-        # invariants first, then the test run). Skipped when unconfigured.
-        acceptance = self.run_acceptance()
-        if not acceptance["passed"]:
-            raise VersionManagerError(
-                f"制品验收失败，无法 merge: {acceptance.get('command')}",
-                code="ACCEPTANCE_FAILED",
-            )
-
-        # ── Phase 2: merge (mutates docs/ + .meta, fully reversible) ──
+        """Backward-compatible atomic shortcut: persist a plan, then execute it."""
         backup = self._backup_state(version)
         try:
-            merge_result = self.merge(version, conflict_policy=conflict_policy)
-            extracted = self._extract_dynamic_global(version)
-            # Dynamic globals were written to docs/ AFTER merge's index rebuild;
-            # re-index so the new global chunks land in baseline index+specgraph.
-            if extracted:
-                self.indexes.rebuild_baseline()
-                from .specgraph import sync_specgraph
-
-                sync_specgraph(self.root)
-            self._merge_specgraph_to_baseline(version)
-            self._assert_no_orphan_impl_refs()
-            # ── Phase 3: git commit ──
-            commit_msg = meta.title or f"AIT {version} merge"
-            commit_hash = self._git_commit(commit_msg)
-        except Exception as exc:  # noqa: BLE001 — rollback then re-raise as domain error
-            self._restore_state(backup)
-            raise VersionManagerError(
-                f"merge/commit 失败已回退: {exc}", code="MERGE_ROLLBACK"
+            report = self.gate(
+                version,
+                conflict_policy=conflict_policy,
+                check_host=not allow_dirty_git,
             )
-
-        # v2.55+v2.58: record cross-repo binding fields in version meta.
-        # code_result was already captured by gate(); just record docs_commit here.
-        meta = self.load_version_meta(version)
-        if commit_hash:
-            meta.docs_commit = commit_hash
-        # code_base: snapshot of host HEAD at merge time (informational only).
-        try:
-            import subprocess as _sp2
-            _r = _sp2.run(
-                ["git", "rev-parse", "HEAD"],
-                cwd=self.root.parent,
-                capture_output=True, text=True,
-            )
-            if _r.returncode == 0:
-                meta.code_base = _r.stdout.strip()
+            if not report["passed"]:
+                violation = report["violations"][0]
+                precondition_codes = {
+                    "DUPLICATE_BASELINE_CHUNK",
+                    "DUPLICATE_OVERRIDES_TARGET",
+                    "MODIFY_RENAME_COLLISION",
+                }
+                domain_code = (
+                    violation["code"]
+                    if violation["code"] in precondition_codes
+                    else "INVARIANT_VIOLATION"
+                )
+                raise VersionManagerError(
+                    violation["message"]
+                    if domain_code in precondition_codes
+                    else f"{violation['code']}: {violation['message']}",
+                    code=domain_code,
+                )
+            return self.merge_confirmed(version)
         except Exception:
-            pass
-        self.save_version_meta(meta)
-        # Single final commit: docs_commit + code_base in meta, no dirty tail.
-        self._git_commit(f"AIT {version} meta: record docs_commit binding")
+            self._restore_state(backup)
+            raise
 
-        return {
-            "version": version,
-            "merged_chunks": merge_result.merged_chunks,
-            "extracted_dynamic": extracted,
-            "commit": commit_hash,
-            "commit_msg": commit_msg,
-            "git": "committed" if commit_hash else "unavailable",
-        }
-
-    def gate(self, version: str) -> dict:
-        """Confirm gate: checks + docs git commit + code_result capture.
-
-        Runs invariants and acceptance. On pass:
-        - Rejects if host repo is dirty (HOST_DIRTY) — user must commit code first.
-        - Commits docs repo ("AIT <v> confirmed") as a layer-freeze anchor.
-        - Records host HEAD in meta.code_result for later binding at merge.
-        """
+    def gate(
+        self,
+        version: str,
+        *,
+        conflict_policy: ConflictPolicy = "use-version",
+        check_host: bool = True,
+    ) -> dict:
+        """Run confirm gates and persist the canonical reconciliation plan."""
         import subprocess as _sp
 
         meta = self.load_version_meta(version)
@@ -915,46 +1244,31 @@ class VersionManager:
                 "acceptance": acceptance,
             }
 
-        # Gate passed — check host repo is clean (option A: reject if dirty).
-        try:
-            _host_status = _sp.run(
-                ["git", "status", "--porcelain"],
-                cwd=self.root.parent,
-                capture_output=True, text=True,
-            )
-            if _host_status.returncode == 0 and _host_status.stdout.strip():
-                raise VersionManagerError(
-                    "host repo has uncommitted changes; commit your code before version confirm",
-                    code="HOST_DIRTY",
+        # Gate passed — CLI confirmation requires a clean host repository.
+        if check_host:
+            try:
+                _host_status = _sp.run(
+                    ["git", "status", "--porcelain"],
+                    cwd=self.root.parent,
+                    capture_output=True, text=True,
                 )
-        except VersionManagerError:
-            raise
-        except Exception:
-            pass  # git unavailable in host — tolerated
+                if _host_status.returncode == 0 and _host_status.stdout.strip():
+                    raise VersionManagerError(
+                        "host repo has uncommitted changes; commit your code before version confirm",
+                        code="HOST_DIRTY",
+                    )
+            except VersionManagerError:
+                raise
+            except Exception:
+                pass  # git unavailable in host — tolerated
 
-        # Docs git commit: layer-freeze anchor.
-        self._git_commit(f"AIT {version} confirmed")
-
-        # Capture host HEAD as code_result binding candidate.
-        try:
-            _r = _sp.run(
-                ["git", "rev-parse", "HEAD"],
-                cwd=self.root.parent,
-                capture_output=True, text=True,
-            )
-            if _r.returncode == 0:
-                meta = self.load_version_meta(version)
-                meta.code_result = _r.stdout.strip()
-                self.save_version_meta(meta)
-                self._git_commit(f"AIT {version} confirmed meta: code_result binding")
-        except Exception:
-            pass
-
+        plan_report = self.confirm_plan(version, conflict_policy=conflict_policy)
         return {
             "version": version,
             "passed": True,
             "violations": [],
             "acceptance": acceptance,
+            **plan_report,
         }
 
     def _assert_new_model_invariants(self, version: str) -> None:
@@ -1084,7 +1398,7 @@ class VersionManager:
         Each block routes to docs/global/{type}.md and upserts a chunk named
         block.target_chunk (same-chunk replace). Returns written chunk ids.
         """
-        from .chunk_parser import parse_file, parse_extract_blocks
+        from .chunk_parser import parse_extract_blocks, parse_file
 
         version_dir = self.versions_dir / version
         if not version_dir.exists():

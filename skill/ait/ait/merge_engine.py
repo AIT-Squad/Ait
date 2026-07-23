@@ -8,11 +8,14 @@ result back to disk.
 
 from __future__ import annotations
 
+import json
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
-from typing import Iterable
+from hashlib import sha256
 
-from .chunk_parser import Chunk, ParsedFile
-from .schemas import Action
+from .chunk_parser import Chunk, ParsedFile, parse_text
+from .schemas import Action, ReconciliationOperation, ReconciliationPlan
+
 
 @dataclass(frozen=True)
 class VersionChunkOp:
@@ -29,6 +32,103 @@ class MergedFile:
     file_header: str
     chunks: list[Chunk]
     new_content: str
+
+
+def reconciliation_input_fingerprint(
+    baseline_files: Mapping[str, ParsedFile],
+    operations: Iterable[ReconciliationOperation],
+    conflict_policy: str,
+    *,
+    specgraph_inputs: Mapping[str, str] | None = None,
+) -> str:
+    """Fingerprint explicit reconciliation and graph inputs with stable JSON."""
+    payload = {
+        "baseline": [
+            {
+                "file": file,
+                "header": parsed.file_header,
+                "chunks": [{"id": chunk.id, "content": chunk.content} for chunk in parsed.chunks],
+            }
+            for file, parsed in sorted(baseline_files.items())
+        ],
+        "operations": [operation.model_dump(mode="json") for operation in operations],
+        "conflict_policy": conflict_policy,
+        "specgraph": dict(sorted((specgraph_inputs or {}).items())),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return sha256(encoded.encode("utf-8")).hexdigest()
+
+
+def plan_reconciliation(
+    baseline_files: Mapping[str, ParsedFile],
+    operations: Iterable[ReconciliationOperation],
+    *,
+    conflict_policy: str,
+    input_fingerprint: str | None = None,
+) -> ReconciliationPlan:
+    """Normalize explicit operations once for both confirm and merge.
+
+    A modify targeting a chunk absent from the baseline is a semantic add. The
+    normalized action is persisted so execution never needs to reinterpret it.
+    """
+    raw_operations = list(operations)
+    baseline_ids = {
+        chunk.id
+        for parsed in baseline_files.values()
+        for chunk in parsed.chunks
+    }
+    normalized: list[ReconciliationOperation] = []
+    for operation in raw_operations:
+        target = operation.target_id or operation.chunk_id
+        if operation.action == "modify" and target not in baseline_ids:
+            normalized.append(
+                operation.model_copy(update={"action": "add", "target_id": None})
+            )
+        else:
+            normalized.append(operation)
+    return ReconciliationPlan(
+        operations=normalized,
+        input_fingerprint=input_fingerprint
+        or reconciliation_input_fingerprint(baseline_files, raw_operations, conflict_policy),
+        conflict_policy=conflict_policy,  # type: ignore[arg-type]
+    )
+
+
+def execute_plan(
+    plan: ReconciliationPlan,
+    baseline_files: Mapping[str, ParsedFile],
+) -> list[MergedFile]:
+    """Execute an already-confirmed plan without reclassifying any action."""
+    by_file: dict[str, list[VersionChunkOp]] = {}
+    for operation in plan.operations:
+        new_chunk: Chunk | None = None
+        if operation.new_content is not None:
+            parsed = parse_text(operation.new_content, operation.file)
+            new_chunk = next((chunk for chunk in parsed.chunks if chunk.id == operation.chunk_id), None)
+            if new_chunk is None:
+                raise ValueError(
+                    f"reconciliation operation content does not contain {operation.chunk_id}"
+                )
+        by_file.setdefault(operation.file, []).append(
+            VersionChunkOp(
+                chunk_id=operation.chunk_id,
+                action=operation.action,
+                overrides=operation.target_id,
+                insert_after=operation.insert_after,
+                new_chunk=new_chunk,
+                base_hash=operation.base_hash,
+            )
+        )
+
+    merged: list[MergedFile] = []
+    for file, operations in by_file.items():
+        baseline = baseline_files.get(file)
+        if baseline is None:
+            merged.append(merge_new_file(file, operations))
+        else:
+            merged.append(merge_file(baseline, operations))
+    return merged
+
 
 def _serialize(file_header: str, chunks: Iterable[Chunk]) -> str:
     parts: list[str] = []

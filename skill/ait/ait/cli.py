@@ -16,6 +16,7 @@ import os
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from typing import cast
 
 import click
 
@@ -33,18 +34,17 @@ from .impact import analyze_impact
 from .impl_manager import ImplManager
 from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
-from .new_model_validator import validate_prd_fsd_tdd_graph
-from .new_model_validator import validate_target_file_uniqueness
-from .new_model_validator import violations_to_details as new_model_violations_to_details
 from .new_model_manager import NewModelManager
+from .new_model_validator import validate_prd_fsd_tdd_graph, validate_target_file_uniqueness
+from .new_model_validator import violations_to_details as new_model_violations_to_details
 from .prd_manager import PrdManager
-from .search import search_chunks
 from .root import NotAtProjectRoot, RootResolutionError, resolve_project_root
+from .search import search_chunks
 from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
 from .validator import ValidationError
-from .version_manager import VersionManager, VersionManagerError
+from .version_manager import ConflictPolicy, VersionManager, VersionManagerError
 
 # Force UTF-8 stdout on Windows consoles so Chinese chars survive.
 if hasattr(sys.stdout, "reconfigure"):
@@ -593,25 +593,24 @@ def version_status(ctx, version_name: str) -> None:
 
 @version_group.command("merge")
 @click.argument("version_name")
-@click.option(
-    "--conflict-policy",
-    type=click.Choice(["abort", "use-version", "use-baseline"]),
-    default="use-version",
-)
-@click.option("--allow-dirty-git", is_flag=True, help="Skip the git-clean precheck.")
+@click.option("--allow-dirty-git", is_flag=True, hidden=True)
 @click.pass_context
-def version_merge(ctx, version_name: str, conflict_policy: str, allow_dirty_git: bool) -> None:
-    """Atomic merge into baseline: gate (six invariants + task/git) → backup →
-    merge → promote specgraph → git commit. Byte-level rollback on any failure.
-    """
+def version_merge(ctx, version_name: str, allow_dirty_git: bool) -> None:
+    """Atomically execute a confirmed plan, creating the default plan for legacy callers."""
     mgr = VersionManager(_root(ctx))
     try:
-        result = mgr.confirm(
-            version_name,
-            allow_dirty_git=allow_dirty_git,
-            conflict_policy=conflict_policy,
-        )
-        ok(result)
+        if mgr.load_version_meta(version_name).confirmed_plan is None:
+            report = mgr.gate(version_name, check_host=not allow_dirty_git)
+            if not report["passed"]:
+                violation = report["violations"][0]
+                code = (
+                    violation["code"]
+                    if violation["code"] in {"ACCEPTANCE_FAILED", "TASK_NOT_DONE"}
+                    else "INVARIANT_VIOLATION"
+                )
+                fail(violation["message"], code=code, details=report)
+                return
+        ok(mgr.merge_confirmed(version_name))
     except ValidationError as exc:
         fail(str(exc), code=exc.issues[0].code if exc.issues else "MERGE_FAILED")
     except VersionManagerError as exc:
@@ -620,25 +619,29 @@ def version_merge(ctx, version_name: str, conflict_policy: str, allow_dirty_git:
 
 @version_group.command("confirm")
 @click.argument("version_name")
+@click.option(
+    "--conflict-policy",
+    type=click.Choice(["abort", "use-version", "use-baseline"]),
+    default="use-version",
+    show_default=True,
+    help="Conflict policy frozen into the reconciliation plan.",
+)
 @click.pass_context
-def version_confirm(ctx, version_name: str) -> None:
-    """Pure gate — repeatable, zero disk writes, does NOT merge.
-
-    Reports whether the version passes the confirm checks (all tasks done +
-    six new-model invariants) with per-violation detail. Run ``version merge``
-    to actually commit once this passes.
-    """
+def version_confirm(ctx, version_name: str, conflict_policy: str) -> None:
+    """Run gates and persist the reconciliation plan for a later merge."""
     mgr = VersionManager(_root(ctx))
     try:
-        report = mgr.gate(version_name)
+        report = mgr.gate(version_name, conflict_policy=cast(ConflictPolicy, conflict_policy))
         if report["passed"]:
             ok(report)
         else:
-            fail(
-                f"gate failed: {len(report['violations'])} violation(s)",
-                code="INVARIANT_VIOLATION",
-                details=report,
+            violation = report["violations"][0]
+            code = (
+                violation["code"]
+                if violation["code"] in {"ACCEPTANCE_FAILED", "TASK_NOT_DONE"}
+                else "INVARIANT_VIOLATION"
             )
+            fail(violation["message"], code=code, details=report)
     except ValidationError as exc:
         fail(str(exc), code=exc.issues[0].code if exc.issues else "CONFIRM_FAILED")
     except VersionManagerError as exc:
