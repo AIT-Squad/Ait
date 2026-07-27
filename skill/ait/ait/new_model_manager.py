@@ -125,12 +125,14 @@ class NewModelManager:
         # combined_view/merge per-root scoping stays correct.
         final_deps = {**hydrated, **declared}
         self._reconcile_sibling_depends_on(version, root_chunk_id, final_deps)
-        # v2.62: parse and reconcile FSD split → PRD requirement derives
+        # v2.62/v2.63: parse and reconcile PRD requirement -> FSD split derives
         derives_declared = self._parse_derives_declarations(root_chunk_id, content)
         derives_hydrated: dict[str, list[str]] = {}
         for cid in view_before.nodes:
             if cid.startswith(prefix) and cid not in derives_declared:
-                deps = [e.dst for e in view_before.edges_from(cid, "derives")]
+                # declared maps fsd_split -> [prd_chunk, ...]; the edge is
+                # PRD (src) -> FSD split (dst), so hydrate from in-edges.
+                deps = [e.src for e in view_before.edges_to(cid, "derives")]
                 if deps:
                     derives_hydrated[cid] = deps
         final_derives = {**derives_hydrated, **derives_declared}
@@ -255,12 +257,10 @@ class NewModelManager:
                     )
                 if name not in resolved:
                     resolved.append(name)
-            if len(resolved) > 1:
-                raise _validation_error(
-                    "DERIVES_NOT_UNIQUE",
-                    f"{chunk.id} declares derives from multiple PRD chunks (1:1 required): {resolved}",
-                    chunk.id,
-                )
+            # v2.63: FSD split → PRD requirement derives is M:N (a split may
+            # derive from multiple PRD requirement chunks); only the PRD
+            # root → FSD root edge (born via --parent, not this declaration
+            # path) remains 1:1.
             declared[chunk.id] = resolved
         return declared
 
@@ -281,17 +281,27 @@ class NewModelManager:
             except ValueError:
                 return uri
 
+        # declared maps fsd_split_id -> [prd_chunk, ...]; the edge itself is
+        # PRD (src) -> FSD split (dst) — the same direction as the
+        # --parent-born root derives edge. Drop existing derives edges whose
+        # dst is one of this file's splits before re-adding from ``declared``.
         graph.edges = [
             e for e in graph.edges
-            if not (e.rel == "derives" and _endpoint_chunk_id(e.src).startswith(prefix))
+            if not (e.rel == "derives" and _endpoint_chunk_id(e.dst).startswith(prefix))
         ]
         uri_by_chunk = {spec.chunk_id: spec.uri for spec in graph.specs.values()}
-        from .specgraph import make_uri
 
-        for src, dsts in declared.items():
-            src_uri = uri_by_chunk.get(src) or make_uri(src, version)
-            for dst in dsts:
-                dst_uri = uri_by_chunk.get(dst) or make_uri(dst, version)
+        for fsd_split, prd_chunks in declared.items():
+            dst_uri = uri_by_chunk.get(fsd_split) or resolve_chunk_uri(
+                self.root, fsd_split, version
+            )
+            for prd_chunk in prd_chunks:
+                # A declaration may reference an unchanged baseline PRD.  Its
+                # endpoint must retain the baseline URI rather than inventing
+                # a version URI with no matching Spec node.
+                src_uri = uri_by_chunk.get(prd_chunk) or resolve_chunk_uri(
+                    self.root, prd_chunk, version
+                )
                 graph.add_edge(
                     src_uri, dst_uri, "derives",
                     metadata={"source": "fsd-declaration"},

@@ -189,8 +189,10 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
             )
     if rel == "derives":
         src_node = view.node(src)
-        if src_node is not None and src_node.type == "prd":
-            # v2.62: PRD → FSD is 1:1 (both PRD root→FSD root and PRD requirement→FSD split)
+        if src_node is not None and src_node.type == "prd" and ":" not in src:
+            # v2.63: only the PRD ROOT (no colon) → FSD root is 1:1. PRD
+            # requirement chunks (colon splits) → FSD split is M:N (see
+            # PRD_FSD_LINK_NOT_UNIQUE only applies to root-level derives).
             other_fsds = [e.dst for e in view.edges_from(src, "derives") if e.dst != dst]
             if other_fsds:
                 violations.append(
@@ -203,21 +205,6 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
                         chunk_id=src, rel=rel, src=src, dst=dst,
                     )
                 )
-            # v2.62: FSD split → PRD requirement is also 1:1 (one FSD derives from one PRD)
-            dst_node = view.node(dst)
-            if dst_node is not None and dst_node.type == "fsd":
-                other_prds = [e.src for e in view.edges_to(dst, "derives") if e.src != src]
-                if other_prds:
-                    violations.append(
-                        NewModelViolation(
-                            code="FSD_MULTI_PRD_DERIVES",
-                            message=(
-                                f"FSD {dst} already derives from PRD: "
-                                + ", ".join(sorted(other_prds))
-                            ),
-                            chunk_id=dst, rel=rel, src=src, dst=dst,
-                        )
-                    )
     if rel == "decomposes":
         src_node = view.node(src)
         if src_node is not None and src_node.type == "prd":

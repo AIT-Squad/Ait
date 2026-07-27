@@ -402,3 +402,45 @@ def test_specgraph_module_has_no_raw_add_edge_gap3():
     """模块级 add_edge(直写 baseline 的绕门禁函数)已删除。"""
     import ait.specgraph as sg
     assert not hasattr(sg, "add_edge"), "raw module add_edge 应已退役"
+
+
+def test_fsd_declared_derives_reuses_baseline_prd_uri(tmp_path: Path, monkeypatch):
+    """版本FSD声明未修改的PRD时，边端点必须复用baseline URI。"""
+    root = tmp_path / "project-docs"
+    (root / "docs" / "prd").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    (root / "docs" / "prd" / "[PRD]-demo.md").write_text(
+        "<!-- @id:[PRD]-demo -->\n## Demo\n\n"
+        "<!-- @id:[PRD]-demo:feature -->\n## Feature\n",
+        encoding="utf-8",
+    )
+    vm = VersionManager(root)
+    vm.indexes.rebuild_baseline()
+    sync_specgraph(root)
+    vm.create("v9.0")
+    monkeypatch.chdir(tmp_path)
+    _set_phase(root, "v9.0", "prd-confirm")
+
+    from ait.new_model_manager import NewModelManager
+    from ait.new_model_validator import validate_prd_fsd_tdd_graph
+    from ait.specgraph import combined_specgraph
+
+    NewModelManager(root).create_fsd(
+        "v9.0",
+        "[FSD]-demo",
+        "<!-- @id:[FSD]-demo -->\n## Demo FSD\n\n"
+        "<!-- @id:[FSD]-demo:feature -->\n```yaml\n"
+        "derives: [\"[PRD]-demo:feature\"]\n```\n## Feature\n",
+    )
+
+    graph = combined_specgraph(root, "v9.0")
+    assert not [
+        issue for issue in validate_prd_fsd_tdd_graph(graph)
+        if issue.code == "MISSING_ENDPOINT"
+    ]
+    edge = next(
+        edge for edge in graph.edges
+        if edge.rel == "derives" and edge.dst.endswith("[FSD]-demo:feature")
+    )
+    assert ":baseline:[PRD]-demo:feature" in edge.src
