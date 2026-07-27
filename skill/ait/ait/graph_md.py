@@ -258,10 +258,52 @@ def _file_level_graph(
     return file_edges, all_files
 
 
+def _scope_graph_to_prd(
+    nodes_by_cid: dict[str, str],
+    edges: list[tuple[str, str, str]],
+    prd_chunk: str,
+) -> tuple[dict[str, str], list[tuple[str, str, str]]]:
+    """Scope to prd_chunk's derives/decomposes/details subtree (+ id struct children)."""
+    if prd_chunk not in nodes_by_cid:
+        raise ValueError(f"PRD chunk not found: {prd_chunk}")
+    if not prd_chunk.startswith("[PRD]-"):
+        raise ValueError(f"Chunk is not a PRD: {prd_chunk}")
+
+    children: dict[str, list] = defaultdict(list)
+    for src, rel, dst in edges:
+        if rel in TREE_RELS:
+            children[src].append(dst)
+            if rel == "derives":
+                children[dst].append(src)
+
+    all_ids = set(nodes_by_cid.keys())
+
+    def _struct_children(cid: str) -> list:
+        prefix = cid + ":"
+        return [i for i in all_ids
+                if i.startswith(prefix) and ":" not in i[len(prefix):]]
+
+    scoped: set = set()
+    queue: deque = deque([prd_chunk])
+    while queue:
+        cid = queue.popleft()
+        if cid in scoped:
+            continue
+        scoped.add(cid)
+        queue.extend(children.get(cid, []))
+        queue.extend(_struct_children(cid))
+
+    scoped_nodes = {cid: nodes_by_cid[cid] for cid in scoped if cid in nodes_by_cid}
+    scoped_edges = [(s, r, d) for s, r, d in edges if s in scoped and d in scoped]
+    return scoped_nodes, scoped_edges
 
 
-def generate_graph_html(root: Path, version: str | None = None) -> str:
-    """Build a self-contained HTML+SVG spec-tree string (file-level nodes)."""
+def generate_graph_html(root: Path, version: str | None = None, prd_chunk: str | None = None) -> str:
+    """Build a self-contained HTML+SVG spec-tree string.
+
+    prd_chunk=None  → file-level aggregation (legacy behaviour).
+    prd_chunk=<id>  → scope to that PRD chunk's subtree (real chunk nodes).
+    """
     try:
         from .specgraph import combined_view, load_specgraph
     except ImportError:
@@ -279,17 +321,23 @@ def generate_graph_html(root: Path, version: str | None = None) -> str:
                                          for s in graph.specs.values()}
     else:
         view = combined_view(root, version)
-        raw_edges = [(e.src, e.rel, e.dst) for e in view.edges]
+        def _cid_v(uri: str) -> str:
+            parts = uri.split(":", 3)
+            return parts[3] if len(parts) == 4 else uri
+        raw_edges = [(_cid_v(e.src), e.rel, _cid_v(e.dst)) for e in view.edges]
         nodes_by_cid = {cid: (getattr(n, "file", "") or "")
                         for cid, n in view.nodes.items()}
 
-    if not raw_edges and not nodes_by_cid:
+    if prd_chunk is not None:
+        nodes_by_cid, raw_edges = _scope_graph_to_prd(nodes_by_cid, raw_edges, prd_chunk)
+        file_edges = raw_edges
+        all_files = set(nodes_by_cid.keys())
+    elif not raw_edges and not nodes_by_cid:
         return ("<!DOCTYPE html>\n<html><body style='background:#f6f6f6;"
                 "font-family:monospace'><h2>Spec Graph</h2>"
                 "<p>(empty)</p></body></html>\n")
-
-    # aggregate to file-level
-    file_edges, all_files = _file_level_graph(raw_edges, nodes_by_cid)
+    else:
+        file_edges, all_files = _file_level_graph(raw_edges, nodes_by_cid)
 
     ch, par, dep_edges, edge_nodes = _build_tree(file_edges)
     all_files |= edge_nodes
@@ -302,7 +350,8 @@ def generate_graph_html(root: Path, version: str | None = None) -> str:
         W, H = 400, 200
 
     svg = _render_svg(pos, file_edges, dep_edges, W, H)
-    title = f"Spec Graph — {version}" if version else "Spec Graph (baseline)"
+    scope = f" — {prd_chunk}" if prd_chunk else ""
+    title = f"Spec Graph — {version}{scope}" if version else f"Spec Graph (baseline){scope}"
     return (
         '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
         '<meta charset="utf-8">\n'
@@ -317,14 +366,14 @@ def generate_graph_html(root: Path, version: str | None = None) -> str:
     )
 
 
-def write_graph_html(root: Path, version: str | None = None) -> dict:
+def write_graph_html(root: Path, version: str | None = None, prd_chunk: str | None = None) -> dict:
     """Generate and atomically write graph.html to the fixed output path."""
     try:
         from .io_utils import atomic_write_text
     except ImportError:
         from ait.io_utils import atomic_write_text  # type: ignore
 
-    content = generate_graph_html(root, version)
+    content = generate_graph_html(root, version, prd_chunk)
     out_path = (root / "docs" / "graph.html" if version is None
                 else root / "versions" / version / "graph.html")
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -155,55 +155,29 @@ def compute_impl_coverage(graph, version: str, prd_chunks: list[str]) -> dict[st
 
 
 def render_markdown(panel: StatePanel) -> str:
-    data = panel.to_dict()
-    counts = data["counts"]
+    """Render only the active version's execution progress and changed chunks."""
     lines = [
         f"# AIT State — {panel.version}",
         "",
-        "## Summary",
+        "## 当前执行阶段",
         "",
-        f"- Title: `{panel.title or '-'}`",
-        f"- Version: `{panel.version}`",
         f"- Phase: `{panel.phase}`",
-        f"- PRD locked: `{str(panel.prd_locked).lower()}`",
-        f"- Impl locked: `{str(panel.impl_locked).lower()}`",
-        f"- Merged: `{str(panel.merged).lower()}`",
-        f"- PRD chunks: `{counts['prd']}`",
-        f"- Impl chunks: `{counts['impl']}`",
-        f"- Working: `{counts['working']}`",
-        f"- Staged: `{counts['staged']}`",
-        f"- Committed: `{counts['committed']}`",
-        f"- Covered PRD chunks: `{counts['covered_prd']}` / `{counts['prd']}`",
         "",
-        "## State Distribution",
+        "## 当前版本 Chunk",
         "",
-        "| State | Chunks |",
-        "|---|---|",
-        f"| working | {', '.join(panel.working) or '-'} |",
-        f"| staged | {', '.join(panel.staged) or '-'} |",
-        f"| committed | {', '.join(panel.committed) or '-'} |",
-        "",
-        "## Impl Coverage",
-        "",
-        "| PRD chunk | Impl chunks |",
-        "|---|---|",
     ]
-    for prd_id, impl_ids in panel.impl_coverage.items():
-        lines.append(f"| `{prd_id}` | {', '.join(f'`{item}`' for item in impl_ids) or '-'} |")
-    lines += ["", "## Tasks", ""]
-    if panel.tasks:
-        task_counts = counts.get("tasks", {})
-        summary = ", ".join(f"{k}: {v}" for k, v in sorted(task_counts.items())) or "-"
-        lines += [
-            f"- Progress: {summary}",
-            "",
-            "| Task | Status | Source chunk |",
-            "|---|---|---|",
-        ]
-        for t in panel.tasks:
-            lines.append(f"| `{t['id']}` | {t.get('status', 'created')} | `{t.get('source_chunk', '')}` |")
-    else:
-        lines.append("- (no tasks yet)")
+    for prefix, label in (("[PRD]-", "PRD"), ("[FSD]-", "FSD"), ("[TDD]-", "TDD")):
+        lines += [f"### {label}", "", "| State | Count | Chunk IDs |", "|---|---:|---|"]
+        for state_name, chunk_list in (
+            ("working", panel.working),
+            ("staged", panel.staged),
+            ("committed", panel.committed),
+        ):
+            filtered = [c for c in chunk_list if c.startswith(prefix)]
+            ids = ", ".join(f"`{c}`" for c in filtered) or "-"
+            lines.append(f"| {state_name} | {len(filtered)} | {ids} |")
+        lines.append("")
+
     lines.append("")
     return "\n".join(lines)
 

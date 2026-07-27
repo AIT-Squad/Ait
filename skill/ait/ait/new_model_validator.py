@@ -190,6 +190,7 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
     if rel == "derives":
         src_node = view.node(src)
         if src_node is not None and src_node.type == "prd":
+            # v2.62: PRD → FSD is 1:1 (both PRD root→FSD root and PRD requirement→FSD split)
             other_fsds = [e.dst for e in view.edges_from(src, "derives") if e.dst != dst]
             if other_fsds:
                 violations.append(
@@ -202,6 +203,21 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
                         chunk_id=src, rel=rel, src=src, dst=dst,
                     )
                 )
+            # v2.62: FSD split → PRD requirement is also 1:1 (one FSD derives from one PRD)
+            dst_node = view.node(dst)
+            if dst_node is not None and dst_node.type == "fsd":
+                other_prds = [e.src for e in view.edges_to(dst, "derives") if e.src != src]
+                if other_prds:
+                    violations.append(
+                        NewModelViolation(
+                            code="FSD_MULTI_PRD_DERIVES",
+                            message=(
+                                f"FSD {dst} already derives from PRD: "
+                                + ", ".join(sorted(other_prds))
+                            ),
+                            chunk_id=dst, rel=rel, src=src, dst=dst,
+                        )
+                    )
     if rel == "decomposes":
         src_node = view.node(src)
         if src_node is not None and src_node.type == "prd":
@@ -412,25 +428,18 @@ def _traces_to_prd(view, new_nodes: dict, tdd_chunk_id: str) -> bool:
 
 
 def _validate_derives(edge: Edge, src: Spec, dst: Spec) -> list[NewModelViolation]:
-    """derives = PRD root → FSD root (problem-to-solution 派生, exactly 1:1).
-    Only the PRD root chunk derives the FSD tree root; any other endpoint
-    combination is INVALID_DERIVES."""
-    if src.type == "prd" and dst.type == "fsd":
-        if _is_root_chunk(src) and _is_root_chunk(dst):
-            return []
-        return [
-            _violation(
-                edge,
-                "INVALID_DERIVES",
-                "derives must connect the PRD root chunk to the root FSD root chunk",
-                src,
-            )
-        ]
+    """derives = PRD ↔ FSD (派生).
+    Legal forms (v2.62):
+    - PRD root → FSD root (1:1 派生)
+    - PRD requirement chunk ↔ FSD split (1:1 需求→功能映射, 双向)
+    1:1 uniqueness is enforced by check_edge_write; this function only checks types."""
+    if {src.type, dst.type} == {"prd", "fsd"}:
+        return []
     return [
         _violation(
             edge,
             "INVALID_DERIVES",
-            "derives is only legal from a PRD root to an FSD root",
+            "derives is only legal between a PRD chunk and an FSD chunk",
             src,
         )
     ]

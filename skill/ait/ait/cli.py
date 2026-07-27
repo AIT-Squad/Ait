@@ -1509,20 +1509,25 @@ def specgraph_sync(ctx) -> None:
 
 
 @specgraph_group.command("graph-html")
+@click.option("--prd-chunk", default=None,
+              help="Scope to this PRD requirement chunk's subtree.")
 @click.option("--version", "version_opt", default=None,
               help="Generate from combined_view of this version; omit for baseline.")
 @click.pass_context
-def specgraph_graph_html(ctx, version_opt: str | None) -> None:
+def specgraph_graph_html(ctx, prd_chunk: str | None, version_opt: str | None) -> None:
     """Generate an HTML spec-tree from the specgraph.
 
     Without --version writes docs/graph.html (baseline).
     With --version writes versions/<v>/graph.html (combined view).
+    With --prd-chunk scopes to that PRD requirement chunk's FSD/TDD subtree.
     """
     from .graph_md import write_graph_html
     root = _root(ctx)
     try:
-        result = write_graph_html(root, version_opt)
+        result = write_graph_html(root, version_opt, prd_chunk)
         ok(result)
+    except ValueError as exc:
+        fail(str(exc), code="PRD_CHUNK_INVALID")
     except Exception as exc:
         fail(str(exc), code="GRAPH_HTML_FAILED")
 

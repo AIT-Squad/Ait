@@ -125,6 +125,16 @@ class NewModelManager:
         # combined_view/merge per-root scoping stays correct.
         final_deps = {**hydrated, **declared}
         self._reconcile_sibling_depends_on(version, root_chunk_id, final_deps)
+        # v2.62: parse and reconcile FSD split → PRD requirement derives
+        derives_declared = self._parse_derives_declarations(root_chunk_id, content)
+        derives_hydrated: dict[str, list[str]] = {}
+        for cid in view_before.nodes:
+            if cid.startswith(prefix) and cid not in derives_declared:
+                deps = [e.dst for e in view_before.edges_from(cid, "derives")]
+                if deps:
+                    derives_hydrated[cid] = deps
+        final_derives = {**derives_hydrated, **derives_declared}
+        self._reconcile_sibling_derives(version, root_chunk_id, final_derives)
         # v2.52: birth the derives edge now that both endpoints exist in the
         # view (check_edge_write runs the full write-time gate).
         if parent_chunk_id is not None:
@@ -215,6 +225,75 @@ class NewModelManager:
                 dst_uri = uri_by_chunk.get(dst) or make_uri(dst, version)
                 graph.add_edge(
                     src_uri, dst_uri, "depends_on",
+                    metadata={"source": "fsd-declaration"},
+                )
+        graph.save(specgraph_path(self.root, version))
+
+    def _parse_derives_declarations(
+        self, root_chunk_id: str, content: str
+    ) -> dict[str, list[str]]:
+        """Parse each split's declared PRD-requirement derives.
+
+        Targets must be full PRD chunk ids (``[PRD]-...``). Rejection before write.
+        """
+        parsed = parse_text(content, file=f"fsd/{root_chunk_id}")
+        prefix = f"{root_chunk_id}:"
+        declared: dict[str, list[str]] = {}
+        for chunk in parsed.chunks:
+            if not chunk.id.startswith(prefix):
+                continue
+            names = _split_derives(chunk.content)
+            if names is None:
+                continue
+            resolved: list[str] = []
+            for name in names:
+                if not name.startswith("[PRD]-"):
+                    raise _validation_error(
+                        "DERIVES_NOT_PRD",
+                        f"{chunk.id} derives target {name} is not a PRD chunk (must start with [PRD]-)",
+                        chunk.id,
+                    )
+                if name not in resolved:
+                    resolved.append(name)
+            if len(resolved) > 1:
+                raise _validation_error(
+                    "DERIVES_NOT_UNIQUE",
+                    f"{chunk.id} declares derives from multiple PRD chunks (1:1 required): {resolved}",
+                    chunk.id,
+                )
+            declared[chunk.id] = resolved
+        return declared
+
+    def _reconcile_sibling_derives(
+        self, version: str, root_chunk_id: str, declared: dict[str, list[str]]
+    ) -> None:
+        """Owned-scope reconcile for derives edges (same pattern as depends_on)."""
+        graph = load_specgraph(self.root, version)
+        prefix = f"{root_chunk_id}:"
+
+        def _endpoint_chunk_id(uri: str) -> str:
+            spec = graph.specs.get(uri)
+            if spec is not None:
+                return spec.chunk_id
+            try:
+                from .specgraph import parse_uri
+                return parse_uri(uri)[2]
+            except ValueError:
+                return uri
+
+        graph.edges = [
+            e for e in graph.edges
+            if not (e.rel == "derives" and _endpoint_chunk_id(e.src).startswith(prefix))
+        ]
+        uri_by_chunk = {spec.chunk_id: spec.uri for spec in graph.specs.values()}
+        from .specgraph import make_uri
+
+        for src, dsts in declared.items():
+            src_uri = uri_by_chunk.get(src) or make_uri(src, version)
+            for dst in dsts:
+                dst_uri = uri_by_chunk.get(dst) or make_uri(dst, version)
+                graph.add_edge(
+                    src_uri, dst_uri, "derives",
                     metadata={"source": "fsd-declaration"},
                 )
         graph.save(specgraph_path(self.root, version))
@@ -998,12 +1077,32 @@ def _split_depends_on(chunk_content: str) -> list[str] | None:
     return None
 
 
+def _split_derives(chunk_content: str) -> list[str] | None:
+    """Declared PRD-requirement derives from a split chunk's yaml fence block.
+
+    Same semantics as _split_depends_on but for the ``derives:`` key.
+    """
+    import yaml
+
+    for block in _YAML_FENCE_RE.findall(chunk_content):
+        try:
+            loaded = yaml.safe_load(block)
+        except Exception:
+            continue
+        if isinstance(loaded, dict) and "derives" in loaded:
+            value = loaded["derives"]
+            if isinstance(value, list):
+                return [str(item) for item in value]
+            return []
+    return None
+
+
 def _strip_depends_on_blocks(content: str) -> str:
-    """Remove transient ``depends_on:`` yaml fence blocks from FSD markdown.
+    """Remove transient ``depends_on:``/``derives:`` yaml fence blocks from FSD markdown.
 
     The declaration is an input instruction consumed to build specgraph edges,
     never persisted doc content (a chunk↔chunk relation belongs only in
-    specgraph). Non-depends_on yaml fences are left untouched.
+    specgraph). Non-depends_on/derives yaml fences are left untouched.
     """
     import yaml
 
@@ -1012,7 +1111,7 @@ def _strip_depends_on_blocks(content: str) -> str:
             loaded = yaml.safe_load(match.group("body"))
         except Exception:
             return match.group(0)
-        if isinstance(loaded, dict) and "depends_on" in loaded:
+        if isinstance(loaded, dict) and ("depends_on" in loaded or "derives" in loaded):
             return ""
         return match.group(0)
 
