@@ -52,7 +52,7 @@ class StrictModel(BaseModel):
 class ProjectConfig(StrictModel):
     id_prefix_separator: str = "-"
     version_format: str = "{major}.{minor}"
-    auto_snapshot_on_merge: bool = True
+    auto_snapshot_on_merge: bool = False
     custom_relations: list[str] = Field(default_factory=list)
     id_prefixes: dict[str, str] = Field(default_factory=dict)
     mvp_scope_tags: list[str] = Field(default_factory=list)

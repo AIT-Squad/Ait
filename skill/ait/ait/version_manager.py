@@ -891,13 +891,15 @@ class VersionManager:
             from .specgraph import sync_specgraph
 
             sync_specgraph(self.root)
-            self._create_snapshot(version)
+            auto_snapshot = self._read_config().get("auto_snapshot_on_merge", True)
+            if auto_snapshot:
+                self._create_snapshot(version)
             self._merge_specgraph_to_baseline(version)
             self._assert_no_orphan_impl_refs()
 
             meta = self.load_version_meta(version)
             meta.merged_at = datetime.now(timezone.utc)
-            meta.snapshot = f"snapshots/{version}/"
+            meta.snapshot = f"snapshots/{version}/" if auto_snapshot else None
             meta.phase = "merged"
             self.save_version_meta(meta)
             idx = self.indexes.load_version_index(version)
@@ -1129,11 +1131,13 @@ class VersionManager:
         sync_specgraph(self.root)
 
         # Snapshot.
-        self._create_snapshot(version)
+        auto_snapshot = self._read_config().get("auto_snapshot_on_merge", True)
+        if auto_snapshot:
+            self._create_snapshot(version)
 
         # Update version meta.
         meta.merged_at = datetime.now(timezone.utc)
-        meta.snapshot = f"snapshots/{version}/"
+        meta.snapshot = f"snapshots/{version}/" if auto_snapshot else None
         meta.phase = "merged"
         self.save_version_meta(meta)
         idx.status = "merged"
@@ -1473,6 +1477,26 @@ class VersionManager:
             ]
 
         for spec in vg.specs.values():
+            # v2.64: promotion must not leak version-workspace-only lifecycle
+            # fields (state/action/commit_id) into the baseline metadata —
+            # they're meaningless once a chunk is part of baseline and would
+            # otherwise force every next `sync` to strip them back out.
+            promoted_metadata = {
+                k: v for k, v in spec.metadata.items()
+                if k not in ("state", "action", "commit_id")
+            }
+            if promoted_metadata != spec.metadata:
+                from .specgraph import Spec as _Spec
+
+                spec = _Spec(
+                    uri=spec.uri,
+                    title=spec.title,
+                    type=spec.type,
+                    version=spec.version,
+                    chunk_id=spec.chunk_id,
+                    file=spec.file,
+                    metadata=promoted_metadata,
+                )
             base.add_spec(spec)
         for edge in vg.edges:
             base.add_edge(edge.src, edge.dst, edge.rel, weight=edge.weight,

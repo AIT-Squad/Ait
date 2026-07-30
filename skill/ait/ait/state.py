@@ -24,7 +24,9 @@ class StatePanel:
     committed: list[str] = field(default_factory=list)
     by_action: dict[str, int] = field(default_factory=dict)
     prd_chunks: list[str] = field(default_factory=list)
-    impl_chunks: list[str] = field(default_factory=list)
+    fsd_chunks: list[str] = field(default_factory=list)
+    tdd_chunks: list[str] = field(default_factory=list)
+    impl_chunks: list[str] = field(default_factory=list)  # legacy (prdv1→impl)
     impl_coverage: dict[str, list[str]] = field(default_factory=dict)
     tasks: list[dict] = field(default_factory=list)  # [{id,status,source_chunk}]
 
@@ -45,6 +47,8 @@ class StatePanel:
             "committed": self.committed,
             "by_action": self.by_action,
             "prd_chunks": self.prd_chunks,
+            "fsd_chunks": self.fsd_chunks,
+            "tdd_chunks": self.tdd_chunks,
             "impl_chunks": self.impl_chunks,
             "impl_coverage": self.impl_coverage,
             "tasks": self.tasks,
@@ -53,6 +57,8 @@ class StatePanel:
                 "staged": len(self.staged),
                 "committed": len(self.committed),
                 "prd": len(self.prd_chunks),
+                "fsd": len(self.fsd_chunks),
+                "tdd": len(self.tdd_chunks),
                 "impl": len(self.impl_chunks),
                 "covered_prd": len([v for v in self.impl_coverage.values() if v]),
                 "tasks": task_counts,
@@ -83,11 +89,17 @@ def load_version_state(project_root: Path, version: str | None = None) -> StateP
     committed = [entry.id for entry in idx.chunks if entry.state == "committed"]
     by_action: dict[str, int] = {}
     prd_chunks: list[str] = []
+    fsd_chunks: list[str] = []
+    tdd_chunks: list[str] = []
     impl_chunks: list[str] = []
     for entry in idx.chunks:
         by_action[entry.action] = by_action.get(entry.action, 0) + 1
-        if entry.id.startswith("prd-"):
+        if entry.id.startswith("prd-") or entry.id.startswith("[PRD]-"):
             prd_chunks.append(entry.id)
+        elif entry.id.startswith("[FSD]-"):
+            fsd_chunks.append(entry.id)
+        elif entry.id.startswith("[TDD]-"):
+            tdd_chunks.append(entry.id)
         elif entry.id.startswith("impl-"):
             impl_chunks.append(entry.id)
 
@@ -110,6 +122,8 @@ def load_version_state(project_root: Path, version: str | None = None) -> StateP
         committed=committed,
         by_action=by_action,
         prd_chunks=prd_chunks,
+        fsd_chunks=fsd_chunks,
+        tdd_chunks=tdd_chunks,
         impl_chunks=impl_chunks,
         impl_coverage=impl_coverage,
         tasks=tasks,

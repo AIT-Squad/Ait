@@ -394,12 +394,15 @@ class NewModelManager:
             c.id for c in idx.chunks
             if c.id.startswith("[FSD]-") and c.state == "working"
         ]
-        if working:
-            self.versions.stage(version, working)
-            self.versions.commit(version, "fsd layer confirm")
+        # v2.64: same ordering fix as confirm_prd_layer — persist phase first.
         meta = self.versions.load_version_meta(version)
         meta.phase = "fsd-confirm"
         self.versions.save_version_meta(meta)
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "fsd layer confirm")
+        else:
+            self.versions._refresh_state(version)
         self.versions._git_commit(f"AIT {version} fsd-confirm")
         return {"version": version, "confirmed": working, "phase": "fsd-confirm"}
 
@@ -502,12 +505,15 @@ class NewModelManager:
             c.id for c in idx.chunks
             if c.id.startswith("[TDD]-") and c.state == "working"
         ]
-        if working:
-            self.versions.stage(version, working)
-            self.versions.commit(version, "tdd layer confirm")
+        # v2.64: same ordering fix as confirm_prd_layer — persist phase first.
         meta = self.versions.load_version_meta(version)
         meta.phase = "tdd-confirm"
         self.versions.save_version_meta(meta)
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "tdd layer confirm")
+        else:
+            self.versions._refresh_state(version)
         self.versions._git_commit(f"AIT {version} tdd-confirm")
         return {"version": version, "confirmed": working, "phase": "tdd-confirm"}
 
@@ -586,12 +592,18 @@ class NewModelManager:
             c.id for c in idx.chunks
             if c.id.startswith("[PRD]-") and c.state == "working"
         ]
-        if working:
-            self.versions.stage(version, working)
-            self.versions.commit(version, "prd layer confirm")
+        # v2.64: persist the new phase BEFORE stage/commit so that commit()'s
+        # internal _refresh_state (triggered via VersionManager.commit) reads
+        # the already-updated phase — otherwise the tracked state.md lags one
+        # phase behind right after confirm.
         meta = self.versions.load_version_meta(version)
         meta.phase = "prd-confirm"
         self.versions.save_version_meta(meta)
+        if working:
+            self.versions.stage(version, working)
+            self.versions.commit(version, "prd layer confirm")
+        else:
+            self.versions._refresh_state(version)
         self.versions._git_commit(f"AIT {version} prd-confirm")
         return {"version": version, "confirmed": working, "phase": "prd-confirm"}
 

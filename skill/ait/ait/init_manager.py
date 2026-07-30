@@ -45,6 +45,16 @@ class InitResult:
     skipped: list[str] = field(default_factory=list)
 
 
+@dataclass
+class MigrationReport:
+    """v2.64: report for `migrate_docs_repo_hygiene` — which tracked paths
+    under `.meta/snapshots/` or `.ait/` were (or would be) removed from the
+    docs repo's Git index. Never touches working-tree files."""
+
+    removed_paths: list[str] = field(default_factory=list)
+    dry_run: bool = True
+
+
 # Static global skeletons (human-maintained). chunk_id → (filename, heading, body)
 _STATIC_GLOBALS = {
     "global-overview": ("overview", "项目概述", "<!-- 项目定位、目标用户、核心价值。init 时讨论填充。 -->"),
@@ -168,18 +178,63 @@ class InitManager:
                     f.write("\n")
                 f.write(line + "\n")
 
-        # 3. docs-repo .gitignore — ensure versions/*/state.md is excluded
+        # 3-5. docs-repo .gitignore — ensure state.md, snapshots/ and .ait/ are
+        # excluded (v2.64 extends step 3 with two more idempotent lines so
+        # runtime auto-snapshots and the project-local wrapper dir never get
+        # tracked into the docs history).
         docs_ignore = self.root / ".gitignore"
-        state_pattern = "versions/*/state.md"
+        ignore_patterns = ["versions/*/state.md", ".meta/snapshots/", ".ait/"]
         if docs_ignore.exists():
             di_content = docs_ignore.read_text(encoding="utf-8")
         else:
             di_content = ""
-        if state_pattern not in di_content.splitlines():
+        existing_lines = di_content.splitlines()
+        to_append = [p for p in ignore_patterns if p not in existing_lines]
+        if to_append:
             with docs_ignore.open("a", encoding="utf-8") as f:
                 if di_content and not di_content.endswith("\n"):
                     f.write("\n")
-                f.write(state_pattern + "\n")
+                for pattern in to_append:
+                    f.write(pattern + "\n")
+
+    def migrate_docs_repo_hygiene(self, *, dry_run: bool = True) -> MigrationReport:
+        """v2.64: one-time migration for docs repos that already had
+        `.meta/snapshots/` or `.ait/` tracked by Git before the hygiene
+        `.gitignore` rules existed.
+
+        Uses ``git rm --cached -r`` semantics — removes the paths from the
+        Git index only, never touches the working-tree files on disk.
+
+        Args:
+            dry_run: when True (default), only report which tracked paths
+                would be removed; no Git command mutates the index. When
+                False, actually run `git rm --cached -r` for those paths.
+        """
+        import subprocess
+
+        result = subprocess.run(
+            ["git", "ls-files", "--", ".meta/snapshots", ".ait"],
+            cwd=self.root,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            # Not a git repo (or git unavailable) — nothing tracked to report.
+            return MigrationReport(removed_paths=[], dry_run=dry_run)
+
+        removed_paths = [line for line in result.stdout.splitlines() if line.strip()]
+        if not removed_paths:
+            return MigrationReport(removed_paths=[], dry_run=dry_run)
+
+        if dry_run:
+            return MigrationReport(removed_paths=removed_paths, dry_run=True)
+
+        subprocess.run(
+            ["git", "rm", "--cached", "-r", "--", *removed_paths],
+            cwd=self.root,
+            capture_output=True,
+        )
+        return MigrationReport(removed_paths=removed_paths, dry_run=False)
 
     def _ensure_project_docs_skeleton(self) -> None:
         """Create the project-docs/ directory skeleton if absent (blank-slate
@@ -574,6 +629,13 @@ class InitManager:
             # Set the init flag once.
             if data.get("initialized") is not True:
                 data["initialized"] = True
+
+            # v2.64: default auto_snapshot_on_merge to False for new projects
+            # (docs repo is already Git-versioned; a full-tree snapshot on
+            # every merge is redundant). Never overwrite an existing value —
+            # users who rely on the legacy snapshot behaviour keep it.
+            if "auto_snapshot_on_merge" not in data:
+                data["auto_snapshot_on_merge"] = False
 
             # Path fields: write on first init, or when force_paths=True
             # (refresh-wrapper). Never silently overwrite user customizations

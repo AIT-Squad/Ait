@@ -74,32 +74,41 @@ class SpecGraph:
         return graph
 
     def save(self, path: Path) -> None:
+        specs_payload = [
+            {
+                "uri": spec.uri,
+                "title": spec.title,
+                "type": spec.type,
+                "version": spec.version,
+                "chunk_id": spec.chunk_id,
+                "file": spec.file,
+                "metadata": spec.metadata,
+            }
+            for spec in sorted(self.specs.values(), key=lambda s: s.uri)
+        ]
+        edges_payload = [
+            {
+                "src": edge.src,
+                "dst": edge.dst,
+                "rel": edge.rel,
+                "weight": edge.weight,
+                "metadata": edge.metadata,
+            }
+            for edge in self.edges
+        ]
+        if path.exists():
+            try:
+                existing_raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+            except Exception:
+                existing_raw = {}
+            if existing_raw.get("specs") == specs_payload and existing_raw.get("edges") == edges_payload:
+                return  # 语义内容无变化，跳过写盘与 updated 时间戳滚动
         self.updated = datetime.now(timezone.utc).isoformat()
         raw = {
             "version": self.version,
             "updated": self.updated,
-            "specs": [
-                {
-                    "uri": spec.uri,
-                    "title": spec.title,
-                    "type": spec.type,
-                    "version": spec.version,
-                    "chunk_id": spec.chunk_id,
-                    "file": spec.file,
-                    "metadata": spec.metadata,
-                }
-                for spec in sorted(self.specs.values(), key=lambda s: s.uri)
-            ],
-            "edges": [
-                {
-                    "src": edge.src,
-                    "dst": edge.dst,
-                    "rel": edge.rel,
-                    "weight": edge.weight,
-                    "metadata": edge.metadata,
-                }
-                for edge in self.edges
-            ],
+            "specs": specs_payload,
+            "edges": edges_payload,
         }
         text = yaml.safe_dump(raw, allow_unicode=True, sort_keys=False, width=120)
         atomic_write_text(path, text)
