@@ -21,6 +21,7 @@ from typing import cast
 import click
 
 from . import __version__
+from .chunk_parser import parse_file
 from .context_assembler import ContextAssembler
 from .deps import query_deps
 from .format_validator import (
@@ -35,7 +36,11 @@ from .impl_manager import ImplManager
 from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
 from .new_model_manager import NewModelManager
-from .new_model_validator import validate_prd_fsd_tdd_graph, validate_target_file_uniqueness
+from .new_model_validator import (
+    scan_baseline_relation_residue,
+    validate_prd_fsd_tdd_graph,
+    validate_target_file_uniqueness,
+)
 from .new_model_validator import violations_to_details as new_model_violations_to_details
 from .prd_manager import PrdManager
 from .root import NotAtProjectRoot, RootResolutionError, resolve_project_root
@@ -1578,10 +1583,24 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
     violations += validate_target_file_uniqueness(
         NewModelManager(root).collect_tdd_target_files(graph)
     )
+    # relation birth boundary closure: one-shot baseline sweep for residual
+    # @ref/@extract/depends_on-derives declarations left in new-model docs
+    # bodies. Report-only — never gates `ok`/exit code.
+    contents = []
+    for kind in ("prd", "fsd", "tdd"):
+        kind_dir = root / "docs" / kind
+        if not kind_dir.exists():
+            continue
+        for path in sorted(kind_dir.rglob("*.md")):
+            parsed = parse_file(path, root / "docs")
+            for chunk in parsed.chunks:
+                contents.append((parsed.file, chunk.id, chunk.content))
+    residue = scan_baseline_relation_residue(contents)
     payload = {
         "ok": not violations,
         "version": version or "baseline",
         "violations": new_model_violations_to_details(violations),
+        "relation_residue": new_model_violations_to_details(residue),
     }
     click.echo(json.dumps(_json_safe(payload), ensure_ascii=False))
     sys.exit(0 if not violations else 1)

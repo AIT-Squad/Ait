@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
-from .new_model_validator import check_edge_write, normalize_target_file
+from .new_model_validator import check_edge_write, normalize_target_file, scan_content_relations
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
 from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
@@ -140,7 +140,7 @@ class NewModelManager:
         # v2.52: birth the derives edge now that both endpoints exist in the
         # view (check_edge_write runs the full write-time gate).
         if parent_chunk_id is not None:
-            self.add_edge(version, parent_chunk_id, root_chunk_id, "derives")
+            self._add_edge(version, parent_chunk_id, root_chunk_id, "derives")
         # FSD layer entry: advance the phase machine off the PRD layer.
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
@@ -333,7 +333,7 @@ class NewModelManager:
         self._precheck_decompose_parent(view, parent_chunk_id, child_root_chunk_id)
         if content is not None:
             self.create_fsd(version, child_root_chunk_id, content, file=file)
-        edge = self.add_edge(version, parent_chunk_id, child_root_chunk_id, "decomposes")
+        edge = self._add_edge(version, parent_chunk_id, child_root_chunk_id, "decomposes")
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
             meta.phase = "fsd-creating"
@@ -465,7 +465,7 @@ class NewModelManager:
             overrides=overrides,
         )
         if parent_chunk_id is not None:
-            self.add_edge(version, parent_chunk_id, root_chunk_id, "details")
+            self._add_edge(version, parent_chunk_id, root_chunk_id, "details")
         meta = self.versions.load_version_meta(version)
         if meta.phase == "fsd-confirm":
             meta.phase = "tdd-creating"
@@ -620,7 +620,7 @@ class NewModelManager:
         self.versions.save_version_meta(meta)
         return {"version": version, "reverted": result["reverted"], "phase": "prd-creating"}
 
-    def add_edge(self, version: str, src: str, dst: str, rel: str) -> EdgeCreateResult:
+    def _add_edge(self, version: str, src: str, dst: str, rel: str) -> EdgeCreateResult:
         if rel not in NEW_MODEL_RELS:
             raise _validation_error(
                 "INVALID_NEW_MODEL_REL",
@@ -1006,6 +1006,16 @@ class NewModelManager:
                     f"every {kind} chunk id must start with '{prefix}', got: {chunk.id}",
                     chunk.id,
                 )
+            # relation birth boundary closure: relations are born only via the
+            # four canonical entry points — reject any markdown body residue
+            # of @ref/@extract annotations, or (outside fsd, where a legal
+            # depends_on/derives yaml fence is stripped before it reaches
+            # this content, see create_fsd's clean_content) a depends_on/
+            # derives declaration block. Zero-write, retryable.
+            relation_violations = scan_content_relations(chunk.content, kind)
+            if relation_violations:
+                first = relation_violations[0]
+                raise _validation_error(first.code, first.message, chunk.id)
 
         # P7: every layer requires an already-created version — no auto-create,
         # no ghost. `version create` is the sole entry (prd create no longer

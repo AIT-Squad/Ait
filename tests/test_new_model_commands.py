@@ -115,7 +115,7 @@ target_file: app/services/loan_service.py
     from ait.new_model_manager import NewModelManager
 
     mgr = NewModelManager(root)
-    edge = mgr.add_edge(
+    edge = mgr._add_edge(
         "v9.0",
         "[FSD]-book_management:loan_service",
         "[TDD]-book_management-loan_service",
@@ -123,7 +123,7 @@ target_file: app/services/loan_service.py
     )
     assert edge.rel == "details"
 
-    mgr.add_edge(
+    mgr._add_edge(
         "v9.0",
         "[FSD]-book_management:loan_service",
         "[FSD]-book_management:persistence",
@@ -232,8 +232,8 @@ def test_prepare_codegen_survives_self_loop_cycle(tmp_path: Path, monkeypatch):
         "[TDD]-mod-leaf",
         "<!-- @id:[TDD]-mod-leaf -->\n## TDD\n\n```yaml\ntarget_file: app/mod/leaf.py\n```\n",
     )
-    mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[TDD]-mod-leaf", "details")
-    mgr.add_edge("v9.0", "[FSD]-mod:leaf", "[FSD]-mod", "decomposes")
+    mgr._add_edge("v9.0", "[FSD]-mod:leaf", "[TDD]-mod-leaf", "details")
+    mgr._add_edge("v9.0", "[FSD]-mod:leaf", "[FSD]-mod", "decomposes")
 
     _set_phase(mgr.root, "v9.0", "tdd-confirm")
     bundle = mgr.prepare_codegen("v9.0", "[TDD]-mod-leaf")
@@ -261,9 +261,9 @@ def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
         "[TDD]-alpha-x",
         "<!-- @id:[TDD]-alpha-x -->\n## TDD\n\n```yaml\ntarget_file: app/alpha/x.py\n```\n",
     )
-    mgr.add_edge("v9.0", "[FSD]-alpha:x", "[TDD]-alpha-x", "details")
-    mgr.add_edge("v9.0", "[FSD]-beta:y", "[FSD]-alpha", "decomposes")
-    mgr.add_edge("v9.0", "[FSD]-alpha:x", "[FSD]-beta", "decomposes")
+    mgr._add_edge("v9.0", "[FSD]-alpha:x", "[TDD]-alpha-x", "details")
+    mgr._add_edge("v9.0", "[FSD]-beta:y", "[FSD]-alpha", "decomposes")
+    mgr._add_edge("v9.0", "[FSD]-alpha:x", "[FSD]-beta", "decomposes")
 
     _set_phase(mgr.root, "v9.0", "tdd-confirm")
     bundle = mgr.prepare_codegen("v9.0", "[TDD]-alpha-x")

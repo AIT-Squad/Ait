@@ -72,13 +72,13 @@ def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
 
     with pytest.raises(ValidationError) as excinfo:
-        mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-ghost", "details")
+        mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-ghost", "details")
     assert "MISSING_ENDPOINT" in str(excinfo.value)
     assert load_specgraph(root, "v9.0").edges == [], "拒绝必须零落盘"
 
     _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
-    mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 重试成功
+    mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 重试成功
 
 
 def test_add_edge_rejects_second_details_parent(tmp_path: Path):
@@ -92,10 +92,10 @@ def test_add_edge_rejects_second_details_parent(tmp_path: Path):
     )
     _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
-    mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
 
     with pytest.raises(ValidationError) as excinfo:
-        mgr.add_edge("v9.0", "[FSD]-other:x", "[TDD]-app-feat", "details")
+        mgr._add_edge("v9.0", "[FSD]-other:x", "[TDD]-app-feat", "details")
     assert "TDD_MULTI_PARENT" in str(excinfo.value)
     edges = load_specgraph(root, "v9.0").edges
     assert len([e for e in edges if e.rel == "details"]) == 1, "第二父不得落盘"
@@ -108,10 +108,10 @@ def test_add_edge_rejects_second_prd_fsd_link(tmp_path: Path):
     _set_phase(root, "v9.0", "prd-confirm")
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     mgr.create_fsd("v9.0", "[FSD]-second", "<!-- @id:[FSD]-second -->\n## S\n")
-    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
+    mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
 
     with pytest.raises(ValidationError) as excinfo:
-        mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-second", "derives")
+        mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-second", "derives")
     assert "PRD_FSD_LINK_NOT_UNIQUE" in str(excinfo.value)
 
 
@@ -122,8 +122,8 @@ def test_add_edge_same_edge_is_idempotent(tmp_path: Path):
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
-    mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
-    mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 同边重放不拒
+    mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 同边重放不拒
 
 
 # ── confirm 全局门禁（真实命令路径＋拒后重试）────────────────────────────
@@ -140,7 +140,7 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
     mgr.create_fsd("v9.0", "[FSD]-app", FSD)
     _set_phase(root, "v9.0", "fsd-confirm")
     mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
-    mgr.add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     vm.stage("v9.0")
     vm.commit("v9.0", "lock")
 
@@ -153,7 +153,7 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
     # 补齐 PRD 与 derives 边 → 重试成功（拒后可重试，无终态陷阱）
     _set_phase(root, "v9.0", "prd-creating")
     mgr.create_prd("v9.0", "[PRD]-app", PRD)
-    mgr.add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
+    mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
     vm.stage("v9.0")
     vm.commit("v9.0", "lock prd")
     result = vm.confirm("v9.0", allow_dirty_git=True)

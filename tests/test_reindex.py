@@ -111,7 +111,11 @@ def test_reindex_supports_new_model_fsd_tdd_specs(project_root: Path):
     data = _run_reindex(runner, project_root)
 
     assert data["chunks"] == 3
-    assert data["edges"] == 1
+    # relation birth boundary closure (v2.65): new-model chunks ([FSD]-/[TDD]-
+    # prefixed ids) never build edges from @ref residue — this @ref annotation
+    # is exactly the kind of bypass channel that must now be rejected at
+    # content-gate time and ignored at sync/reindex time. No edge is built.
+    assert data["edges"] == 0
 
     import yaml
 
@@ -122,7 +126,7 @@ def test_reindex_supports_new_model_fsd_tdd_specs(project_root: Path):
     assert specs["[FSD]-book_management"]["type"] == "fsd"
     assert specs["[FSD]-book_management:book_model"]["type"] == "fsd"
     assert specs["[TDD]-book_model"]["type"] == "tdd"
-    assert graph["edges"][0]["rel"] == "details"
+    assert graph["edges"] == []
 
 
 def test_reindex_is_idempotent(project_root: Path):

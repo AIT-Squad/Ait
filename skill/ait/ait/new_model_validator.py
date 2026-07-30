@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
+from .chunk_parser import EXTRACT_END_PATTERN, EXTRACT_OPEN_PATTERN, REF_PATTERN
 from .specgraph import Edge, Spec, SpecGraph
+
+_RELATION_YAML_FENCE_RE = re.compile(r"```yaml\s*\n(.*?)```", re.DOTALL)
 
 ALLOWED_RELS = {"derives", "decomposes", "details", "depends_on"}
 NEW_MODEL_TYPES = {"prd", "fsd", "tdd"}
@@ -555,3 +559,65 @@ def _violation(
         src=edge.src,
         dst=edge.dst,
     )
+
+
+def scan_content_relations(content: str, kind: str) -> list[NewModelViolation]:
+    """Detect markdown body relation residue (relation birth boundary closure).
+
+    Relations must only be born via the four canonical entry points (derives,
+    decomposes, details, depends_on) — never via a leftover ``@ref``/
+    ``@extract`` annotation, nor (outside the fsd layer, where a
+    ``depends_on``/``derives`` yaml fence is legitimately parsed and stripped
+    before the content reaches this check) a residual declaration block.
+    """
+    violations: list[NewModelViolation] = []
+    if REF_PATTERN.search(content):
+        violations.append(
+            NewModelViolation(
+                code="MARKDOWN_CONTAINS_RELATION",
+                message="markdown body must not contain @ref annotations",
+            )
+        )
+    for line in content.splitlines():
+        if EXTRACT_OPEN_PATTERN.match(line) or EXTRACT_END_PATTERN.match(line):
+            violations.append(
+                NewModelViolation(
+                    code="MARKDOWN_CONTAINS_RELATION",
+                    message="markdown body must not contain @extract annotations",
+                )
+            )
+            break
+    if kind != "fsd":
+        import yaml
+
+        for block in _RELATION_YAML_FENCE_RE.findall(content):
+            try:
+                loaded = yaml.safe_load(block)
+            except Exception:
+                continue
+            if isinstance(loaded, dict) and ("depends_on" in loaded or "derives" in loaded):
+                violations.append(
+                    NewModelViolation(
+                        code="MARKDOWN_CONTAINS_RELATION",
+                        message="depends_on/derives declarations are only legal in fsd split content",
+                    )
+                )
+                break
+    return violations
+
+
+def scan_baseline_relation_residue(
+    contents,
+) -> list[NewModelViolation]:
+    """One-shot baseline sweep — report only, never gate.
+
+    ``contents`` is an iterable of ``(file, chunk_id, chunk_content)`` tuples
+    already read by the caller (the ``validate-new-model`` CLI command); this
+    function performs no disk I/O of its own.
+    """
+    out: list[NewModelViolation] = []
+    for file, chunk_id, content in contents:
+        kind = "fsd" if file.startswith("fsd/") else ("tdd" if file.startswith("tdd/") else "prd")
+        for v in scan_content_relations(content, kind):
+            out.append(NewModelViolation(code=v.code, message=v.message, chunk_id=chunk_id, file=file))
+    return out

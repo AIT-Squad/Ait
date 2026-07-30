@@ -93,7 +93,7 @@ def test_confirm_is_pure_gate_repeatable_zero_write(tmp_path: Path, monkeypatch)
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     _set_phase(root, "v9.0", "fsd-confirm")
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
-    NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    NewModelManager(root)._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)
 
     before = (root / ".meta" / "chunks-index.yaml").read_bytes() if (root / ".meta" / "chunks-index.yaml").exists() else None
@@ -138,7 +138,7 @@ def test_merge_blocked_by_gate_before_any_write(tmp_path: Path, monkeypatch):
     runner.invoke(main, ["fsd", "create", "[FSD]-app", "--version", "v9.0", "--content", FSD], catch_exceptions=False)
     _set_phase(root, "v9.0", "fsd-confirm")
     runner.invoke(main, ["tdd", "create", "[TDD]-app-feat", "--version", "v9.0", "--content", TDD], catch_exceptions=False)
-    NewModelManager(root).add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
+    NewModelManager(root)._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     runner.invoke(main, ["version", "commit", "v9.0"], catch_exceptions=False)
 
     r = runner.invoke(main, ["version", "merge", "v9.0", "--allow-dirty-git"], catch_exceptions=False)

@@ -48,7 +48,7 @@ def test_new_model_merge_preserves_file_containers_and_edges(tmp_path: Path):
         "target_file: app/models/book.py\n"
         "```\n",
     )
-    mgr.add_edge("v9.0", "[FSD]-book_management:book_model", "[TDD]-book_model", "details")
+    mgr._add_edge("v9.0", "[FSD]-book_management:book_model", "[TDD]-book_model", "details")
 
     vm.stage(
         "v9.0",

@@ -209,10 +209,10 @@ def test_taskless_new_model_confirm(tmp_path: Path):
         "v1.0", "[TDD]-store",
         "<!-- @id:[TDD]-store -->\n## Store TDD\n\n```yaml\ntarget_file: app/store.py\n```\n",
     )
-    mgr.add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
-    mgr.add_edge("v1.0", "[FSD]-app:svc", "[TDD]-svc", "details")
-    mgr.add_edge("v1.0", "[FSD]-app:store", "[TDD]-store", "details")
-    mgr.add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app:store", "depends_on")
+    mgr._add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
+    mgr._add_edge("v1.0", "[FSD]-app:svc", "[TDD]-svc", "details")
+    mgr._add_edge("v1.0", "[FSD]-app:store", "[TDD]-store", "details")
+    mgr._add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app:store", "depends_on")
 
     vm.stage("v1.0")
     vm.commit("v1.0", "commit new-model docs")
