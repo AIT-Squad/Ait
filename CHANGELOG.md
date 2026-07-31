@@ -1,137 +1,203 @@
 # Changelog
 
-Notable changes per project version. Software-package versioning lives in [pyproject.toml](pyproject.toml); product-version milestones (v1.0, v1.1, ...) track feature scope.
+产品版本里程碑（v1.0、v2.0、…）记录功能范围；软件包版本见 [pyproject.toml](pyproject.toml)。
 
-> **v1.2–v1.6 为事后补录**：这几版通过 AIT 自身的 dogfood 流程开发，变更当时记录在 `project-docs/.meta/changes/` 而非本文件。下列条目据此还原，每条标注其 `chg-*` 区间，chunk 级细节见对应记录。
+从 v2.0 起，AIT **完全由自身开发**：每个版本都走完整的
+`version create → prd → fsd → tdd → codegen → confirm → merge` 闭环，chunk 级变更记录在
+`project-docs/.meta/changes/`，版本元数据在 `project-docs/.meta/versions/`。本文件按主题聚合，
+细节以那些记录为准。
 
-## v1.6 — 2026-06-03 — Baseline PRD 单文件化 + 格式硬约束
+---
 
-把 baseline PRD 物理布局从 `docs/prd/*.md` 多文件统一为 `docs/prd/global.md` 单文件，并引入格式硬约束闸门。chunk 仍是唯一规划/合并单位，impl 保持多文件。
+## v2.71 — 2026-07-31 — 配置分层与 docs 仓治理收口
 
-### What changed
+- **配置分层**：新增 `config_store` 模块。`.meta/config.yaml` 只放机器无关的共享设置
+  （`initialized`、`auto_snapshot_on_merge`），机器特定字段（`skill_dir`、`cli_path`、
+  `wrapper_path`、`acceptance_command`）迁到 `.meta/config.local.yaml` 并被 docs 仓 ignore。
+  读取合并两层、本地层优先；写入按显式 `MACHINE_FIELDS` 表路由到所属层。
+- **fail closed**：配置层存在但损坏时抛 `CONFIG_UNREADABLE`，不再降级成 `{}`——否则依赖配置的
+  验收门禁会把"读不到"误判成"没配置"而放行。
+- **治理迁移**：`init --migrate [--apply]` 把历史上被追踪的 `.meta/snapshots/`、`.ait/`
+  移出 git 索引，并把共享层里的机器字段搬到本地层。默认只预览；单独给 `--apply` 报
+  `USAGE_ERROR`。迁移顺序固定（先写目标层再删源层），中断可重入收敛。
+- **`auto_snapshot_on_merge` 默认改为 `false`**：快照树写了却无读者——回滚依赖 `docs_commit`
+  与持久 tag，不依赖这些拷贝。显式设 `true` 的项目不受影响。
 
-- **Baseline PRD 单文件化**：新契约 `docs/prd/global.md`；一次性迁移脚本（dry-run/apply + 7 步自检），迁移前后 chunk 数 / id 集合 / `@ref` 关系图全等校验。
-- **merge 路由收敛**：`version_manager` 把版本工作区任意 `prd/*.md` 的 chunk 在 confirm/merge 时统一缝合进 `prd/global`；版本工作区仍可多文件。
-- **格式硬约束**：格式闸门 + `ait lint --fix` + 派生命名校验。
-- **新增能力**：`baseline-summary` 命令 + chunks-index `summary` 字段 + `@summary` 注释；`prd create` 递归扫 baseline + candidates 决议 + commit overrides 校验；PRD chunk 原子 impl 替换 + 覆盖率守卫 + `impl inherit` + `@prd-no-impl`。
-- 单文件 baseline 兼容性回归测试网；已 merged 的 v1.1~v1.5 历史快照与 `chunks-index-{v}` 保持不动。
+## v2.70 — 2026-07-31 — codegen 上下文选择收紧
 
-> 12 changes（chg-080~091）。版本 meta 的 `title` 字段为 null（故 git commit 落为默认 `feat: v1.6`）；本标题为补录。
+修正 `codegen prepare` 的上下文选择范围，避免拉入无关 chunk 稀释 bundle 信噪比。
+新增 `[TDD]-new_model_manager_codegen_context_tests` 覆盖选择规则。
 
-## v1.5 — 2026-06-02 — task relocation, init incremental, skill CLI resolution, sub-skills coverage
+## v2.69 — 2026-07-31 — 保留 FSD 同文件覆盖
 
-（标题取自 `.meta/versions/v1.5.yaml`。）围绕 task 资产归位、init 增量化、skill CLI 路径解析、sub-skills 覆盖四条线推进。
+修复同一 FSD 文件多次写入时的覆盖语义，避免后续写入丢失先前 split 的内容。
 
-### What changed
+## v2.67 — 2026-07-31 — 上下文令牌门禁
 
-- **task relocation**：task YAML 从 `.meta/tasks/{v}/` 迁到 `versions/{v}/tasks/`（与 prd/impl/state.md 同处版本工作区）；`tasks_summary` 写入 `chunks-index-{v}.yaml`；legacy `.meta/tasks` 路径启动告警。
-- **init incremental**：init 三态检测（fresh / incomplete / ready）+ `--check` dry-run；`ait-init-check` 改名 `ait-init-guide` 并重写 workflow。
-- **skill CLI resolution**：init 注入 `skill_dir` 并生成 project-local wrapper `project-docs/.ait/ait-cli`；所有文档 `bin/ait` 引用改为该 wrapper；新增 wrapper self-locate 回归脚本与 `ENOENT_BIN_AIT` pitfall 说明。
-- **sub-skills coverage**：新增 `ait-task-execute`；`ait-progress` 并入 `ait-state`；sub-skill 触发 lint + section 审计。
+有正文的 PRD/FSD/TDD 写入必须携带 `--context-token`——该令牌由无内容的同名 `create`
+调用（讨论背景）签发，绑定层级、目标、父锚点、最终 file、操作、action、overrides 与
+**实际背景内容**的摘要。
 
-> 17 changes（chg-063~079）。
+- 背景或意图变化后旧令牌失效：`CONTEXT_TOKEN_STALE` / `CONTEXT_TOKEN_CONFLICT`；
+  格式非法 `CONTEXT_TOKEN_INVALID`；缺失 `CONTEXT_TOKEN_REQUIRED`
+- `--skip-context` 是明确的退出通道，与令牌互斥，留最小审计痕迹；纯关系分解无需令牌
+- 令牌**只证明上下文连续性**，不代表身份认证、授权或所有权
 
-## v1.4 — 2026-06-01 — prd → impl → task 三态流水线重构（redesign 落地）
+## v2.66 — 2026-07-31 — 讨论背景连续性修复
 
-AIT 重构为围绕 **prd → impl → task** 三核心态的版本化 AI 开发流水线——README 所称 redesign 的设计定稿与落地。
+修复讨论背景在迭代中丢失连续性的问题（背景组装未正确覆盖版本内在制品改动）。
 
-### What changed
+## v2.65 — 2026-07-30 — 关系出生边界收口
 
-- **三核心态**：PRD（需求意图）→ impl（实现设计）→ task（AI coding 执行单元），逐级派生；全程 chunk 聚焦以最小化 token。
-- **版本原子性**：任一 confirm 后内容在本版本内冻结，不可局部修改/撤销/回滚；唯一逃生口 `version reset`（二次确认 + 物理删除版本工作区 / 索引 / specgraph 分文件，无快照）。
-- **简化**：取消局部回滚、单 chunk 放弃、checksum 失效检测、增量版本继承等子系统（被版本原子性取代）。
-- 8 块重构 PRD（`prd/ait-redesign`）+ 对应 impl（`impl/core` 等）设计定稿。
+四种关系的出生地收敛到唯一入口，杜绝旁路建边。
 
-> 24 changes（chg-039~062）。
+## v2.64 — 2026-07-30 — docs 仓治理 + 基线/状态持久化纯净性
 
-## v1.3 — 2026-05-30 — SpecGraph + sub-skill 体系 + 检索/图谱命令
+docs 仓 `.gitignore` 明确排除 `versions/*/state.md`、`.meta/snapshots/`、`.ait/`——
+运行时产物与机器本地文件不进共享历史。
 
-把关系索引从 `links-index.yaml` 重构为 SpecGraph，落地 sub-skill 体系，并迁入一批检索/图谱命令。
+## v2.61–v2.63 — 2026-07-22 ~ 07-27 — confirm/merge 分离与图可视化
 
-### What changed
+- **v2.61 计划与执行分离**：`version confirm` 生成并持久化**合并计划**
+  （`ReconciliationPlan`，含所有规划输入的 SHA-256 指纹）；`version merge` 只执行已确认的
+  计划。confirm 后内容再变，merge 报 `CONFIRMATION_STALE`；无计划报 `CONFIRMATION_REQUIRED`。
+  同时引入 `RevertAnchor`（持久 tag `refs/tags/ait/<v>`，规避 SHA 自引用陷阱）与
+  `RecoveryJournal`（回滚过程的可恢复日志）。
+- **v2.62**：`derives` 恢复 1:1 映射语义；`graph-html` 支持 `--prd-chunk` 子树范围；状态面板瘦身。
+- **v2.63**：SpecGraph HTML 渲染器改为总线路由布局；`derives` 支持 M:N；方向修正。
 
-- **SpecGraph**：`links-index.yaml` → SpecGraph 关系图模型 + CLI（baseline + per-version 分文件）。
-- **sub-skill 体系**：主 SKILL.md 改造为 router；落地 sub-skill layout / format / mapping / contract、micro-skill overview 与 skill migration；新增 `ait-state` skill。
-- **新命令**：`search`、`deps`、`impact`、`state` 面板（部分自参考项目 skill 功能迁移）。
-- **init 智能识别**：init 流程按项目状态自适应。
+## v2.55–v2.60 — 2026-07-18 ~ 07-19 — docs/代码 git 隔离与跨仓绑定
 
-> 22 changes（chg-017~038）。
+- **v2.55 隔离**：`project-docs/` 成为独立 git 仓库（`init` 建 docs 仓 `.git`、宿主根
+  `.gitignore` 追加 `project-docs/`、docs 仓 `.gitignore` 排除 state.md）。
+  confirm 取消 docs 侧 `GIT_DIRTY` 预检（版本生命周期中 docs 仓本就应该是脏的）；
+  merge 在版本 meta 记录 `docs_commit` 与 `code_base`。
+- **v2.56/v2.57 可视化**：`specgraph graph-md` 生成 Mermaid 子图；`graph-html` 生成文件级
+  Reingold-Tilford 规格树（同深度共 y、`depends_on` 虚线弧、白底点阵 SVG）。
+- **v2.58 加固**：三层 confirm 打 git 锚；`version confirm` 增 `HOST_DIRTY` 检查与
+  `code_result` 绑定；`version revert` 前置收集 + git clean。
+- **v2.59**：`version revert` 同步把宿主仓回滚到 `code_result`。
+- **v2.60**：codegen bundle 增 `target_file_content`——规格与现有代码一起交给 AI。
 
-## v1.2 — 2026-05-25 — micro-skill 拆分 + block → chunk 术语重构
+## v2.46–v2.54 — 2026-07-15 ~ 07-17 — 治理收口与空目录起步
 
-把 monolithic SKILL.md 沿"用户所处阶段"拆为 router + 多个 micro-skill；并把全局术语从 `block` 重命名为 `chunk`。
+- **v2.47 不变式修正**：不变式 ①（PRD↔1FSD）只约束 PRD **根** chunk；PRD 需求 split 豁免。
+  由 PRD chunk 化的 dogfood 暴露。
+- **v2.48**：`[PRD]-ait` 迁移到分化格式（5 个需求 split + 反向要求 + 六不变式就地展开）。
+- **v2.49**：新模型 create 强制 `[PRD]`/`[FSD]`/`[TDD]` 前缀（`CHUNK_ID_PREFIX_REQUIRED`，零落盘）。
+- **v2.50 退役 `specgraph add-edge`**：它能绕过写时边检查与六不变式门禁直写 baseline。
+  边此后只经受门禁的内容创建路径产生。
+- **v2.51 P7 严格自顶向下**：所有 create/confirm/codegen 入口加 phase 门禁；
+  `version create` 加活动版本守卫（`ACTIVE_VERSION_EXISTS`）；`prd create` 不再自动开版本
+  （`NO_ACTIVE_VERSION`）。
+- **v2.52 `derives` 独立成关系**：PRD→FSD 从 `decomposes` 拆出为专用 `derives`（派生，1:1），
+  `decomposes` 收窄为 FSD 内部。四关系四出生地成型。
+- **v2.53 讨论背景**：create 省略内容即返回该层讨论背景（现状式/发现式/锚定式），
+  零写入、受同层 phase 门禁。`init` 保证空 baseline 存储落盘——初始＝现状为空的迭代，零分支。
+- **v2.54 空目录起步**：`ait init` 可在全新空目录自建 `project-docs/` 骨架
+  （`init` 经 `NotAtProjectRoot` 逃生口豁免根解析）。从零跑通完整流水线。
 
-### What changed
+## v2.31–v2.45 — 2026-07-13 ~ 07-15 — 格式收敛与全域迁移
 
-- **micro-skill 拆分**：主 SKILL.md 改为 router（全局速查 + Common Pitfalls + sub-skills 索引），具体流程下沉子 skill；子 skill 不引入新 CLI、不直接读写 `docs/` 与 `.meta/`。
-- **block → chunk 重构**：代码符号 + 文档 + schema + 索引文件常量全面重命名；一次性数据迁移脚本（即 `migrate-block-to-chunk`）+ 双验证脚本（防术语泄漏 / 回归）。
+- **v2.31 文档正文零关系声明**：`depends_on` 块从 FSD 正文剥离（临时输入，SpecGraph 唯一存储）；
+  PRD 的 `@ref` 关系改为显式 SpecGraph 边。
+- **v2.32 preserve 语义**：chunk id 允许保留标记 `:TEST`；`depends_on` 对账改为
+  **省略即保留**（清空须显式 `depends_on: []`）——修掉 v2.31 引入的"重排正文即清空依赖"脚枪。
+- **v2.33 FSD 三类分化**：root（分解视图）+ 功能 split（provide-only 能力契约）+
+  `:TEST`（集成验收节点）；功能 split 上不写验收标准也不写签名。
+  新模型格式规范新增 §5b（FSD 结构、能力契约、所有权分层、codegen 契约）。
+- **v2.35 三条通用书写规约**：详实自包含（禁"参见 X"）、反向要求必填、术语就地展开。
+- **v2.34、v2.36–v2.45**：按域逐个迁移到分化格式（version / foundation / doc_model /
+  indexing / specgraph / new_model / cli / init），顶层 FSD 分三批补齐 + 系统级 `:TEST`。
+  迁移过程中域间边净零变化（对账保证不丢关系）。
 
-> 10 changes（chg-007~016；req-002）。
+## v2.22–v2.30 — 2026-07-11 ~ 07-13 — 四层命令面与加固
 
-## v1.1 — 2026-05-24 — Lock AIT working root to `<CWD>/project-docs/`
+- **v2.22 PRD 层**：create/confirm/revert 冻结-返工对 + `uncommit` 原语 + phase 机启动。
+- **v2.23 FSD 层**：`fsd decompose`（拆分即建边）取代 `fsd link`；confirm/revert 对；phase `fsd-*`。
+- **v2.24 TDD 层**：`tdd create --parent`（创建即建 details 边）+ confirm/revert。
+  四层命令面（prd/fsd/tdd/codegen）成型。
+- **v2.25 制品验收门禁**：配置化测试命令把守 confirm/merge（验证＝confirm 门禁）；
+  本项目启用 pytest 作为验收命令。
+- **v2.26 兄弟依赖申报**：`fsd create` 内容里的 yaml 块申报 `depends_on`，经视图 + merge 做
+  owned-scope 对账；回填 69 条基线边；`prd link` 退役；`VERSION_NOT_FOUND` 关闭幽灵版本。
+- **v2.27 merge 与 JSON 契约加固**：git 提交三分语义（不可用/无变更/真实失败）；
+  override 冲突前置拦截；`--file` 路径净化（`INVALID_FILE_NAME`）；
+  click 参数错误也包装成 JSON（`USAGE_ERROR`）。
+- **v2.28 init 加固**：`--name` 校验杀掉幽灵空基线与路径逃逸（`INVALID_PROJECT_NAME`）+
+  `BOOTSTRAP_FAILED` 防御性收口。
+- **v2.29/v2.30 分发对齐**：`new-model-format.md` 按当前形态重写（六不变式、申报机制、
+  四层生命周期、完整错误码表）；6 篇 reference 纳入 TDD 治理。
 
-Tightens AIT's project-root resolution: the only legal working root is `<CWD>/project-docs/`. No `--project` flag, no `AIT_ROOT` env var, no marker-file recursion, no scaffolding fallback. Designed and shipped via AIT's own dogfood loop (PRD `prd-project-docs-only-*` → impl `impl-project-docs-only-root-resolver`, merged to baseline in this release).
+## v2.18–v2.21 — 2026-07-11 — 不变式强制与 version 四件套
 
-### What changed
+- **v2.18**：confirm 全状态回滚 + codegen 上溯环守卫。
+- **v2.19 组合视图**：`baseline ∪ version` 折叠到 chunk_id 身份空间——在制品 chunk 的 codegen
+  上下文与全树影响分析（URI 二元性修正）。
+- **v2.20 六不变式强制**：写时边/制品门禁 + confirm 全局门禁双层。
+- **v2.21 version 四件套**：`create` / `confirm`（纯门禁）/ `merge`（唯一落盘）/
+  `revert`（任意阶段退出）；移除 legacy impl 目录预建。
 
-- New module [skill/ait/ait/root.py](skill/ait/ait/root.py): `resolve_project_root()` + `ProjectRoot` dataclass + `RootResolutionError` hierarchy (3 subclasses)
-- [skill/ait/ait/cli.py](skill/ait/ait/cli.py): removed the `--project / -p` CLI option; `main()` now resolves `<CWD>/project-docs/` unconditionally and fails fast on any mismatch
-- Tests refactored to use `monkeypatch.chdir(parent)` + `tmp_path/project-docs/` fixtures; the previous pattern of passing `--project <tmp_path>` is gone
-- New test file [tests/test_root_resolution.py](tests/test_root_resolution.py) — 8 cases covering all 3 error scenarios plus a non-goal assertion that `AIT_ROOT` env var is ignored
-- Documentation updates: [README.md](README.md), [skill/ait/SKILL.md](skill/ait/SKILL.md), [project-docs/README.md](project-docs/README.md) — all layout diagrams now show the `project-docs/` wrapper level and the new error contract
+## v2.0–v2.17 — 2026-06-27 — 新模型立骨
 
-### Error contract
+- **v2.0–v2.3**：PRD/FSD/TDD 三层模型落地并迁移基线；merge 改为按 baseline 存在性逐 chunk
+  决定 action（v2.4）。
+- **v2.5**：`prd` 归新模型，旧模型改名 `prdv1`。
+- **v2.6/v2.7**：SKILL.md 重写为新模型主线；格式规范与 PRD/FSD/TDD 模板随 skill 分发。
+- **v2.8–v2.15 生成式自举**：把自身各域（foundation / doc_model / version / new_model /
+  specgraph / indexing / lint-search-state-context / init-prd-impl-task-cli）逐个补齐
+  FSD + TDD，使每个源文件都有唯一 TDD 归属。
+- **v2.16/v2.17**：PRD 与根 FSD 补充角色/目标/域依赖；codegen 依赖上溯到域级 `depends_on`。
 
-| Code | Trigger |
-|---|---|
-| `NOT_AT_PROJECT_ROOT` | CWD has no `project-docs/` subdir |
-| `PROJECT_DOCS_MALFORMED` | `project-docs/` exists but lacks `docs/` or `.meta/` |
-| `CWD_INSIDE_PROJECT_DOCS` | CWD is `project-docs/` itself or any descendant |
+---
 
-All three exit with status 1 and emit the standard JSON failure envelope `{"ok": false, "error": "...", "code": "..."}`.
+## v1.x — 2026-05-24 ~ 06-03 — legacy 模型（已冻结）
 
-### Breaking change
+旧模型 `prdv1 → impl → task → code` 仍可运行但不再演进。归档基线在 `project-docs-v1/`。
 
-Removing `--project / -p` is a CLI breaking change for any caller that was passing a path explicitly. Migration is mechanical: `cd` to the parent of `project-docs/` before invoking `ait`; tests using `CliRunner` should adopt the `monkeypatch.chdir` pattern (see [tests/test_root_resolution.py](tests/test_root_resolution.py) and the refactored [tests/test_e2e_cli.py](tests/test_e2e_cli.py) / [tests/test_reindex.py](tests/test_reindex.py) for reference).
+### v1.6 — 2026-06-03 — Baseline PRD 单文件化 + 格式硬约束
 
-### Tests
+baseline PRD 从 `docs/prd/*.md` 多文件统一为 `docs/prd/global.md`（迁移前后 chunk 数 / id 集合 /
+`@ref` 关系图全等校验）；merge 路由收敛；格式硬约束 + `ait lint --fix`；
+新增 `baseline-summary`、`@summary` 注释、`impl inherit`、impl 覆盖率守卫。
+（chg-080~091）
 
-66 tests across [tests/](tests/) (up from 58). All green.
+### v1.5 — 2026-06-02 — task 归位 + init 增量化 + wrapper 解析
 
-## v1.0 — 2026-05-24 (frozen)
+task YAML 从 `.meta/tasks/{v}/` 迁到 `versions/{v}/tasks/`；init 三态检测（fresh/incomplete/ready）
++ `--check`；init 注入 `skill_dir` 并生成项目本地 wrapper `project-docs/.ait/ait-cli`；
+新增 `ait-task-execute` sub-skill，`ait-progress` 并入 `ait-state`。（chg-063~079）
 
-Package version: `0.1.0`. MVP closed: single-user, document-side block versioning, Claude Code Skill ready.
+### v1.4 — 2026-06-01 — prd → impl → task 三态流水线
 
-### CLI commands (11)
+确立三核心态与**版本原子性**：任一 confirm 后内容在本版本内冻结；唯一逃生口是整版 reset。
+明确取消局部回滚、单 chunk 放弃、checksum 失效检测、增量版本继承——这些被版本原子性取代。
+（chg-039~062）
 
-- `ait prd create | save-draft | confirm | show | commit`
-- `ait impl create | show | commit`
-- `ait version status | merge`
-- `ait reindex` — rebuild baseline indexes by rescanning `docs/`
-- `ait context` — assemble L1+L2 context for AI prompting
+### v1.3 — 2026-05-30 — SpecGraph + sub-skill 体系
 
-### Architecture
+`links-index.yaml` → SpecGraph 关系图（baseline + per-version 分文件）；主 SKILL.md 改造为
+router，落地 sub-skill 体系；新增 `search` / `deps` / `impact` / `state`。（chg-017~038）
 
-- 13 Python modules (~2700 LOC) under [skill/ait/ait/](skill/ait/ait/) — block_parser, cli, context_assembler, hash_utils, impl_manager, index_manager, io_utils, merge_engine, prd_manager, schemas, validator, version_manager, yaml_io
-- Three-stage commit model: working → staged → committed
-- Block-level merge with `base_hash` conflict detection
-- Only two content types: `prd` and `impl` (ADR / `met-` prefix removed)
+### v1.2 — 2026-05-25 — micro-skill 拆分 + block → chunk 术语重构
 
-### Skill distribution
+单体 SKILL.md 按"用户所处阶段"拆为 router + micro-skill；全局术语 `block` → `chunk`
+（代码符号 + 文档 + schema + 索引常量），配一次性迁移脚本与双验证脚本
+（防术语泄漏 / 回归）。（chg-007~016）
 
-- [install.py](install.py) — cross-platform installer with `install` / `update` / `uninstall` subcommands; `update` preserves `.venv` for fast upgrades
-- [skill/ait/bin/ait](skill/ait/bin/ait), [bin/ait.cmd](skill/ait/bin/ait.cmd) — self-bootstrapping wrappers that create and reuse a per-skill `.venv`
+### v1.1 — 2026-05-24 — 工作根锁定为 `<CWD>/project-docs/`
 
-### Dogfooding
+新增 `root.py`：`resolve_project_root()` + 三个错误码
+（`NOT_AT_PROJECT_ROOT` / `PROJECT_DOCS_MALFORMED` / `CWD_INSIDE_PROJECT_DOCS`）。
 
-- [project-docs/](project-docs/) — AIT's own design docs (3 PRD + 3 impl + auto-built blocks-index.yaml / links-index.yaml) is the **authoritative design source** for v1.0+
-- [ait-system.md](.archive/ait-system.md) archived; no longer authoritative
+**Breaking**：移除 `--project / -p`。不读 `AIT_ROOT`、不向上递归找 marker、目录名硬编。
+迁移方式是机械的——运行前 `cd` 到 `project-docs/` 的父目录。
 
-### Tests
+### v1.0 — 2026-05-24 (frozen)
 
-58 tests under [tests/](tests/) — block_parser, e2e_cli, index_manager, merge_engine, merge_workflow, prd_impl_context, reindex, version_manager. All green.
+MVP：单用户、文档侧 chunk 级版本控制、Claude Code Skill 就绪。
+11 个命令（`prd` 5 / `impl` 3 / `version` 2 / `reindex` / `context`）、
+13 个模块约 2700 行、三态提交模型、带 `base_hash` 冲突检测的块级合并。
 
-### Known limitations of v1.0
-
-- **Slash-command form `/ait:foo` does not route to the skill in Claude Code** — colon namespace is reserved for Claude Code plugin system. v1.0 ships with `/ait` (single-namespace) only.
-- No code generation, no code↔doc sync detection, no multi-user collaboration, no `--manual` IDE-jump editing.
+已知限制：`/ait:foo` 冒号命名空间不路由到 skill（Claude Code 保留给插件系统），
+只支持 `/ait foo`；无代码生成、无代码↔文档同步检测、无多用户协作。

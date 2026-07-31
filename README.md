@@ -1,467 +1,235 @@
 # AIT — AI-Assisted Document Versioning
 
-> Chunk-level version control for AI-collaborated PRD/impl documentation, packaged as an AI-IDE Skill — now with a full `prd → impl → task → code` pipeline.
+**Chunk-level version control for the specs that drive AI coding.**
 
-AIT is the document-side complement to Git: it treats Markdown chunks (`<!-- @id:xxx -->`) as the version-control unit, supports three-stage commit (`working → staged → committed`), chunk-level merge, structured AI context assembly, and — as of the redesign — a complete AI-coding pipeline that turns locked PRD+impl into executable task YAML.
+AIT manages `PRD → FSD → TDD → codegen → code` as one governed pipeline. Design documents
+are decomposed into `<!-- @id:... -->` **chunks**; relations between chunks live as explicit
+edges in a **SpecGraph**; every generated file is owned by exactly one TDD. The payoff: an AI
+agent can be handed a *focused and provably complete* context bundle for any file it is asked
+to write, and every artifact traces back to a product requirement.
 
-**Status**: Redesign (the `prd-impl-task` three-state pipeline) implemented and dogfooded through v1.7 (latest: test/spec alignment and specgraph-first test expectations; v1.6: baseline PRD single-file + format enforcement; v1.5: task relocation, init incremental, skill/CLI resolution, sub-skills coverage). Single-user, Claude Code Skill. Slash commands invoked as `/ait <subcommand>` (space-separated). Multi-user collaboration and marketplace publication remain future work.
+Ships as a **Claude Code Skill** (`/ait <subcommand>`) over a JSON-only CLI.
 
-> **CLI invocation (v1.5+)**: every `ait ...` example below means the project-local wrapper `project-docs/.ait/ait-cli`, generated automatically by `ait init`. The only place you call the system-level entry `~/.claude/skills/ait/bin/ait` is the very first `init` (or `init --refresh-wrapper` after the skill is reinstalled to a different path). Do **not** use a relative `bin/ait` from the project root — it does not exist there.
+---
 
-## The Pipeline at a Glance
+## The mainline model
 
 ```
-/ait init                     bootstrap global baseline (fresh) OR diff-fill missing files (incomplete) — ready projects no-op
-        │
-        ▼
-/ait prd create "<title>"     discuss → write PRD chunks (four-section structure)
-/ait prd confirm  ───────────▶ write to version workspace
-/ait prd commit   ───────────▶ LOCK the PRD (frozen for this version)
-        │
-        ▼
-/ait impl create <prd-chunk>  design implementation (1 PRD chunk → N impl chunks)
-/ait impl commit  ───────────▶ pre-merge check (cycle + intra-version dup) → LOCK impl
-        │
-        ▼
-/ait task create <prd-chunk>  derive AI-coding task YAML from specgraph (impl_refs + global_refs + deps)
-/ait task execute <id>        emit token-focused context bundle → AI codes
-/ait task complete <id>       self-close: mark done + bind code_refs (git commit / file paths)
-        │
-        ▼
-/ait version confirm <vX.Y>   precheck (all tasks done + git clean) → merge to baseline
-                               → extract dynamic global from impl @extract → git commit (msg = title)
+[PRD]-app ──derives──▶ [FSD]-app                 problem → solution
+                          │
+                  (internal split)
+                          │
+              [FSD]-app:core ──decomposes──▶ [FSD]-core    recursive functional tree
+                          │
+                          └──details──▶ [TDD]-parser       leaf → implementation blueprint
+                                             │
+                                        target_file: src/parser.py
+
+[FSD]-app:a ──depends_on──▶ [FSD]-app:b          sibling capability dependency
 ```
 
-The whole version is an **atomic unit**: once a PRD/impl is committed it is immutable. The only escape hatch is `/ait version reset <vX.Y>` — wipe the version workspace and start over (no partial undo).
+Four relation types, four birthplaces. Relations are never inferred from naming and never
+hand-written into document bodies:
 
-## Development State Machine
+| Relation | Legal endpoints | Born from |
+|---|---|---|
+| `derives` | PRD root → root FSD | `fsd create <id> --parent <PRD-root>` |
+| `decomposes` | FSD split → child FSD root | `fsd decompose <parent> <child>` |
+| `details` | leaf FSD split → TDD root | `tdd create <id> --parent <split>` |
+| `depends_on` | two sibling splits under one parent | `depends_on:` yaml block inside `fsd create` content (stripped from disk once the edge exists) |
 
-This is the current implementation state machine. `coding` exists in the schema for compatibility, but the current code does not transition the version phase to `coding`; task progress is tracked only in task YAML.
+## Six invariants — enforced, not just documented
 
-```mermaid
-stateDiagram-v2
-    [*] --> NoActiveVersion
+| # | Invariant | Violation code |
+|---|---|---|
+| 1 | Each PRD root maps to exactly one FSD | `PRD_FSD_LINK_NOT_UNIQUE` |
+| 2 | Each TDD has exactly one FSD parent and one artifact | `TDD_MULTI_PARENT` / `TDD_TARGET_FILE_REQUIRED` |
+| 3 | Each artifact path is owned by exactly one TDD | `DUPLICATE_TARGET_FILE` |
+| 4 | Every edge endpoint is a real chunk (no ghost edges) | `MISSING_ENDPOINT` |
+| 5 | No orphan chunks outside the spec-tree roots | `ORPHAN_CHUNK` |
+| 6 | Every artifact traces TDD → FSD → … → PRD | `TRACE_BROKEN` / `SPEC_CYCLE` |
 
-    NoActiveVersion --> VersionEmpty: ait prd create <title>\nauto-create vX.Y
+Two enforcement layers: **write-time gates** reject increments that could never be legal
+(ghost endpoint, second TDD parent, artifact collision) with zero disk writes; the
+**confirm/merge gate** re-validates the full `baseline ∪ version` view before anything lands.
 
-    VersionEmpty --> ReqDraft: prd create
-    ReqDraft --> PrdDraft: prd save-draft
-    PrdDraft --> PrdConfirmed: prd confirm\nwrite versions/<v>/prd/*.md\nchunk state=working
-    PrdConfirmed --> PrdLocked: prd commit\nstage+commit PRD chunks\nphase=prd_locked
+## Version lifecycle
 
-    PrdLocked --> ImplWorking: impl create <prd-chunk>\nwrite versions/<v>/impl/*.md\nchunk state=working
-    ImplWorking --> ImplCommitted: impl commit <impl-chunk>\nstage+commit impl chunk\npre_merge_check
-    ImplCommitted --> ImplWorking: more impl chunks
-    ImplCommitted --> ImplLocked: impl lock\nphase=impl_locked
+One open version at a time. The phase machine forces strict top-down authoring:
 
-    ImplLocked --> TaskCreated: task create <prd-chunk>\nwrite versions/<v>/tasks/T-*.yaml
-    TaskCreated --> TaskExecuting: task execute <task-id>
-    TaskExecuting --> TaskDone: task complete\nstatus=done + code_refs
-    TaskExecuting --> TaskFailed: task fail
-    TaskFailed --> TaskExecuting: task execute retry
-    TaskDone --> AllTasksDone: all tasks done
-
-    AllTasksDone --> ConfirmPrecheck: version confirm <v>
-    ConfirmPrecheck --> MergeRollback: merge/extract/git failure\nrestore docs/
-    MergeRollback --> AllTasksDone: fix and retry
-    ConfirmPrecheck --> Merged: precheck ok\nmerge docs/\nextract dynamic global\npromote specgraph\ngit commit\nphase=merged
-    Merged --> [*]
-
-    PrdLocked --> Reset: version reset <v> --confirm
-    ImplWorking --> Reset
-    ImplCommitted --> Reset
-    ImplLocked --> Reset
-    TaskCreated --> Reset
-    TaskExecuting --> Reset
-    TaskFailed --> Reset
-    TaskDone --> Reset
-    Reset --> NoActiveVersion: delete version workspace/meta/tasks/specgraph
-
-    Merged --> ResetBlocked: reset refused\nmerged versions cannot reset
+```
+empty ─prd create→ prd-creating ─prd confirm→ prd-confirm
+      ─fsd create/decompose→ fsd-creating ─fsd confirm→ fsd-confirm
+      ─tdd create→ tdd-creating ─tdd confirm→ tdd-confirm
+      ─version merge→ merged
 ```
 
-Chunk state:
+- `version create <v>` — the only way to open a version. A second open version is refused
+  (`ACTIVE_VERSION_EXISTS`); an existing name is refused (no ghost versions).
+- `version commit <v>` — bulk-lock every `working` chunk to `committed`.
+- `version confirm <v>` — **pure gate**: six invariants + artifact acceptance + a persisted
+  reconciliation plan. Repeatable, zero content writes.
+- `version merge <v>` — **the only landing point**: executes the confirmed plan atomically,
+  then commits the docs repo. Any failure rolls back byte-for-byte (`MERGE_ROLLBACK`).
+- `version revert <v> --confirm` — escape hatch. Unmerged: wipe the workspace. Merged: reset
+  the docs repo (and the host repo) to that version's anchor tag.
+- Each layer has its own `confirm` / `revert` pair — every gate has a rework path.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Working: prd confirm / impl create
-    Working --> Staged: stage
-    Staged --> Committed: commit
-    Committed --> Baseline: version confirm / merge
-```
+## Discussion context & tokens
 
-Task state:
+Calling a `create` command **without content** returns a *discussion background* instead of
+writing anything: the relevant existing chunks, pulled along SpecGraph relations, plus a
+`context_token`. Content writes must carry that same token, which binds layer, target, parent
+anchor, file, action and the actual background it was derived from. Stale or mismatched
+tokens are rejected (`CONTEXT_TOKEN_STALE` / `CONTEXT_TOKEN_CONFLICT`). This is a continuity
+check, not authentication — `--skip-context` opts out explicitly and leaves an audit trace.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Created: task create
-    Created --> Executing: task execute
-    Executing --> Done: task complete
-    Executing --> Failed: task fail
-    Failed --> Executing: retry execute
-    Done --> [*]
-```
+## Docs / code isolation
 
-Version phase:
+`project-docs/` is its own Git repository, ignored by the host repo. AIT commits never touch
+your code history. `version merge` records the binding: `docs_commit`, `code_base`,
+`code_result`, plus a persistent `refs/tags/ait/<v>` revert anchor. Config is layered —
+`.meta/config.yaml` is shared and machine-independent, `.meta/config.local.yaml` holds
+machine-specific fields (`skill_dir`, `cli_path`, `wrapper_path`, `acceptance_command`) and is
+git-ignored. A corrupt config layer raises `CONFIG_UNREADABLE` rather than degrading to `{}` —
+gates fail closed.
 
-```mermaid
-stateDiagram-v2
-    [*] --> empty: version created
-    empty --> prd_locked: prd commit
-    prd_locked --> impl_locked: impl lock
-    impl_locked --> merged: version confirm
-```
-
-## Latest Changes
-
-### v1.7 - Test/spec alignment
-
-- Fixed the baseline PRD literal `@ref` example so parser regression tests no longer see a dangling `block-id` reference.
-- Updated index-manager tests to assert relationship behavior through `specgraph` instead of deprecated `links-index`.
-- Confirmed the full test suite is green after the v1.7 baseline merge (`126 passed`).
-
-## Why AIT
-
-When AI collaborates on PRD/impl documents, traditional Git falls short:
-
-- **Line-level diffs don't capture intent.** A PRD is a tree of semantic chunks, not lines.
-- **Cross-file relations are invisible.** `impl-api-recommend` implements `prd-book-recommend` — that should be a first-class link.
-- **AI needs focused context, not raw files.** When coding a task, the AI wants exactly its impl chunks + global constraints — not the whole repo. AIT's `task execute` hands the AI a minimal bundle (impl_refs ∪ global_refs), which is the core of its token-efficiency.
-
-AIT solves this with: **Chunk IDs** (`<!-- @id:xxx -->`), **Chunk references** (`<!-- @ref:... rel:implements -->`), **extract markers** (`<!-- @extract:dynamic/ddl#pet -->`), a **three-stage commit**, and a **specgraph** that records all chunk relations.
+---
 
 ## Install
 
-### As a Claude Code Skill (recommended)
-
-Requires Python 3.10+ on PATH. Internet access needed once for the first invocation.
+As a Claude Code Skill (recommended):
 
 ```bash
-git clone <repo-url> ait
-cd ait
-python install.py                  # fresh install
+git clone <this-repo> && cd Ait
+python install.py                 # installs to ~/.claude/skills/ait
+python install.py update          # upgrade, keeps the skill .venv
+python install.py uninstall
 ```
 
-This copies `skill/ait/` into `~/.claude/skills/ait/` and pre-warms the bundled `.venv`. Restart Claude Code and type `/ait init` (or `/ait prd <title>`) in any project that has a `project-docs/` subdirectory.
-
-**After the first `/ait init`** the project gets a thin local wrapper at `project-docs/.ait/ait-cli` that delegates to the installed skill. From that moment on, every project-side command (manual or skill-invoked) uses the wrapper — `init` is the only command that may be invoked through the system-level `bin/ait`. If you ever reinstall the skill to a different prefix, run `~/.claude/skills/ait/bin/ait init --refresh-wrapper` to point the wrapper at the new path.
-
-> **macOS note**: if the bundled venv fails to load native wheels (`dlopen ... different Team IDs`), rebuild the venv with Homebrew Python (`/opt/homebrew/bin/python3.13 -m venv ...`) instead of a hardened-runtime Python.
-
-**Upgrade** (refreshes `.venv` by default):
+For development:
 
 ```bash
-cd ait && git pull && python install.py update
-```
-
-Use `python install.py update --skip-venv` only when you want to copy files without refreshing the installed venv.
-
-| Command | Effect |
-|---------|--------|
-| `python install.py install` | Full install — wipes target (including `.venv`), copies fresh, re-runs pip install. |
-| `python install.py update` | In-place upgrade — overwrites files and refreshes the installed `.venv`. Use after `git pull`. |
-| `python install.py update --skip-venv` | Fast file-only upgrade — overwrites files and leaves `.venv` untouched. |
-| `python install.py uninstall` | Remove the installed skill. |
-| `--prefix PATH` | Install to a custom directory. |
-| `--force` | Skip confirmation prompts. |
-| `--no-venv-warmup` | Skip first-run pip install. |
-
-### For development
-
-```bash
-git clone <repo-url> ait && cd ait
 uv venv && uv pip install -e ".[dev]"
-uv run pytest
-uv run ait --help
+uv run pytest                     # 362 passing
 ```
 
-## Quickstart — the full loop
-
-AIT manages documentation inside a hardcoded `project-docs/` subdirectory at the **current working directory**. Every `ait` command runs from the parent of `project-docs/`.
+## Quickstart — zero to merged
 
 ```bash
-# 0. Bootstrap the global baseline (run once per project; refused if already managed).
-ait init
-# Creates docs/global/{overview,tech-stack}.md (static) + {ddl,schema,api}.md (dynamic skeletons).
+mkdir my-project && cd my-project
 
-# 1. PRD — discuss, write, lock.
-ait prd create "宠物建档"
-cat > /tmp/pet-prd.md <<'EOF'
-<!-- @id:prd-pet-archive -->
-## 宠物建档
+# 1. Bootstrap. Creates project-docs/ (+ its own git repo), the PRD/FSD roots,
+#    the derives edge, empty baseline stores, and the project-local wrapper.
+~/.claude/skills/ait/bin/ait init --new-model --name my_project
 
-### 概述
-宠物档案创建。
+AIT="project-docs/.ait/ait-cli"        # every later call goes through this
 
-### 业务规则
-- 名称必填
+# 2. Open a version.
+$AIT version create v0.1
 
-### 验收标准
-- [ ] 能创建档案并持久化
+# 3. PRD — discuss first (no --content returns background + context_token), then write.
+$AIT prd create "[PRD]-my_project"
+$AIT prd create "[PRD]-my_project" --content-file prd.md --action modify \
+     --context-token ctx-v1.<digest>
+$AIT prd confirm
 
-### 边界与非目标
-- 不做跨用户共享
-EOF
-ait prd save-draft req-001 --content-file /tmp/pet-prd.md
-ait prd confirm req-001 --file pet
-ait prd commit  prd/pet -m "宠物建档 PRD"      # ← locks the PRD
+# 4. FSD — derive the solution tree from the PRD.
+$AIT fsd create "[FSD]-my_project" --parent "[PRD]-my_project" --content-file fsd.md \
+     --context-token ctx-v1.<digest>
+$AIT fsd decompose "[FSD]-my_project:core" "[FSD]-core" --content-file core.md \
+     --context-token ctx-v1.<digest>
+$AIT fsd confirm
 
-# 2. impl — design implementation, mark extractable fragments, lock.
-cat > /tmp/pet-impl.md <<'EOF'
-<!-- @id:impl-pet-archive-ddl -->
-## 宠物档案数据模型
+# 5. TDD — one blueprint per target file.
+$AIT tdd create "[TDD]-parser" --parent "[FSD]-core:parse" --content-file tdd.md \
+     --context-token ctx-v1.<digest>
+$AIT tdd confirm
 
-软删除 + OSS key。
+# 6. codegen — get the focused bundle, let the AI write the code.
+$AIT codegen prepare "[TDD]-parser"
 
-<!-- @extract:dynamic/ddl#pet -->
-```sql
-CREATE TABLE pet (id BIGINT PRIMARY KEY, name VARCHAR(50) NOT NULL);
-```
-<!-- @extract-end -->
-EOF
-ait impl create prd-pet-archive --content-file /tmp/pet-impl.md
-ait impl commit impl-pet-archive-ddl -m "数据模型"   # ← pre-merge check, then locks impl
-
-# 3. task — derive, execute, self-close.
-ait task create prd-pet-archive          # → T-pet-archive-01 (impl_refs / global_refs / deps)
-ait task execute T-pet-archive-01        # → emits focused context bundle for the AI
-# ... AI writes code, then:
-ait task complete T-pet-archive-01 --commit <hash> --path src/pet.py
-
-# Aside (v1.5): task YAML lives at versions/<v>/tasks/T-*.yaml — co-located with the version it serves.
-# A summary of all tasks in a version is also indexed at .meta/versions/{vX.Y}.yaml#tasks_summary.
-
-# 4. version confirm — merge to baseline + extract dynamic global + git commit.
-ait version confirm v1.0
-# docs/ gets the chunks, docs/global/ddl.md gets the extracted `pet` table,
-# and a git commit lands with message = the version title.
+# 7. Land it.
+$AIT acceptance set "uv run pytest -q"     # gates confirm & merge
+$AIT version commit v0.1
+$AIT version confirm v0.1
+$AIT version merge v0.1
 ```
 
-## Supported Commands
+`codegen prepare` **does not write code**. It returns the TDD body, the upstream chain to the
+PRD, the capability contracts of `depends_on` siblings, `target_file` and its current content.
+The Skill layer drives the AI from there.
 
-Current CLI surface:
+## Command surface
 
-| Area | Commands |
+| Group | Commands |
 |---|---|
-| lifecycle | `init`, `reindex`, `state`, `lint`, `baseline-summary`, `migrate-block-to-chunk` |
-| PRD | `prd create`, `prd save-draft`, `prd resolve-candidates`, `prd confirm`, `prd show`, `prd commit` |
-| impl | `impl create`, `impl show`, `impl commit`, `impl inherit`, `impl lock` |
-| task | `task create`, `task list`, `task show`, `task execute`, `task complete`, `task fail` |
-| version | `version status`, `version merge`, `version confirm`, `version reset` |
-| query/context | `context`, `search`, `deps`, `impact` |
-| specgraph | `specgraph sync`, `specgraph add-edge`, `specgraph query`, `specgraph export` |
+| bootstrap | `init [--new-model --name N] [--check] [--refresh-wrapper] [--skip a,b] [--migrate [--apply]]` |
+| prd | `create` · `confirm` · `revert` |
+| fsd | `create` · `decompose` · `confirm` · `revert` |
+| tdd | `create` · `confirm` · `revert` |
+| codegen | `prepare <[TDD]-id>` |
+| acceptance | `set "<cmd>"` · `run` |
+| version | `create` · `commit` · `confirm` · `merge` · `revert` · `status` |
+| specgraph | `sync` · `query` · `export` · `graph-html` · `validate-new-model` |
+| query | `state` · `search` · `deps` · `impact` · `context` · `baseline-summary` · `reindex` · `lint` |
+| legacy | `prdv1 ...` · `impl ...` · `task ...` · `migrate-block-to-chunk` |
 
-All commands must run from the parent directory that contains `project-docs/`. After `init`, use the project-local wrapper (`project-docs/.ait/ait-cli` or `project-docs/.ait/ait-cli.cmd`) for project-side invocations.
+Every command prints exactly one JSON object on stdout:
 
-## Command Reference
-
-### Global / lifecycle
-
-| Command | Action |
-|---------|--------|
-| `ait init` | Bootstrap or diff-fill the global baseline (`docs/global/*`). Three modes auto-detected: **fresh** (creates everything), **incomplete** (only fills missing files / config — never touches existing user content), **ready** (no-op). Use `--check` for a dry-run report and `--skip <file>` to opt out of specific files. Does not consume a version number. |
-| `ait reindex` | Rescan `docs/`; rebuild `chunks-index.yaml` + baseline `specgraph.yaml`. |
-| `ait state [--version vX.Y] [--save]` | Render the version progress panel (title, phase, lock flags, impl coverage, task progress). `--save` writes `versions/<v>/state.md`. |
-
-### PRD
-
-| Command | Action |
-|---------|--------|
-| `ait prd create <title>` | Create a requirement; auto-creates a version if none is active. |
-| `ait prd save-draft <req-id> --content-file <path\|->` | Save AI-discussed PRD markdown into `.meta/requirements/`. |
-| `ait prd confirm <req-id> --file <slug>` | Materialize the draft into `versions/<v>/prd/<slug>.md` (writes + refreshes `state.md`). |
-| `ait prd show <prd-file> [chunk-id]` | View a PRD file outline or one chunk. |
-| `ait prd commit <prd-file> -m <msg>` | Stage + commit PRD chunks **and lock the PRD** for this version. |
-
-### PRD additional commands
-
-| Command | Action |
-|---------|--------|
-| `ait prd resolve-candidates --from-file <yaml>` | Persist skill-produced PRD candidate decisions into the active version workspace. |
-
-### impl
-
-| Command | Action |
-|---------|--------|
-| `ait impl create <prd-chunk-id> --content-file <path\|->` | Add impl markdown; auto-attach `@ref ... rel:implements`. One PRD chunk → N impl chunks. Refused if impl is locked. |
-| `ait impl show <impl-chunk-id>` | View one impl chunk. |
-| `ait impl commit <impl-chunk-id> -m <msg>` | Stage + commit; runs **pre-merge check** (dependency cycle + intra-version duplicate `@id`/`@extract` target). Source PRD chunk must already be committed. |
-
-### Impl additional commands
-
-| Command | Action |
-|---------|--------|
-| `ait impl inherit <prd-chunk-id>` | Copy baseline impl chunks for a PRD into the active version workspace (reuse in incremental versions). |
-| `ait impl lock [--version <v>]` | Lock impl for the version, advancing phase to `impl_locked` (must run after all impl chunks are committed). |
-
-### task
-
-| Command | Action |
-|---------|--------|
-| `ait task create [prd-chunk]` | Derive task YAML(s) from the PRD chunk's impl coverage (via specgraph). No id → list PRD chunks still pending a split. |
-| `ait task list [--version vX.Y]` | List tasks with status / source_chunk / deps. |
-| `ait task show <task-id>` | Show a full task YAML. |
-| `ait task execute [task-id\|prd-chunk]` | Mark task(s) `executing` and emit the focused context bundle (impl_refs ∪ global_refs only). Dependency-gated. No selector → all pending. |
-| `ait task complete <id> [--commit <hash>] [--path <p> ...]` | Mark `done` + bind `code_refs`. This is execute's self-close — there is no `task confirm`. |
-| `ait task fail <task-id>` | Mark `failed` (re-runnable via `execute`). |
-
-### version
-
-| Command | Action |
-|---------|--------|
-| `ait version status <vX.Y>` | working / staged / committed counts. |
-| `ait version confirm <vX.Y> [--allow-dirty-git]` | Atomic: precheck (all tasks `done` + git clean) → merge to baseline → extract dynamic global from impl `@extract` → promote specgraph → git commit (message = version title). Rolls back `docs/` if anything fails. |
-| `ait version merge <vX.Y>` | Low-level merge of committed chunks into baseline (`confirm` calls this internally). |
-| `ait version reset <vX.Y> --confirm` | **Escape hatch**: physically delete the version workspace + indices + `specgraph-{v}.yaml` + tasks. Merged versions cannot be reset. |
-
-### Query / graph
-
-| Command | Action |
-|---------|--------|
-| `ait deps <chunk-id>` | Outgoing dependencies (implements / depends-on) from specgraph. |
-| `ait impact <chunk-id>` | Reverse-reachable chunks (what breaks if this changes). |
-| `ait specgraph sync` | Rebuild specgraph from `docs/` + version workspaces. |
-| `ait specgraph add-edge <src> <dst> --rel <rel>` | Manually add an edge to the specgraph. |
-| `ait specgraph query <chunk-id> [--deps\|--implements]` | Query the relation graph. |
-| `ait specgraph export [--format dot]` | Export the graph (Graphviz DOT). |
-| `ait context <chunk-id> --scenario {prd-to-impl,impl-edit}` | Assemble L1+L2 AI context as JSON. |
-| `ait search <query>` | Full-text search across chunks. |
-
-### Lint / maintenance
-
-| Command | Action |
-|---------|--------|
-| `ait lint [--scope {baseline,version,vX.Y}] [--fix]` | Validate PRD (four sections) / impl (`@ref` integrity) formatting. `--fix` auto-fills missing PRD sections. |
-| `ait baseline-summary [--scope {prd,impl,all}] [--format {yaml,json}]` | List baseline chunk summaries (useful for prompt budgeting). |
-| `ait reindex` | Rebuild baseline `chunks-index.yaml` + `specgraph.yaml` from `docs/`. Also refreshes per-version `tasks_summary`. |
-| `ait migrate-block-to-chunk [--dry-run]` | One-time v1.1→v1.2 data migration (rename `block` → `chunk` in `.meta/*.yaml`). |
-
-Every command emits a single JSON object: `{"ok": true, "data": {...}}` or `{"ok": false, "error": "...", "code": "..."}`.
-
-## Project-Managed Layout
-
-`ait` resolves its working root by checking for `project-docs/` as a direct subdirectory of the current working directory. The name is hardcoded; there is no override.
-
-```
-<cwd>/                              # ← run `ait` from here, NOT inside project-docs/
-└── project-docs/
-    ├── docs/                       # baseline — source of truth
-    │   ├── prd/
-    │   ├── impl/
-    │   └── global/                 # init-generated: overview, tech-stack (static)
-    │       │                       #                 ddl, schema, api (dynamic, from @extract)
-    │       └── ...
-    ├── versions/{vX.Y}/            # per-version incremental workspaces
-    │   ├── prd/  ├── impl/  ├── tasks/T-*.yaml  └── state.md
-    └── .meta/                      # machine-readable indices
-        ├── config.yaml
-        ├── chunks-index.yaml           # baseline chunk台账
-        ├── chunks-index-{vX.Y}.yaml    # version chunk台账 (action/state/commit_id)
-        ├── specgraph.yaml              # baseline relation graph
-        ├── specgraph-{vX.Y}.yaml       # per-version relation graph (split-file)
-        ├── versions/{vX.Y}.yaml        # version meta (phase / locks / title / tasks_summary)
-        # task YAMLs live at versions/{vX.Y}/tasks/T-*.yaml (v1.5 — co-located with the version)
-        ├── requirements/req-NNN.yaml
-        ├── changes/chg-NNN.yaml
-        └── snapshots/{vX.Y}/
+```json
+{"ok": true,  "data": {...}}
+{"ok": false, "error": "...", "code": "..."}
 ```
 
-> **`links-index.yaml` is deprecated.** All chunk relations now live in `specgraph`. See "Two indices" below.
-
-Error codes: `NOT_AT_PROJECT_ROOT`, `PROJECT_DOCS_MALFORMED`, `CWD_INSIDE_PROJECT_DOCS`, `PRD_NOT_COMMITTED`, `LOCKED` (writing a locked PRD/impl), `PREMERGE_FAILED`, `TASK_NOT_DONE` / `GIT_DIRTY` (version confirm precheck), `MERGE_ROLLBACK`.
-
-> Shell-level pitfall (not a CLI return code): if you see `zsh:1: no such file or directory: bin/ait`, you are calling a non-existent relative path. Switch to `project-docs/.ait/ait-cli <subcmd>`. AIT documents this as `ENOENT_BIN_AIT` for traceability; it is **not** registered in `ait/schemas.py` and never reaches `ait-resume`.
-
-## Two indices: chunks-index vs specgraph
-
-Both index the **same chunks** but from different angles:
-
-| | `chunks-index-{v}.yaml` | `specgraph[-{v}].yaml` |
-|---|---|---|
-| **Manages** | each chunk's own **state** | relations **between** chunks |
-| **Shape** | flat list (state / action / commit_id / file) | directed graph (specs + `implements`/`depends-on` edges) |
-| **Answers** | "what stage is this chunk at?" | "what implements / depends on this chunk?" |
-| **Consumed by** | `version status` / `commit` / `merge` | `task create` (impl_refs), `deps` / `impact` / pre-merge cycle check |
-
-Both follow the same split-file convention: one global baseline file + one per version (`{name}-{v}.yaml`), so `version reset` is a clean `rm`.
-
-## Chunk & extract format
-
-```markdown
-<!-- @id:impl-pet-archive-ddl -->
-## 宠物档案数据模型
-
-设计说明（纯文本，不提取）。
-
-<!-- @extract:dynamic/ddl#pet -->
-```sql
-CREATE TABLE pet (id BIGINT PRIMARY KEY, name VARCHAR(50) NOT NULL);
-```
-<!-- @extract-end -->
-
-<!-- @ref:prd/pet#prd-pet-archive rel:implements -->
-```
-
-- `@id:` — globally unique chunk id (`{type}-{domain}-{name}`, lowercase + hyphens).
-- `@ref:` — cross-chunk link (`implements` / `depends-on` / `refines` / `see-also`).
-- `@extract:dynamic/{type}#{chunk} ... @extract-end` — marks a fragment that `version confirm` extracts into `docs/global/{type}.md` (DDL / schema / api). **Dynamic global content comes ONLY from impl `@extract`** — never edit it by hand.
-
-Full spec: [project-docs/docs/impl/chunk-system.md](project-docs/docs/prd/chunk-system.md).
-
-## PRD chunk structure (four sections)
-
-PRD chunks use a fixed structure so tasks split cleanly:
-
-```markdown
-<!-- @id:prd-xxx -->
-## 标题
-### 概述            # one-line value
-### 业务规则        # the basis for splitting tasks
-### 验收标准        # the done-criteria for tasks
-### 边界与非目标     # prevents AI over-reach
-```
-
-## Three-Stage Commit + version atomicity
+## Layout
 
 ```
-working ──stage──► staged ──commit──► committed ──confirm/merge──► baseline
+<project-root>/                     # run all commands from here
+└── project-docs/                   # hard-coded name; its own git repo
+    ├── docs/{prd,fsd,tdd}/         # baseline — what merge lands into
+    ├── versions/vX.Y/{prd,fsd,tdd}/ + state.md
+    ├── .ait/ait-cli                # project-local wrapper (generated, git-ignored)
+    └── .meta/
+        ├── chunks-index.yaml            # chunk state (baseline)
+        ├── chunks-index-vX.Y.yaml       # chunk state (per version)
+        ├── specgraph.yaml / -vX.Y.yaml  # chunk relations
+        ├── versions/vX.Y.yaml           # phase, plan, git bindings
+        ├── config.yaml / config.local.yaml
+        └── changes/chg-NNN.yaml
 ```
 
-| State | Mutable? | Counts for merge? |
-|-------|----------|-------------------|
-| working | yes | no |
-| staged | yes (back to working) | no |
-| committed | no — **locks the PRD/impl** | yes |
+`chunks-index` owns *chunk state*; `specgraph` owns *chunk relations*. Both are split into a
+baseline file plus one file per version. Never edit `docs/`, `versions/` or `.meta/` by hand —
+route everything through the CLI.
 
-A version is all-or-nothing: there is no partial undo. To change anything after a commit, `version reset` and rebuild.
+## Constraints by design
 
-## Testing
+- Run from the directory *containing* `project-docs/`, never from inside it. No `--project`
+  flag, no `AIT_ROOT`, no marker-file search (`NOT_AT_PROJECT_ROOT`, `CWD_INSIDE_PROJECT_DOCS`).
+- No system-wide `ait` binary — the project-local wrapper is the entry point (`init` itself is
+  the one exception, invoked from the skill directory).
+- The CLI never generates business code; it derives context and records state.
+- No multi-user locking. Single-writer model.
+- `chunk delete` is not implemented — `add` / `modify` cover current needs.
+- The legacy `prdv1 → impl → task` pipeline still runs but is frozen.
 
-```bash
-uv run pytest                    # full suite
-# Against skill source with the bundled venv:
-PYTHONPATH=skill/ait .codebuddy/skills/ait/.venv/bin/python -m pytest tests/ -q
-```
+## Docs
 
-## Sub-skills
+| File | Contents |
+|---|---|
+| [USER_GUIDE.md](USER_GUIDE.md) | Task-oriented walkthrough, per-command reference, troubleshooting |
+| [DESIGN.md](DESIGN.md) | Architecture, design rationale, module map |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill contract — authoritative command routing |
+| [skill/ait/references/new-model-format.md](skill/ait/references/new-model-format.md) | **Authoritative** PRD/FSD/TDD format spec |
+| [skill/ait/templates/](skill/ait/templates/) | Document skeletons shipped with the skill |
 
-AIT routes specific workflows to focused sub-skills under `skill/ait/sub-skills/`:
+## Dogfooding
 
-| Sub-skill | Trigger | Purpose |
-|---|---|---|
-| `ait-discuss` | `/ait prd <title>` | Three-stage PRD discussion (Clarify → Design → Generate) and CLI persistence. |
-| `ait-impl-discuss` | `/ait impl <prd-chunk-id>` | Plan/generate impl chunks (with `@extract`) and register them via CLI. |
-| `ait-state` | `/ait state` / progress queries / task list | Render version state.md and answer chunk-three-state / impl-coverage / task-status questions in one place. |
-| `ait-resume` | CLI returns an error code | Map JSON `code` to recovery steps (including `version reset` guidance). |
-| `ait-init-guide` | `init` enters incomplete mode | Walk through global-file diff fill; the CLI itself decides fresh/incomplete/ready, the skill no longer pre-classifies. |
-| `ait-task-execute` | `/ait task execute <id>` | Drive AI coding from the focused context bundle and call `task complete/fail`. |
+AIT is built with AIT. [project-docs/](project-docs/) holds its own PRD (16 chunks), 17 FSD
+files and 46 TDD files — each TDD owning exactly one source, test, reference or template file.
+Every release since v2.0 went through the full `version create → prd → fsd → tdd → codegen →
+confirm → merge` loop. `project-docs-v1/` is the archived legacy-model baseline.
 
-## Documentation
-
-- [project-docs/docs/prd/](project-docs/docs/prd/) — product requirements (dogfooded by AIT itself; see `ait-redesign.md`).
-- [project-docs/docs/impl/](project-docs/docs/impl/) — implementation specs.
-- `project-docs/` is the authoritative design source; design changes go through PRD/impl there first, then code follows.
-
-## License
-
-MIT (see pyproject.toml).
+MIT licensed.

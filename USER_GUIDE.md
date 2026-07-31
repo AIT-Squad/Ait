@@ -1,600 +1,670 @@
 # AIT 用户使用文档
 
-> AI-Assisted Document Versioning — 面向 AI 协作文档的块级版本控制系统，提供完整的 `prd → impl → task → code` AI 开发流水线。
+面向**使用者**的操作手册。设计原理见 [DESIGN.md](DESIGN.md)，格式规范权威源见
+[skill/ait/references/new-model-format.md](skill/ait/references/new-model-format.md)。
 
 ## 目录
 
-- [1. 快速开始](#1-快速开始)
-- [2. 核心心智模型](#2-核心心智模型)
-- [3. 项目初始化（init）](#3-项目初始化init)
-- [4. 完整流水线总览](#4-完整流水线总览)
-- [5. PRD 管理流程](#5-prd-管理流程)
-- [6. 实现规划流程（impl）](#6-实现规划流程impl)
-- [7. 任务开发流程（task）](#7-任务开发流程task)
-- [8. 版本合并与重置](#8-版本合并与重置)
-- [9. 索引与关系查询](#9-索引与关系查询)
-- [10. 常见问题](#10-常见问题)
-- [附录：命令速查表](#附录命令速查表)
+1. [快速开始](#1-快速开始)
+2. [核心心智模型](#2-核心心智模型)
+3. [项目初始化](#3-项目初始化)
+4. [完整流水线](#4-完整流水线)
+5. [PRD 层](#5-prd-层)
+6. [FSD 层](#6-fsd-层)
+7. [TDD 层](#7-tdd-层)
+8. [codegen 与制品验收](#8-codegen-与制品验收)
+9. [版本收口：commit / confirm / merge](#9-版本收口commit--confirm--merge)
+10. [返工与回滚](#10-返工与回滚)
+11. [查询与诊断命令](#11-查询与诊断命令)
+12. [错误码与恢复](#12-错误码与恢复)
+13. [Skill 与 sub-skills](#13-skill-与-sub-skills)
+14. [legacy 流水线](#14-legacy-流水线)
 
 ---
 
 ## 1. 快速开始
 
-### 1.1 安装 AIT（作为 Claude Code Skill）
-
-AIT 推荐以 Skill 形式安装到 `~/.claude/skills/ait/`：
+### 1.1 安装
 
 ```bash
-git clone <repo-url> ait
-cd ait
-python install.py            # 全新安装
-# 或 python install.py update  （已有安装时升级，保留 .venv）
+git clone <repo> && cd Ait
+python install.py                      # 安装到 ~/.claude/skills/ait
+python install.py update               # 升级（保留 .venv，快）
+python install.py update --skip-venv   # 只更新文件
+python install.py uninstall
+python install.py --prefix /custom/path
 ```
 
-安装后重启 Claude Code，进入任意带 `project-docs/` 子目录的项目，使用 `/ait <subcmd>` 触发。
+首次运行 `bin/ait` 时会在 skill 目录内自建 `.venv` 并装依赖，无需手工处理。
 
-> **macOS 提示**：若 venv 加载原生 wheel 报 `dlopen ... different Team IDs`，改用 Homebrew Python 重建 venv（`/opt/homebrew/bin/python3.13 -m venv ...`），不要用带 hardened runtime 的 Python。
+### 1.2 两个入口，别混用
 
-### 1.2 CLI 入口（v1.5+ 双轨制）
+| 场景 | 入口 |
+|---|---|
+| 首次 `init`、路径变更后 `init --refresh-wrapper` | `~/.claude/skills/ait/bin/ait` |
+| 其余**所有**命令 | `project-docs/.ait/ait-cli` |
 
-AIT 的 CLI 有两个入口，**用途严格区分**：
+`init` 会生成项目本地 wrapper `project-docs/.ait/ait-cli`（Windows 为 `ait-cli.cmd`），
+它记住了 skill 路径。**不存在系统级全局 `ait` 命令**，不要假设 `ait` 在 PATH 里。
 
-| 入口 | 何时用 | 例子 |
-|------|--------|------|
-| `~/.claude/skills/ait/bin/ait` | 仅 `init`（项目本地 wrapper 尚未生成时）和 `init --refresh-wrapper`（skill 重装到新路径时刷新本地 wrapper） | `~/.claude/skills/ait/bin/ait init` |
-| `project-docs/.ait/ait-cli` | `init` 之后所有命令都走这里（由 `init` 自动生成的项目本地薄壳，会读 `.meta/config.yaml#skill_path` 跳到正确的 skill 安装位置） | `project-docs/.ait/ait-cli prd commit prd/foo -m "..."` |
-
-**绝对不要**在项目根用相对路径 `bin/ait`——项目根没有这个文件，shell 会报 `no such file or directory: bin/ait`。AIT 文档把这种情况标记为 `ENOENT_BIN_AIT`（仅作为 pitfall 标识，不是 CLI 真实错误码）。
-
-### 1.3 验证安装
+本文后续统一记作：
 
 ```bash
-# 验证 skill 入口可用
-~/.claude/skills/ait/bin/ait --help
-
-# 项目执行 init 后验证本地 wrapper
-project-docs/.ait/ait-cli --help
+AIT="project-docs/.ait/ait-cli"
 ```
 
-### 1.4 项目布局
+### 1.3 运行目录
 
-AIT 管理的文档位于项目根目录下的 `project-docs/`：
+必须在**包含 `project-docs/` 的目录**（项目根）下运行：
 
-```
-<cwd>/                              ← 项目根目录（在此运行 ait，不要进 project-docs/）
-└── project-docs/
-    ├── .ait/                       ← init 自动生成：本项目的 CLI 薄壳 wrapper
-    │   └── ait-cli                 ← v1.5+ 项目侧统一入口
-    ├── docs/                       ← 基线，合并后的真实状态
-    │   ├── prd/
-    │   ├── impl/
-    │   └── global/                 ← init 生成：overview/tech-stack(静态) + ddl/schema/api(动态)
-    ├── versions/{vX.Y}/            ← 每个版本的增量工作区
-    │   ├── prd/  ├── impl/
-    │   ├── tasks/T-*.yaml          ← v1.5：task YAML 与版本同位
-    │   └── state.md
-    └── .meta/                      ← 机器可读索引
-        ├── chunks-index.yaml        ← 基线块台账（状态视角）
-        ├── chunks-index-{vX.Y}.yaml ← 版本块台账
-        ├── specgraph.yaml           ← 基线关系图（关系视角，替代 links-index）
-        ├── specgraph-{vX.Y}.yaml    ← 每版本关系图（分文件）
-        ├── versions/{vX.Y}.yaml      ← 版本 meta（phase/锁定/title/tasks_summary）
-        ├── requirements/req-NNN.yaml
-        └── changes/chg-NNN.yaml
+```bash
+cd /path/to/my-project      # 这里有 project-docs/ 子目录
+$AIT state
 ```
 
-> **重要**：必须从包含 `project-docs/` 的**项目根目录**运行 AIT，不要在 `project-docs/` 内部运行。
->
-> **v1.5 变更提示**：task YAML 已从 `.meta/tasks/{vX.Y}/T-*.yaml` 迁移到 `versions/{vX.Y}/tasks/T-*.yaml`，与服务的版本同位。`.meta/versions/{vX.Y}.yaml` 增加 `tasks_summary` 字段汇总所有 task 状态。若 CLI 输出告警 `legacy task path detected: project-docs/.meta/tasks`，说明该目录仍存在历史 task，按提示手动清理（v1.5 已合并版本不影响）。
+- 在 `project-docs/` 内部运行 → `CWD_INSIDE_PROJECT_DOCS`
+- 当前目录没有 `project-docs/` → `NOT_AT_PROJECT_ROOT`（`init` 例外，它负责创建）
+- `project-docs/` 存在但缺 `docs/` 或 `.meta/` → `PROJECT_DOCS_MALFORMED`
+
+目录名 `project-docs` 硬编，没有 `--project`、没有 `AIT_ROOT`、不向上递归找 marker。
+
+### 1.4 输出契约
+
+所有命令 stdout 恒为**单个 JSON 对象**：
+
+```json
+{"ok": true,  "data": {...}}
+{"ok": false, "error": "人类可读原因", "code": "STABLE_ERROR_CODE"}
+```
+
+提示信息一律走 stderr，不污染 stdout。写脚本时按 `code` 分支，不要解析 `error` 文本。
 
 ---
 
 ## 2. 核心心智模型
 
-理解三件事，就理解了 AIT 的全部行为：
+### 2.1 chunk 是最小单元
 
-### 2.1 版本是原子单元
+文档被 `<!-- @id:xxx -->` 切成 chunk。版本控制、关联、合并、锁定全部以 chunk 为单位，
+不是以文件为单位。同一文件里的不同 chunk 可以处于不同状态。
 
-- **commit 即锁定**：`prd commit` 锁定 PRD，`impl commit` 锁定 impl。锁定后本版本**不可再改**。
-- **无局部撤销**：要反悔只能 `ait version reset <vX.Y> --confirm` —— 物理删除整个版本工作区，回到空白重来（不保留快照）。
-- 一个版本要么完整走完 `version confirm` 合入基线，要么整版重置。没有"只改一块"。
+### 2.2 文档正文零关系声明
 
-### 2.2 三态提交
+PRD/FSD/TDD 的 markdown 正文**不写任何 chunk 间关系**。四种关系只存在于 SpecGraph，
+由命令原子产生：
 
-```
-working ──stage──► staged ──commit──► committed ──confirm/merge──► baseline
-```
-
-| 状态 | 可改？ | 参与合并？ |
-|------|--------|-----------|
-| working | 是 | 否 |
-| staged | 是（可退回 working） | 否 |
-| committed | 否（锁定 PRD/impl） | 是 |
-
-### 2.3 两个索引各管一摊
-
-| | `chunks-index` | `specgraph` |
+| 关系 | 含义 | 出生地 |
 |---|---|---|
-| 管什么 | 块**自身的状态**（state/action/commit_id） | 块**之间的关系**（implements/depends-on） |
-| 回答 | "这块到哪一步了？" | "这块跟谁有关？" |
-| 谁用 | `version status` / `commit` / `merge` | `task create` / `deps` / `impact` / pre-merge 校验 |
+| `derives` | PRD 根 → 根 FSD（问题→方案） | `fsd create --parent <PRD根>` |
+| `decomposes` | FSD split → 子 FSD 根（向下拆分） | `fsd decompose <parent> <child>` |
+| `details` | 叶 FSD split → TDD 根（细化） | `tdd create --parent <split>` |
+| `depends_on` | 同父兄弟 split 间依赖 | `fsd create` 内容里的 `depends_on:` yaml 块（建边后从磁盘剥离） |
 
-> `links-index.yaml` 已废弃，所有关系查询走 specgraph。
+没有 `link` 命令、没有 `depend` 命令。`target_file` 是 chunk→文件的属性（不是 chunk 间关系），
+所以留在 TDD 正文。
+
+### 2.3 一次只有一个开放版本
+
+`version create` 是唯一开版本入口。已有未 merged 版本时报 `ACTIVE_VERSION_EXISTS`——
+上一版必须先 merge 或 revert。版本名已存在也报错，杜绝"幽灵版本"。
+
+### 2.4 三态锁定
+
+chunk 在版本工作区经历 `working → staged → committed`：
+
+- **working**：可反复改（同 id 就地替换）
+- **committed**：本版本内冻结，再改报 `CHUNK_LOCKED`
+- 层级 `confirm` 冻结该层，层级 `revert` 解锁返工
+
+### 2.5 严格自顶向下（phase 状态机）
+
+```
+empty ──prd create──▶ prd-creating ──prd confirm──▶ prd-confirm
+      ──fsd create/decompose──▶ fsd-creating ──fsd confirm──▶ fsd-confirm
+      ──tdd create──▶ tdd-creating ──tdd confirm──▶ tdd-confirm
+      ──version merge──▶ merged
+```
+
+每个写入口先校验 phase，不满足就拒绝且**零落盘**（可原地修正重试）。改任何一层都必须从
+PRD 逐层往下走——`add` 与 `modify` 门禁完全相同，迭代也不例外。
+
+### 2.6 confirm 与 merge 分离
+
+- `version confirm` = **纯门禁**：跑六不变式 + 制品验收，持久化一份合并计划。可重复跑、
+  零内容落盘、不合入。
+- `version merge` = **唯一落盘点**：执行已确认的计划，失败字节级回退。
+
+计划带输入指纹；confirm 之后版本内容再变，merge 会报 `CONFIRMATION_STALE`，要求重新 confirm。
+
+### 2.7 docs 仓与代码仓隔离
+
+`project-docs/` 是**独立 git 仓库**，被宿主仓 `.gitignore` 排除。AIT 的提交不碰你的代码历史。
+`version merge` 记录跨仓绑定：`docs_commit`（docs 侧提交）、`code_base`（merge 时宿主 HEAD）、
+`code_result`（验收后宿主 HEAD）、以及持久回滚锚 `refs/tags/ait/<v>`。
+
+### 2.8 配置分层
+
+| 层 | 文件 | 内容 | 是否入 git |
+|---|---|---|---|
+| 共享 | `.meta/config.yaml` | `initialized`、`auto_snapshot_on_merge` | 是（docs 仓） |
+| 机器本地 | `.meta/config.local.yaml` | `skill_dir`、`cli_path`、`wrapper_path`、`acceptance_command` | 否（被 ignore） |
+
+读取时合并两层、本地层优先。**某层存在但损坏时报 `CONFIG_UNREADABLE`，绝不降级成空配置**——
+否则依赖配置的验收门禁会把"读不到"误判成"没配置"而放行。
 
 ---
 
-## 3. 项目初始化（init）
+## 3. 项目初始化
 
-新项目第一步是 `init`，生成或补齐全局基线。**v1.5 起 `init` 不再强行拒绝已纳管的项目**：CLI 自动判别项目状态并采取相应动作。
-
-```
-/ait init
-```
-
-或 CLI（首次 init 时项目侧 wrapper 还没生成，必须用 skill 入口）：
+### 3.1 空目录起步
 
 ```bash
-~/.claude/skills/ait/bin/ait init
+mkdir my-project && cd my-project
+~/.claude/skills/ait/bin/ait init --new-model --name my_project
 ```
 
-### 3.1 三种状态自动识别
+一条命令完成：
 
-| 状态 | 触发条件 | 行为 |
-|------|----------|------|
-| **fresh** | 没有 `project-docs/` 或 `.meta/config.yaml#initialized != true` | 创建完整 `docs/global/*`、写 `config.yaml`、生成 `project-docs/.ait/ait-cli` wrapper |
-| **incomplete** | 已 `initialized` 但 `docs/global/{overview,tech-stack,ddl,schema,api}.md` 中至少缺一个，或 wrapper 缺失 | **只补缺失的文件**，绝不覆盖已有内容；进入 `ait-init-guide` 子 skill 引导 |
-| **ready** | 一切齐全 | no-op，仅返回当前状态 |
+1. 创建 `project-docs/` 骨架（`docs/`、`.meta/versions/`、`.meta/changes/`）
+2. `project-docs/` 内 `git init`；宿主根 `.gitignore` 追加 `project-docs/`；
+   docs 仓 `.gitignore` 排除 `versions/*/state.md`、`.meta/snapshots/`、`.ait/`
+3. 写入 `docs/prd/[PRD]-my_project.md` 与 `docs/fsd/[FSD]-my_project.md`
+4. 在 SpecGraph 里建 PRD→FSD 的 `derives` 边
+5. 落空 baseline 存储（`chunks-index.yaml`、`specgraph.yaml`）——初始＝现状为空的迭代
+6. 生成 `project-docs/.ait/ait-cli` 并写入配置路径
 
-所有判别逻辑在 CLI 中完成，子 skill 只负责差异补全的对话。
+`--name` 只接受小写字母数字下划线加短横分段（必须能构成合法 chunk id），
+含大写/空格/中文/`/`/`..` 报 `INVALID_PROJECT_NAME`。已存在的用户文件永不覆盖（幂等）。
 
-### 3.2 init 生成的内容
-
-- `docs/global/overview.md` / `tech-stack.md`（**静态** global，人工维护）
-- `docs/global/ddl.md` / `schema.md` / `api.md`（**动态** global 空骨架，内容后续由 impl 的 `@extract` 自动填充）
-- `docs/prd/README.md` / `docs/impl/README.md`（说明占位，不入索引）
-- 重建基线索引 + specgraph
-- `.meta/config.yaml`（含 `initialized: true` + `skill_path` 指向当前 skill 安装路径）
-- `project-docs/.ait/ait-cli`（项目本地 CLI 入口 wrapper）
-
-### 3.3 常用选项
+### 3.2 常用选项
 
 | 选项 | 作用 |
-|------|------|
-| `--check` | dry-run：只输出差异报告，不写文件 |
-| `--skip <file>` | 在 incomplete 模式下跳过特定文件（可重复，例如 `--skip overview --skip tech-stack`） |
-| `--refresh-wrapper` | 强制重写 `project-docs/.ait/ait-cli` 与 `config.yaml#skill_path`，用于 skill 重装到新路径后同步本地 wrapper |
+|---|---|
+| `--new-model --name N` | 新模型基线（PRD/FSD/TDD）——**推荐** |
+| `--check` | 只诊断 `docs/global` 状态（fresh / incomplete / ready），不写文件 |
+| `--refresh-wrapper` | 只刷新 skill 路径与本地 wrapper，不动文档 |
+| `--skip a,b` | 增量模式下标记用户明确跳过的 global 项，避免反复追问 |
+| `--migrate [--apply]` | docs 仓治理迁移：把历史被追踪的 `.meta/snapshots/`、`.ait/` 移出 git 索引，把机器特定配置搬到本地层。默认只预览 |
 
-> 历史变更：旧版（≤ v1.4）init 在已纳管项目上会返回 `ALREADY_MANAGED`；v1.5 已废弃此强限制，改为差异补全。
+`--migrate` 单独给 `--apply` 会报 `USAGE_ERROR`；它是独立子模式，不执行常规初始化。
+
+### 3.3 skill 路径变了怎么办
+
+重装 skill 或换机器后：
+
+```bash
+~/.claude/skills/ait/bin/ait init --refresh-wrapper
+```
+
+wrapper 缺失或 `AIT_SKILL_DIR` 与配置漂移时，CLI 会在 stderr 给出 tip（不影响 JSON 输出）。
 
 ---
 
-## 4. 完整流水线总览
+## 4. 完整流水线
 
+```bash
+AIT="project-docs/.ait/ait-cli"
+
+$AIT version create v0.1                       # 开版本
+
+$AIT prd create "[PRD]-app"                    # ① 无内容 → 取讨论背景 + context_token
+#   ...与 AI 讨论收敛...
+$AIT prd create "[PRD]-app" --action modify \
+    --content-file prd.md --context-token ctx-v1.<digest>
+$AIT prd confirm                               # 冻结 PRD 层
+
+$AIT fsd create "[FSD]-app" --parent "[PRD]-app" \
+    --content-file fsd.md --context-token ctx-v1.<digest>
+$AIT fsd decompose "[FSD]-app:core" "[FSD]-core" \
+    --content-file core.md --context-token ctx-v1.<digest>
+$AIT fsd confirm                               # 冻结 FSD 层
+
+$AIT tdd create "[TDD]-parser" --parent "[FSD]-core:parse" \
+    --content-file tdd.md --context-token ctx-v1.<digest>
+$AIT tdd confirm                               # 冻结 TDD 层
+
+$AIT codegen prepare "[TDD]-parser"            # 取聚焦上下文 → AI 写代码
+
+$AIT acceptance set "uv run pytest -q"         # 配置制品验收命令
+$AIT version commit v0.1                       # working → committed
+$AIT version confirm v0.1                      # 纯门禁 + 生成合并计划
+$AIT version merge v0.1                        # 唯一落盘 + docs 仓提交
 ```
-ait init                       引导生成全局基线
-        │
-        ▼
-ait prd create "<title>"       讨论 → 写 PRD（四段结构）
-ait prd confirm  ─────────────▶ 写入版本工作区
-ait prd commit   ─────────────▶ 锁定 PRD
-        │
-        ▼
-ait impl create <prd-chunk>    设计实现（1 PRD chunk → N impl，可带 @extract）
-ait impl commit  ─────────────▶ pre-merge 校验（环 + 版本内重复）→ 锁定 impl
-        │
-        ▼
-ait task create <prd-chunk>    从 specgraph 派生 task YAML（impl_refs/global_refs/deps）
-ait task execute <id>          输出聚焦 context bundle → AI 编码
-ait task complete <id>         自动收口：标 done + 绑定 code_refs（无 task confirm）
-        │
-        ▼
-ait version confirm <vX.Y>     预检(全 done + git 干净) → 合入基线
-                               → 从 impl @extract 提取动态 global → git commit(msg=title)
+
+每层顺序固定：**讨论 → 写入 → 冻结**。跳层会被 phase 门禁拒绝。
+
+---
+
+## 5. PRD 层
+
+### 5.1 先讨论，后写入
+
+省略 `--content` / `--content-file` 时，命令**不写任何东西**，只返回讨论背景：
+
+```bash
+$AIT prd create "[PRD]-app"
+```
+
+返回 `mode: discussion-context`，含 baseline ∪ 当前版本的全部 PRD chunk 全文、目标 chunk 既有
+内容，以及一个 `context_token`。空 baseline 返回空背景（初始迭代零分支）。
+
+### 5.2 带 token 写入
+
+```bash
+$AIT prd create "[PRD]-app" --content-file prd.md \
+    --action modify --context-token ctx-v1.<digest>
+```
+
+- `--action add`（默认）/ `--action modify`
+- `--file <name>`：`prd/` 下的相对索引路径，不带 `.md`。越界（路径逃逸、跨 kind、带后缀）
+  报 `INVALID_FILE_NAME`
+- `--overrides`：改名/重定向映射；两条记录撞同一目标报 `DUPLICATE_OVERRIDES_TARGET`
+- `--context-token`：必须与背景同一意图，否则 `CONTEXT_TOKEN_STALE` / `CONTEXT_TOKEN_CONFLICT`
+- `--skip-context`：明确决定跳过讨论时使用，与 token 互斥，留审计痕迹
+
+### 5.3 PRD 写什么
+
+**零技术内容**。概述、范围（含 + **不含**）、用户角色、目标度量、风险，加上需求项
+（用户故事 + 不做什么 + 用户级验收）。骨架见 `templates/TEMPLATE-PRD-AIT-DRAFT.md`。
+
+### 5.4 冻结
+
+```bash
+$AIT prd confirm      # 锁 [PRD]- chunk，phase → prd-confirm，打 git 锚
+$AIT prd revert       # 成对返工：解锁，phase → prd-creating
 ```
 
 ---
 
-## 5. PRD 管理流程
+## 6. FSD 层
 
-### 5.1 创建 PRD（三阶段讨论）
+前置：phase 必须是 `prd-confirm` 或 `fsd-creating`，否则报 `PRD_NOT_CONFIRMED`。
 
-```
-/ait prd "用户登录功能"
-```
-
-AI 驱动 Clarify（澄清）→ Design（设计块结构）→ Generate（生成正文），底层调：
+### 6.1 从 PRD 派生根 FSD
 
 ```bash
-ait prd create "用户登录功能"                          # 创建需求，自动建版本
-ait prd save-draft req-001 --content-file /tmp/draft.md  # 保存草稿
-ait prd confirm req-001 --file user-management           # 写入版本工作区（同时刷新 state.md）
+$AIT fsd create "[FSD]-app" --parent "[PRD]-app" \
+    --content-file fsd.md --context-token ctx-v1.<digest>
 ```
 
-### 5.2 PRD chunk 的四段固定结构
+`--parent` 让 `derives` 边随创建原子出生。无 `--content` 时返回**发现式背景**：本版本被改动的
+`[PRD]-` chunk 全文 + 每个锚点一跳关联的 chunk 全文。
 
-PRD 块用固定结构，便于后续拆 task：
-
-```markdown
-<!-- @id:prd-user-login -->
-## 用户登录
-
-### 概述
-一句话功能定位 + 用户价值。
-
-### 业务规则
-- 规则1：支持账号密码 + 手机验证码
-- 规则2：连续 5 次失败锁定 10 分钟
-
-### 验收标准
-- [ ] 正确凭证可登录并持久化会话
-- [ ] 失败锁定生效
-
-### 边界与非目标
-- 不做第三方 OAuth（留后续版本）
-```
-
-- **业务规则** 是拆 task 的依据，**验收标准** 是 task 完成的判定，**边界** 防止 AI 过度发挥。
-
-### 5.3 查看 PRD
+### 6.2 向下拆分
 
 ```bash
-ait prd show user-management              # 文件大纲
-ait prd show user-management prd-user-login  # 单个块
+$AIT fsd decompose "[FSD]-app:core" "[FSD]-core" \
+    --content-file core.md --context-token ctx-v1.<digest>
 ```
 
-### 5.4 提交并锁定 PRD
+原子完成"写子 FSD + 建 `decomposes` 边"。子 chunk 还不存在且未给内容时返回**锚定式背景**：
+父块全文 + 全部邻接（含关系类型与方向）+ 上溯链到 PRD + 目标既有内容。
 
-```bash
-ait prd commit prd/user-management -m "用户登录 PRD"
-```
+只有 FSD split 能做 `decompose` 的 parent；PRD 派生走 `fsd create --parent`
+（用错报 `INVALID_DECOMPOSES_TYPES`）。
 
-**关键**：`prd commit` 不只是提交，它**锁定整个版本的 PRD**。锁定后再试图改会返回 `LOCKED`。只有 committed 的 PRD 块才能被 impl 引用。
+### 6.3 FSD 文件结构（递归同构）
 
----
+每个 FSD 文件 = root + N 个功能 split + **恰 1 个 `:TEST`**：
 
-## 6. 实现规划流程（impl）
+- **root**：功能域职责边界（承接哪部分上游、负责/不负责）+ 分解视图（列子块结构，不列签名）
+- **功能 split**：功能描述 + **能力契约（provide-only）**
+- **`:TEST`**：本文件所有块合并的集成验收。`:TEST` 是唯一允许的大写 split 名，
+  其余 split 名一律小写
 
-### 6.1 从 PRD 生成实现设计
+**能力契约只写"本块对外提供什么"**：提供方式（HTTP 端点 / 模块函数 / CLI 命令 / 事件）、
+接口（方法、参数名与类型、返回结构、错误语义）。
 
-```
-/ait impl prd-user-login
-```
+绝不写"需要/依赖什么"（那是 `depends_on` 关系，只在 SpecGraph）；绝不写函数内部实现（那是 TDD）。
 
-一个 PRD chunk 可派生**多个** impl chunk（1:N）。底层：
+### 6.4 声明兄弟依赖
 
-```bash
-ait context prd-user-login --scenario prd-to-impl   # 组装上下文
-ait impl create prd-user-login --content-file /tmp/impl.md
-```
+在 split 正文里临时申报，`fsd create` 解析后建边并**从磁盘剥离**：
 
-`impl create` 会自动注入 `<!-- @ref:prd/...#prd-user-login rel:implements -->`。
-
-### 6.2 @extract 标记：impl 作为动态 global 的数据源
-
-impl 里可以用 `@extract` 标记一段可提取到动态 global（DDL/schema/api）的片段：
-
-```markdown
-<!-- @id:impl-user-login-ddl -->
-## 用户表数据模型
-
-软删除 + 唯一索引（纯文本说明，不提取）。
-
-<!-- @extract:dynamic/ddl#user -->
-```sql
-CREATE TABLE user (id BIGINT PRIMARY KEY, phone VARCHAR(20) UNIQUE);
-```
-<!-- @extract-end -->
-
-<!-- @ref:prd/user-management#prd-user-login rel:implements -->
-```
-
-- `@extract:dynamic/{type}#{chunk}` 中 `{type}` 路由到 `docs/global/{type}.md`，`{chunk}` 是写入的 chunk id。
-- 这段会在 `version confirm` 时自动提取进动态 global。**动态 global 内容只来自 impl @extract，不要手工编辑。**
-
-### 6.3 提交并锁定 impl（含 pre-merge 校验）
-
-```bash
-ait impl commit impl-user-login-ddl -m "用户表数据模型"
-```
-
-`impl commit` 会跑 **pre-merge 校验**（把版本图试合并进全局图），检测两类问题：
-
-1. **依赖成环**：impl 间 `depends-on` 形成环 → 拒绝（task 拆分无法拓扑排序）
-2. **版本内重复**：同 `@id` 多处定义，或两个 impl 抢同一个 `@extract` 目标 → 拒绝
-
-有问题返回 `PREMERGE_FAILED`，修正设计后重新 commit。其引用的 PRD 块必须已 committed。
-
-### 6.4 继承基线 impl（可选）
-
-```bash
-ait impl inherit prd-user-login
-```
-
-将基线中某 PRD chunk 对应的 impl 复制到当前版本工作区。适用于**增量版本**中复用已有实现设计的场景，避免从零重写。
-
-### 6.5 锁定 impl（可选）
-
-```bash
-ait impl lock
-```
-
-显式锁定本版本的 impl（将版本 phase 推进到 `impl_locked`）。`impl commit` 是逐块提交的，锁定是一个独立的后续步骤，表示"本版本所有 impl 块已完备，可以开始拆 task"。
-
-> 锁定后 `ait task create` 才能基于 specgraph 派生 task YAML。
-
----
-
-## 7. 任务开发流程（task）
-
-这是新设计的核心——把锁定的 PRD+impl 变成可执行的 AI 编码任务。
-
-### 7.1 派生 task
-
-```bash
-ait task create prd-user-login
-```
-
-- 从 **specgraph** 查该 PRD chunk 的所有 impl（`impl_refs`），派生出 1~N 个 task YAML。
-- task 命名 `T-{源chunk}-NN`（如 `T-user-login-01`），自带血缘。
-- 不带参数 → 列出所有"已 committed 且有 impl 覆盖但还没拆 task"的 PRD chunk。
-
-**前置**：PRD 必须已锁定（`PRD_NOT_LOCKED`）；该 PRD chunk 必须有 impl 覆盖（`NO_IMPL`）。
-
-**task YAML 示例**（`versions/v1.1/tasks/T-user-login-01.yaml` —— v1.5 起 task YAML 与版本同位）：
-
+````markdown
+<!-- @id:[FSD]-app:feat -->
+## feat 模块
 ```yaml
-id: T-user-login-01
-title: 实现 impl-user-login-ddl
-source_chunk: prd-user-login       # 血缘
-impl_refs: [impl-user-login-ddl]   # 该读的 impl
-global_refs: [global-tech-stack]   # 该遵守的全局约束
-depends_on: []                     # 上游 task（拓扑序）
-order_hint: 1
-steps:
-  - 按 impl-user-login-ddl 的设计实现对应代码并自检
-status: created                    # created | executing | done | failed
-code_refs: []                      # done 时回写：[{commit, paths, bound_at}]
+depends_on: [store, config]
 ```
+````
 
-### 7.2 执行 task（AI 编码）
+- 简写按同父解析（`store` → `[FSD]-app:store`）；完整 id 必须同父，跨父报
+  `DEPENDS_ON_CROSS_LEVEL`
+- 指向文件内不存在的兄弟报 `DEPENDS_ON_UNKNOWN_SIBLING`；指向自己报 `DEPENDS_ON_SELF`
+- **preserve 语义**：不带 `depends_on` 块的 split **保留现有边**。改依赖＝带块 modify，
+  清空＝显式 `depends_on: []`，不动＝不带块。所以重排正文不会误删依赖
+
+一个 FSD 节点**不得混用** FSD 子（decomposes）与 TDD 子（details），报 `FSD_MIXED_CHILDREN`。
+
+### 6.5 冻结
 
 ```bash
-ait task execute T-user-login-01
-```
-
-**重要——execute 不直接写代码**。它做两件事：
-
-1. 把 task 标记为 `executing`
-2. 输出一个 **token 聚焦的 context bundle**：只含该 task 的 `impl_refs ∪ global_refs`，**不读全树**
-
-Skill 层据此驱动 AI 编码。依赖未满足（`depends_on` 有非 done）会被跳过并提示 `blocked`。不带参数 → 处理所有 pending（created/failed）task，按依赖序。
-
-### 7.3 收口 task（无 task confirm）
-
-AI 写完代码后：
-
-```bash
-ait task complete T-user-login-01 --commit <git-hash> --path src/user/login.py
-# 失败则：
-ait task fail T-user-login-01
-```
-
-- `complete` = 标 `done` + 绑定 `code_refs`（git commit + 文件路径）。这就是 execute 的自动收口，**没有单独的 task confirm**。
-- 人工审核统一挪到 `version confirm`。
-
-### 7.4 查看 task
-
-```bash
-ait task list                  # 列出所有 task + 状态 + 依赖
-ait task show T-user-login-01  # 查看完整 YAML
+$AIT fsd confirm    # phase → fsd-confirm
+$AIT fsd revert     # phase → fsd-creating
 ```
 
 ---
 
-## 8. 版本合并与重置
+## 7. TDD 层
 
-### 8.1 version confirm（合入基线）
-
-当版本所有 task 都 `done` 后：
+前置：phase 必须是 `fsd-confirm` 或 `tdd-creating`，否则报 `FSD_NOT_CONFIRMED`。
 
 ```bash
-ait version confirm v1.1
+$AIT tdd create "[TDD]-parser" --parent "[FSD]-core:parse" \
+    --content-file tdd.md --context-token ctx-v1.<digest>
+$AIT tdd confirm
+$AIT tdd revert
 ```
 
-**两阶段 + 失败回退**，保证原子性：
+`--parent` 原子建 `details` 边，parent 必须是**叶子** FSD split。
 
-1. **预检**：所有 task 必须 `done`（否则 `TASK_NOT_DONE`）；git 工作区必须干净（否则 `GIT_DIRTY`，可加 `--allow-dirty-git` 跳过）
-2. **合并**：版本 PRD/impl 按 chunk 合入基线 `docs/`（同名 chunk 替换）→ 从 impl `@extract` 提取动态 global → 版本 specgraph 并入全局
-3. **git commit**：message = 版本 title
+### 7.1 target_file 是硬要求
 
-任何一步失败，`docs/` 自动回退到合并前（`MERGE_ROLLBACK`），要么全成要么全不动。
+每个 TDD 根 chunk 必须在 yaml 块里声明 `target_file`（缺失报 `TDD_TARGET_FILE_REQUIRED`）：
 
-### 8.2 version reset（唯一逃生口）
-
-```bash
-ait version reset v1.1 --confirm
+```markdown
+<!-- @id:[TDD]-parser -->
+## parser 技术设计
+```yaml
+target_file: src/parser.py
+```
 ```
 
-物理删除该版本的工作区 + 索引 + `specgraph-v1.1.yaml` + tasks，回到空白重来。**不保留快照**。已 merged 的版本不可 reset。
+- **唯一性**：两个 TDD 不得声明同一个 `target_file`（报 `DUPLICATE_TARGET_FILE`），
+  按归一化路径判重（分隔符、`./`、大小写变体视为同一制品）
+- **可指任意生成目标**：源码、测试、模板、`SKILL.md`、脚本都行
 
-> 这是版本原子性模型下"反悔"的唯一方式——没有局部撤销。
+### 7.2 TDD 写什么
 
-### 8.3 查看版本状态
+`target_file`、技术栈约束、文件职责（负责 + **不负责**）、代码结构、核心实现逻辑、
+错误边界、单元测试要求。一个 TDD 对应一个文件。
 
-```bash
-ait version status v1.1        # working/staged/committed 计数
-ait state --version v1.1       # 完整进度面板（title/phase/锁定/覆盖率/task 进度）
-ait state --version v1.1 --save  # 写入 versions/v1.1/state.md
-```
+**FSD vs TDD 边界**：FSD 是黑盒对外接口（别人怎么调）；TDD 是白盒实现蓝图（这个文件内部怎么建）。
+
+### 7.3 三条通用书写规约（PRD/FSD/TDD 都适用）
+
+1. **详实自包含**：每块讲清自己，禁"参见 X"式甩锅
+2. **反向要求必填**：每块明确"不实现什么/不负责什么（及归属）"
+3. **术语就地展开**：总结性用语在使用处展开完整含义，不设集中术语表
 
 ---
 
-## 9. 索引与关系查询
+## 8. codegen 与制品验收
+
+### 8.1 取聚焦上下文
 
 ```bash
-# 重建基线索引 + specgraph（扫描 docs/）
-ait reindex
-
-# 关系查询（全部走 specgraph）
-ait deps prd-user-login            # 出向依赖（implements/depends-on）
-ait impact prd-user-login          # 反向影响面（改它会波及谁）
-ait specgraph query prd-user-login --implements   # 谁实现了它
-
-# 上下文与搜索
-ait context prd-user-login --scenario prd-to-impl
-ait search "登录"
-
-# 格式校验（lint）
-ait lint --scope baseline          # 校验基线 PRD/impl 格式
-ait lint --scope v1.6 --fix      # 校验版本 v1.6 并尝试自动修复 PRD 缺失段落
-ait lint --scope version          # 校验所有未合并版本
-
-# 基线摘要（用于 prompt 预算评估）
-ait baseline-summary --scope all --format json   # 导出所有基线块摘要
+$AIT codegen prepare "[TDD]-parser"
 ```
 
-### 9.1 SpecGraph 管理
+返回 bundle：TDD 正文 chunks、沿 `details`/`decomposes`/`derives` 上溯到 PRD 的全链、
+沿 `depends_on` 拉到的兄弟能力契约、`target_file` 及其**当前内容**（`target_file_content`）。
+
+**`codegen prepare` 不写代码**——它只组装上下文，Skill 层据此驱动 AI 编码。
+
+活动版本存在时要求 phase 为 `tdd-confirm`（否则 `TDD_NOT_CONFIRMED`）；无活动版本或版本已
+merged 时按 baseline 解析、不设门禁。
+
+### 8.2 制品验收
 
 ```bash
-ait specgraph sync                                   # 从 docs/ 重建 specgraph
-ait specgraph add-edge src dst --rel implements      # 手动添加边
-ait specgraph query prd-user-login                  # 查询关系
-ait specgraph export --format dot                   # 导出 Graphviz DOT
+$AIT acceptance set "uv run pytest -q"   # 写入 .meta/config.local.yaml
+$AIT acceptance set                      # 省略参数 = 清除
+$AIT acceptance run                      # 手动跑一次，回显 passed
 ```
 
----
+配置后，`version confirm` 与 `version merge` 在落盘前自动执行该命令（cwd = 项目根），
+exit ≠ 0 → `ACCEPTANCE_FAILED`，拒于落盘前。未配置则跳过。
 
-## 10. 常见问题
-
-### 10.1 错误码速查
-
-| 错误码 | 含义 | 恢复方法 |
-|--------|------|---------|
-| `NOT_AT_PROJECT_ROOT` | 当前目录无 `project-docs/` | 切到项目根目录 |
-| `CWD_INSIDE_PROJECT_DOCS` | 当前目录在 `project-docs/` 内 | 退出到项目根目录 |
-| `PROJECT_DOCS_MALFORMED` | `project-docs/` 缺 `docs/` 或 `.meta/` | 检查目录结构 |
-| `LOCKED` | 试图改已 commit 的 PRD/impl | 用 `version reset` 整版重来 |
-| `ID_FORMAT` | 块 ID 含大写/下划线/非法字符 | 改为 `{type}-{domain}-{name}` 小写短横线 |
-| `PRD_NOT_COMMITTED` | impl 引用的 PRD 块未提交 | 先 `prd commit` |
-| `PREMERGE_FAILED` | impl commit 检出环或版本内重复 | 修正 impl 设计后重新 commit |
-| `PRD_NOT_LOCKED` | task create 时 PRD 未锁定 | 先 `prd commit` |
-| `NO_IMPL` | task create 的 PRD chunk 无 impl 覆盖 | 先设计 impl |
-| `BLOCKED` | task execute 依赖未 done | 先执行上游 task |
-| `TASK_NOT_DONE` | version confirm 时有 task 非 done | 跑完/修复所有 task |
-| `GIT_DIRTY` | version confirm 时 git 不干净 | 先提交/暂存，或加 `--allow-dirty-git` |
-| `MERGE_ROLLBACK` | confirm 合并阶段失败 | docs/ 已回退，查 error 修复后重试 |
-| `FORMAT_VIOLATION` | PRD/impl 格式校验失败 | 运行 `ait lint --fix` 自动修复 |
-
-> **shell 级 pitfall（非 CLI 错误码）**：若看到 `zsh:1: no such file or directory: bin/ait`，说明你在用相对路径 `bin/ait` 调 CLI——项目根并不存在该文件。改用 `project-docs/.ait/ait-cli <subcmd>`；若该 wrapper 不存在，先跑 `~/.claude/skills/ait/bin/ait init --refresh-wrapper`。AIT 文档把这种情况标记为 `ENOENT_BIN_AIT`（仅作为 pitfall 标识，**不**在 `ait/schemas.py` 注册，也**不**进入 `ait-resume` 处理链路）。
->
-> **v1.4→v1.5 兼容性提醒**：旧版会返回 `ALREADY_MANAGED` 拒绝在已纳管项目上 init，v1.5 已废弃此错误码并改为差异补全模式。
-
-### 10.2 如何修改已锁定的 PRD/impl？
-
-锁定后**不能局部修改**。版本是原子单元，唯一方式是 `ait version reset <vX.Y> --confirm` 整版重置，回到空白 PRD 重新设计。这是刻意的设计——它消除了"局部回滚/失效检测"的全部复杂度。
-
-### 10.3 如何回滚？
-
-- **未 merged 的版本**：`ait version reset <vX.Y> --confirm`（物理删除整版）。
-- **已 merged 的版本**：不可 reset。已合入基线的内容由 Git 管理（`version confirm` 已产生 git commit），用 Git 回退。
-
-### 10.4 动态 global（ddl/schema/api）能手工改吗？
-
-不能。动态 global 内容 100% 来自 impl 的 `@extract`，在 `version confirm` 时提取。要改 schema/DDL/API，改对应的 impl `@extract` 块，再走 version confirm。静态 global（overview/tech-stack）才是人工维护的。
-
-### 10.5 `/ait` 和 `ait` 的区别？
-
-| 格式 | 场景 | 说明 |
-|------|------|------|
-| `/ait <subcommand>` | AI 对话中触发 | AI 解析并执行相应流程（含多步讨论），底层最终调用 `project-docs/.ait/ait-cli` |
-| `project-docs/.ait/ait-cli <subcommand>` | 终端 CLI（项目内推荐） | v1.5 起项目侧统一入口；由 init 自动生成 |
-| `~/.claude/skills/ait/bin/ait <subcommand>` | 终端 CLI（仅 init / refresh-wrapper） | skill 安装位置；wrapper 尚未生成时使用 |
-
-> 文档其余部分为简洁起见会写 `ait <subcmd>`，请按上下文替换为对应的真实入口。
+命令值存在机器本地层：它会被执行，且路径因机器而异，不该随共享历史传播。
 
 ---
 
-## 附录：命令速查表
+## 9. 版本收口：commit / confirm / merge
 
-### 生命周期
+### 9.1 commit — 锁定
 
-| 命令 | 作用 |
-|------|------|
-| `ait init` | 三态自动识别：fresh 引导 / incomplete 差异补全 / ready no-op；支持 `--check`、`--skip`、`--refresh-wrapper` |
-| `ait reindex` | 重建基线索引 + specgraph |
-| `ait state [--version v] [--save]` | 版本进度面板 |
-| `ait lint [--scope ...] [--fix]` | PRD/impl 格式校验（可选自动修复） |
-| `ait baseline-summary [--scope ...] [--format ...]` | 基线块摘要（用于 prompt 预算） |
+```bash
+$AIT version commit v0.1 -m "message"
+```
 
-### PRD
+把版本内全部 `working` chunk 一次性推到 `committed`。之后改动报 `CHUNK_LOCKED`。
 
-| 命令 | 作用 |
-|------|------|
-| `/ait prd <title>` | 创建 PRD（三阶段讨论） |
-| `ait prd create <title>` | 创建需求，自动建版本 |
-| `ait prd save-draft <req-id> --content-file <file>` | 保存草稿 |
-| `ait prd resolve-candidates --from-file <yaml>` | 持久化 AI 生成的 PRD 候选决策 |
-| `ait prd confirm <req-id> --file <slug>` | 写入版本工作区的 `prd/<slug>.md` |
-| `ait prd show <prd-file> [chunk-id]` | 查看 PRD |
-| `ait prd commit <prd-file> -m <msg>` | 提交 + **锁定 PRD** |
+### 9.2 confirm — 纯门禁 + 计划
 
-### impl
+```bash
+$AIT version confirm v0.1 [--conflict-policy use-version|abort|use-baseline]
+```
 
-| 命令 | 作用 |
-|------|------|
-| `/ait impl <prd-chunk-id>` | 从 PRD 生成实现设计 |
-| `ait impl create <prd-chunk-id> --content-file <file>` | 创建 impl 块（自动注入 @ref） |
-| `ait impl show <impl-chunk-id>` | 查看 impl 块 |
-| `ait impl commit <impl-chunk-id> -m <msg>` | 提交（pre-merge 校验）+ 锁定 impl |
-| `ait impl inherit <prd-chunk-id>` | 继承基线 impl 到当前版本（增量复用） |
-| `ait impl lock` | 显式锁定本版本 impl（推进 phase） |
+校验项：
 
-### task
+1. legacy task 全部 `done`（无 task 时真空通过）
+2. 重复 add / override 冲突
+3. **六不变式**——在 `baseline ∪ version` 组合视图上全量校验
+4. **制品验收**命令
+5. 宿主仓干净（脏则 `HOST_DIRTY`——先提交你的代码）
 
-| 命令 | 作用 |
-|------|------|
-| `ait task create [prd-chunk]` | 派生 task YAML（无参列待拆分 chunk） |
-| `ait task list [--version v]` | 列出 task |
-| `ait task show <task-id>` | 查看 task YAML |
-| `ait task execute [task-id\|chunk]` | 标 executing + 输出聚焦上下文 |
-| `ait task complete <task-id> [--commit h] [--path p]` | 标 done + 绑定 code_refs |
-| `ait task fail <task-id>` | 标 failed（可重跑） |
+通过则冻结一份**合并计划**（含所有规划输入的指纹）并返回；不通过返回违例明细，
+`code` 为 `INVARIANT_VIOLATION` / `ACCEPTANCE_FAILED` / `TASK_NOT_DONE`。
 
-### version
+可重复跑、零内容落盘、不合入。
 
-| 命令 | 作用 |
-|------|------|
-| `ait version status <v>` | 版本状态计数 |
-| `ait version confirm <v> [--allow-dirty-git]` | 原子合入基线 + 提取动态 global + git commit |
-| `ait version merge <v>` | 底层合并（confirm 内部调用） |
-| `ait version reset <v> --confirm` | 整版重置（逃生口，物理删除） |
+### 9.3 merge — 唯一落盘
 
-### 查询 / 图
+```bash
+$AIT version merge v0.1
+```
 
-| 命令 | 作用 |
-|------|------|
-| `ait deps <chunk-id>` | 出向依赖 |
-| `ait impact <chunk-id>` | 反向影响面 |
-| `ait specgraph sync` | 重建 specgraph |
-| `ait specgraph add-edge <src> <dst> --rel <rel>` | 手动添加边 |
-| `ait specgraph query <chunk-id> [--deps\|--implements]` | 关系查询 |
-| `ait specgraph export [--format dot]` | 导出图谱 |
-| `ait context <chunk-id> [--scenario ...]` | 组装 AI 上下文 |
-| `ait search <query>` | 全文搜索 |
-| `ait baseline-summary [--scope ...] [--format ...]` | 基线块摘要 |
+流程：校验计划仍有效（输入变了报 `CONFIRMATION_STALE`）→ 备份 → 执行计划逐块合入基线 →
+重建 baseline 索引与 SpecGraph → 提升版本边到基线 → 写 merged 标记 → docs 仓 git 提交 →
+记录 `docs_commit`/`code_base`/`code_result` 与回滚锚 tag。
 
-### 校验 / 维护
+任一步失败：**字节级回退**（docs 与 `.meta` 同步还原），报 `MERGE_ROLLBACK`，不残留 merged 标记。
 
-| 命令 | 作用 |
-|------|------|
-| `ait lint [--scope ...] [--fix]` | 格式校验（PRD 四段结构 / impl @ref 完整性） |
-| `ait reindex` | 重建基线索引 + specgraph |
-| `ait migrate-block-to-chunk [--dry-run]` | v1.1→v1.2 一次性数据迁移（重命名 block→chunk） |
+### 9.4 合并语义（modify / add）
+
+按每个 chunk 的**真实存在性**逐块处理：
+
+- **modify = 整块全替换**：版本侧必须给出该 chunk 的完整最终内容（要保留的自带）
+- **add = 仅新增** baseline 不存在的 chunk；命中已存在报 `DUPLICATE_BASELINE_CHUNK`
+- modify 的目标不在 baseline → 自动当 add 追加。**merge 绝不静默丢 chunk**
+- 前置拦截：modify 改名撞已存在 id → `MODIFY_RENAME_COLLISION`
+
+### 9.5 git 提交三分语义
+
+- 非 git 环境 / git 不可用 → 容忍，结果带 `git: "unavailable"`（不伪装成功）
+- 无变更 → no-op，返回当前 HEAD
+- 真实提交失败 → `GIT_COMMIT_FAILED`，进入回滚路径
 
 ---
 
-> 本文档对应 AIT 截至 v1.6 的状态（`prd-impl-task` 三态流水线 + skill/CLI 双轨入口 + task 同位 + init 增量化 + sub-skills 治理）。详细设计见 `project-docs/docs/prd/` 与 `project-docs/docs/impl/`。
->
-> **本指南示例中的 `ait <subcmd>` 是简写**：在终端实际使用时，请按下表替换：
-> - `init` 首次 / `init --refresh-wrapper` → `~/.claude/skills/ait/bin/ait <subcmd>`
-> - 其余所有命令 → `project-docs/.ait/ait-cli <subcmd>`
+## 10. 返工与回滚
+
+### 10.1 层级返工
+
+每层的 `confirm` 都配一个 `revert`——**每道门禁都有返工路径，没有终态陷阱**：
+
+```bash
+$AIT prd revert      # prd-confirm → prd-creating
+$AIT fsd revert      # fsd-confirm → fsd-creating
+$AIT tdd revert      # tdd-confirm → tdd-creating
+```
+
+解锁该层 chunk（committed → working）并回退 phase。merged 版本拒绝。
+
+### 10.2 整版退出
+
+```bash
+$AIT version revert v0.1 --confirm
+```
+
+- **未合入版本**：物理清空版本工作区与索引（无局部撤销，这是原子版本模型的逃生口）
+- **已合入版本**：把 docs 仓 `git reset --hard` 到该版本的锚点 tag，同时把宿主仓回滚到
+  `code_result`，并删除其后的所有版本产物
+
+不加 `--confirm` 返回 `NEED_CONFIRM` 与影响摘要（会删哪些版本），不执行。
+锚点不可用报 `REVERT_PRECHECK_FAILED` / `REVERT_ANCHOR_INVALID`。
+
+---
+
+## 11. 查询与诊断命令
+
+### 11.1 状态面板
+
+```bash
+$AIT state                        # 当前版本面板（markdown）
+$AIT state --version v0.1
+$AIT state --format json
+$AIT state --save                 # 写入 versions/<v>/state.md
+```
+
+展示版本 phase、chunk 三态分布、PRD/FSD/TDD/impl 分类、下一步建议。
+
+### 11.2 关系与影响
+
+```bash
+$AIT deps "[FSD]-app:core" --direction both|in|out
+$AIT impact "[PRD]-app"                     # 传递影响闭包
+$AIT specgraph query "[TDD]-parser" [--deps] [--implements]
+$AIT specgraph export --format dot
+$AIT specgraph graph-html [--version v0.1] [--prd-chunk "[PRD]-app:req1"]
+$AIT specgraph sync
+```
+
+`graph-html` 生成文件级规格树：不带 `--version` 写 `docs/graph.html`，
+带则写 `versions/<v>/graph.html`。
+
+### 11.3 只读校验
+
+```bash
+$AIT specgraph validate-new-model [--version v0.1]
+```
+
+图合法性 + `target_file` 唯一性的只读诊断。**权威强制在 confirm/merge 门禁**，
+这个命令只是提前发现问题。
+
+### 11.4 检索与重建
+
+```bash
+$AIT search "关键词" [--scope prd|impl|all] [--regexp]
+$AIT baseline-summary [--scope prd|impl|all] [--format yaml|json]
+$AIT reindex                      # 扫 docs/ 重建 baseline 索引 + SpecGraph
+$AIT context <chunk-id> [--scenario prd-to-impl|impl-edit] [--focus] [--deps]
+$AIT lint [--scope baseline|version|v0.1] [--fix]
+$AIT version status v0.1
+```
+
+`reindex` 会保留显式边（`source: new-model-cli`），不会因重扫而丢关系。
+
+---
+
+## 12. 错误码与恢复
+
+### 12.1 运行环境
+
+| Code | 原因 | 恢复 |
+|---|---|---|
+| `NOT_AT_PROJECT_ROOT` | 当前目录没有 `project-docs/` | cd 到项目根；新项目先 `init` |
+| `CWD_INSIDE_PROJECT_DOCS` | 在 `project-docs/` 内部运行 | 退到父目录 |
+| `PROJECT_DOCS_MALFORMED` | 缺 `docs/` 或 `.meta/` | 检查目录或重新 `init` |
+| `USAGE_ERROR` | 命令/参数拼错 | 输出仍是 JSON，按 `error` 改命令 |
+| `CONFIG_UNREADABLE` | 配置层存在但损坏 | 修复 `.meta/config*.yaml` YAML 语法 |
+
+### 12.2 phase 门禁
+
+| Code | 原因 | 恢复 |
+|---|---|---|
+| `NO_ACTIVE_VERSION` | 没有开放版本 | 先 `version create <v>` |
+| `ACTIVE_VERSION_EXISTS` | 已有未 merged 版本 | 先 merge 或 revert 上一版 |
+| `VERSION_NOT_FOUND` | 版本不存在 | `version create`（不自动创建） |
+| `PRD_LAYER_CLOSED` | PRD 层已冻结还在 create | `prd revert` 重开 |
+| `PRD_NOT_CONFIRMED` | 未 `prd confirm` 就写 FSD | 先 `prd confirm` |
+| `FSD_NOT_CONFIRMED` | 未 `fsd confirm` 就写 TDD | 先 `fsd confirm` |
+| `TDD_NOT_CONFIRMED` | 未 `tdd confirm` 就 codegen | 先 `tdd confirm` |
+
+### 12.3 上下文令牌
+
+| Code | 原因 | 恢复 |
+|---|---|---|
+| `CONTEXT_TOKEN_REQUIRED` | 有正文写入但没给 token | 先无内容调 create 取背景与 token |
+| `CONTEXT_TOKEN_INVALID` | token 格式不对 | 用返回值原样传 |
+| `CONTEXT_TOKEN_STALE` | 背景已变 | 重新取背景，重新讨论 |
+| `CONTEXT_TOKEN_CONFLICT` | token 意图与本次调用不符 | 检查目标/父锚/file/action 是否改了 |
+| `CONTEXT_SKIP_NOT_ALLOWED` | 无内容调用时给了 `--skip-context` | `--skip-context` 只用于有正文的写入 |
+
+### 12.4 关系与不变式
+
+| Code | 原因 | 恢复 |
+|---|---|---|
+| `DUPLICATE_TARGET_FILE` | 两个 TDD 抢同一文件 | 各自唯一文件 |
+| `TDD_TARGET_FILE_REQUIRED` | TDD 缺 `target_file` | 补 yaml 声明 |
+| `TDD_MULTI_PARENT` | TDD 有第二个 FSD 父 | 一个 TDD 只能有一个 details 入边 |
+| `PRD_FSD_LINK_NOT_UNIQUE` | PRD 根关联了多个 FSD | 保留唯一 derives |
+| `MISSING_ENDPOINT` | 边指向不存在的 chunk | 先创建端点 chunk |
+| `FSD_MIXED_CHILDREN` | 一个 FSD 混了 FSD 子和 TDD 子 | 要么分解节点，要么叶子 |
+| `DEPENDS_ON_CROSS_LEVEL` / `_UNKNOWN_SIBLING` / `_SELF` | 依赖申报越界 | 只能指同父兄弟 |
+| `INVALID_DERIVES` / `INVALID_DECOMPOSES_TYPES` / `INVALID_DETAILS` | 关系端点类型不合法 | 见 §2.2 关系表 |
+| `INVARIANT_VIOLATION` | confirm 六不变式违例 | 按 `details.violations` 补规格后复查 |
+| `CHUNK_ID_PREFIX_REQUIRED` / `ID_FORMAT` | chunk id 不合规 | 用 `[PRD]`/`[FSD]`/`[TDD]` 前缀，名内 `_`、层级 `-` |
+
+### 12.5 收口与落盘
+
+| Code | 原因 | 恢复 |
+|---|---|---|
+| `CHUNK_LOCKED` | 改已 committed 的 chunk | 层级 `revert` 解锁，或整版 revert |
+| `ACCEPTANCE_FAILED` | 验收命令返回非 0 | 修代码让测试转绿 |
+| `HOST_DIRTY` | confirm 时宿主仓有未提交改动 | 先提交你的代码 |
+| `CONFIRMATION_REQUIRED` | merge 前没 confirm | 先 `version confirm` |
+| `CONFIRMATION_STALE` | confirm 后内容又变了 | 重新 `version confirm` |
+| `MERGE_ROLLBACK` | merge 中途失败 | 已字节级回退，查 `error` 修复后重试 |
+| `GIT_COMMIT_FAILED` | docs 仓提交失败 | 已回滚，修 git 状态后重试 |
+| `DUPLICATE_BASELINE_CHUNK` | add 命中已存在 chunk | 改用 `--action modify` |
+| `MODIFY_RENAME_COLLISION` / `DUPLICATE_OVERRIDES_TARGET` | 改名/override 撞车 | 零落盘，修 overrides 重试 |
+| `INVALID_FILE_NAME` | `--file` 越界 | 只用本 kind 目录内的相对路径，不带 `.md` |
+| `REVERT_PRECHECK_FAILED` / `REVERT_ANCHOR_INVALID` | 回滚锚不可用 | 检查 docs/宿主仓的 tag 与提交是否还在 |
+
+---
+
+## 13. Skill 与 sub-skills
+
+在 Claude Code 里直接用 `/ait <subcommand>`（**不支持** `/ait:foo` 冒号命名空间）。
+主 skill 负责路由、全局契约与命令速查，具体流程下沉到 sub-skills：
+
+| Sub-skill | 触发 | 职责 |
+|---|---|---|
+| `ait-state` | 查看/刷新状态、版本进度 | 渲染状态面板，兼进度查询 |
+| `ait-resume` | CLI 报错或要恢复中断流程 | 按 JSON `code` 给最短恢复路径 |
+| `ait-init-guide` | `init` 返回 `status=incomplete` | 逐项确认 global 文件补齐 |
+| `ait-discuss` (legacy) | `/ait prdv1 <title>` | Clarify → Design → Generate |
+| `ait-impl-discuss` (legacy) | `/ait impl <prd-chunk>` | 生成 impl chunk |
+| `ait-task-execute` (legacy) | `/ait task execute` | 驱动 AI 编码并收口 |
+
+随 skill 分发的参考文档：`references/new-model-format.md`（**格式权威源**）、
+`chunk-system.md`、`chunk-parser.md`、`index-system.md`、`version-manager.md`、
+`merge-engine.md`、`overview.md`；模板在 `templates/`。
+
+---
+
+## 14. legacy 流水线
+
+旧模型 `prdv1 → impl → task → code` 仍可运行但**已冻结，不再演进**。新项目请用主线模型。
+
+```bash
+$AIT prdv1 create "<title>"       # 四段结构 PRD
+$AIT prdv1 save-draft <req-id> --content-file d.md
+$AIT prdv1 confirm <req-id> --file <name>
+$AIT prdv1 commit prd/<file> -m "msg" --req-id <req>
+
+$AIT impl create <prd-chunk> --content-file impl.md --req-id <req>
+$AIT impl commit <impl-chunk> -m "msg"
+$AIT impl inherit | show | lock
+
+$AIT task create <chunk-id>
+$AIT task list | show | execute | complete | fail
+```
+
+常见 legacy 错误码：`PRD_NOT_COMMITTED`、`PRD_NOT_LOCKED`、`NO_IMPL`、`TASK_NOT_DONE`。
+
+旧模型的 `docs/global/{ddl,schema,api}.md` 只能由 impl 的 `@extract` 生成，不接受人工编辑。
+一次性迁移工具：`$AIT migrate-block-to-chunk`。
