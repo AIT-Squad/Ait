@@ -159,6 +159,62 @@ class NewModelManager:
             )
         return DiscussionUsage(mode="receipt", receipt_digest=f"sha256:{context_token.removeprefix('ctx-v1.')}")
 
+    def _compose_fsd_content(
+        self,
+        version: str,
+        file: str,
+        target_chunk_id: str,
+        content: str,
+    ) -> tuple[str, set[str]]:
+        """Overlay an FSD write onto its baseline and current version file.
+
+        A split-level modify replaces only its named split. A root-level write
+        retains the existing full-file behavior so legacy callers that replay a
+        complete FSD file remain compatible.
+        """
+        incoming = parse_text(content, file=file)
+        if not any(chunk.id == target_chunk_id for chunk in incoming.chunks):
+            raise _validation_error(
+                "ROOT_CHUNK_REQUIRED",
+                f"FSD markdown must include target chunk {target_chunk_id}",
+                target_chunk_id,
+            )
+
+        changed_ids = (
+            {chunk.id for chunk in incoming.chunks}
+            if ":" not in target_chunk_id
+            else {target_chunk_id}
+        )
+        incoming_chunks = [chunk for chunk in incoming.chunks if chunk.id in changed_ids]
+        sources = []
+        baseline_path = self.indexes.find_baseline_file(file)
+        if baseline_path is not None:
+            sources.append(parse_file(baseline_path, self.root / "docs"))
+        version_path = self.indexes.find_version_file(version, file)
+        if version_path is not None:
+            sources.append(parse_file(version_path, self.versions.versions_dir / version))
+
+        chunks_by_id: dict[str, Chunk] = {}
+        order: list[str] = []
+        header = ""
+        for parsed in sources:
+            if not header and parsed.file_header:
+                header = parsed.file_header
+            for chunk in parsed.chunks:
+                if chunk.id not in chunks_by_id:
+                    order.append(chunk.id)
+                chunks_by_id[chunk.id] = chunk
+        if not header:
+            header = incoming.file_header
+        for chunk in incoming_chunks:
+            if chunk.id not in chunks_by_id:
+                order.append(chunk.id)
+            chunks_by_id[chunk.id] = chunk
+
+        parts = [header.rstrip()] if header.strip() else []
+        parts.extend(chunks_by_id[chunk_id].content for chunk_id in order)
+        return "\n\n".join(parts).rstrip() + "\n", changed_ids
+
     def create_fsd(
         self,
         version: str,
@@ -174,33 +230,27 @@ class NewModelManager:
         _context_parent_id: str | None = None,
         _operation: str = "create",
     ) -> DocumentCreateResult:
-        # P7 收: FSD layer requires the PRD layer confirmed (phase prd-confirm)
-        # or the FSD layer already open (fsd-creating).
         self._require_phase(
             version, ("prd-confirm", "fsd-creating"), "PRD_NOT_CONFIRMED", "fsd create"
         )
-        # v2.52: --parent (a PRD root) makes create_fsd the birthplace of the
-        # derives edge (PRD→FSD tree root, 1:1 派生). Parent-side gate runs
-        # before any write so a rejection leaves zero on disk.
+        file = _validated_index_path(file, "fsd") if file else f"fsd/{root_chunk_id}"
         if parent_chunk_id is not None:
             self._precheck_derives_parent(version, parent_chunk_id, root_chunk_id)
-        # v2.26/v2.31: sibling depends_on is declared in a transient yaml block
-        # inside split content — an input instruction, NOT persisted doc content.
-        # Validate BEFORE any write, then STRIP the block so the document body
-        # carries zero relation declarations (specgraph is the sole store).
-        declared = self._parse_depends_on_declarations(root_chunk_id, content)
-        # v2.32 preserve semantic: splits WITHOUT a depends_on block keep their
-        # current edges (hydrated) — reformatting an FSD's prose no longer wipes
-        # deps. Declared splits (incl. explicit `[]`) authoritatively override.
-        prefix = f"{root_chunk_id}:"
+
+        effective_content, changed_ids = self._compose_fsd_content(
+            version, file, root_chunk_id, content
+        )
+        owner_root = _parent_chunk_id(root_chunk_id)
+        declared = self._parse_depends_on_declarations(owner_root, effective_content)
+        prefix = f"{owner_root}:"
         view_before = combined_view(self.root, version)
         hydrated: dict[str, list[str]] = {}
         for cid in view_before.nodes:
             if cid.startswith(prefix) and cid not in declared:
-                deps = [e.dst for e in view_before.edges_from(cid, "depends_on")]
+                deps = [edge.dst for edge in view_before.edges_from(cid, "depends_on")]
                 if deps:
                     hydrated[cid] = deps
-        clean_content = _strip_depends_on_blocks(content)
+        clean_content = _strip_depends_on_blocks(effective_content)
         result = self._create_document(
             version,
             root_chunk_id,
@@ -213,29 +263,21 @@ class NewModelManager:
             operation=_operation,
             context_token=context_token,
             skip_context=skip_context,
+            index_chunk_ids=changed_ids,
         )
-        # Reconcile AFTER _create_document's sync_specgraph. final_deps carries
-        # the file's FULL authoritative set (hydrated preserved + declared), so
-        # combined_view/merge per-root scoping stays correct.
         final_deps = {**hydrated, **declared}
-        self._reconcile_sibling_depends_on(version, root_chunk_id, final_deps)
-        # v2.62/v2.63: parse and reconcile PRD requirement -> FSD split derives
-        derives_declared = self._parse_derives_declarations(root_chunk_id, content)
+        self._reconcile_sibling_depends_on(version, owner_root, final_deps)
+        derives_declared = self._parse_derives_declarations(owner_root, effective_content)
         derives_hydrated: dict[str, list[str]] = {}
         for cid in view_before.nodes:
             if cid.startswith(prefix) and cid not in derives_declared:
-                # declared maps fsd_split -> [prd_chunk, ...]; the edge is
-                # PRD (src) -> FSD split (dst), so hydrate from in-edges.
-                deps = [e.src for e in view_before.edges_to(cid, "derives")]
+                deps = [edge.src for edge in view_before.edges_to(cid, "derives")]
                 if deps:
                     derives_hydrated[cid] = deps
         final_derives = {**derives_hydrated, **derives_declared}
-        self._reconcile_sibling_derives(version, root_chunk_id, final_derives)
-        # v2.52: birth the derives edge now that both endpoints exist in the
-        # view (check_edge_write runs the full write-time gate).
+        self._reconcile_sibling_derives(version, owner_root, final_derives)
         if parent_chunk_id is not None:
             self._add_edge(version, parent_chunk_id, root_chunk_id, "derives")
-        # FSD layer entry: advance the phase machine off the PRD layer.
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
             meta.phase = "fsd-creating"
@@ -313,12 +355,11 @@ class NewModelManager:
             if not (e.rel == "depends_on" and _endpoint_chunk_id(e.src).startswith(prefix))
         ]
         uri_by_chunk = {spec.chunk_id: spec.uri for spec in graph.specs.values()}
-        from .specgraph import make_uri
 
         for src, dsts in declared.items():
-            src_uri = uri_by_chunk.get(src) or make_uri(src, version)
+            src_uri = uri_by_chunk.get(src) or resolve_chunk_uri(self.root, src, version)
             for dst in dsts:
-                dst_uri = uri_by_chunk.get(dst) or make_uri(dst, version)
+                dst_uri = uri_by_chunk.get(dst) or resolve_chunk_uri(self.root, dst, version)
                 graph.add_edge(
                     src_uri, dst_uri, "depends_on",
                     metadata={"source": "fsd-declaration"},
@@ -495,6 +536,21 @@ class NewModelManager:
             raise _validation_error(
                 "NO_FSD_CHUNKS", f"version {version} has no FSD chunks", version
             )
+        for entry in (chunk for chunk in idx.chunks if chunk.id.startswith("[FSD]-")):
+            path = self.indexes.find_version_file(version, entry.file)
+            if path is None:
+                raise _validation_error(
+                    "VERSION_INDEX_SOURCE_MISSING",
+                    f"version index chunk {entry.id} has no source file {entry.file}",
+                    entry.id,
+                )
+            parsed = parse_file(path, self.versions.versions_dir / version)
+            if not any(chunk.id == entry.id for chunk in parsed.chunks):
+                raise _validation_error(
+                    "VERSION_INDEX_SOURCE_MISSING",
+                    f"version index chunk {entry.id} is absent from {entry.file}",
+                    entry.id,
+                )
         working = [
             c.id for c in idx.chunks
             if c.id.startswith("[FSD]-") and c.state == "working"
@@ -1150,6 +1206,7 @@ class NewModelManager:
         operation: str,
         context_token: str | None,
         skip_context: bool,
+        index_chunk_ids: set[str] | None = None,
     ) -> DocumentCreateResult:
         file = _validated_index_path(file, kind) if file else f"{kind}/{root_chunk_id}"
         # gap-4 closure: every chunk in a new-model doc must carry the kind's
@@ -1216,6 +1273,8 @@ class NewModelManager:
         final_parsed = parse_file(path, self.versions.versions_dir / version)
         chunk_ids: list[str] = []
         for chunk in final_parsed.chunks:
+            if index_chunk_ids is not None and chunk.id not in index_chunk_ids:
+                continue
             self.versions.add_chunk(
                 version,
                 chunk=chunk,
