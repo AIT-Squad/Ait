@@ -847,7 +847,7 @@ class NewModelManager:
 
         view = combined_view(self.root, version)
         upstream = self._collect_upstream_context(view, tdd_root_chunk_id)
-        dependencies = self._collect_dependency_context(view, upstream)
+        dependencies = self._collect_dependency_context(view, upstream, tdd_root_chunk_id)
 
         # v2.60: read target_file current content so the AI has spec + code together.
         target_file_content: str | None = None
@@ -877,23 +877,88 @@ class NewModelManager:
             target_file_content=target_file_content,
         )
 
+    @staticmethod
+    def _codegen_reason_rank(reason: str) -> int:
+        ranks = {
+            "parent_split": 0,
+            "depends_on_contract": 0,
+            "fsd_ancestor": 1,
+            "test_covered_sibling": 1,
+            "prd_root": 2,
+            "test_implementation_tdd": 2,
+            "prd_requirement": 3,
+        }
+        return ranks[reason]
+
+    def _append_codegen_context_item(
+        self,
+        items: list[dict],
+        reasons: dict[str, str],
+        spec,
+        selection_reason: str,
+    ) -> None:
+        existing_reason = reasons.get(spec.chunk_id)
+        if existing_reason is not None and self._codegen_reason_rank(existing_reason) <= self._codegen_reason_rank(selection_reason):
+            return
+        item = self._context_item_for_spec(spec)
+        if item is None:
+            return
+        item["selection_reason"] = selection_reason
+        if existing_reason is None:
+            items.append(item)
+        else:
+            for index, existing in enumerate(items):
+                if existing["id"] == spec.chunk_id:
+                    items[index] = item
+                    break
+        reasons[spec.chunk_id] = selection_reason
+
+    def _sort_codegen_context(self, items: list[dict]) -> list[dict]:
+        return sorted(
+            items,
+            key=lambda item: (self._codegen_reason_rank(item["selection_reason"]), item["id"]),
+        )
+
     def _collect_upstream_context(self, view, tdd_chunk_id: str) -> list[dict]:
-        incoming_details = view.edges_to(tdd_chunk_id, "details")
+        incoming_details = sorted(view.edges_to(tdd_chunk_id, "details"), key=lambda edge: edge.src)
         if not incoming_details:
             return []
-        items: list[dict] = []
-        seen: set[str] = set()
-
         parent_split = view.node(incoming_details[0].src)
         if parent_split is None:
             return []
-        self._append_context_item(items, seen, parent_split)
 
+        items: list[dict] = []
+        reasons: dict[str, str] = {}
+        visited_roots: set[str] = set()
+
+        def add_fsd(node, reason: str) -> None:
+            self._append_codegen_context_item(items, reasons, node, reason)
+            for edge in sorted(view.edges_to(node.chunk_id, "derives"), key=lambda item: item.src):
+                source = view.node(edge.src)
+                if source is None or source.type != "prd":
+                    continue
+                selection_reason = "prd_requirement" if ":" in source.chunk_id else "prd_root"
+                self._append_codegen_context_item(items, reasons, source, selection_reason)
+
+        def walk_root(root) -> None:
+            if root.chunk_id in visited_roots:
+                return
+            visited_roots.add(root.chunk_id)
+            add_fsd(root, "fsd_ancestor")
+            for edge in sorted(view.edges_to(root.chunk_id, "decomposes"), key=lambda item: item.src):
+                parent_split_node = view.node(edge.src)
+                if parent_split_node is None or parent_split_node.type != "fsd":
+                    continue
+                add_fsd(parent_split_node, "fsd_ancestor")
+                parent_root = view.node(_parent_chunk_id(parent_split_node.chunk_id))
+                if parent_root is not None:
+                    walk_root(parent_root)
+
+        add_fsd(parent_split, "parent_split")
         parent_root = view.node(_parent_chunk_id(parent_split.chunk_id))
-        if parent_root is not None and parent_root.chunk_id not in seen:
-            self._append_context_item(items, seen, parent_root)
-            self._walk_upstream_roots(view, parent_root.chunk_id, items, seen)
-        return items
+        if parent_root is not None:
+            walk_root(parent_root)
+        return self._sort_codegen_context(items)
 
     def _walk_upstream_roots(self, view, root_chunk_id: str, items: list[dict], seen: set[str]) -> None:
         for edge in sorted(view.edges_to(root_chunk_id, "decomposes"), key=lambda item: item.src):
@@ -913,35 +978,59 @@ class NewModelManager:
                 continue
             self._append_context_item(items, seen, src)
 
-    def _collect_dependency_context(self, view, upstream: list[dict]) -> list[dict]:
-        """Collect depends_on context from every FSD internal split in the upstream
-        chain — not just the immediate parent module split.
-
-        depends_on edges live at the domain-split level (e.g. ``[FSD]-ait:version``
-        ↔ ``[FSD]-ait:doc_model``) because the model only allows same-parent
-        siblings. A module split (``[FSD]-ait-version:version_manager``) therefore
-        has no depends_on of its own; we must climb to the domain split — which is
-        already part of the upstream chain — to surface real dependencies.
-        """
-        split_ids = [
-            u["id"] for u in upstream
-            if u.get("type") == "fsd" and ":" in u.get("id", "")
-        ]
+    def _collect_dependency_context(
+        self, view, upstream: list[dict], tdd_chunk_id: str
+    ) -> list[dict]:
+        split_ids = sorted(
+            {
+                item["id"]
+                for item in upstream
+                if item.get("type") == "fsd" and ":" in item.get("id", "")
+            }
+        )
         items: list[dict] = []
-        seen: set[str] = set()
+        reasons: dict[str, str] = {}
         for split_id in split_ids:
-            for edge in view.edges_from(split_id, "depends_on"):
-                split = view.node(edge.dst)
-                if split is None:
+            for edge in sorted(view.edges_from(split_id, "depends_on"), key=lambda item: item.dst):
+                dependency = view.node(edge.dst)
+                if dependency is not None:
+                    self._append_codegen_context_item(
+                        items, reasons, dependency, "depends_on_contract"
+                    )
+
+        parents = sorted(view.edges_to(tdd_chunk_id, "details"), key=lambda edge: edge.src)
+        if parents and parents[0].src.endswith(":TEST"):
+            test_parent = parents[0].src
+            root_id = _parent_chunk_id(test_parent)
+            siblings = sorted(
+                (
+                    node
+                    for node in view.nodes.values()
+                    if node.type == "fsd"
+                    and node.chunk_id.startswith(f"{root_id}:")
+                    and node.chunk_id != test_parent
+                ),
+                key=lambda node: node.chunk_id,
+            )
+            for sibling in siblings:
+                implementation_edges = sorted(
+                    view.edges_from(sibling.chunk_id, "details"), key=lambda edge: edge.dst
+                )
+                if not implementation_edges:
                     continue
-                self._append_context_item(items, seen, split)
-                for child_edge in view.edges_from(edge.dst):
-                    if child_edge.rel not in {"decomposes", "details"}:
-                        continue
-                    child = view.node(child_edge.dst)
-                    if child is not None:
-                        self._append_context_item(items, seen, child)
-        return items
+                self._append_codegen_context_item(
+                    items, reasons, sibling, "test_covered_sibling"
+                )
+                for edge in implementation_edges:
+                    implementation_tdd = view.node(edge.dst)
+                    if implementation_tdd is not None:
+                        self._append_codegen_context_item(
+                            items,
+                            reasons,
+                            implementation_tdd,
+                            "test_implementation_tdd",
+                        )
+        return self._sort_codegen_context(items)
 
     def prepare_discussion(
         self,

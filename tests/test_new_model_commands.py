@@ -170,8 +170,8 @@ target_file: app/services/loan_service.py
     ]
     assert [item["id"] for item in bundle["dependencies"]] == [
         "[FSD]-book_management:persistence",
-        "[FSD]-book_management-persistence",
     ]
+    assert bundle["dependencies"][0]["selection_reason"] == "depends_on_contract"
 
 
 def test_tdd_create_requires_target_file(tmp_path: Path, monkeypatch):
