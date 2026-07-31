@@ -23,6 +23,7 @@ from typing import Iterable, Literal
 
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
+from . import config_store
 from .version_manager import VersionManager
 
 
@@ -49,10 +50,16 @@ class InitResult:
 class MigrationReport:
     """v2.64: report for `migrate_docs_repo_hygiene` — which tracked paths
     under `.meta/snapshots/` or `.ait/` were (or would be) removed from the
-    docs repo's Git index. Never touches working-tree files."""
+    docs repo's Git index. Never touches working-tree files.
+
+    v2.71 adds ``moved_fields`` (machine-specific config fields relocated out
+    of the shared layer) and ``applicable`` (False when the docs dir is not a
+    Git repo at all — distinct from "nothing to migrate")."""
 
     removed_paths: list[str] = field(default_factory=list)
     dry_run: bool = True
+    moved_fields: dict = field(default_factory=dict)
+    applicable: bool = True
 
 
 # Static global skeletons (human-maintained). chunk_id → (filename, heading, body)
@@ -178,12 +185,20 @@ class InitManager:
                     f.write("\n")
                 f.write(line + "\n")
 
-        # 3-5. docs-repo .gitignore — ensure state.md, snapshots/ and .ait/ are
-        # excluded (v2.64 extends step 3 with two more idempotent lines so
-        # runtime auto-snapshots and the project-local wrapper dir never get
-        # tracked into the docs history).
+        # 3-6. docs-repo .gitignore — ensure state.md, snapshots/, .ait/ and the
+        # machine-local config layer are excluded (v2.64 extends step 3 with two
+        # more idempotent lines so runtime auto-snapshots and the project-local
+        # wrapper dir never get tracked into the docs history; v2.71 adds step 6
+        # for the machine-local config layer). Step 6 must be in place *before*
+        # any config write, otherwise the local layer exists in a window where
+        # it is not yet ignored and a later merge's `git add -A` would track it.
         docs_ignore = self.root / ".gitignore"
-        ignore_patterns = ["versions/*/state.md", ".meta/snapshots/", ".ait/"]
+        ignore_patterns = [
+            "versions/*/state.md",
+            ".meta/snapshots/",
+            ".ait/",
+            f".meta/{config_store.LOCAL_CONFIG_NAME}",
+        ]
         if docs_ignore.exists():
             di_content = docs_ignore.read_text(encoding="utf-8")
         else:
@@ -205,36 +220,108 @@ class InitManager:
         Uses ``git rm --cached -r`` semantics — removes the paths from the
         Git index only, never touches the working-tree files on disk.
 
+        v2.71 extends it three ways:
+        - also relocates machine-specific fields still sitting in the shared
+          config layer (so existing projects need no manual editing);
+        - checks the ``git rm`` return code and raises ``MIGRATION_FAILED``
+          instead of reporting a failure as success;
+        - distinguishes "not a Git repo" (``applicable=False``) from "nothing
+          tracked" (empty report), and stays idempotent for both.
+
+        Note this does not rewrite history: `git rm --cached` stops tracking
+        but does not shrink past objects. The payoff is an end to diff noise
+        and unbounded working-tree growth, not history slimming.
+
         Args:
-            dry_run: when True (default), only report which tracked paths
-                would be removed; no Git command mutates the index. When
-                False, actually run `git rm --cached -r` for those paths.
+            dry_run: when True (default), only report what would change; no
+                Git command mutates the index and no config layer is written.
         """
         import subprocess
 
-        result = subprocess.run(
-            ["git", "ls-files", "--", ".meta/snapshots", ".ait"],
+        meta_dir = self.root / ".meta"
+        targets = [
+            ".meta/snapshots",
+            ".ait",
+            f".meta/{config_store.LOCAL_CONFIG_NAME}",
+        ]
+
+        def _not_applicable() -> MigrationReport:
+            return MigrationReport(
+                removed_paths=[], dry_run=dry_run, moved_fields={}, applicable=False
+            )
+
+        # 1. Is the docs dir a Git repo at all? A non-repo is "not applicable",
+        #    which is a different answer from "nothing to migrate".
+        try:
+            probe = subprocess.run(
+                ["git", "rev-parse", "--git-dir"],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+            )
+        except (OSError, ValueError):
+            # git binary missing, or root path unusable as cwd.
+            return _not_applicable()
+        if probe.returncode != 0:
+            return _not_applicable()
+
+        # 2. Which target paths are currently tracked?
+        listed = subprocess.run(
+            ["git", "ls-files", "--", *targets],
             cwd=self.root,
             capture_output=True,
             text=True,
         )
-        if result.returncode != 0:
-            # Not a git repo (or git unavailable) — nothing tracked to report.
-            return MigrationReport(removed_paths=[], dry_run=dry_run)
-
-        removed_paths = [line for line in result.stdout.splitlines() if line.strip()]
-        if not removed_paths:
-            return MigrationReport(removed_paths=[], dry_run=dry_run)
-
-        if dry_run:
-            return MigrationReport(removed_paths=removed_paths, dry_run=True)
-
-        subprocess.run(
-            ["git", "rm", "--cached", "-r", "--", *removed_paths],
-            cwd=self.root,
-            capture_output=True,
+        removed_paths = (
+            [line for line in listed.stdout.splitlines() if line.strip()]
+            if listed.returncode == 0
+            else []
         )
-        return MigrationReport(removed_paths=removed_paths, dry_run=False)
+
+        # 3. Which machine fields still pollute the shared layer?
+        legacy_fields = config_store.find_legacy_machine_fields(meta_dir)
+
+        # 4. Preview shares steps 1-3 with apply, so what you see is what happens.
+        if dry_run:
+            return MigrationReport(
+                removed_paths=removed_paths,
+                dry_run=True,
+                moved_fields=legacy_fields,
+                applicable=True,
+            )
+
+        # 5a. Ignore rules must land BEFORE de-indexing: otherwise the next
+        #     merge's `git add -A` re-tracks everything we just removed.
+        self._ensure_docs_git_repo()
+
+        # 5b. Drop from the index only (no -f: working-tree files stay).
+        if removed_paths:
+            removal = subprocess.run(
+                ["git", "rm", "--cached", "-r", "--", *removed_paths],
+                cwd=self.root,
+                capture_output=True,
+                text=True,
+            )
+            if removal.returncode != 0:
+                detail = (removal.stderr or removal.stdout or "").strip()[-500:]
+                raise InitManagerError(
+                    f"git rm --cached failed: {detail}", "MIGRATION_FAILED"
+                )
+
+        # 5c. Relocate the config fields (writes destination before stripping
+        #     source, so an interruption converges on re-run).
+        moved = (
+            config_store.move_machine_fields_to_local(meta_dir)
+            if legacy_fields
+            else {}
+        )
+
+        return MigrationReport(
+            removed_paths=removed_paths,
+            dry_run=False,
+            moved_fields=moved,
+            applicable=True,
+        )
 
     def _ensure_project_docs_skeleton(self) -> None:
         """Create the project-docs/ directory skeleton if absent (blank-slate
@@ -596,15 +683,18 @@ class InitManager:
         return str(path.relative_to(self.root)).replace("\\", "/")
 
     def _mark_initialized(self, force_paths: bool = False) -> tuple[str, str]:
-        """Write `.meta/config.yaml` with init flag and skill paths.
+        """Persist the init flag and skill paths into the layered config.
 
         Returns `(skill_dir, cli_path)`. New path fields are written
         independently of the `initialized` flag so that running on an already
         initialized project (e.g. via `init --refresh-wrapper`) still updates
         them. Best-effort: never raises.
-        """
-        import yaml
 
+        v2.71: routes through config_store, so machine-specific fields land in
+        the machine-local layer while `initialized` / `auto_snapshot_on_merge`
+        stay in the shared layer. init and `set_acceptance_command` therefore
+        share one ownership table and cannot drift apart.
+        """
         # Resolve canonical paths.
         skill_dir = os.environ.get(
             "AIT_SKILL_DIR",
@@ -618,44 +708,40 @@ class InitManager:
             else "project-docs/.ait/ait-cli"
         )
 
-        cfg_path = self.root / ".meta" / "config.yaml"
+        cfg_dir = self.root / ".meta"
         try:
-            data: dict = {}
-            if cfg_path.exists():
-                loaded = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
-                if isinstance(loaded, dict):
-                    data = loaded
+            data = config_store.read_config(cfg_dir)
+            updates: dict = {}
 
             # Set the init flag once.
             if data.get("initialized") is not True:
-                data["initialized"] = True
+                updates["initialized"] = True
 
             # v2.64: default auto_snapshot_on_merge to False for new projects
             # (docs repo is already Git-versioned; a full-tree snapshot on
             # every merge is redundant). Never overwrite an existing value —
             # users who rely on the legacy snapshot behaviour keep it.
             if "auto_snapshot_on_merge" not in data:
-                data["auto_snapshot_on_merge"] = False
+                updates["auto_snapshot_on_merge"] = False
 
             # Path fields: write on first init, or when force_paths=True
             # (refresh-wrapper). Never silently overwrite user customizations
             # otherwise — users may relocate skill_dir manually.
             if force_paths or "skill_dir" not in data:
-                data["skill_dir"] = skill_dir
+                updates["skill_dir"] = skill_dir
             if force_paths or "cli_path" not in data:
-                data["cli_path"] = cli_path
+                updates["cli_path"] = cli_path
             if force_paths or "wrapper_path" not in data:
-                data["wrapper_path"] = wrapper_rel
+                updates["wrapper_path"] = wrapper_rel
 
-            cfg_path.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write_text(
-                cfg_path, yaml.safe_dump(data, allow_unicode=True, sort_keys=False)
-            )
+            if updates:
+                config_store.write_config_fields(cfg_dir, updates)
+            merged = {**data, **updates}
             # Echo back what we ended up with (may differ from env if user pre-
             # configured the file).
             return (
-                str(data.get("skill_dir") or skill_dir),
-                str(data.get("cli_path") or cli_path),
+                str(merged.get("skill_dir") or skill_dir),
+                str(merged.get("cli_path") or cli_path),
             )
         except Exception:
             # config is advisory; never fail init on it.

@@ -21,6 +21,7 @@ from typing import cast
 import click
 
 from . import __version__
+from . import config_store
 from .chunk_parser import parse_file
 from .context_assembler import ContextAssembler
 from .deps import query_deps
@@ -179,18 +180,14 @@ def _emit_wrapper_hints(root: Path) -> None:
     """
     try:
         wrapper = root / ".ait" / ("ait-cli.cmd" if sys.platform == "win32" else "ait-cli")
-        cfg_path = root / ".meta" / "config.yaml"
         env_skill_dir = os.environ.get("AIT_SKILL_DIR")
         cfg_skill_dir = None
-        if cfg_path.exists():
-            try:
-                import yaml as _yaml
-
-                loaded = _yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
-                if isinstance(loaded, dict):
-                    cfg_skill_dir = loaded.get("skill_dir")
-            except Exception:
-                cfg_skill_dir = None
+        try:
+            cfg_skill_dir = config_store.read_config(root / ".meta").get("skill_dir")
+        except Exception:
+            # Advisory read-only path: a corrupt config degrades to no hint
+            # rather than breaking the CLI. Gate paths must NOT do this.
+            cfg_skill_dir = None
         if not wrapper.exists() and env_skill_dir:
             click.echo(
                 f"tip: project-local wrapper missing; run `{env_skill_dir}/bin/ait init --refresh-wrapper` to generate it",
@@ -260,8 +257,31 @@ def _emit_wrapper_hints(root: Path) -> None:
     default="project",
     help="新模型基线的语义名（用于 [PRD]/[FSD] 根 chunk）。仅配合 --new-model。",
 )
+@click.option(
+    "--migrate",
+    "migrate",
+    is_flag=True,
+    default=False,
+    help="docs 仓治理迁移子模式：把历史上被追踪的 .meta/snapshots/、.ait/ 移出 Git 索引，并把共享配置里的机器特定字段搬到机器本地层。默认只预览，不改动；需配合 --apply 才落地。此模式不执行常规初始化。",
+)
+@click.option(
+    "--apply",
+    "apply_migration",
+    is_flag=True,
+    default=False,
+    help="与 --migrate 同用时表示落地执行（破坏性索引操作，必须显式指定）。单独给出报 USAGE_ERROR。",
+)
 @click.pass_context
-def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str, new_model: bool, project_name: str) -> None:
+def init_cmd(
+    ctx,
+    refresh_wrapper: bool,
+    check_only: bool,
+    skip_csv: str,
+    new_model: bool,
+    project_name: str,
+    migrate: bool,
+    apply_migration: bool,
+) -> None:
     """Bootstrap the global baseline (global PRD/impl overview + global skeletons).
 
     v1.5: incremental-aware. ``init`` always inspects ``docs/global/*`` first:
@@ -283,7 +303,25 @@ def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str, new_mo
     """
     mgr = InitManager(_root(ctx))
     skip_list = [s.strip() for s in skip_csv.split(",") if s.strip()]
+    if apply_migration and not migrate:
+        fail("--apply 仅在与 --migrate 同用时有效", code="USAGE_ERROR")
     try:
+        if migrate:
+            # Migration is a standalone sub-mode: it must not also mutate the
+            # project skeleton, so `run()` is deliberately not called here.
+            report = mgr.migrate_docs_repo_hygiene(dry_run=not apply_migration)
+            ok(
+                {
+                    "removed_paths": report.removed_paths,
+                    # Key names only — the values are local paths / command
+                    # strings, i.e. machine-specific data that should not leak
+                    # into command output or logs.
+                    "moved_fields": sorted(report.moved_fields),
+                    "dry_run": report.dry_run,
+                    "applicable": report.applicable,
+                }
+            )
+            return
         if check_only:
             result = mgr.run(check_only=True)
             ok(
@@ -319,6 +357,8 @@ def init_cmd(ctx, refresh_wrapper: bool, check_only: bool, skip_csv: str, new_mo
             }
         )
     except InitManagerError as exc:
+        fail(str(exc), code=exc.code)
+    except config_store.ConfigError as exc:
         fail(str(exc), code=exc.code)
 
 
@@ -1175,9 +1215,16 @@ def acceptance_group() -> None:
 @click.argument("command", required=False, default=None)
 @click.pass_context
 def acceptance_set(ctx, command: str | None) -> None:
-    """Set (or clear, if omitted) the acceptance command in config.yaml."""
+    """Set (or clear, if omitted) the acceptance command.
+
+    v2.71: stored in the machine-local config layer — the value is
+    machine-specific and gets executed, so it must not travel in shared history.
+    """
     mgr = VersionManager(_root(ctx))
-    ok(mgr.set_acceptance_command(command))
+    try:
+        ok(mgr.set_acceptance_command(command))
+    except VersionManagerError as exc:
+        fail(str(exc), code=exc.code)
 
 
 @acceptance_group.command("run")
@@ -1185,7 +1232,12 @@ def acceptance_set(ctx, command: str | None) -> None:
 def acceptance_run(ctx) -> None:
     """Run the configured acceptance command and report the result."""
     mgr = VersionManager(_root(ctx))
-    ok(mgr.run_acceptance())
+    try:
+        ok(mgr.run_acceptance())
+    except VersionManagerError as exc:
+        # Keeps CONFIG_UNREADABLE / LEGACY_ACCEPTANCE_CONFIG as stable codes in
+        # a single JSON payload instead of leaking a traceback.
+        fail(str(exc), code=exc.code)
 
 
 @main.group("prd")

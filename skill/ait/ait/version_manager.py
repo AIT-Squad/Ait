@@ -24,6 +24,7 @@ from .chunk_parser import Chunk, ParsedFile, parse_file
 from .hash_utils import chunk_hash
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
+from . import config_store
 from .merge_engine import (
     VersionChunkOp,
     execute_plan,
@@ -894,7 +895,13 @@ class VersionManager:
             from .specgraph import sync_specgraph
 
             sync_specgraph(self.root)
-            auto_snapshot = self._read_config().get("auto_snapshot_on_merge", True)
+            # v2.71: default False (was True). schemas and init already default
+            # to False; the merge read points defaulting to True meant projects
+            # that never set the field kept producing snapshot trees that have
+            # no reader — `meta.snapshot` is written but never read, and rollback
+            # relies on docs_commit + the persistent revert tag, not on these
+            # copies. Projects that explicitly set True are unaffected.
+            auto_snapshot = self._read_config().get("auto_snapshot_on_merge", False)
             if auto_snapshot:
                 self._create_snapshot(version)
             self._merge_specgraph_to_baseline(version)
@@ -1133,8 +1140,8 @@ class VersionManager:
 
         sync_specgraph(self.root)
 
-        # Snapshot.
-        auto_snapshot = self._read_config().get("auto_snapshot_on_merge", True)
+        # Snapshot. v2.71: default False — see the confirm-path read point above.
+        auto_snapshot = self._read_config().get("auto_snapshot_on_merge", False)
         if auto_snapshot:
             self._create_snapshot(version)
 
@@ -1718,43 +1725,72 @@ class VersionManager:
     # ── Artifact acceptance gate (v2.25) ───────────────────────────────
 
     def _config_path(self) -> Path:
-        return self.meta_dir / "config.yaml"
+        return self.meta_dir / config_store.SHARED_CONFIG_NAME
 
     def _read_config(self) -> dict:
-        path = self._config_path()
-        if not path.exists():
-            return {}
-        try:
-            import yaml
+        """Return the merged layered config.
 
-            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
-            return loaded if isinstance(loaded, dict) else {}
-        except Exception:
-            return {}
+        v2.71: no local try/except swallowing. The previous implementation
+        caught every exception and returned ``{}``, which made "config is
+        corrupt" indistinguishable from "nothing configured" — and since
+        ``run_acceptance`` treats a missing command as *skipped*, a corrupt
+        config silently disabled the acceptance gate. Corruption now surfaces
+        as ``CONFIG_UNREADABLE`` so confirm/merge fail closed. A missing or
+        empty file still yields ``{}``, so genuinely unconfigured projects keep
+        skipping acceptance as before. The foundation-level error is re-raised
+        as a domain error carrying the *same* code, so the CLI's existing
+        handler reports it without rewriting the code.
+        """
+        try:
+            return config_store.read_config(self.meta_dir)
+        except config_store.ConfigError as exc:
+            raise VersionManagerError(str(exc), code=exc.code) from exc
+
+    def _legacy_machine_fields(self) -> dict:
+        """Machine fields still in the shared layer (same error translation)."""
+        try:
+            return config_store.find_legacy_machine_fields(self.meta_dir)
+        except config_store.ConfigError as exc:
+            raise VersionManagerError(str(exc), code=exc.code) from exc
 
     def set_acceptance_command(self, command: str | None) -> dict:
-        """Persist ``acceptance_command`` into .meta/config.yaml (other keys kept)."""
-        import yaml
+        """Persist ``acceptance_command`` into the machine-local config layer.
 
-        config = self._read_config()
+        v2.71: routed via config_store instead of writing the shared
+        ``config.yaml``. The value is machine-specific *and* gets executed, so
+        it must not ride along in the shared docs history to other machines.
+        """
         if command:
-            config["acceptance_command"] = command
+            config_store.write_config_fields(
+                self.meta_dir, {"acceptance_command": command}
+            )
         else:
-            config.pop("acceptance_command", None)
-        atomic_write_text(
-            self._config_path(),
-            yaml.safe_dump(config, allow_unicode=True, sort_keys=False),
-        )
-        return {"acceptance_command": config.get("acceptance_command")}
+            # Unset clears both layers, which also cleans up a pre-v2.71 copy.
+            config_store.write_config_fields(
+                self.meta_dir, delete=["acceptance_command"]
+            )
+        return {"acceptance_command": self._read_config().get("acceptance_command")}
 
     def run_acceptance(self) -> dict:
         """Run the project's configured acceptance command; gate merge on it.
 
-        Reads ``acceptance_command`` from config.yaml. Absent/empty → skipped
-        (vacuous pass — legacy and non-test projects unaffected). Otherwise runs
-        it at the project root (parent of project-docs, where tests/artifacts
-        live) and passes iff exit code is 0.
+        Reads ``acceptance_command`` from the layered config. Absent/empty →
+        skipped (vacuous pass — legacy and non-test projects unaffected).
+        Otherwise runs it at the project root (parent of project-docs, where
+        tests/artifacts live) and passes iff exit code is 0.
+
+        v2.71: a command still sitting in the *shared* layer is refused rather
+        than executed, so a config that travels with the repo can never drive
+        command execution on this machine without the user migrating first.
         """
+        legacy = self._legacy_machine_fields()
+        if "acceptance_command" in legacy:
+            raise VersionManagerError(
+                "acceptance_command is still stored in the shared config layer; "
+                "run `init --migrate --apply` to relocate it before running "
+                "acceptance",
+                code="LEGACY_ACCEPTANCE_CONFIG",
+            )
         command = (self._read_config().get("acceptance_command") or "").strip()
         if not command:
             return {"passed": True, "skipped": True, "command": None}

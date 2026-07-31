@@ -389,6 +389,11 @@ def test_merge_conflict_use_version_overwrites(project: Path):
 
 def test_merge_creates_snapshot(project: Path):
     # NOTE: 用 impl 路径承载通用 "snapshot 落盘" 语义。
+    # v2.71: 快照默认关闭（字段缺失即不复制）。本用例验证的是"显式开启时仍照旧复制"
+    # 这一保留能力，因此显式写入配置。
+    (project / ".meta" / "config.yaml").write_text(
+        "auto_snapshot_on_merge: true\n", encoding="utf-8"
+    )
     vm = VersionManager(project)
     vm.create("v1.1")
     vm.add_chunk(

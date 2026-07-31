@@ -53,15 +53,19 @@ def test_acceptance_unconfigured_is_skipped(tmp_path: Path, monkeypatch):
     assert res == {"passed": True, "skipped": True, "command": None}
 
 
-def test_acceptance_set_persists_and_keeps_other_keys(tmp_path: Path, monkeypatch):
+def test_acceptance_set_persists_to_local_layer_and_keeps_shared_keys(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     root = _project(tmp_path)
     (root / ".meta" / "config.yaml").write_text("initialized: true\nskill_dir: skill/ait\n", encoding="utf-8")
     runner = CliRunner()
     p = _run(runner, "acceptance", "set", "exit 0")
     assert p["ok"] is True and p["data"]["acceptance_command"] == "exit 0"
+    # v2.71: acceptance_command is machine-specific AND gets executed, so it
+    # lands in the machine-local layer instead of the Git-tracked shared one.
+    local = yaml.safe_load((root / ".meta" / "config.local.yaml").read_text(encoding="utf-8"))
+    assert local["acceptance_command"] == "exit 0"
     cfg = yaml.safe_load((root / ".meta" / "config.yaml").read_text(encoding="utf-8"))
-    assert cfg["acceptance_command"] == "exit 0"
+    assert "acceptance_command" not in cfg, "共享层不承载会被执行的机器字段"
     assert cfg["initialized"] is True and cfg["skill_dir"] == "skill/ait", "其余键保留"
 
 

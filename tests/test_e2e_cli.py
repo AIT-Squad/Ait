@@ -179,9 +179,11 @@ def test_end_to_end_happy_path(cli_project: Path):
     assert "基于借阅历史推荐图书" in prd_text
     assert "GET /api/v1/books/recommend" in impl_text
 
-    # Snapshot exists — 版本侧仍是 prd/recommend.md（快照是 docs/ 的拷贝）
-    snapshot = root / ".meta" / "snapshots" / version / "docs" / "prd" / "global.md"
-    assert snapshot.exists()
+    # v2.71: 快照默认关闭 —— docs 仓自身的 Git 历史已完整记录该次变更，且快照目录
+    # 无任何读取方。e2e 反映默认体验；显式开启的保留路径由 test_merge_workflow 与
+    # test_v271_config_hygiene 覆盖。
+    snapshot_dir = root / ".meta" / "snapshots" / version
+    assert not snapshot_dir.exists()
 
     # Baseline index updated
     baseline_index = root / ".meta" / "chunks-index.yaml"
