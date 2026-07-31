@@ -58,6 +58,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
             "prd", "create", "[PRD]-shop",
             "--version", "v9.0",
             "--content", "<!-- @id:[PRD]-shop -->\n## Shop PRD\n",
+            "--skip-context",
         ],
         catch_exceptions=False,
     )
@@ -72,6 +73,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
             "--version", "v9.0",
             "--parent", "[PRD]-shop",
             "--content", "<!-- @id:[FSD]-shop -->\n## Shop FSD\n",
+            "--skip-context",
         ],
         catch_exceptions=False,
     )
@@ -155,11 +157,13 @@ def test_target_file_uniqueness_via_collect(tmp_path: Path):
     mgr.create_tdd(
         "v9.0", "[TDD]-alpha",
         "<!-- @id:[TDD]-alpha -->\n## Alpha\n\n```yaml\ntarget_file: app/shared.py\n```\n",
+        skip_context=True,
     )
     with pytest.raises(ValidationError) as excinfo:
         mgr.create_tdd(
             "v9.0", "[TDD]-beta",
             "<!-- @id:[TDD]-beta -->\n## Beta\n\n```yaml\ntarget_file: ./app\\Shared.py\n```\n",
+            skip_context=True,
         )
     assert "DUPLICATE_TARGET_FILE" in str(excinfo.value)
     # 被拒＝零落盘：索引与图中无 beta
@@ -169,6 +173,7 @@ def test_target_file_uniqueness_via_collect(tmp_path: Path):
     mgr.create_tdd(
         "v9.0", "[TDD]-beta",
         "<!-- @id:[TDD]-beta -->\n## Beta\n\n```yaml\ntarget_file: app/beta.py\n```\n",
+        skip_context=True,
     )
 
 
@@ -192,22 +197,27 @@ def test_taskless_new_model_confirm(tmp_path: Path):
     mgr = NewModelManager(root)
     vm.create("v1.0")
 
-    mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys PRD\n")
+    mgr.create_prd(
+        "v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys PRD\n", skip_context=True
+    )
     _set_phase(root, "v1.0", "prd-confirm")
     mgr.create_fsd(
         "v1.0", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## App FSD\n\n"
         "<!-- @id:[FSD]-app:svc -->\n## Service\n\n"
         "<!-- @id:[FSD]-app:store -->\n## Store\n",
+        skip_context=True,
     )
     _set_phase(root, "v1.0", "fsd-confirm")
     mgr.create_tdd(
         "v1.0", "[TDD]-svc",
         "<!-- @id:[TDD]-svc -->\n## Service TDD\n\n```yaml\ntarget_file: app/svc.py\n```\n",
+        skip_context=True,
     )
     mgr.create_tdd(
         "v1.0", "[TDD]-store",
         "<!-- @id:[TDD]-store -->\n## Store TDD\n\n```yaml\ntarget_file: app/store.py\n```\n",
+        skip_context=True,
     )
     mgr._add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
     mgr._add_edge("v1.0", "[FSD]-app:svc", "[TDD]-svc", "details")

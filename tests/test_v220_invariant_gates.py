@@ -69,7 +69,7 @@ def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
     _set_phase(root, "v9.0", "prd-confirm")
-    mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    mgr.create_fsd("v9.0", "[FSD]-app", FSD, skip_context=True)
 
     with pytest.raises(ValidationError) as excinfo:
         mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-ghost", "details")
@@ -77,7 +77,7 @@ def test_add_edge_rejects_phantom_endpoint_then_retry(tmp_path: Path):
     assert load_specgraph(root, "v9.0").edges == [], "拒绝必须零落盘"
 
     _set_phase(root, "v9.0", "fsd-confirm")
-    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
+    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD, skip_context=True)
     mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 重试成功
 
 
@@ -85,13 +85,14 @@ def test_add_edge_rejects_second_details_parent(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
     _set_phase(root, "v9.0", "prd-confirm")
-    mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    mgr.create_fsd("v9.0", "[FSD]-app", FSD, skip_context=True)
     mgr.create_fsd(
         "v9.0", "[FSD]-other",
         "<!-- @id:[FSD]-other -->\n## O\n\n<!-- @id:[FSD]-other:x -->\n## X\n",
+        skip_context=True,
     )
     _set_phase(root, "v9.0", "fsd-confirm")
-    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
+    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD, skip_context=True)
     mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
 
     with pytest.raises(ValidationError) as excinfo:
@@ -104,10 +105,12 @@ def test_add_edge_rejects_second_details_parent(tmp_path: Path):
 def test_add_edge_rejects_second_prd_fsd_link(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
-    mgr.create_prd("v9.0", "[PRD]-app", PRD)
+    mgr.create_prd("v9.0", "[PRD]-app", PRD, skip_context=True)
     _set_phase(root, "v9.0", "prd-confirm")
-    mgr.create_fsd("v9.0", "[FSD]-app", FSD)
-    mgr.create_fsd("v9.0", "[FSD]-second", "<!-- @id:[FSD]-second -->\n## S\n")
+    mgr.create_fsd("v9.0", "[FSD]-app", FSD, skip_context=True)
+    mgr.create_fsd(
+        "v9.0", "[FSD]-second", "<!-- @id:[FSD]-second -->\n## S\n", skip_context=True
+    )
     mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
 
     with pytest.raises(ValidationError) as excinfo:
@@ -119,9 +122,9 @@ def test_add_edge_same_edge_is_idempotent(tmp_path: Path):
     root = _project(tmp_path)
     mgr = NewModelManager(root)
     _set_phase(root, "v9.0", "prd-confirm")
-    mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    mgr.create_fsd("v9.0", "[FSD]-app", FSD, skip_context=True)
     _set_phase(root, "v9.0", "fsd-confirm")
-    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
+    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD, skip_context=True)
     mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")  # 同边重放不拒
 
@@ -137,9 +140,9 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
 
     # 只有 FSD+TDD、无 PRD → 孤儿+断链
     _set_phase(root, "v9.0", "prd-confirm")
-    mgr.create_fsd("v9.0", "[FSD]-app", FSD)
+    mgr.create_fsd("v9.0", "[FSD]-app", FSD, skip_context=True)
     _set_phase(root, "v9.0", "fsd-confirm")
-    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD)
+    mgr.create_tdd("v9.0", "[TDD]-app-feat", TDD, skip_context=True)
     mgr._add_edge("v9.0", "[FSD]-app:feat", "[TDD]-app-feat", "details")
     vm.stage("v9.0")
     vm.commit("v9.0", "lock")
@@ -152,7 +155,7 @@ def test_confirm_rejects_traceless_version_then_retry(tmp_path: Path, monkeypatc
 
     # 补齐 PRD 与 derives 边 → 重试成功（拒后可重试，无终态陷阱）
     _set_phase(root, "v9.0", "prd-creating")
-    mgr.create_prd("v9.0", "[PRD]-app", PRD)
+    mgr.create_prd("v9.0", "[PRD]-app", PRD, skip_context=True)
     mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
     vm.stage("v9.0")
     vm.commit("v9.0", "lock prd")

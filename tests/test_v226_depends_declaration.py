@@ -67,7 +67,7 @@ def _bootstrap(runner):
     # P7 收: explicit version create (no auto-open), then prd create + confirm
     # so the FSD layer is reachable (phase → prd-confirm).
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
 
 
@@ -77,7 +77,7 @@ def test_declaration_creates_edges(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     _bootstrap(runner)
 
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_DECLARED)
     assert p["ok"] is True
 
     view = combined_view(root, "v0.1")
@@ -92,7 +92,7 @@ def test_declaration_unknown_sibling_rejected_zero_write(tmp_path: Path, monkeyp
     _bootstrap(runner)
 
     bad = FSD_DECLARED.replace("depends_on: [store]", "depends_on: [ghost]")
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", bad)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", bad)
     assert p["ok"] is False and "DEPENDS_ON_UNKNOWN_SIBLING" in (p.get("code") or "")
     assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").exists(), "拒绝须零落盘"
 
@@ -104,7 +104,7 @@ def test_declaration_self_dep_rejected(tmp_path: Path, monkeypatch):
     _bootstrap(runner)
 
     bad = FSD_DECLARED.replace("depends_on: [store]", "depends_on: [feat]")
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", bad)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", bad)
     assert p["ok"] is False and "DEPENDS_ON_SELF" in (p.get("code") or "")
 
 
@@ -115,7 +115,7 @@ def test_declaration_cross_parent_rejected(tmp_path: Path, monkeypatch):
     _bootstrap(runner)
 
     bad = FSD_DECLARED.replace("depends_on: [store]", 'depends_on: ["[FSD]-other:x"]')
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", bad)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", bad)
     assert p["ok"] is False and "DEPENDS_ON_CROSS_LEVEL" in (p.get("code") or "")
 
 
@@ -125,11 +125,11 @@ def test_redeclare_reconciles_add_and_remove(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_DECLARED)
 
     p = _run(runner, "fsd", "create", "[FSD]-app",
              "--action", "modify", "--overrides", "[FSD]-app",
-             "--content", FSD_REDECLARED)
+             "--skip-context", "--content", FSD_REDECLARED)
     assert p["ok"] is True
 
     view = combined_view(root, "v0.1")
@@ -144,7 +144,7 @@ def test_view_suppresses_baseline_scope_for_owned_root(tmp_path: Path, monkeypat
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_DECLARED)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_DECLARED)
     # 简化直通:锁全部 chunk 后合入 baseline
     _run(runner, "version", "commit", "v0.1")
     # 补齐不变式(feat/store 是叶 split,需 TDD 才可追溯?不——不变式⑤⑥只约束
@@ -161,11 +161,11 @@ def test_view_suppresses_baseline_scope_for_owned_root(tmp_path: Path, monkeypat
     _run(runner, "version", "create", "v0.2")
     # P7 收: iteration re-enters top-down from the PRD layer before touching FSD.
     _run(runner, "prd", "create", "[PRD]-app", "--action", "modify",
-         "--overrides", "[PRD]-app", "--content", PRD)
+         "--overrides", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
     p = _run(runner, "fsd", "create", "[FSD]-app",
              "--action", "modify", "--overrides", "[FSD]-app",
-             "--content", FSD_DECLARED.replace("depends_on: [store]", "depends_on: []"))
+             "--skip-context", "--content", FSD_DECLARED.replace("depends_on: [store]", "depends_on: []"))
     assert p["ok"] is True
 
     view = combined_view(root, "v0.2")
@@ -179,18 +179,18 @@ def test_merge_reconciles_baseline_edges(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_DECLARED)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_DECLARED)
     _run(runner, "version", "commit", "v0.1")
     assert _run(runner, "version", "merge", "v0.1")["ok"] is True
 
     _run(runner, "version", "create", "v0.2")
     # P7 收: iteration re-enters top-down from the PRD layer before touching FSD.
     _run(runner, "prd", "create", "[PRD]-app", "--action", "modify",
-         "--overrides", "[PRD]-app", "--content", PRD)
+         "--overrides", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-app",
          "--action", "modify", "--overrides", "[FSD]-app",
-         "--content", FSD_REDECLARED)
+         "--skip-context", "--content", FSD_REDECLARED)
     _run(runner, "version", "commit", "v0.2")
     p = _run(runner, "version", "merge", "v0.2")
     assert p["ok"] is True, p
@@ -220,12 +220,12 @@ def test_fsd_tdd_create_ghost_version_rejected(tmp_path: Path, monkeypatch):
     runner = CliRunner()
 
     p = _run(runner, "fsd", "create", "[FSD]-app", "--version", "v9.9typo",
-             "--content", "<!-- @id:[FSD]-app -->\n## F\n")
+             "--skip-context", "--content", "<!-- @id:[FSD]-app -->\n## F\n")
     assert p["ok"] is False and "VERSION_NOT_FOUND" in (p.get("code") or "")
     assert not (root / ".meta" / "versions" / "v9.9typo.yaml").exists(), "不得静默建幽灵版本"
 
     p = _run(runner, "tdd", "create", "[TDD]-app-x", "--version", "v9.9typo",
-             "--content", "<!-- @id:[TDD]-app-x -->\n## T\n```yaml\ntarget_file: a.py\n```\n")
+             "--skip-context", "--content", "<!-- @id:[TDD]-app-x -->\n## T\n```yaml\ntarget_file: a.py\n```\n")
     assert p["ok"] is False and "VERSION_NOT_FOUND" in (p.get("code") or "")
 
 
@@ -238,7 +238,7 @@ def test_declaration_stripped_from_persisted_doc(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_DECLARED)
 
     body = (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").read_text(encoding="utf-8")
     assert "depends_on" not in body, "持久正文不得含 depends_on 块"
@@ -281,12 +281,12 @@ def test_modify_without_block_preserves_edges(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap(runner)
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD_DECLARED)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_DECLARED)
     assert combined_view(root, "v0.1").edges_from("[FSD]-app:feat", "depends_on"), "前置:边已建"
 
     # 改描述、不带任何 depends_on 块
     p = _run(runner, "fsd", "create", "[FSD]-app",
-             "--action", "modify", "--overrides", "[FSD]-app", "--content", FSD_PROSE_ONLY)
+             "--action", "modify", "--overrides", "[FSD]-app", "--skip-context", "--content", FSD_PROSE_ONLY)
     assert p["ok"] is True
     deps = [e.dst for e in combined_view(root, "v0.1").edges_from("[FSD]-app:feat", "depends_on")]
     assert deps == ["[FSD]-app:store"], "无块 modify 必须保留现有边(preserve)"
@@ -300,14 +300,14 @@ def test_explicit_empty_clears_that_split_only(tmp_path: Path, monkeypatch):
     _bootstrap(runner)
     # feat→store, store→feat 两条
     two = FSD_DECLARED.replace("## store\n", "## store\n```yaml\ndepends_on: [feat]\n```\n")
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", two)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", two)
     v = combined_view(root, "v0.1")
     assert v.edges_from("[FSD]-app:feat", "depends_on") and v.edges_from("[FSD]-app:store", "depends_on")
 
     # 只清 feat(显式 []),不提 store
     clear_feat = two.replace("depends_on: [store]", "depends_on: []")
     _run(runner, "fsd", "create", "[FSD]-app",
-         "--action", "modify", "--overrides", "[FSD]-app", "--content", clear_feat)
+         "--action", "modify", "--overrides", "[FSD]-app", "--skip-context", "--content", clear_feat)
     v = combined_view(root, "v0.1")
     assert v.edges_from("[FSD]-app:feat", "depends_on") == [], "feat 被显式清空"
     assert [e.dst for e in v.edges_from("[FSD]-app:store", "depends_on")] == ["[FSD]-app:feat"], "store 边保留"
@@ -324,7 +324,7 @@ def test_fsd_with_test_chunk_passes_gate(tmp_path: Path, monkeypatch):
         "<!-- @id:[FSD]-app:feat -->\n## feat\n\n"
         "<!-- @id:[FSD]-app:TEST -->\n## TEST 集成验收\n所有部分合并的验收。\n"
     )
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", fsd)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", fsd)
     assert p["ok"] is True, p
     assert combined_view(root, "v0.1").node("[FSD]-app:TEST") is not None, ":TEST chunk 已入图"
     _run(runner, "version", "commit", "v0.1")

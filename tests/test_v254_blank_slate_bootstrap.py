@@ -71,14 +71,14 @@ def test_blank_slate_to_merge_end_to_end(tmp_path: Path, monkeypatch):
     _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-demo", "--action", "modify",
          "--overrides", "[PRD]-demo",
-         "--content", "<!-- @id:[PRD]-demo -->\n## Demo\n\n<!-- @id:[PRD]-demo:feat -->\n## feat need\n")
+         "--skip-context", "--content", "<!-- @id:[PRD]-demo -->\n## Demo\n\n<!-- @id:[PRD]-demo:feat -->\n## feat need\n")
     _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-demo", "--parent", "[PRD]-demo",
          "--action", "modify", "--overrides", "[FSD]-demo",
-         "--content", "<!-- @id:[FSD]-demo -->\n## F\n\n<!-- @id:[FSD]-demo:core -->\n## core\n")
+         "--skip-context", "--content", "<!-- @id:[FSD]-demo -->\n## F\n\n<!-- @id:[FSD]-demo:core -->\n## core\n")
     _run(runner, "fsd", "confirm")
     _run(runner, "tdd", "create", "[TDD]-demo-core", "--parent", "[FSD]-demo:core",
-         "--content", "<!-- @id:[TDD]-demo-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n")
+         "--skip-context", "--content", "<!-- @id:[TDD]-demo-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n")
     _run(runner, "tdd", "confirm")
     _run(runner, "codegen", "prepare", "[TDD]-demo-core")
     _run(runner, "version", "confirm", "v0.1")

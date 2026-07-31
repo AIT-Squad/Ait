@@ -48,7 +48,7 @@ from .search import search_chunks
 from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
-from .validator import ValidationError
+from .validator import ValidationError, ValidationIssue
 from .version_manager import ConflictPolicy, VersionManager, VersionManagerError
 
 # Force UTF-8 stdout on Windows consoles so Chinese chars survive.
@@ -905,6 +905,8 @@ def fsd_group() -> None:
 @click.option("--content", default=None)
 @click.option("--action", type=click.Choice(["add", "modify"]), default="add")
 @click.option("--overrides", default=None)
+@click.option("--context-token", default=None)
+@click.option("--skip-context", is_flag=True, default=False)
 @click.pass_context
 def fsd_create(
     ctx,
@@ -916,6 +918,8 @@ def fsd_create(
     content: str | None,
     action: str,
     overrides: str | None,
+    context_token: str | None,
+    skip_context: bool,
 ) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
@@ -923,8 +927,15 @@ def fsd_create(
         fail("No active version", code="NO_VERSION")
     try:
         if content is None and content_file is None:
-            # v2.53 讨论背景模式: 无内容=返回该层讨论背景,零写入。
-            ok(_json_safe(mgr.prepare_discussion(version, "fsd", root_chunk_id, parent_id=None)))
+            if skip_context:
+                raise ValidationError([ValidationIssue(
+                    severity="E1", code="CONTEXT_SKIP_NOT_ALLOWED",
+                    message="--skip-context is only valid for content writes",
+                )])
+            ok(_json_safe(mgr.prepare_discussion(
+                version, "fsd", root_chunk_id, parent_id=parent_chunk_id,
+                file=file_opt, action=action, overrides=overrides,
+            )))
             return
         result = mgr.create_fsd(
             version,
@@ -934,6 +945,8 @@ def fsd_create(
             action=action,
             overrides=overrides,
             parent_chunk_id=parent_chunk_id,
+            context_token=context_token,
+            skip_context=skip_context,
         )
         ok(_json_safe(result))
     except ValidationError as exc:
@@ -948,6 +961,8 @@ def fsd_create(
 @click.option("--file", "file_opt", default=None, help="Child FSD file under fsd/, no .md.")
 @click.option("--content-file", type=click.Path(exists=True, dir_okay=False, path_type=Path), default=None)
 @click.option("--content", default=None)
+@click.option("--context-token", default=None)
+@click.option("--skip-context", is_flag=True, default=False)
 @click.pass_context
 def fsd_decompose(
     ctx,
@@ -957,6 +972,8 @@ def fsd_decompose(
     file_opt: str | None,
     content_file: Path | None,
     content: str | None,
+    context_token: str | None,
+    skip_context: bool,
 ) -> None:
     """Split-is-edge: atomically write the child FSD (if --content given) and
     create the parent→child decomposes edge. Replaces `fsd link`."""
@@ -969,6 +986,11 @@ def fsd_decompose(
         child_content = _read_content(content_file, content)
     try:
         if child_content is None:
+            if skip_context:
+                raise ValidationError([ValidationIssue(
+                    severity="E1", code="CONTEXT_SKIP_NOT_ALLOWED",
+                    message="--skip-context is only valid for content writes",
+                )])
             # v2.53: no content + child not yet in view → 锚定式讨论背景
             # (formerly a bare MISSING_ENDPOINT error path). Child exists →
             # link-only decompose, unchanged.
@@ -976,11 +998,13 @@ def fsd_decompose(
             if _cv(_root(ctx), version).node(child_root_chunk_id) is None:
                 ok(_json_safe(mgr.prepare_discussion(
                     version, "fsd", child_root_chunk_id, parent_id=parent_chunk_id,
+                    file=file_opt, operation="decompose",
                 )))
                 return
         ok(_json_safe(mgr.decompose_fsd(
             version, parent_chunk_id, child_root_chunk_id,
             content=child_content, file=file_opt,
+            context_token=context_token, skip_context=skip_context,
         )))
     except ValidationError as exc:
         code = exc.issues[0].code if exc.issues else "VALIDATION_FAILED"
@@ -1036,6 +1060,8 @@ def tdd_group() -> None:
 @click.option("--content", default=None)
 @click.option("--action", type=click.Choice(["add", "modify"]), default="add")
 @click.option("--overrides", default=None)
+@click.option("--context-token", default=None)
+@click.option("--skip-context", is_flag=True, default=False)
 @click.pass_context
 def tdd_create(
     ctx,
@@ -1047,6 +1073,8 @@ def tdd_create(
     content: str | None,
     action: str,
     overrides: str | None,
+    context_token: str | None,
+    skip_context: bool,
 ) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
@@ -1054,8 +1082,15 @@ def tdd_create(
         fail("No active version", code="NO_VERSION")
     try:
         if content is None and content_file is None:
-            # v2.53 讨论背景模式: --parent 给定=锚定式,否则发现式;零写入。
-            ok(_json_safe(mgr.prepare_discussion(version, "tdd", root_chunk_id, parent_id=parent_chunk_id)))
+            if skip_context:
+                raise ValidationError([ValidationIssue(
+                    severity="E1", code="CONTEXT_SKIP_NOT_ALLOWED",
+                    message="--skip-context is only valid for content writes",
+                )])
+            ok(_json_safe(mgr.prepare_discussion(
+                version, "tdd", root_chunk_id, parent_id=parent_chunk_id,
+                file=file_opt, action=action, overrides=overrides,
+            )))
             return
         result = mgr.create_tdd(
             version,
@@ -1065,6 +1100,8 @@ def tdd_create(
             action=action,
             overrides=overrides,
             parent_chunk_id=parent_chunk_id,
+            context_token=context_token,
+            skip_context=skip_context,
         )
         ok(_json_safe(result))
     except ValidationError as exc:
@@ -1164,6 +1201,8 @@ def prdv2_group() -> None:
 @click.option("--content", default=None)
 @click.option("--action", type=click.Choice(["add", "modify"]), default="add")
 @click.option("--overrides", default=None)
+@click.option("--context-token", default=None)
+@click.option("--skip-context", is_flag=True, default=False)
 @click.pass_context
 def prdv2_create(
     ctx,
@@ -1174,6 +1213,8 @@ def prdv2_create(
     content: str | None,
     action: str,
     overrides: str | None,
+    context_token: str | None,
+    skip_context: bool,
 ) -> None:
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
@@ -1187,8 +1228,15 @@ def prdv2_create(
         return
     try:
         if content is None and content_file is None:
-            # v2.53 讨论背景模式: baseline∪版本的 PRD 现状(修改方向在对话里)。
-            ok(_json_safe(mgr.prepare_discussion(version, "prd", root_chunk_id)))
+            if skip_context:
+                raise ValidationError([ValidationIssue(
+                    severity="E1", code="CONTEXT_SKIP_NOT_ALLOWED",
+                    message="--skip-context is only valid for content writes",
+                )])
+            ok(_json_safe(mgr.prepare_discussion(
+                version, "prd", root_chunk_id,
+                file=file_opt, action=action, overrides=overrides,
+            )))
             return
         result = mgr.create_prd(
             version,
@@ -1197,6 +1245,8 @@ def prdv2_create(
             file=file_opt,
             action=action,
             overrides=overrides,
+            context_token=context_token,
+            skip_context=skip_context,
         )
         payload = _json_safe(result)
         ok(payload)

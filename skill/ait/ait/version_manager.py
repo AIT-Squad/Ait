@@ -37,6 +37,7 @@ from .schemas import (
     ChangeRecord,
     ChangeType,
     CommitEntry,
+    DiscussionUsage,
     HistoricalAnchorRepair,
     ReconciliationOperation,
     ReconciliationPlan,
@@ -212,6 +213,7 @@ class VersionManager:
         insert_after: str | None = None,
         base_hash: str | None = None,
         source_req: str | None = None,
+        discussion_usage: DiscussionUsage | None = None,
     ) -> VersionChunkEntry:
         """Register / refresh a chunk record in the version index.
 
@@ -266,6 +268,7 @@ class VersionManager:
             insert_after=insert_after,
             base_hash=base_hash,
             source_req=source_req,
+            discussion_usage=discussion_usage,
             summary=parsed_summary or previous_summary or baseline_summary,
         )
         if existing_pos is not None:
@@ -1995,6 +1998,7 @@ class VersionManager:
             date=datetime.now(timezone.utc),
             message=message,
             base_hash=entry.base_hash,
+            discussion_usage=entry.discussion_usage,
             base_content=base_content,
             new_content=new_content,
         )

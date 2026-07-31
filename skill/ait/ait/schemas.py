@@ -16,9 +16,10 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import PurePosixPath
+import re
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Action = Literal["add", "modify", "delete"]
 State = Literal["working", "staged", "committed"]
@@ -107,6 +108,23 @@ class LinksIndex(StrictModel):
 # version chunks-index-{vX.Y}.yaml
 # ─────────────────────────────────────────────────────────────
 
+class DiscussionUsage(StrictModel):
+    """Minimal auditable proof of a content write's discussion path."""
+
+    mode: Literal["receipt", "skipped"]
+    receipt_digest: str | None = None
+
+    @model_validator(mode="after")
+    def _validate_mode_and_digest(self):
+        digest = self.receipt_digest
+        if self.mode == "receipt":
+            if digest is None or re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None:
+                raise ValueError("receipt discussion usage requires a sha256 digest")
+        elif digest is not None:
+            raise ValueError("skipped discussion usage must not include a receipt digest")
+        return self
+
+
 class VersionChunkEntry(StrictModel):
     id: str
     file: str | None  # null when action=delete
@@ -120,6 +138,7 @@ class VersionChunkEntry(StrictModel):
     insert_after: str | None = None
     base_hash: str | None = None
     source_req: str | None = None
+    discussion_usage: DiscussionUsage | None = None
     summary: str | None = None
     metadata: dict = Field(default_factory=dict)
 
@@ -321,6 +340,7 @@ class ChangeRecord(StrictModel):
     date: datetime
     message: str
     base_hash: str | None = None
+    discussion_usage: DiscussionUsage | None = None
     base_content: str | None = None
     new_content: str | None = None
 

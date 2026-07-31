@@ -37,18 +37,22 @@ def _build_mini_project(root: Path) -> None:
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-demo", "<!-- @id:[PRD]-demo -->\n## Demo\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-demo", "<!-- @id:[PRD]-demo -->\n## Demo\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v0.1")
     mgr.create_fsd(
         "v0.1", "[FSD]-demo",
         "<!-- @id:[FSD]-demo -->\n## F\n\n<!-- @id:[FSD]-demo:core -->\n## core\n",
         parent_chunk_id="[PRD]-demo",
+        skip_context=True,
     )
     mgr.confirm_fsd_layer("v0.1")
     mgr.create_tdd(
         "v0.1", "[TDD]-demo-core",
         "<!-- @id:[TDD]-demo-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n",
         parent_chunk_id="[FSD]-demo:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v0.1")
     subprocess.run(["git", "init", "-q"], cwd=root, capture_output=True)
@@ -216,16 +220,20 @@ def test_generate_graph_html_decomposes_label(tmp_path: Path):
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-demo", "<!-- @id:[PRD]-demo -->\n## Demo\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-demo", "<!-- @id:[PRD]-demo -->\n## Demo\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v0.1")
     mgr.create_fsd(
         "v0.1", "[FSD]-demo",
         "<!-- @id:[FSD]-demo -->\n## F\n\n<!-- @id:[FSD]-demo:core -->\n## core\n",
         parent_chunk_id="[PRD]-demo",
+        skip_context=True,
     )
     mgr.decompose_fsd(
         "v0.1", "[FSD]-demo:core", "[FSD]-demo-sub",
         content="<!-- @id:[FSD]-demo-sub -->\n## Sub\n",
+        skip_context=True,
     )
     content = generate_graph_html(root, "v0.1")
     assert "[FSD]-demo-sub" in content
@@ -252,7 +260,9 @@ def test_write_graph_html_version_path(tmp_path: Path, monkeypatch):
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-x", "<!-- @id:[PRD]-x -->\n## X\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-x", "<!-- @id:[PRD]-x -->\n## X\n", skip_context=True
+    )
     monkeypatch.setattr(VersionManager, "_git_commit", lambda self, m: "cafe123")
     mgr.confirm_prd_layer("v0.1")
     result = write_graph_html(root, "v0.1")

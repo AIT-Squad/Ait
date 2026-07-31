@@ -74,6 +74,7 @@ target_file: app/services/loan_service.py
             "v9.0",
             "--content",
             fsd_content,
+            "--skip-context",
         ],
     )
     assert fsd["chunks"] == [
@@ -92,6 +93,7 @@ target_file: app/services/loan_service.py
             "v9.0",
             "--content",
             storage_fsd_content,
+            "--skip-context",
         ],
     )
 
@@ -106,6 +108,7 @@ target_file: app/services/loan_service.py
             "v9.0",
             "--content",
             tdd_content,
+            "--skip-context",
         ],
     )
     assert tdd["chunks"] == ["[TDD]-book_management-loan_service"]
@@ -225,12 +228,14 @@ def test_prepare_codegen_survives_self_loop_cycle(tmp_path: Path, monkeypatch):
         "v9.0",
         "[FSD]-mod",
         "<!-- @id:[FSD]-mod -->\n## Mod\n\n<!-- @id:[FSD]-mod:leaf -->\n## Leaf\n",
+        skip_context=True,
     )
     _set_phase(mgr.root, "v9.0", "fsd-confirm")
     mgr.create_tdd(
         "v9.0",
         "[TDD]-mod-leaf",
         "<!-- @id:[TDD]-mod-leaf -->\n## TDD\n\n```yaml\ntarget_file: app/mod/leaf.py\n```\n",
+        skip_context=True,
     )
     mgr._add_edge("v9.0", "[FSD]-mod:leaf", "[TDD]-mod-leaf", "details")
     mgr._add_edge("v9.0", "[FSD]-mod:leaf", "[FSD]-mod", "decomposes")
@@ -249,17 +254,20 @@ def test_prepare_codegen_survives_mutual_cycle(tmp_path: Path, monkeypatch):
         "v9.0",
         "[FSD]-alpha",
         "<!-- @id:[FSD]-alpha -->\n## Alpha\n\n<!-- @id:[FSD]-alpha:x -->\n## X\n",
+        skip_context=True,
     )
     mgr.create_fsd(
         "v9.0",
         "[FSD]-beta",
         "<!-- @id:[FSD]-beta -->\n## Beta\n\n<!-- @id:[FSD]-beta:y -->\n## Y\n",
+        skip_context=True,
     )
     _set_phase(mgr.root, "v9.0", "fsd-confirm")  # 到 TDD 层
     mgr.create_tdd(
         "v9.0",
         "[TDD]-alpha-x",
         "<!-- @id:[TDD]-alpha-x -->\n## TDD\n\n```yaml\ntarget_file: app/alpha/x.py\n```\n",
+        skip_context=True,
     )
     mgr._add_edge("v9.0", "[FSD]-alpha:x", "[TDD]-alpha-x", "details")
     mgr._add_edge("v9.0", "[FSD]-beta:y", "[FSD]-alpha", "decomposes")
@@ -330,6 +338,7 @@ def test_prepare_codegen_full_upstream_for_modified_tdd(tmp_path: Path, monkeypa
         "<!-- @id:[TDD]-app-feat -->\n## TDD v2 modified\n\n```yaml\ntarget_file: app/feat.py\n```\n",
         action="modify",
         overrides="[TDD]-app-feat",
+        skip_context=True,
     )
 
     _set_phase(root, "v9.0", "tdd-confirm")  # codegen 需 tdd-confirm
@@ -367,7 +376,7 @@ def test_create_rejects_non_prefix_chunk_id_gap4(tmp_path: Path, monkeypatch):
 
     # ④ 补前缀重试成功(拒绝非终态陷阱)——phase 仍 empty,prd create 可达
     good = _run(runner, ["prd", "create", "[PRD]-myprd", "--version", "v9.0",
-                         "--content", "<!-- @id:[PRD]-myprd -->\n## P\n"])
+                         "--content", "<!-- @id:[PRD]-myprd -->\n## P\n", "--skip-context"])
     assert "[PRD]-myprd" in good["chunks"]
 
     # ② root 带前缀但内容混入无前缀 chunk 也被拒(splits/杂散全拦)
@@ -432,6 +441,7 @@ def test_fsd_declared_derives_reuses_baseline_prd_uri(tmp_path: Path, monkeypatc
         "<!-- @id:[FSD]-demo -->\n## Demo FSD\n\n"
         "<!-- @id:[FSD]-demo:feature -->\n```yaml\n"
         "derives: [\"[PRD]-demo:feature\"]\n```\n## Feature\n",
+        skip_context=True,
     )
 
     graph = combined_specgraph(root, "v9.0")

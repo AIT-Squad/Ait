@@ -102,7 +102,7 @@ def test_fsd_create_legit_depends_on_not_rejected(tmp_path: Path, monkeypatch):
         "<!-- @id:[FSD]-app:feat -->\n## feat\n```yaml\ndepends_on: [store]\n```\n\n"
         "<!-- @id:[FSD]-app:store -->\n## store\n"
     )
-    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", fsd)
+    p = _run(runner, "fsd", "create", "[FSD]-app", "--content", fsd, "--skip-context")
     assert p["ok"] is True, p
     text = (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").read_text(encoding="utf-8")
     assert "depends_on" not in text, "声明块须从正文剥离"

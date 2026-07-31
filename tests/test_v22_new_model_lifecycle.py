@@ -41,12 +41,16 @@ def test_new_model_create_requires_existing_version_p7(tmp_path: Path):
 
     assert not vm.version_meta_path("v1.0").exists()
     with pytest.raises(ValidationError) as exc:
-        mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n")
+        mgr.create_prd(
+            "v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n", skip_context=True
+        )
     assert exc.value.issues[0].code == "VERSION_NOT_FOUND"
     assert not vm.version_meta_path("v1.0").exists(), "拒绝须零落盘"
 
     vm.create("v1.0")
-    mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n")
+    mgr.create_prd(
+        "v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n", skip_context=True
+    )
     assert vm.version_meta_path("v1.0").exists()
 
 
@@ -60,11 +64,14 @@ def test_new_model_full_lifecycle(tmp_path: Path, monkeypatch):
     mgr = NewModelManager(root)
 
     vm.create("v1.0")
-    mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n")
+    mgr.create_prd(
+        "v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v1.0")
     mgr.create_fsd(
         "v1.0", "[FSD]-sys",
         "<!-- @id:[FSD]-sys -->\n## Sys FSD\n\n<!-- @id:[FSD]-sys:core -->\n## Core\n",
+        skip_context=True,
     )
     mgr._add_edge("v1.0", "[PRD]-sys", "[FSD]-sys", "derives")
     mgr.confirm_fsd_layer("v1.0")
@@ -72,6 +79,7 @@ def test_new_model_full_lifecycle(tmp_path: Path, monkeypatch):
         "v1.0", "[TDD]-core",
         "<!-- @id:[TDD]-core -->\n## Core TDD\n\n```yaml\ntarget_file: app/core.py\n```\n",
         parent_chunk_id="[FSD]-sys:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v1.0")
 
@@ -106,19 +114,25 @@ def test_codegen_climbs_to_domain_level_depends_on(tmp_path: Path):
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v1.0")
-    mgr.create_prd("v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n")
+    mgr.create_prd(
+        "v1.0", "[PRD]-sys", "<!-- @id:[PRD]-sys -->\n## Sys\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v1.0")
     mgr.create_fsd(
         "v1.0", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## App\n\n"
         "<!-- @id:[FSD]-app:svc -->\n## svc\n\n"
         "<!-- @id:[FSD]-app:store -->\n## store\n",
+        skip_context=True,
     )
     mgr.create_fsd(
         "v1.0", "[FSD]-app-svc",
         "<!-- @id:[FSD]-app-svc -->\n## svc FSD\n\n<!-- @id:[FSD]-app-svc:core -->\n## core\n",
+        skip_context=True,
     )
-    mgr.create_fsd("v1.0", "[FSD]-app-store", "<!-- @id:[FSD]-app-store -->\n## store FSD\n")
+    mgr.create_fsd(
+        "v1.0", "[FSD]-app-store", "<!-- @id:[FSD]-app-store -->\n## store FSD\n", skip_context=True
+    )
     mgr._add_edge("v1.0", "[PRD]-sys", "[FSD]-app", "derives")
     mgr._add_edge("v1.0", "[FSD]-app:svc", "[FSD]-app-svc", "decomposes")
     mgr._add_edge("v1.0", "[FSD]-app:store", "[FSD]-app-store", "decomposes")
@@ -129,6 +143,7 @@ def test_codegen_climbs_to_domain_level_depends_on(tmp_path: Path):
         "v1.0", "[TDD]-core",
         "<!-- @id:[TDD]-core -->\n## core TDD\n\n```yaml\ntarget_file: app/core.py\n```\n",
         parent_chunk_id="[FSD]-app-svc:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v1.0")
 

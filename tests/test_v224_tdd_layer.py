@@ -41,9 +41,9 @@ def _run(runner, *args):
 def _bootstrap_to_tdd_layer(runner, fsd_content=FSD):
     """P7 收:version create → prd create+confirm → fsd create+confirm(TDD 层可达)。"""
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", fsd_content)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", fsd_content)
     _run(runner, "fsd", "confirm")
 
 
@@ -53,17 +53,17 @@ def test_tdd_create_requires_fsd_confirm_p7(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD)
 
-    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     assert p["ok"] is False and p["code"] == "FSD_NOT_CONFIRMED", p
     assert not (root / "versions" / "v0.1" / "tdd" / "[TDD]-app-feat.md").exists(), "拒绝须零落盘"
 
     # fsd confirm 后重试成功(拒绝非终态)
     _run(runner, "fsd", "confirm")
-    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     assert p["ok"] is True
 
 
@@ -73,7 +73,7 @@ def test_tdd_create_parent_builds_details_edge(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     _bootstrap_to_tdd_layer(runner)
 
-    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     assert p["ok"] is True
 
     # details 边真的建了
@@ -87,12 +87,12 @@ def test_tdd_create_second_parent_rejected_zero_write(tmp_path: Path, monkeypatc
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_to_tdd_layer(runner, FSD + "\n<!-- @id:[FSD]-app:feat2 -->\n## Feat2\n")
-    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
 
     # 同一 TDD 再挂第二个父 → TDD_MULTI_PARENT
     p = _run(runner, "tdd", "create", "[TDD]-app-feat",
              "--action", "modify", "--overrides", "[TDD]-app-feat",
-             "--parent", "[FSD]-app:feat2", "--content", TDD)
+             "--parent", "[FSD]-app:feat2", "--skip-context", "--content", TDD)
     assert p["ok"] is False and "TDD_MULTI_PARENT" in (p.get("code") or "")
 
 
@@ -102,7 +102,7 @@ def test_tdd_create_phantom_parent_rejected_zero_write(tmp_path: Path, monkeypat
     runner = CliRunner()
     _bootstrap_to_tdd_layer(runner)
 
-    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-ghost:x", "--content", TDD)
+    p = _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-ghost:x", "--skip-context", "--content", TDD)
     assert p["ok"] is False and "MISSING_ENDPOINT" in (p.get("code") or "")
     assert not (root / "versions" / "v0.1" / "tdd" / "[TDD]-app-feat.md").exists(), "拒绝必须零落盘"
 
@@ -112,7 +112,7 @@ def test_tdd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_to_tdd_layer(runner)
-    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     assert VersionManager(root).load_version_meta("v0.1").phase == "tdd-creating"
 
     p = _run(runner, "tdd", "confirm")
@@ -121,7 +121,7 @@ def test_tdd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
 
     # 冻结是真的:P7 下先撞 FSD_NOT_CONFIRMED 相位门禁(phase=tdd-confirm 不在允许集)
     p = _run(runner, "tdd", "create", "[TDD]-app-feat",
-             "--action", "modify", "--overrides", "[TDD]-app-feat", "--content", TDD)
+             "--action", "modify", "--overrides", "[TDD]-app-feat", "--skip-context", "--content", TDD)
     assert p["ok"] is False
     assert p["code"] == "FSD_NOT_CONFIRMED", p
 
@@ -150,13 +150,13 @@ def test_four_layer_pipeline_end_to_end(tmp_path: Path, monkeypatch):
     # 版本入口(P7:唯一开版本方式)
     _run(runner, "version", "create", "v0.1")
     # PRD 层
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
     # FSD 层:create --parent 建 PRD→FSD derives 边
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
     _run(runner, "fsd", "confirm")
     # TDD 层:create --parent 建 FSD split→TDD details 边
-    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     _run(runner, "tdd", "confirm")
 
     # codegen prepare 沿 details→decomposes 上溯全链(P7:tdd-confirm 后才可达)
@@ -175,7 +175,7 @@ def test_codegen_requires_tdd_confirm_p7(tmp_path: Path, monkeypatch):
     _project(tmp_path)
     runner = CliRunner()
     _bootstrap_to_tdd_layer(runner)
-    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
 
     p = _run(runner, "codegen", "prepare", "[TDD]-app-feat")
     assert p["ok"] is False and p["code"] == "TDD_NOT_CONFIRMED", p

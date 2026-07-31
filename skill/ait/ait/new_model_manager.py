@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -11,6 +13,7 @@ from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
 from .new_model_validator import check_edge_write, normalize_target_file, scan_content_relations
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
+from .schemas import DiscussionUsage
 from .validator import ValidationError, ValidationIssue
 from .version_manager import VersionManager
 
@@ -74,6 +77,88 @@ class NewModelManager:
             )
         return meta
 
+    def _discussion_intent(
+        self,
+        *,
+        layer: str,
+        target_id: str,
+        parent_id: str | None,
+        file: str | None,
+        action: str,
+        overrides: str | None,
+        operation: str,
+    ) -> dict[str, str | None]:
+        normalized_file = _validated_index_path(file, layer) if file else f"{layer}/{target_id}"
+        return {
+            "protocol": "ctx-v1",
+            "layer": layer,
+            "target": target_id,
+            "parent": parent_id,
+            "file": normalized_file,
+            "action": action,
+            "overrides": overrides,
+            "operation": operation,
+        }
+
+    @staticmethod
+    def _context_token(intent: dict[str, str | None], background: dict) -> str:
+        payload = json.dumps(
+            {"intent": intent, "background": background},
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return f"ctx-v1.{hashlib.sha256(payload.encode('utf-8')).hexdigest()}"
+
+    def _validate_context(
+        self,
+        *,
+        version: str,
+        layer: str,
+        target_id: str,
+        parent_id: str | None,
+        file: str | None,
+        action: str,
+        overrides: str | None,
+        operation: str,
+        context_token: str | None,
+        skip_context: bool,
+    ) -> DiscussionUsage:
+        if context_token is not None and skip_context:
+            raise _validation_error(
+                "CONTEXT_TOKEN_CONFLICT",
+                "--context-token and --skip-context are mutually exclusive",
+                target_id,
+            )
+        if skip_context:
+            return DiscussionUsage(mode="skipped")
+        if context_token is None:
+            raise _validation_error(
+                "CONTEXT_TOKEN_REQUIRED",
+                "content writes require a matching context token or --skip-context",
+                target_id,
+            )
+        if re.fullmatch(r"ctx-v1\.[0-9a-f]{64}", context_token) is None:
+            raise _validation_error("CONTEXT_TOKEN_INVALID", "invalid context token format", target_id)
+        background = self.prepare_discussion(
+            version,
+            layer,
+            target_id,
+            parent_id=parent_id,
+            file=file,
+            action=action,
+            overrides=overrides,
+            operation=operation,
+        )
+        expected = background["context_token"]
+        if context_token != expected:
+            raise _validation_error(
+                "CONTEXT_TOKEN_STALE",
+                "context token no longer matches the current background or write intent",
+                target_id,
+            )
+        return DiscussionUsage(mode="receipt", receipt_digest=f"sha256:{context_token.removeprefix('ctx-v1.')}")
+
     def create_fsd(
         self,
         version: str,
@@ -84,6 +169,10 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
         parent_chunk_id: str | None = None,
+        context_token: str | None = None,
+        skip_context: bool = False,
+        _context_parent_id: str | None = None,
+        _operation: str = "create",
     ) -> DocumentCreateResult:
         # P7 收: FSD layer requires the PRD layer confirmed (phase prd-confirm)
         # or the FSD layer already open (fsd-creating).
@@ -120,6 +209,10 @@ class NewModelManager:
             file=file,
             action=action,
             overrides=overrides,
+            parent_id=_context_parent_id if _context_parent_id is not None else parent_chunk_id,
+            operation=_operation,
+            context_token=context_token,
+            skip_context=skip_context,
         )
         # Reconcile AFTER _create_document's sync_specgraph. final_deps carries
         # the file's FULL authoritative set (hydrated preserved + declared), so
@@ -317,6 +410,8 @@ class NewModelManager:
         *,
         content: str | None = None,
         file: str | None = None,
+        context_token: str | None = None,
+        skip_context: bool = False,
     ) -> EdgeCreateResult:
         """FSD "split-is-edge" entry — the retirement path of ``fsd link``.
 
@@ -333,7 +428,16 @@ class NewModelManager:
         view = combined_view(self.root, version)
         self._precheck_decompose_parent(view, parent_chunk_id, child_root_chunk_id)
         if content is not None:
-            self.create_fsd(version, child_root_chunk_id, content, file=file)
+            self.create_fsd(
+                version,
+                child_root_chunk_id,
+                content,
+                file=file,
+                context_token=context_token,
+                skip_context=skip_context,
+                _context_parent_id=parent_chunk_id,
+                _operation="decompose",
+            )
         edge = self._add_edge(version, parent_chunk_id, child_root_chunk_id, "decomposes")
         meta = self.versions.load_version_meta(version)
         if meta.phase == "prd-confirm":
@@ -430,6 +534,8 @@ class NewModelManager:
         action: str = "add",
         overrides: str | None = None,
         parent_chunk_id: str | None = None,
+        context_token: str | None = None,
+        skip_context: bool = False,
     ) -> DocumentCreateResult:
         # P7 收: TDD layer requires the FSD layer confirmed (phase fsd-confirm)
         # or the TDD layer already open (tdd-creating).
@@ -464,6 +570,10 @@ class NewModelManager:
             file=file,
             action=action,
             overrides=overrides,
+            parent_id=parent_chunk_id,
+            operation="create",
+            context_token=context_token,
+            skip_context=skip_context,
         )
         if parent_chunk_id is not None:
             self._add_edge(version, parent_chunk_id, root_chunk_id, "details")
@@ -540,6 +650,8 @@ class NewModelManager:
         file: str | None = None,
         action: str = "add",
         overrides: str | None = None,
+        context_token: str | None = None,
+        skip_context: bool = False,
     ) -> DocumentCreateResult:
         # P7 收: PRD layer must be open — a fresh version (empty) or still
         # authoring PRD (prd-creating). Past that, `prd revert` re-opens it.
@@ -554,6 +666,10 @@ class NewModelManager:
             file=file,
             action=action,
             overrides=overrides,
+            parent_id=None,
+            operation="create",
+            context_token=context_token,
+            skip_context=skip_context,
         )
         # create_prd is the flow entry: start the phase machine.
         meta = self.versions.load_version_meta(version)
@@ -777,6 +893,11 @@ class NewModelManager:
         layer: str,
         target_id: str,
         parent_id: str | None = None,
+        *,
+        file: str | None = None,
+        action: str = "add",
+        overrides: str | None = None,
+        operation: str = "create",
     ) -> dict:
         """v2.53 迭代连续性: assemble the discussion background for a layer's
         create — 现状(经关联检索) + 修改方向(上层已落地的改动) → 讨论出新 chunk.
@@ -798,6 +919,15 @@ class NewModelManager:
         self._require_phase(version, allowed, code, op)
         view = combined_view(self.root, version)
 
+        intent = self._discussion_intent(
+            layer=layer,
+            target_id=target_id,
+            parent_id=parent_id,
+            file=file,
+            action=action,
+            overrides=overrides,
+            operation=operation,
+        )
         bundle: dict = {"mode": "discussion-context", "layer": layer, "version": version}
         tnode = view.node(target_id)
         target: dict = {"id": target_id, "exists": tnode is not None}
@@ -817,11 +947,14 @@ class NewModelManager:
                 if cid.startswith("[PRD]-") and cid != target_id:
                     self._append_context_item(related, seen, view.nodes[cid])
             bundle["related"] = related
+            bundle["context_token"] = self._context_token(intent, bundle)
             return bundle
 
         if parent_id is not None:
             # 锚定式: the command names the anchor.
-            return self._assemble_anchored_bundle(view, bundle, parent_id)
+            result = self._assemble_anchored_bundle(view, bundle, parent_id)
+            result["context_token"] = self._context_token(intent, result)
+            return result
 
         if layer == "fsd" and tnode is not None:
             # 修改既有子 FSD(讨论目标本身已存在,而非在其下新建子块)时自动切换为
@@ -829,7 +962,9 @@ class NewModelManager:
             # 上层 [PRD]- 改动摘要(讨论背景内容正确性收口)。
             governing = view.edges_to(target_id, "decomposes")
             if governing:
-                return self._assemble_anchored_bundle(view, bundle, governing[0].src)
+                result = self._assemble_anchored_bundle(view, bundle, governing[0].src)
+                result["context_token"] = self._context_token(intent, result)
+                return result
 
         # 发现式: anchors = this version's upper-layer changed chunks.
         upper_prefix = "[PRD]-" if layer == "fsd" else "[FSD]-"
@@ -875,6 +1010,7 @@ class NewModelManager:
                     item["anchor"] = a["id"]
                     related.append(item)
         bundle["related"] = related
+        bundle["context_token"] = self._context_token(intent, bundle)
         return bundle
 
     def _assemble_anchored_bundle(
@@ -1010,6 +1146,10 @@ class NewModelManager:
         file: str | None,
         action: str,
         overrides: str | None,
+        parent_id: str | None,
+        operation: str,
+        context_token: str | None,
+        skip_context: bool,
     ) -> DocumentCreateResult:
         file = _validated_index_path(file, kind) if file else f"{kind}/{root_chunk_id}"
         # gap-4 closure: every chunk in a new-model doc must carry the kind's
@@ -1060,6 +1200,18 @@ class NewModelManager:
                 f"version {version} does not exist — run `version create` first",
                 root_chunk_id,
             )
+        usage = self._validate_context(
+            version=version,
+            layer=kind,
+            target_id=root_chunk_id,
+            parent_id=parent_id,
+            file=file,
+            action=action,
+            overrides=overrides,
+            operation=operation,
+            context_token=context_token,
+            skip_context=skip_context,
+        )
         path = self.versions.write_version_file(version, file, content)
         final_parsed = parse_file(path, self.versions.versions_dir / version)
         chunk_ids: list[str] = []
@@ -1069,6 +1221,7 @@ class NewModelManager:
                 chunk=chunk,
                 action=action,  # type: ignore[arg-type]
                 overrides=overrides if chunk.id == root_chunk_id else None,
+                discussion_usage=usage,
             )
             chunk_ids.append(chunk.id)
         sync_specgraph(self.root)

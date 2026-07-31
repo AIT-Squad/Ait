@@ -36,6 +36,7 @@ def test_new_model_merge_preserves_file_containers_and_edges(tmp_path: Path):
         "[FSD]-book_management",
         "<!-- @id:[FSD]-book_management -->\n## Book Management\n\n"
         "<!-- @id:[FSD]-book_management:book_model -->\n## Book Model\n",
+        skip_context=True,
     )
     _meta = vm.load_version_meta("v9.0")
     _meta.phase = "fsd-confirm"  # type: ignore[assignment]
@@ -47,6 +48,7 @@ def test_new_model_merge_preserves_file_containers_and_edges(tmp_path: Path):
         "```yaml\n"
         "target_file: app/models/book.py\n"
         "```\n",
+        skip_context=True,
     )
     mgr._add_edge("v9.0", "[FSD]-book_management:book_model", "[TDD]-book_model", "details")
 

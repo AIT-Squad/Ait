@@ -61,7 +61,7 @@ def test_prd_context_empty_baseline_then_populated(tmp_path: Path, monkeypatch):
     assert p["data"]["related"] == [] and p["data"]["target"]["exists"] is False
     assert not (root / "versions" / "v0.1" / "prd" / "[PRD]-app.md").exists(), "背景模式零写入"
 
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     p = _run(runner, "prd", "create", "[PRD]-app")
     ids = [x["id"] for x in p["data"]["related"]]
     assert "[PRD]-app" not in ids and "[PRD]-app:cap" in ids
@@ -74,7 +74,7 @@ def test_fsd_discovery_context_anchored_on_prd_changes(tmp_path: Path, monkeypat
     _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
 
     p = _run(runner, "fsd", "create", "[FSD]-app")
@@ -92,9 +92,9 @@ def test_decompose_anchored_context_when_child_missing(tmp_path: Path, monkeypat
     root = _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
 
     p = _run(runner, "fsd", "decompose", "[FSD]-app:core", "[FSD]-app-core")
     d = p["data"]
@@ -107,7 +107,7 @@ def test_decompose_anchored_context_when_child_missing(tmp_path: Path, monkeypat
     assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-app-core.md").exists(), "零写入"
 
     # child 存在 + 无 content → 保持 link-only 语义
-    _run(runner, "fsd", "create", "[FSD]-app-core", "--content",
+    _run(runner, "fsd", "create", "[FSD]-app-core", "--skip-context", "--content",
          "<!-- @id:[FSD]-app-core -->\n## core module\n")
     p = _run(runner, "fsd", "decompose", "[FSD]-app:core", "[FSD]-app-core")
     assert p["data"].get("rel") == "decomposes", "child 已存在时仍是建边语义"
@@ -119,16 +119,16 @@ def test_existing_fsd_child_context_auto_anchors_to_governing_parent(tmp_path: P
     _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
     _run(
         runner,
         "fsd",
         "decompose",
         "[FSD]-app:core",
         "[FSD]-app-core",
-        "--content",
+        "--skip-context", "--content",
         "<!-- @id:[FSD]-app-core -->\n## Core module\n",
     )
 
@@ -152,14 +152,14 @@ def test_discussion_context_snapshots_are_repeatable_for_every_layer_and_action(
     _run(runner, "version", "create", "v0.1")
 
     _repeatable_context(runner, "prd", "create", "[PRD]-app")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _repeatable_context(runner, "prd", "create", "[PRD]-app")
     _run(
         runner,
         "prd",
         "create",
         "[PRD]-app",
-        "--content",
+        "--skip-context", "--content",
         PRD.replace("cap need", "cap changed"),
         "--action",
         "modify",
@@ -170,14 +170,14 @@ def test_discussion_context_snapshots_are_repeatable_for_every_layer_and_action(
     _run(runner, "prd", "confirm")
 
     _repeatable_context(runner, "fsd", "create", "[FSD]-new")
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
     _repeatable_context(runner, "fsd", "create", "[FSD]-app")
     _run(
         runner,
         "fsd",
         "create",
         "[FSD]-app",
-        "--content",
+        "--skip-context", "--content",
         FSD.replace("## F", "## F changed"),
         "--action",
         "modify",
@@ -192,14 +192,14 @@ def test_discussion_context_snapshots_are_repeatable_for_every_layer_and_action(
         "<!-- @id:[TDD]-app -->\n## TDD\n\n"
         "```yaml\ntarget_file: app/context.py\n```\n"
     )
-    _run(runner, "tdd", "create", "[TDD]-app", "--content", tdd)
+    _run(runner, "tdd", "create", "[TDD]-app", "--skip-context", "--content", tdd)
     _repeatable_context(runner, "tdd", "create", "[TDD]-app")
     _run(
         runner,
         "tdd",
         "create",
         "[TDD]-app",
-        "--content",
+        "--skip-context", "--content",
         tdd.replace("## TDD", "## TDD changed"),
         "--action",
         "modify",
@@ -215,9 +215,9 @@ def test_tdd_anchored_and_discovery_context(tmp_path: Path, monkeypatch):
     _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
     _run(runner, "fsd", "confirm")
 
     p = _run(runner, "tdd", "create", "[TDD]-app-core", "--parent", "[FSD]-app:core")
@@ -236,7 +236,7 @@ def test_context_mode_still_phase_gated(tmp_path: Path, monkeypatch):
     _project(tmp_path)
     runner = CliRunner()
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
 
     p = _run(runner, "fsd", "create", "[FSD]-app")  # 无 content,phase=prd-creating
     assert p["ok"] is False and p["code"] == "PRD_NOT_CONFIRMED", p

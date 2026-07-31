@@ -37,11 +37,11 @@ def _run(runner, *args):
 def _build_valid_version(runner):
     """A six-invariant-compliant new-model version via the pipeline (P7: explicit version create)."""
     _run(runner, "version", "create", "v0.1")
-    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "create", "[PRD]-app", "--skip-context", "--content", PRD)
     _run(runner, "prd", "confirm")
-    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD)
     _run(runner, "fsd", "confirm")
-    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--content", TDD)
+    _run(runner, "tdd", "create", "[TDD]-app-feat", "--parent", "[FSD]-app:feat", "--skip-context", "--content", TDD)
     _run(runner, "tdd", "confirm")
     _run(runner, "version", "commit", "v0.1")
 

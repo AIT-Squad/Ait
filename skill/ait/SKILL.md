@@ -18,7 +18,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 ## 版本原子性（核心心智模型）
 
 - **create 显式开版本**：`version create <v>` 建版本工作区（已存在则报错，杜绝幽灵版本）（**P7:有活动未 merged 版本报 ACTIVE_VERSION_EXISTS——一次只一个开放版本，上一版须先 merge/revert**）；**P7 全严格自顶向下：`prd create` 不再自动开版本（无活动版本报 NO_ACTIVE_VERSION，须先 `version create`）；fsd create 需 PRD 已 confirm、tdd create 需 FSD 已 confirm、codegen 需 TDD 已 confirm，否则拒（PRD_NOT_CONFIRMED/FSD_NOT_CONFIRMED/TDD_NOT_CONFIRMED）**。
-- **讨论背景(v2.53,迭代连续性——强制编排步骤)**:每层 create 前**必须**先无内容调用同名 create 取讨论背景——`prd create <id>`(无 --content)→baseline PRD 现状;`fsd create <id>`→发现式(本版本 PRD 改动锚+一跳关联+目标现状);`fsd decompose <parent> <child>`(child 未建时)→锚定式(父块全文+邻接+上溯链);`tdd create <id> --parent <split>`→锚定式。拿到背景(anchors/related|linked/upstream/target 全文)后**结合用户修改方向讨论**,产出再带 --content 写入。背景由程序沿 specgraph 关联提取,勿自行翻文件拼凑;零写入、过同层相位门禁。
+- **讨论背景与回执（强制编排步骤）**：每层 create 前先无内容调用同名 create 取得讨论背景与 `context_token`——`prd create <id>`（现状）；`fsd create <id>`（发现式）；`fsd decompose <parent> <child>`（child 未建时为锚定式）；`tdd create <id> --parent <split>`（锚定式）。背景由程序沿 specgraph 关联提取、零写入且受同层相位门禁；令牌绑定层级、目标、父锚点、最终 file、操作、action、overrides 与实际背景。依据背景讨论后，所有有正文的 PRD/FSD/TDD create 及带内容 FSD 分解必须携带同一意图的 `--context-token`；背景或意图变化后旧令牌失效。仅明确决定跳过讨论时使用 `--skip-context`，其与 token 互斥且留下最小审计痕迹；纯关系分解无需 token。token 仅证明上下文连续性，不代表身份认证、授权或所有权。
 - **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定；legacy `prdv1 commit`/`impl commit` 锁对应文档。锁定后本版本不可改。**层级冻结：`prd confirm` 锁 PRD 层（phase→prd-confirm），`prd revert` 成对返工解锁（phase→prd-creating）——每道门禁配返工。**
 - **confirm＝纯门禁**：`version confirm <v>` 只做校验报告（task 全 done + 六不变式：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、无孤儿、可追溯、树关系无环），**可重复跑、零落盘、不合入**。
 - **merge＝唯一落盘点**：`version merge <v>` 原子合入基线（内部先过同一门禁）+ 一次 git commit，失败字节级回退（docs 与 .meta 同步还原）。

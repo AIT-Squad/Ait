@@ -82,18 +82,22 @@ def test_confirm_not_blocked_by_dirty_docs_repo(tmp_path: Path):
     vm = VersionManager(root)
     mgr = NewModelManager(root)
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v0.1")
     mgr.create_fsd(
         "v0.1", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## F\n\n<!-- @id:[FSD]-app:core -->\n## core\n",
         parent_chunk_id="[PRD]-app",
+        skip_context=True,
     )
     mgr.confirm_fsd_layer("v0.1")
     mgr.create_tdd(
         "v0.1", "[TDD]-core",
         "<!-- @id:[TDD]-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n",
         parent_chunk_id="[FSD]-app:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v0.1")
 
@@ -126,18 +130,22 @@ def test_merge_records_docs_commit_and_code_base(tmp_path: Path):
     _git(tmp_path, "commit", "-m", "init")
 
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v0.1")
     mgr.create_fsd(
         "v0.1", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## F\n\n<!-- @id:[FSD]-app:core -->\n## core\n",
         parent_chunk_id="[PRD]-app",
+        skip_context=True,
     )
     mgr.confirm_fsd_layer("v0.1")
     mgr.create_tdd(
         "v0.1", "[TDD]-core",
         "<!-- @id:[TDD]-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n",
         parent_chunk_id="[FSD]-app:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v0.1")
 
@@ -167,18 +175,22 @@ def test_merge_code_base_none_when_host_not_git(tmp_path: Path):
     _git(root, "config", "user.name", "x")
 
     vm.create("v0.1")
-    mgr.create_prd("v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n")
+    mgr.create_prd(
+        "v0.1", "[PRD]-app", "<!-- @id:[PRD]-app -->\n## App\n", skip_context=True
+    )
     mgr.confirm_prd_layer("v0.1")
     mgr.create_fsd(
         "v0.1", "[FSD]-app",
         "<!-- @id:[FSD]-app -->\n## F\n\n<!-- @id:[FSD]-app:core -->\n## core\n",
         parent_chunk_id="[PRD]-app",
+        skip_context=True,
     )
     mgr.confirm_fsd_layer("v0.1")
     mgr.create_tdd(
         "v0.1", "[TDD]-core",
         "<!-- @id:[TDD]-core -->\n## T\n```yaml\ntarget_file: src/core.py\n```\n",
         parent_chunk_id="[FSD]-app:core",
+        skip_context=True,
     )
     mgr.confirm_tdd_layer("v0.1")
     _git(root, "add", "-A")

@@ -33,12 +33,12 @@ def test_prd_create_requires_active_version_p7(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
 
-    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD])
+    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD])
     p = _payload(r)
     assert p["ok"] is False and p["code"] == "NO_ACTIVE_VERSION", p
 
     runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
-    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD], catch_exceptions=False)
+    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD], catch_exceptions=False)
     p = _payload(r)
     assert p["ok"] is True, p
     meta = VersionManager(root).load_version_meta("v0.1")
@@ -51,7 +51,7 @@ def test_prd_create_reuses_active_version(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     runner.invoke(main, ["version", "create", "v3.0"], catch_exceptions=False)
 
-    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD], catch_exceptions=False)
+    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD], catch_exceptions=False)
     p = _payload(r)
     assert p["ok"] is True
     assert p["data"]["version"] == "v3.0", "прd create 落在当前活动版本"
@@ -71,13 +71,13 @@ def test_prd_create_after_merged_requires_new_version_p7(tmp_path: Path, monkeyp
     meta.merged_at = datetime.now(timezone.utc)  # 模拟已合入 → 无活动版本
     vm.save_version_meta(meta)
 
-    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD])
+    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD])
     p = _payload(r)
     assert p["ok"] is False and p["code"] == "NO_ACTIVE_VERSION", p
 
     # 显式开下一版(上一版已 merged → 守卫放行)后成功
     runner.invoke(main, ["version", "create", "v1.10"], catch_exceptions=False)
-    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD], catch_exceptions=False)
+    r = runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD], catch_exceptions=False)
     assert _payload(r)["ok"] is True
 
 
@@ -86,7 +86,7 @@ def test_prd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
     runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
-    runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD], catch_exceptions=False)
+    runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD], catch_exceptions=False)
 
     # confirm 冻结:chunk 锁定 + phase 推进
     r = runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
@@ -99,7 +99,7 @@ def test_prd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     # 冻结是真的:再 modify 同 chunk → 拒(P7 下先撞 PRD_LAYER_CLOSED 门禁)
     r = runner.invoke(
         main,
-        ["prd", "create", "[PRD]-app", "--action", "modify", "--overrides", "[PRD]-app", "--content", PRD],
+        ["prd", "create", "[PRD]-app", "--action", "modify", "--overrides", "[PRD]-app", "--skip-context", "--content", PRD],
         catch_exceptions=False,
     )
     p = _payload(r)
@@ -116,7 +116,7 @@ def test_prd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     r = runner.invoke(
         main,
         ["prd", "create", "[PRD]-app", "--action", "modify", "--overrides", "[PRD]-app",
-         "--content", "<!-- @id:[PRD]-app -->\n## P v2\n"],
+         "--skip-context", "--content", "<!-- @id:[PRD]-app -->\n## P v2\n"],
         catch_exceptions=False,
     )
     assert _payload(r)["ok"] is True
@@ -140,7 +140,7 @@ def test_prd_revert_rejected_on_merged(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
     runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
-    runner.invoke(main, ["prd", "create", "[PRD]-app", "--content", PRD], catch_exceptions=False)
+    runner.invoke(main, ["prd", "create", "[PRD]-app", "--skip-context", "--content", PRD], catch_exceptions=False)
     vm = VersionManager(root)
     meta = vm.load_version_meta("v0.1")
     from datetime import datetime, timezone

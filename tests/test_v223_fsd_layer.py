@@ -27,7 +27,7 @@ def _bootstrap_prd(runner):
     """P7 收:显式 version create → prd create → prd confirm(FSD 层可达)。"""
     runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
     runner.invoke(main, ["prd", "create", "[PRD]-app",
-                         "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
+                         "--skip-context", "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
                   catch_exceptions=False)
     runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
 
@@ -51,17 +51,17 @@ def test_fsd_create_requires_prd_confirm_p7(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     runner.invoke(main, ["version", "create", "v0.1"], catch_exceptions=False)
     runner.invoke(main, ["prd", "create", "[PRD]-app",
-                         "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
+                         "--skip-context", "--content", "<!-- @id:[PRD]-app -->\n## App PRD\n"],
                   catch_exceptions=False)
 
-    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT])
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_ROOT])
     p = _payload(r)
     assert p["ok"] is False and p["code"] == "PRD_NOT_CONFIRMED", p
     assert not (root / "versions" / "v0.1" / "fsd" / "[FSD]-app.md").exists(), "拒绝须零落盘"
 
     # prd confirm 后重试成功(拒绝非终态)
     runner.invoke(main, ["prd", "confirm"], catch_exceptions=False)
-    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
     assert _payload(r)["ok"] is True
 
 
@@ -71,13 +71,13 @@ def test_decompose_atomic_write_child_and_edge(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     _bootstrap_prd(runner)
     # 一级 FSD:PRD derives FSD 根(create --parent 建 derives 边)
-    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    r = runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
     assert _payload(r)["ok"] is True, "PRD→FSD 建 derives 边"
 
     # decompose 原子写子 FSD + 建边(child 不预先存在)
     r = runner.invoke(
         main,
-        ["fsd", "decompose", "[FSD]-app", "[FSD]-app-svc", "--content", FSD_CHILD],
+        ["fsd", "decompose", "[FSD]-app", "[FSD]-app-svc", "--skip-context", "--content", FSD_CHILD],
         catch_exceptions=False,
     )
     p = _payload(r)
@@ -98,12 +98,12 @@ def test_decompose_prd_rejected_zero_write(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
 
     # PRD 派生一个 FSD 后,试图让 PRD decompose 另一个 FSD → 父侧门禁拒,零落盘
     r = runner.invoke(
         main,
-        ["fsd", "decompose", "[PRD]-app", "[FSD]-other", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
+        ["fsd", "decompose", "[PRD]-app", "[FSD]-other", "--skip-context", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
         catch_exceptions=False,
     )
     p = _payload(r)
@@ -118,7 +118,7 @@ def test_decompose_phantom_parent_rejected(tmp_path: Path, monkeypatch):
     _bootstrap_prd(runner)
     r = runner.invoke(
         main,
-        ["fsd", "decompose", "[FSD]-ghost", "[FSD]-x", "--content", "<!-- @id:[FSD]-x -->\n## X\n"],
+        ["fsd", "decompose", "[FSD]-ghost", "[FSD]-x", "--skip-context", "--content", "<!-- @id:[FSD]-x -->\n## X\n"],
         catch_exceptions=False,
     )
     p = _payload(r)
@@ -130,7 +130,7 @@ def test_fsd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
     vm = VersionManager(root)
     assert vm.load_version_meta("v0.1").phase == "fsd-creating", "create_fsd 应把 phase 推进到 fsd-creating"
 
@@ -142,7 +142,7 @@ def test_fsd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     # 冻结是真的:P7 下先撞 PRD_NOT_CONFIRMED 相位门禁(phase=fsd-confirm 不在允许集)
     r = runner.invoke(
         main,
-        ["fsd", "create", "[FSD]-app", "--action", "modify", "--overrides", "[FSD]-app", "--content", FSD_ROOT],
+        ["fsd", "create", "[FSD]-app", "--action", "modify", "--overrides", "[FSD]-app", "--skip-context", "--content", FSD_ROOT],
         catch_exceptions=False,
     )
     p = _payload(r)
@@ -159,7 +159,7 @@ def test_fsd_confirm_freezes_and_revert_reworks(tmp_path: Path, monkeypatch):
     r = runner.invoke(
         main,
         ["fsd", "create", "[FSD]-app", "--action", "modify", "--overrides", "[FSD]-app",
-         "--content", "<!-- @id:[FSD]-app -->\n## App FSD v2\n"],
+         "--skip-context", "--content", "<!-- @id:[FSD]-app -->\n## App FSD v2\n"],
         catch_exceptions=False,
     )
     assert _payload(r)["ok"] is True
@@ -186,7 +186,7 @@ def test_fsd_create_parent_builds_derives_edge(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     _bootstrap_prd(runner)
 
-    p = _payload(runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False))
+    p = _payload(runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False))
     assert p["ok"] is True
 
     # derives 边真的建了:deps 查得到,且 rel=="derives"(非 decomposes)
@@ -202,11 +202,11 @@ def test_fsd_create_second_parent_derives_rejected_zero_write(tmp_path: Path, mo
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
 
     p = _payload(runner.invoke(
         main,
-        ["fsd", "create", "[FSD]-other", "--parent", "[PRD]-app", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
+        ["fsd", "create", "[FSD]-other", "--parent", "[PRD]-app", "--skip-context", "--content", "<!-- @id:[FSD]-other -->\n## O\n"],
         catch_exceptions=False,
     ))
     assert p["ok"] is False and "PRD_FSD_LINK_NOT_UNIQUE" in (p.get("code") or "")
@@ -219,11 +219,11 @@ def test_fsd_decompose_prd_parent_type_rejected_zero_write(tmp_path: Path, monke
     root = _project(tmp_path)
     runner = CliRunner()
     _bootstrap_prd(runner)
-    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD_ROOT], catch_exceptions=False)
+    runner.invoke(main, ["fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--skip-context", "--content", FSD_ROOT], catch_exceptions=False)
 
     p = _payload(runner.invoke(
         main,
-        ["fsd", "decompose", "[PRD]-app", "[FSD]-y", "--content", "<!-- @id:[FSD]-y -->\n## Y\n"],
+        ["fsd", "decompose", "[PRD]-app", "[FSD]-y", "--skip-context", "--content", "<!-- @id:[FSD]-y -->\n## Y\n"],
         catch_exceptions=False,
     ))
     assert p["ok"] is False and "INVALID_DECOMPOSES_TYPES" in (p.get("code") or "")
