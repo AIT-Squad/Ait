@@ -35,6 +35,15 @@ def _run(runner, *args):
     return _payload(runner.invoke(main, list(args), catch_exceptions=False))
 
 
+def _repeatable_context(runner, *args):
+    """同一输入下，discussion-context 的完整 data payload 必须稳定。"""
+    first = _run(runner, *args)
+    second = _run(runner, *args)
+    assert first["ok"] is True and second["ok"] is True
+    assert first["data"] == second["data"]
+    return first
+
+
 PRD = "<!-- @id:[PRD]-app -->\n## App\n\n<!-- @id:[PRD]-app:cap -->\n## cap need\n"
 FSD = ("<!-- @id:[FSD]-app -->\n## F\n\n<!-- @id:[FSD]-app:core -->\n## core\n\n"
        "<!-- @id:[FSD]-app:util -->\n## util\n```yaml\ndepends_on: [core]\n```\n")
@@ -55,7 +64,7 @@ def test_prd_context_empty_baseline_then_populated(tmp_path: Path, monkeypatch):
     _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
     p = _run(runner, "prd", "create", "[PRD]-app")
     ids = [x["id"] for x in p["data"]["related"]]
-    assert "[PRD]-app" in ids and "[PRD]-app:cap" in ids
+    assert "[PRD]-app" not in ids and "[PRD]-app:cap" in ids
     assert p["data"]["target"]["exists"] is True and "App" in p["data"]["target"]["content"]
 
 
@@ -102,6 +111,102 @@ def test_decompose_anchored_context_when_child_missing(tmp_path: Path, monkeypat
          "<!-- @id:[FSD]-app-core -->\n## core module\n")
     p = _run(runner, "fsd", "decompose", "[FSD]-app:core", "[FSD]-app-core")
     assert p["data"].get("rel") == "decomposes", "child 已存在时仍是建边语义"
+
+
+def test_existing_fsd_child_context_auto_anchors_to_governing_parent(tmp_path: Path, monkeypatch):
+    """修改已有 FSD 子块时，未指定 parent 也要围绕真正的治理父块组装背景。"""
+    monkeypatch.chdir(tmp_path)
+    _project(tmp_path)
+    runner = CliRunner()
+    _run(runner, "version", "create", "v0.1")
+    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _run(runner, "prd", "confirm")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _run(
+        runner,
+        "fsd",
+        "decompose",
+        "[FSD]-app:core",
+        "[FSD]-app-core",
+        "--content",
+        "<!-- @id:[FSD]-app-core -->\n## Core module\n",
+    )
+
+    p = _run(runner, "fsd", "create", "[FSD]-app-core")
+    d = p["data"]
+    assert d["anchor"]["id"] == "[FSD]-app:core"
+    linked = {(x["id"], x["rel"], x["direction"]) for x in d["linked"]}
+    assert ("[FSD]-app-core", "decomposes", "out") in linked
+    assert ("[FSD]-app:util", "depends_on", "in") in linked
+    assert [x["id"] for x in d["upstream"]] == ["[FSD]-app", "[PRD]-app"]
+    assert "anchors" not in d and "related" not in d
+
+
+def test_discussion_context_snapshots_are_repeatable_for_every_layer_and_action(
+    tmp_path: Path, monkeypatch
+):
+    """PRD/FSD/TDD 的 add 与 modify 场景都返回稳定的完整背景 payload。"""
+    monkeypatch.chdir(tmp_path)
+    _project(tmp_path)
+    runner = CliRunner()
+    _run(runner, "version", "create", "v0.1")
+
+    _repeatable_context(runner, "prd", "create", "[PRD]-app")
+    _run(runner, "prd", "create", "[PRD]-app", "--content", PRD)
+    _repeatable_context(runner, "prd", "create", "[PRD]-app")
+    _run(
+        runner,
+        "prd",
+        "create",
+        "[PRD]-app",
+        "--content",
+        PRD.replace("cap need", "cap changed"),
+        "--action",
+        "modify",
+        "--overrides",
+        "[PRD]-app",
+    )
+    _repeatable_context(runner, "prd", "create", "[PRD]-app")
+    _run(runner, "prd", "confirm")
+
+    _repeatable_context(runner, "fsd", "create", "[FSD]-new")
+    _run(runner, "fsd", "create", "[FSD]-app", "--parent", "[PRD]-app", "--content", FSD)
+    _repeatable_context(runner, "fsd", "create", "[FSD]-app")
+    _run(
+        runner,
+        "fsd",
+        "create",
+        "[FSD]-app",
+        "--content",
+        FSD.replace("## F", "## F changed"),
+        "--action",
+        "modify",
+        "--overrides",
+        "[FSD]-app",
+    )
+    _repeatable_context(runner, "fsd", "create", "[FSD]-app")
+    _run(runner, "fsd", "confirm")
+
+    _repeatable_context(runner, "tdd", "create", "[TDD]-new")
+    tdd = (
+        "<!-- @id:[TDD]-app -->\n## TDD\n\n"
+        "```yaml\ntarget_file: app/context.py\n```\n"
+    )
+    _run(runner, "tdd", "create", "[TDD]-app", "--content", tdd)
+    _repeatable_context(runner, "tdd", "create", "[TDD]-app")
+    _run(
+        runner,
+        "tdd",
+        "create",
+        "[TDD]-app",
+        "--content",
+        tdd.replace("## TDD", "## TDD changed"),
+        "--action",
+        "modify",
+        "--overrides",
+        "[TDD]-app",
+    )
+    _repeatable_context(runner, "tdd", "create", "[TDD]-app")
 
 
 def test_tdd_anchored_and_discovery_context(tmp_path: Path, monkeypatch):

@@ -1443,7 +1443,7 @@ class VersionManager:
 
     def _merge_specgraph_to_baseline(self, version: str) -> None:
         """Promote version specgraph nodes/edges into baseline graph file."""
-        from .specgraph import load_specgraph, specgraph_path
+        from .specgraph import Edge, load_specgraph, specgraph_path
 
         base = load_specgraph(self.root, "baseline")
         vg = load_specgraph(self.root, version)
@@ -1461,6 +1461,39 @@ class VersionManager:
                 return parse_uri(uri)[2]
             except ValueError:
                 return uri
+
+        # A rename-style modify replaces the old baseline identity. Rebase all
+        # inherited relations to the version spec before promotion; otherwise
+        # the merged graph would retain a dangling endpoint for the old id.
+        version_specs_by_id = {spec.chunk_id: spec for spec in vg.specs.values()}
+        replacements = {
+            entry.overrides: entry.id
+            for entry in self.indexes.load_version_index(version).chunks
+            if (
+                entry.action == "modify"
+                and entry.overrides
+                and entry.overrides != entry.id
+                and entry.id in version_specs_by_id
+            )
+        }
+        if replacements:
+            replacement_uris = {
+                old_id: version_specs_by_id[new_id].uri
+                for old_id, new_id in replacements.items()
+            }
+            base.edges = [
+                Edge(
+                    src=replacement_uris.get(_chunk_of(base, edge.src), edge.src),
+                    dst=replacement_uris.get(_chunk_of(base, edge.dst), edge.dst),
+                    rel=edge.rel,
+                    weight=edge.weight,
+                    metadata=dict(edge.metadata),
+                )
+                for edge in base.edges
+            ]
+            for uri, spec in list(base.specs.items()):
+                if spec.chunk_id in replacements:
+                    del base.specs[uri]
 
         owned_roots = {
             spec.chunk_id for spec in vg.specs.values()

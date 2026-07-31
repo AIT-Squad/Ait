@@ -10,13 +10,17 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from ait.index_manager import IndexManager
+from ait.schemas import VersionChunkEntry
 from ait.specgraph import (
     Spec,
     SpecGraph,
     combined_view,
+    load_specgraph,
     make_uri,
     specgraph_path,
 )
+from ait.version_manager import VersionManager
 
 
 def _spec(chunk_id: str, version: str, file: str, type_: str = "fsd") -> Spec:
@@ -72,6 +76,81 @@ def test_baseline_edges_visible_for_modified_chunk(tmp_path: Path):
 
     incoming = view.edges_to("[TDD]-a-x", "details")
     assert [e.src for e in incoming] == ["[FSD]-a"]
+
+
+def test_rename_modify_rebases_baseline_edges_in_both_directions(tmp_path: Path):
+    """覆盖改名不应令 baseline 的关系仍指向被替代的旧 chunk。"""
+    g = SpecGraph()
+    old = _spec("[PRD]-old", "baseline", "prd/[PRD]-old", type_="prd")
+    fsd = _spec("[FSD]-app", "baseline", "fsd/[FSD]-app")
+    g.add_spec(old)
+    g.add_spec(fsd)
+    g.add_edge(old.uri, fsd.uri, "derives", metadata={"source": "new-model-cli"})
+    _save(tmp_path, g)
+
+    vg = SpecGraph(version="v1.0")
+    renamed = _spec("[PRD]-new", "v1.0", "prd/[PRD]-new", type_="prd")
+    vg.add_spec(renamed)
+    _save(tmp_path, vg, "v1.0")
+    indexes = IndexManager(tmp_path)
+    index = indexes.load_version_index("v1.0")
+    index.chunks.append(
+        VersionChunkEntry(
+            id="[PRD]-new",
+            file="prd/[PRD]-new",
+            heading="New",
+            level=2,
+            action="modify",
+            state="working",
+            overrides="[PRD]-old",
+        )
+    )
+    indexes.save_version_index(index)
+
+    view = combined_view(tmp_path, "v1.0")
+
+    assert view.node("[PRD]-old") is None
+    assert view.node("[PRD]-new").version == "v1.0"
+    assert [edge.dst for edge in view.edges_from("[PRD]-new", "derives")] == ["[FSD]-app"]
+    assert [edge.src for edge in view.edges_to("[FSD]-app", "derives")] == ["[PRD]-new"]
+
+
+def test_rename_modify_promotion_keeps_rebased_baseline_edge(tmp_path: Path):
+    """改名式 modify 合并后，baseline 图不能保留指向旧 chunk 的悬空关系。"""
+    g = SpecGraph()
+    old = _spec("[PRD]-old", "baseline", "prd/[PRD]-old", type_="prd")
+    fsd = _spec("[FSD]-app", "baseline", "fsd/[FSD]-app")
+    g.add_spec(old)
+    g.add_spec(fsd)
+    g.add_edge(old.uri, fsd.uri, "derives", metadata={"source": "new-model-cli"})
+    _save(tmp_path, g)
+
+    vg = SpecGraph(version="v1.0")
+    renamed = _spec("[PRD]-new", "v1.0", "prd/[PRD]-new", type_="prd")
+    vg.add_spec(renamed)
+    _save(tmp_path, vg, "v1.0")
+    indexes = IndexManager(tmp_path)
+    index = indexes.load_version_index("v1.0")
+    index.chunks.append(
+        VersionChunkEntry(
+            id="[PRD]-new",
+            file="prd/[PRD]-new",
+            heading="New",
+            level=2,
+            action="modify",
+            state="working",
+            overrides="[PRD]-old",
+        )
+    )
+    indexes.save_version_index(index)
+
+    VersionManager(tmp_path)._merge_specgraph_to_baseline("v1.0")
+    merged = load_specgraph(tmp_path)
+
+    assert all(spec.chunk_id != "[PRD]-old" for spec in merged.specs.values())
+    assert [
+        (edge.src, edge.dst, edge.rel) for edge in merged.edges
+    ] == [(make_uri("[PRD]-new"), make_uri("[FSD]-app"), "derives")]
 
 
 def test_edges_deduped_by_triple(tmp_path: Path):

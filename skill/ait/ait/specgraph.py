@@ -602,11 +602,28 @@ def combined_view(project_root: Path, version: str | None = None) -> CombinedVie
     ):
         graphs.append(load_specgraph(project_root, version))
 
+    # A rename-style modify replaces the baseline chunk's logical identity in
+    # the version view. Rebase baseline relation endpoints to its replacement
+    # so a read-only context query keeps both incoming and outgoing neighbours.
+    overrides: dict[str, str] = {}
+    if len(graphs) > 1 and version is not None:
+        version_ids = {spec.chunk_id for spec in graphs[1].specs.values()}
+        for entry in IndexManager(project_root).load_version_index(version).chunks:
+            if (
+                entry.action == "modify"
+                and entry.overrides
+                and entry.overrides != entry.id
+                and entry.id in version_ids
+            ):
+                overrides[entry.overrides] = entry.id
+
     view = CombinedView()
     uri_to_chunk: dict[str, str] = {}
     for graph in graphs:
         for spec in graph.specs.values():
             uri_to_chunk[spec.uri] = spec.chunk_id
+            if spec.version == "baseline" and spec.chunk_id in overrides:
+                continue
             existing = view.nodes.get(spec.chunk_id)
             # version-side spec wins over baseline regardless of load order
             if (
@@ -626,11 +643,12 @@ def combined_view(project_root: Path, version: str | None = None) -> CombinedVie
 
     def _endpoint(uri: str) -> str | None:
         if uri in uri_to_chunk:
-            return uri_to_chunk[uri]
+            return overrides.get(uri_to_chunk[uri], uri_to_chunk[uri])
         try:
-            return parse_uri(uri)[2]
+            chunk_id = parse_uri(uri)[2]
         except ValueError:
             return None
+        return overrides.get(chunk_id, chunk_id)
 
     # v2.26 owned-scope overlay: when an FSD root's file was touched in the
     # version (its root appears in the version graph), its sibling depends_on

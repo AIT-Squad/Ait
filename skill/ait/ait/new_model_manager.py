@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
@@ -723,7 +724,7 @@ class NewModelManager:
         return items
 
     def _walk_upstream_roots(self, view, root_chunk_id: str, items: list[dict], seen: set[str]) -> None:
-        for edge in view.edges_to(root_chunk_id, "decomposes"):
+        for edge in sorted(view.edges_to(root_chunk_id, "decomposes"), key=lambda item: item.src):
             src = view.node(edge.src)
             if src is None or src.chunk_id in seen:
                 continue
@@ -734,7 +735,7 @@ class NewModelManager:
                     self._append_context_item(items, seen, parent_root)
                     self._walk_upstream_roots(view, parent_root.chunk_id, items, seen)
         # v2.52: an FSD tree root traces up to its PRD via a derives edge.
-        for edge in view.edges_to(root_chunk_id, "derives"):
+        for edge in sorted(view.edges_to(root_chunk_id, "derives"), key=lambda item: item.src):
             src = view.node(edge.src)
             if src is None or src.chunk_id in seen:
                 continue
@@ -809,59 +810,33 @@ class NewModelManager:
 
         if layer == "prd":
             # 现状 = baseline∪版本视图中的全部 PRD chunk(修改方向在用户对话里)
+            # target 自身不再重复出现在 related 里(讨论背景内容正确性收口)。
             related: list[dict] = []
-            seen: set[str] = set()
+            seen: set[str] = {target_id}
             for cid in sorted(view.nodes):
-                if cid.startswith("[PRD]-"):
+                if cid.startswith("[PRD]-") and cid != target_id:
                     self._append_context_item(related, seen, view.nodes[cid])
             bundle["related"] = related
             return bundle
 
         if parent_id is not None:
             # 锚定式: the command names the anchor.
-            pnode = view.node(parent_id)
-            if pnode is None:
-                raise _validation_error(
-                    "MISSING_ENDPOINT", f"parent {parent_id} not found", parent_id
-                )
-            anchor_items: list[dict] = []
-            self._append_context_item(anchor_items, set(), pnode)
-            bundle["anchor"] = anchor_items[0] if anchor_items else {"id": parent_id}
-            linked: list[dict] = []
-            lseen: set[str] = {parent_id}
-            for edge in [*view.edges_from(parent_id), *view.edges_to(parent_id)]:
-                other = edge.dst if edge.src == parent_id else edge.src
-                if other in lseen:
-                    continue
-                node = view.node(other)
-                if node is None:
-                    continue
-                lseen.add(other)
-                item = self._context_item_for_spec(node)
-                if item is not None:
-                    item["rel"] = edge.rel
-                    item["direction"] = "out" if edge.src == parent_id else "in"
-                    linked.append(item)
-            bundle["linked"] = linked
-            # upstream: parent split → structural root → derives/decomposes climb.
-            upstream: list[dict] = []
-            useen: set[str] = {parent_id}
-            if ":" in parent_id:
-                root_node = view.node(_parent_chunk_id(parent_id))
-                if root_node is not None:
-                    self._append_context_item(upstream, useen, root_node)
-                    self._walk_upstream_roots(view, root_node.chunk_id, upstream, useen)
-            else:
-                self._walk_upstream_roots(view, parent_id, upstream, useen)
-            bundle["upstream"] = upstream
-            return bundle
+            return self._assemble_anchored_bundle(view, bundle, parent_id)
+
+        if layer == "fsd" and tnode is not None:
+            # 修改既有子 FSD(讨论目标本身已存在,而非在其下新建子块)时自动切换为
+            # 锚定式:治理该子块的 parent split 才是真正的讨论中心,而不是笼统的
+            # 上层 [PRD]- 改动摘要(讨论背景内容正确性收口)。
+            governing = view.edges_to(target_id, "decomposes")
+            if governing:
+                return self._assemble_anchored_bundle(view, bundle, governing[0].src)
 
         # 发现式: anchors = this version's upper-layer changed chunks.
         upper_prefix = "[PRD]-" if layer == "fsd" else "[FSD]-"
         idx = self.indexes.load_version_index(version)
         anchors: list[dict] = []
         aseen: set[str] = set()
-        for entry in idx.chunks:
+        for entry in sorted(idx.chunks, key=lambda item: item.id):
             if not entry.id.startswith(upper_prefix) or entry.action not in ("add", "modify"):
                 continue
             if entry.id in aseen:
@@ -878,7 +853,15 @@ class NewModelManager:
         related = []
         rseen: set[str] = set(aseen) | {target_id}
         for a in anchors:
-            for edge in [*view.edges_from(a["id"]), *view.edges_to(a["id"])]:
+            for edge in sorted(
+                [*view.edges_from(a["id"]), *view.edges_to(a["id"])],
+                key=lambda item: (
+                    item.dst if item.src == a["id"] else item.src,
+                    item.rel,
+                    item.src,
+                    item.dst,
+                ),
+            ):
                 other = edge.dst if edge.src == a["id"] else edge.src
                 if other in rseen:
                     continue
@@ -892,6 +875,57 @@ class NewModelManager:
                     item["anchor"] = a["id"]
                     related.append(item)
         bundle["related"] = related
+        return bundle
+
+    def _assemble_anchored_bundle(
+        self, view: Any, bundle: dict[str, Any], parent_id: str
+    ) -> dict[str, Any]:
+        """Populate the parent-centred discussion context shared by explicit
+        and auto-discovered anchoring paths."""
+        pnode = view.node(parent_id)
+        if pnode is None:
+            raise _validation_error(
+                "MISSING_ENDPOINT", f"parent {parent_id} not found", parent_id
+            )
+        anchor_items: list[dict[str, Any]] = []
+        self._append_context_item(anchor_items, set(), pnode)
+        bundle["anchor"] = anchor_items[0] if anchor_items else {"id": parent_id}
+
+        linked: list[dict[str, Any]] = []
+        seen: set[str] = {parent_id}
+        for edge in sorted(
+            [*view.edges_from(parent_id), *view.edges_to(parent_id)],
+            key=lambda item: (
+                item.dst if item.src == parent_id else item.src,
+                item.rel,
+                item.src,
+                item.dst,
+            ),
+        ):
+            other = edge.dst if edge.src == parent_id else edge.src
+            if other in seen:
+                continue
+            node = view.node(other)
+            if node is None:
+                continue
+            seen.add(other)
+            item = self._context_item_for_spec(node)
+            if item is not None:
+                item["rel"] = edge.rel
+                item["direction"] = "out" if edge.src == parent_id else "in"
+                linked.append(item)
+        bundle["linked"] = linked
+
+        upstream: list[dict[str, Any]] = []
+        seen = {parent_id}
+        if ":" in parent_id:
+            root_node = view.node(_parent_chunk_id(parent_id))
+            if root_node is not None:
+                self._append_context_item(upstream, seen, root_node)
+                self._walk_upstream_roots(view, root_node.chunk_id, upstream, seen)
+        else:
+            self._walk_upstream_roots(view, parent_id, upstream, seen)
+        bundle["upstream"] = upstream
         return bundle
 
     def _append_context_item(self, items: list[dict], seen: set[str], spec) -> None:
