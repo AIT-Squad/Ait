@@ -484,36 +484,55 @@ class VersionManager:
         meta = self.load_version_meta(version) if meta_path.exists() else None
 
         if meta is not None and meta.merged_at is not None:
-            # The v2.61 tag targets the binding commit, whose meta still contains
-            # this tag reference. It avoids the prior self-referential SHA trap.
+            # Anchor resolution (v2.72): the persistent tag (revert_anchor.docs_ref)
+            # is a GC-safety OPTIMISATION; the commit SHA (docs_commit / code_result)
+            # is the source of truth. Prefer the tag when it resolves, else fall back
+            # to the SHA. Only when NEITHER resolves is the anchor unverifiable — a
+            # dangling/never-created tag alone no longer blocks a revert.
             anchor = meta.revert_anchor
             if anchor is None and not meta.docs_commit:
                 anchor = self._repair_historical_anchor(meta)
-            docs_target = anchor.docs_ref if anchor is not None else meta.docs_commit
-            code_target = anchor.code_result if anchor is not None else meta.code_result
-            if not docs_target:
-                raise VersionManagerError(
-                    f"version {version} has no verifiable docs revert anchor",
-                    code="REVERT_ANCHOR_INVALID",
-                )
 
-            def object_exists(repo: Path, ref: str) -> bool:
+            def object_exists(repo: Path, ref: str | None) -> bool:
+                if not ref:
+                    return False
                 result = subprocess.run(
                     ["git", "cat-file", "-e", f"{ref}^{{commit}}"],
                     cwd=repo, capture_output=True, text=True,
                 )
                 return result.returncode == 0
 
-            docs_head = self._git_head(self.root)
-            if docs_head is None or not object_exists(self.root, docs_target):
+            def _first_resolvable(repo: Path, *refs: str | None) -> str | None:
+                for ref in refs:
+                    if object_exists(repo, ref):
+                        return ref
+                return None
+
+            anchor_docs_ref = anchor.docs_ref if anchor is not None else None
+            anchor_code_ref = anchor.code_result if anchor is not None else None
+            recorded_docs = anchor_docs_ref or meta.docs_commit
+            code_candidate = anchor_code_ref or meta.code_result
+            if not recorded_docs:
                 raise VersionManagerError(
-                    f"docs revert anchor is unavailable: {docs_target}",
+                    f"version {version} has no verifiable docs revert anchor",
+                    code="REVERT_ANCHOR_INVALID",
+                )
+
+            docs_head = self._git_head(self.root)
+            docs_target = _first_resolvable(self.root, anchor_docs_ref, meta.docs_commit)
+            if docs_head is None or docs_target is None:
+                raise VersionManagerError(
+                    f"docs revert anchor is unavailable: {recorded_docs}",
                     code="REVERT_PRECHECK_FAILED",
                 )
             host_head = self._git_head(self.root.parent)
-            if code_target and (host_head is None or not object_exists(self.root.parent, code_target)):
+            code_target = (
+                _first_resolvable(self.root.parent, anchor_code_ref, meta.code_result)
+                if code_candidate else None
+            )
+            if code_candidate and (host_head is None or code_target is None):
                 raise VersionManagerError(
-                    f"host revert anchor is unavailable: {code_target}",
+                    f"host revert anchor is unavailable: {code_candidate}",
                     code="REVERT_PRECHECK_FAILED",
                 )
 
@@ -933,8 +952,9 @@ class VersionManager:
             self.save_version_meta(meta)
             self._refresh_state(version)
             binding_commit = self._git_commit(f"AIT {version} meta: record bindings")
+            tag_created = False
             if binding_commit is not None:
-                self._create_git_tag(anchor_ref, binding_commit)
+                tag_created = self._create_git_tag(anchor_ref, binding_commit)
         except Exception as exc:  # noqa: BLE001
             self._restore_state(backup)
             raise VersionManagerError(
@@ -945,8 +965,48 @@ class VersionManager:
             "merged_chunks": merged_chunks,
             "commit": binding_commit,
             "git": "committed" if binding_commit else "unavailable",
+            "tag_created": tag_created,
             "plan_fingerprint": plan.input_fingerprint,
         }
+
+    def backfill_revert_tags(self) -> dict:
+        """Re-create missing persistent revert tags from each version's docs_commit.
+
+        A merged version whose ``revert_anchor.docs_ref`` names a tag that was
+        never persisted (dangling anchor) is repaired by pointing that tag at the
+        durable ``docs_commit`` SHA. Idempotent: already-present tags are skipped.
+        """
+        probe = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=self.root, capture_output=True, text=True,
+        )
+        if probe.returncode != 0:
+            return {"backfilled": [], "skipped": [], "git": "unavailable"}
+
+        backfilled: list[str] = []
+        skipped: list[dict] = []
+        for meta in self.list_versions():
+            if meta.merged_at is None:
+                continue
+            anchor = meta.revert_anchor
+            if anchor is None or not anchor.docs_ref:
+                skipped.append({"version": meta.version, "reason": "no_anchor"})
+                continue
+            exists = subprocess.run(
+                ["git", "cat-file", "-e", f"{anchor.docs_ref}^{{commit}}"],
+                cwd=self.root, capture_output=True, text=True,
+            )
+            if exists.returncode == 0:
+                skipped.append({"version": meta.version, "reason": "tag_present"})
+                continue
+            if not meta.docs_commit:
+                skipped.append({"version": meta.version, "reason": "no_docs_commit"})
+                continue
+            if self._create_git_tag(anchor.docs_ref, meta.docs_commit):
+                backfilled.append(meta.version)
+            else:
+                skipped.append({"version": meta.version, "reason": "tag_failed"})
+        return {"backfilled": backfilled, "skipped": skipped, "git": "committed"}
 
     def _repair_historical_anchor(self, meta: VersionMeta) -> RevertAnchor | None:
         """Recover an old binding only when Git history proves one unique target."""
@@ -1002,7 +1062,13 @@ class VersionManager:
         return result.stdout.strip() if result.returncode == 0 else None
 
     def _create_git_tag(self, ref: str, commit: str) -> bool:
-        """Create the external rollback anchor; tolerate non-git test fixtures."""
+        """Create the external rollback anchor and verify it landed.
+
+        The tag is a GC-safety optimisation over docs_commit (the source of
+        truth), so a failure here is non-fatal — return False instead of raising
+        so a merge is never rolled back over a missing optimisation. The post
+        `cat-file` check guards against a tag that silently failed to persist.
+        """
         probe = subprocess.run(
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=self.root, capture_output=True, text=True,
@@ -1014,11 +1080,12 @@ class VersionManager:
             ["git", "tag", "-f", tag, commit], cwd=self.root, capture_output=True, text=True
         )
         if result.returncode != 0:
-            raise VersionManagerError(
-                f"git tag {tag} failed: {(result.stderr or result.stdout).strip()}",
-                code="GIT_TAG_FAILED",
-            )
-        return True
+            return False
+        verify = subprocess.run(
+            ["git", "cat-file", "-e", f"{ref}^{{commit}}"],
+            cwd=self.root, capture_output=True, text=True,
+        )
+        return verify.returncode == 0
 
     # ─────────────────────────────────────────────────────
     # merge — write committed chunks back into the baseline

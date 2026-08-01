@@ -757,9 +757,16 @@ def version_revert(ctx, version_name: str, confirm: bool) -> None:
         fail(str(exc), code="REVERT_FAILED")
 
 
-# ═══════════════════════════════════════════════════════════
-# /ait:task ...  (redesign — AI coding task lifecycle)
-# ═══════════════════════════════════════════════════════════
+@version_group.command("backfill-tags")
+@click.pass_context
+def version_backfill_tags(ctx) -> None:
+    """Re-create missing persistent revert tags from each version's docs_commit."""
+    mgr = VersionManager(_root(ctx))
+    try:
+        ok(mgr.backfill_revert_tags())
+    except VersionManagerError as exc:
+        fail(str(exc), code=getattr(exc, "code", "BACKFILL_FAILED"))
+
 
 
 @main.group("task")
