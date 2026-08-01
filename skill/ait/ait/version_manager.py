@@ -1278,8 +1278,6 @@ class VersionManager:
         check_host: bool = True,
     ) -> dict:
         """Run confirm gates and persist the canonical reconciliation plan."""
-        import subprocess as _sp
-
         meta = self.load_version_meta(version)
         if meta.merged_at is not None:
             raise VersionManagerError(f"Version {version} is already merged")
@@ -1325,23 +1323,17 @@ class VersionManager:
                 "acceptance": acceptance,
             }
 
-        # Gate passed — CLI confirmation requires a clean host repository.
+        # Gate passed — AIT commits the host artifact repo and binds code_result
+        # (G25). Symmetric with revert's two-repo rollback: the docs version now
+        # points at an AIT-authored host commit capturing this version's code.
         if check_host:
-            try:
-                _host_status = _sp.run(
-                    ["git", "status", "--porcelain"],
-                    cwd=self.root.parent,
-                    capture_output=True, text=True,
-                )
-                if _host_status.returncode == 0 and _host_status.stdout.strip():
-                    raise VersionManagerError(
-                        "host repo has uncommitted changes; commit your code before version confirm",
-                        code="HOST_DIRTY",
-                    )
-            except VersionManagerError:
-                raise
-            except Exception:
-                pass  # git unavailable in host — tolerated
+            artifacts = self._commit_host_artifacts(version)
+            if artifacts["sha"] is not None:
+                meta = self.load_version_meta(version)
+                meta.code_result = artifacts["sha"]
+                self.save_version_meta(meta)
+        else:
+            artifacts = {"committed": False, "sha": None, "files": 0}
 
         plan_report = self.confirm_plan(version, conflict_policy=conflict_policy)
         return {
@@ -1349,8 +1341,59 @@ class VersionManager:
             "passed": True,
             "violations": [],
             "acceptance": acceptance,
+            "code_result": artifacts["sha"],
+            "artifacts": artifacts,
             **plan_report,
         }
+
+    def _commit_host_artifacts(self, version: str) -> dict:
+        """Commit the host artifact repo at confirm; return the binding SHA (G25).
+
+        Captures the full host working-tree state as this version's artifact
+        commit so ``code_result`` is an AIT-authored commit — symmetric with
+        revert's two-repo rollback. Non-git host → vacuous (sha=None). Clean
+        host → no new commit, sha = current HEAD.
+        """
+        import subprocess
+        host = self.root.parent
+        probe = subprocess.run(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=host, capture_output=True, text=True,
+        )
+        if probe.returncode != 0:
+            return {"committed": False, "sha": None, "files": 0}
+
+        status = subprocess.run(
+            ["git", "status", "--porcelain"], cwd=host, capture_output=True, text=True,
+        )
+        dirty = [ln for ln in status.stdout.splitlines() if ln.strip()]
+        committed = False
+        if dirty:
+            add = subprocess.run(["git", "add", "-A"], cwd=host, capture_output=True, text=True)
+            if add.returncode != 0:
+                raise VersionManagerError(
+                    f"host git add failed: {(add.stderr or add.stdout).strip()}",
+                    code="HOST_COMMIT_FAILED",
+                )
+            commit = subprocess.run(
+                ["git", "commit", "-m", f"AIT {version} artifacts"],
+                cwd=host, capture_output=True, text=True,
+            )
+            if commit.returncode != 0:
+                out = (commit.stdout or "") + (commit.stderr or "")
+                if "nothing to commit" not in out:
+                    raise VersionManagerError(
+                        f"host git commit failed: {out.strip()[-300:]}",
+                        code="HOST_COMMIT_FAILED",
+                    )
+            else:
+                committed = True
+
+        head = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=host, capture_output=True, text=True,
+        )
+        sha = head.stdout.strip() if head.returncode == 0 else None
+        return {"committed": committed, "sha": sha, "files": len(dirty)}
 
     def _assert_new_model_invariants(self, version: str) -> None:
         """Six-invariant confirm gate on baseline∪version (audit-family closer).
