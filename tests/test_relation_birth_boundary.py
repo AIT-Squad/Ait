@@ -219,7 +219,7 @@ def test_validate_new_model_reports_relation_residue(tmp_path: Path, monkeypatch
     )
     p = _payload(runner.invoke(main, ["specgraph", "validate-new-model"], catch_exceptions=False))
     assert p["ok"] is True, "残留排查只报告,不影响 ok/退出码"
-    residue = p["relation_residue"]
+    residue = p["data"]["relation_residue"]
     assert len(residue) == 1
     assert residue[0]["chunk_id"] == "[PRD]-app"
 
@@ -235,5 +235,5 @@ def test_validate_new_model_empty_residue_when_clean(tmp_path: Path, monkeypatch
     )
     p = _payload(runner.invoke(main, ["specgraph", "validate-new-model"], catch_exceptions=False))
     assert p["ok"] is True
-    assert p["relation_residue"] == []
+    assert p["data"]["relation_residue"] == []
 

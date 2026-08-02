@@ -64,7 +64,7 @@ def test_lint_baseline_clean(cli_project: Path):
     payload = _parse(res.output)
 
     assert res.exit_code == 0
-    assert payload == {"ok": True, "violations": [], "fixed_files": []}
+    assert payload == {"ok": True, "data": {"passed": True, "violations": [], "fixed_files": []}}
 
 
 def test_lint_fix_english_to_chinese(cli_project: Path):
@@ -98,7 +98,8 @@ D
 
     assert res.exit_code == 0
     assert payload["ok"] is True
-    assert payload["violations"] == []
+    assert payload["data"]["passed"] is True
+    assert payload["data"]["violations"] == []
     assert "### 概述" in text
     assert "### Goal" not in text
 
@@ -132,8 +133,9 @@ D
     payload = _parse(res.output)
     text = (root / "docs" / "prd" / "demo.md").read_text(encoding="utf-8")
 
-    assert res.exit_code == 1
-    assert payload["ok"] is False
-    assert any(not v["fixable"] for v in payload["violations"])
+    assert res.exit_code == 0
+    assert payload["ok"] is True
+    assert payload["data"]["passed"] is False
+    assert any(not v["fixable"] for v in payload["data"]["violations"])
     assert "### Goal" not in text
     assert "### 概述" in text

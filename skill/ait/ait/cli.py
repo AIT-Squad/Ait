@@ -1436,12 +1436,17 @@ def lint_cmd(ctx, scope: str, fix: bool) -> None:
     """Validate PRD/impl formatting rules without changing version state."""
     root = _root(ctx)
     try:
-        payload, exit_code = _run_lint(root, scope=scope, fix=fix)
+        payload, _ = _run_lint(root, scope=scope, fix=fix)
     except VersionManagerError as exc:
         fail(str(exc), code=getattr(exc, "code", "NO_VERSION"))
         return
-    click.echo(json.dumps(_json_safe(payload), ensure_ascii=False))
-    sys.exit(exit_code)
+    ok(
+        {
+            "passed": payload["ok"],
+            "violations": payload["violations"],
+            **{k: v for k, v in payload.items() if k not in ("ok", "violations")},
+        }
+    )
 
 
 def _run_lint(root: Path, *, scope: str, fix: bool) -> tuple[dict, int]:
@@ -1731,14 +1736,14 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             for chunk in parsed.chunks:
                 contents.append((parsed.file, chunk.id, chunk.content))
     residue = scan_baseline_relation_residue(contents)
-    payload = {
-        "ok": not violations,
-        "version": version or "baseline",
-        "violations": new_model_violations_to_details(violations),
-        "relation_residue": new_model_violations_to_details(residue),
-    }
-    click.echo(json.dumps(_json_safe(payload), ensure_ascii=False))
-    sys.exit(0 if not violations else 1)
+    ok(
+        {
+            "version": version or "baseline",
+            "passed": not violations,
+            "violations": new_model_violations_to_details(violations),
+            "relation_residue": new_model_violations_to_details(residue),
+        }
+    )
 
 # ═══════════════════════════════════════════════════════════
 # /ait:migrate-block-to-chunk — v1.1 → v1.2 one-shot data migration
