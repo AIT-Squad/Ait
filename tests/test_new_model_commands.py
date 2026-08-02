@@ -152,7 +152,7 @@ target_file: app/services/loan_service.py
     assert {item["rel"] for item in graph_after_sync["edges"]} == {"details", "depends_on", "decomposes"}
 
     _set_phase(root, "v9.0", "tdd-confirm")  # codegen 需 tdd-confirm
-    bundle = _run(
+    pointer = _run(
         runner,
         [
             "codegen",
@@ -162,8 +162,16 @@ target_file: app/services/loan_service.py
             "v9.0",
         ],
     )
+    # v2.74 (G19): stdout is a small pointer; the full bundle lives in a temp file.
+    assert pointer["target_file"] == "app/services/loan_service.py"
+    assert pointer["tdd_root"] == "[TDD]-book_management-loan_service"
+    assert "upstream" not in pointer and "dependencies" not in pointer
+    assert set(pointer) >= {"bundle_path", "sha256", "bytes"}
+    import hashlib as _hl
+    raw = Path(pointer["bundle_path"]).read_text(encoding="utf-8")
+    assert _hl.sha256(raw.encode("utf-8")).hexdigest() == pointer["sha256"]
+    bundle = json.loads(raw)
     assert bundle["target_file"] == "app/services/loan_service.py"
-    assert bundle["tdd_root"] == "[TDD]-book_management-loan_service"
     assert [item["id"] for item in bundle["upstream"]] == [
         "[FSD]-book_management:loan_service",
         "[FSD]-book_management",

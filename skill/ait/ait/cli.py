@@ -1200,10 +1200,36 @@ def codegen_group() -> None:
 @click.option("--version", "version_opt", default=None)
 @click.pass_context
 def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> None:
+    import hashlib
+    import re
+    import tempfile
+
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
     try:
-        ok(_json_safe(mgr.prepare_codegen(version, tdd_root_chunk_id)))
+        # v2.74 (G19/G24): assemble the bundle, then deliver it via an ephemeral
+        # temp file (never git-tracked) + a small stdout pointer. Dumping the full
+        # ~100KB+ bundle to stdout risks silent mid-truncation by the orchestrator's
+        # tool-output cap; a file channel + sha256 lets the caller inject the whole
+        # context into an (sub)agent window and verify no truncation.
+        bundle = _json_safe(mgr.prepare_codegen(version, tdd_root_chunk_id))
+        payload = json.dumps(bundle, ensure_ascii=False, sort_keys=True)
+        digest = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+        safe_v = re.sub(r"[^A-Za-z0-9_.-]", "_", str(version or "baseline"))
+        safe_t = re.sub(r"[^A-Za-z0-9_.-]", "_", tdd_root_chunk_id)
+        out_dir = Path(tempfile.gettempdir()) / "ait-codegen"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / f"{safe_v}_{safe_t}.json"
+        out_path.write_text(payload, encoding="utf-8")
+        ok({
+            "bundle_path": str(out_path),
+            "sha256": digest,
+            "bytes": len(payload.encode("utf-8")),
+            "version": bundle["version"],
+            "target_file": bundle["target_file"],
+            "tdd_root": bundle["tdd_root"],
+            "source_file": bundle["source_file"],
+        })
     except ValidationError as exc:
         # 领域错误码透传(契约见 [FSD]-ait:cli):不吞成笼统 VALIDATION_FAILED。
         fail(
