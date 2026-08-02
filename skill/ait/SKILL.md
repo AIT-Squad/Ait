@@ -89,7 +89,17 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 ## codegen 的职责边界（重要）
 
-`codegen prepare` **不写代码**。它解析 TDD 根 chunk 的 `target_file`，沿 specgraph 上溯父 FSD split→FSD 根→PRD、旁取 `depends_on` 兄弟契约，输出 token 聚焦的 context bundle（无活动版本时回退 baseline 解析）。Skill 层据此驱动 AI 编码。legacy `task execute` 同理输出 `impl_refs ∪ global_refs` bundle，完成调 `task complete/fail` 收口（无 task confirm）。
+`codegen prepare` **不写代码、不派生 agent、不调 LLM**。它解析 TDD 根 chunk 的 `target_file`，沿 specgraph 上溯父 FSD split→FSD 根→PRD、旁取 `depends_on` 兄弟契约，组装聚焦的 context bundle（无活动版本时回退 baseline 解析）。
+
+**交付方式（v2.74，G19）**：bundle 不再 stdout 直出（大 bundle 会被工具输出上限中途静默截断）。`codegen prepare` 把整个 bundle 写入**仓外临时文件**（ephemeral，绝不被 git 追踪），stdout 只回小指针 `{bundle_path, sha256, bytes, version, target_file, tdd_root, source_file}`，其中 `target_file` 置顶层——生成方据此明确知道要改哪个文件。
+
+**子 agent 生成编排（v2.75，G24，标准动作）**：生成由 **Skill 层派生的隔离子 agent** 完成，AIT 只管两端（可靠交付 + 事后收口）：
+1. 跑 `codegen prepare <[TDD]-id>` 拿指针；
+2. Skill 层 `Read` 该 `bundle_path`、按 `sha256` 校验无截断；
+3. 派生**隔离子 agent**——其全新 context window **仅注入该 bundle**（别无他物），依据 bundle 内 TDD spec 生成/修改指针顶层的 `target_file`；
+4. 回 Skill 层：`version confirm`（G25 提交制品仓 + 绑 `code_result`）+ acceptance（跑测试）收口。
+
+子 agent 隔离窗口只有 spec 组装的上下文，使"代码来自 spec"从信任逼近结构事实。legacy `task execute` 同理输出 `impl_refs ∪ global_refs` bundle，完成调 `task complete/fail` 收口（无 task confirm）。
 
 ## Sub-skills 索引
 
