@@ -23,6 +23,11 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
   - **写作分工（防层次污染）**：PRD 只写"问题与用户级可观察行为"，实现结论（函数名、JSON 结构、SHA 回退策略等）归 FSD 能力契约与 TDD。把缺陷/审计条目直译成一段"必须…不得…"的散文是最常见的退化形态——须先还原成用户诉求，再写成 EARS。
   - **验收判据分层，互不替代**：PRD 需求 chunk = 用户级验收；FSD `:TEST` = 文件级集成验收；TDD = 单测要求。FSD `:TEST` 写了不构成 PRD 免写验收标准的理由。
   - 历史遗留的不合规需求 chunk 不阻塞任何命令，但一旦以 `--action modify` 重写就必须补齐（修改即补齐）；`specgraph validate-new-model` 的 `prd_requirement_residue` 字段可一次性列出基线里所有不合规位置。
+- **需求演进纪律（新增 vs modify，默认 modify）**：新诉求落笔前先看讨论背景里的既有需求 chunk——**判据是「能否与它共用同一句用户故事」（角色相同 + 业务价值相同）**：能则以**新增一条验收标准**的方式 `modify` 该 chunk；不能才新增 chunk，且须在讨论中写明不能 modify 的理由（可回溯审查）。默认走 modify，因为新增时人会对旧文视而不见——曾有两条互斥规格（"host 脏则拒绝 confirm" vs "host 脏则由 AIT 提交"）因走新增而在 baseline 并存跨越四个版本未被发现。
+  - **拆分上限用可观察信号，不用主观感觉**：一个需求 chunk 的验收标准超过约 10 条，或其 `derives` 覆盖超过 3 个功能域，才考虑拆分；拆分须**显式迁移**（建新 chunk 并从原 chunk 移出对应条目），不得以"新增一个近亲 chunk"代替。
+  - **取代关系须双向标注**：一条验收标准被后续需求取代时，被取代方标注管辖权移交、取代方标注取代事实。不容许两条互斥规格在 baseline 并存。
+  - **derives 随承载范围一同维护**：需求 chunk 因新增验收标准而涉及新功能域时，补建到对应 FSD split 的 `derives` 边即可。PRD 需求→FSD split 是 **M:N**，这种维护始终合法——"关系需要维护"不是新开需求 chunk 的理由。
+  - **id 是稳定锚点**：AIT 不支持 internal split 改名（只有根 chunk 可经 `--overrides` 改名），需求 chunk 承载范围的演进由**标题与正文**表达，不改 id。
 - **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定；legacy `prdv1 commit`/`impl commit` 锁对应文档。锁定后本版本不可改。**层级冻结：`prd confirm` 锁 PRD 层（phase→prd-confirm），`prd revert` 成对返工解锁（phase→prd-creating）——每道门禁配返工。**
 - **confirm＝纯门禁**：`version confirm <v>` 只做校验报告（task 全 done + 六不变式：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、无孤儿、可追溯、树关系无环），**可重复跑、零落盘、不合入**。
 - **merge＝唯一落盘点**：`version merge <v>` 原子合入基线（内部先过同一门禁）+ 一次 git commit，失败字节级回退（docs 与 .meta 同步还原）。
