@@ -1,7 +1,7 @@
 # 新模型 PRD/FSD/TDD 格式规范（权威源）
 
 > 本文件是 AIT 新模型文档格式的**单一权威说明**，随 ait skill 分发，用户在任意项目使用时以此为准。
-> **强制执行**在代码侧：`chunk_parser.py`（语法）、`new_model_validator.py`（图/六不变式/唯一性）、`new_model_manager.py`（写时门禁）、`version_manager.py`（confirm 全局门禁与验收）。本文件是人读规范；章节骨架见 `skill/ait/templates/TEMPLATE-{PRD,FSD,TDD}-AIT-DRAFT.md`。
+> **强制执行**在代码侧：`chunk_parser.py`（语法）、`new_model_validator.py`（图/六不变式/唯一性/PRD 需求契约 `scan_prd_requirement_contract`）、`new_model_manager.py`（写时门禁，含 PRD 需求契约拒绝）、`version_manager.py`（confirm 全局门禁与验收）、`cli.py`（`validate-new-model` 的基线残留报告，不阻断）。本文件是人读规范；章节骨架见 `skill/ait/templates/TEMPLATE-{PRD,FSD,TDD}-AIT-DRAFT.md`。
 
 ## 1. 模型概览
 
@@ -99,8 +99,14 @@ depends_on: [store, config]
 
 ## 7. 章节结构
 
-各类文档的章节骨架见模板（指引性，代码不强制章节）：
-- `templates/TEMPLATE-PRD-AIT-DRAFT.md`：概述/范围（含+不含〔反向要求〕）/用户角色/目标度量/风险＋需求项（用户故事+不做+用户级验收）。零技术。
+章节结构分两类约束，不可混为一谈：
+
+**① 代码强制（写时门禁）——PRD 需求 chunk 的验收契约**：每个 PRD 需求 chunk（`[PRD]-<root>:<slug>`）必须含 `**用户故事:** 作为…我希望…以便…` 与 `#### 验收标准` 小节，且该小节下至少一条编号条目（EARS：`WHEN … THEN 系统 SHALL …` / `IF … THEN … SHALL …`）。缺任一项 → `PRD_REQUIREMENT_CONTRACT_VIOLATION`，拒于落盘之前、零落盘可重试。**PRD 根 chunk 不受此约束**（根承载概述/范围/目标与度量/反向要求）。基线里的历史不合规 chunk 不阻塞命令，但以 `--action modify` 重写时须补齐；`validate-new-model` 的 `prd_requirement_residue` 字段一次性列出全部不合规位置（报告不阻断）。
+
+**验收判据的分层归属（互不替代）**：PRD 需求 chunk = 用户级验收；FSD `:TEST` = 文件级集成验收；TDD = 单测要求。FSD `:TEST` 已写集成验收，不构成 PRD 免写验收标准的理由——前者验"部件装起来对不对"，后者验"用户要的东西有没有做到"。
+
+**② 模板指引（不强制）——FSD/TDD 章节骨架**：
+- `templates/TEMPLATE-PRD-AIT-DRAFT.md`：概述/范围（含+不含〔反向要求〕）/用户角色/目标度量/风险＋需求项（用户故事+不做+用户级验收）。零技术。其中需求项的用户故事与验收标准属上述①，为强制项。
 - `templates/TEMPLATE-FSD-AIT-DRAFT.md`：root（功能描述+反向要求+分解视图）＋功能 split（功能描述+反向要求+能力契约）＋`:TEST` 集成验收。可递归拆子 FSD。
 - `templates/TEMPLATE-TDD-AIT-DRAFT.md`：target_file/技术栈约束/文件职责（负责+不负责〔反向要求〕）/代码结构/核心实现逻辑/错误边界/单元测试要求（一文件一映射）。
 
@@ -151,7 +157,7 @@ codegen prepare <[TDD]-id>    活动版本需 phase==tdd-confirm(否则 TDD_NOT_
 | 格式/解析 | `ROOT_CHUNK_REQUIRED` `INVALID_PROJECT_NAME` `INVALID_FILE_NAME` |
 | 关系合法性 | `INVALID_DERIVES` `INVALID_DECOMPOSES_TYPES` `INVALID_FSD_DECOMPOSES` `INVALID_DETAILS` `INVALID_DEPENDS_ON_TYPES` `DEPENDS_ON_ROOT_CHUNK` `DEPENDS_ON_CROSS_LEVEL` `FSD_MIXED_CHILDREN` |
 | 依赖声明 | `DEPENDS_ON_UNKNOWN_SIBLING` `DEPENDS_ON_SELF` |
-| 写时门禁 | `MISSING_ENDPOINT` `TDD_MULTI_PARENT` `PRD_FSD_LINK_NOT_UNIQUE` `DUPLICATE_TARGET_FILE` `TDD_TARGET_FILE_REQUIRED` `VERSION_NOT_FOUND` `CONTEXT_TOKEN_REQUIRED` `CONTEXT_TOKEN_INVALID` `CONTEXT_TOKEN_STALE` `CONTEXT_TOKEN_CONFLICT` `CONTEXT_SKIP_NOT_ALLOWED` |
+| 写时门禁 | `MISSING_ENDPOINT` `TDD_MULTI_PARENT` `PRD_FSD_LINK_NOT_UNIQUE` `DUPLICATE_TARGET_FILE` `TDD_TARGET_FILE_REQUIRED` `VERSION_NOT_FOUND` `CONTEXT_TOKEN_REQUIRED` `CONTEXT_TOKEN_INVALID` `CONTEXT_TOKEN_STALE` `CONTEXT_TOKEN_CONFLICT` `CONTEXT_SKIP_NOT_ALLOWED` `PRD_REQUIREMENT_CONTRACT_VIOLATION` |
 | 全局门禁 | `INVARIANT_VIOLATION`（明细含 `ORPHAN_CHUNK` `TRACE_BROKEN` `SPEC_CYCLE` 等）`ACCEPTANCE_FAILED` |
 | 合并 | `MERGE_ROLLBACK` `GIT_COMMIT_FAILED` `MODIFY_RENAME_COLLISION` `DUPLICATE_OVERRIDES_TARGET` `DUPLICATE_BASELINE_CHUNK` `CHUNK_LOCKED` |
 | CLI 契约 | `USAGE_ERROR` `NO_VERSION` `GIT_DIRTY` |

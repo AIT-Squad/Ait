@@ -11,7 +11,12 @@ from typing import Any
 
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
-from .new_model_validator import check_edge_write, normalize_target_file, scan_content_relations
+from .new_model_validator import (
+    check_edge_write,
+    normalize_target_file,
+    scan_content_relations,
+    scan_prd_requirement_contract,
+)
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
 from .schemas import DiscussionUsage
 from .validator import ValidationError, ValidationIssue
@@ -1336,6 +1341,17 @@ class NewModelManager:
             if relation_violations:
                 first = relation_violations[0]
                 raise _validation_error(first.code, first.message, chunk.id)
+            # v2.77: PRD requirement contract gate. A requirement chunk without
+            # a user story / acceptance criteria loses its acceptance basis and
+            # degrades the PRD into implementation prose — reject before any
+            # write, index update or edge creation. Only chunks carried by this
+            # write are checked: pre-existing drift never blocks a command, but
+            # rewriting such a chunk must bring it up to contract.
+            if kind == "prd":
+                contract_violations = scan_prd_requirement_contract(chunk.id, chunk.content)
+                if contract_violations:
+                    first = contract_violations[0]
+                    raise _validation_error(first.code, first.message, chunk.id)
 
         # P7: every layer requires an already-created version — no auto-create,
         # no ghost. `version create` is the sole entry (prd create no longer

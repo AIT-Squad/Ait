@@ -10,6 +10,11 @@ from .specgraph import Edge, Spec, SpecGraph
 
 _RELATION_YAML_FENCE_RE = re.compile(r"```yaml\s*\n(.*?)```", re.DOTALL)
 
+PRD_REQUIREMENT_CONTRACT_VIOLATION = "PRD_REQUIREMENT_CONTRACT_VIOLATION"
+_USER_STORY_RE = re.compile(r"^\s*\*\*用户故事[:：]", re.MULTILINE)
+_ACCEPTANCE_HEADING_RE = re.compile(r"^#{2,6}\s*验收标准\s*$", re.MULTILINE)
+_ACCEPTANCE_ITEM_RE = re.compile(r"^\s*\d+[a-z]?\.\s+\S", re.MULTILINE)
+
 ALLOWED_RELS = {"derives", "decomposes", "details", "depends_on"}
 NEW_MODEL_TYPES = {"prd", "fsd", "tdd"}
 NEW_MODEL_PREFIXES = ("[PRD]-", "[FSD]-", "[TDD]-")
@@ -620,4 +625,58 @@ def scan_baseline_relation_residue(
         kind = "fsd" if file.startswith("fsd/") else ("tdd" if file.startswith("tdd/") else "prd")
         for v in scan_content_relations(content, kind):
             out.append(NewModelViolation(code=v.code, message=v.message, chunk_id=chunk_id, file=file))
+    return out
+
+
+def scan_prd_requirement_contract(chunk_id: str, content: str) -> list[NewModelViolation]:
+    """PRD requirement chunks must carry a user story and numbered acceptance criteria.
+
+    A requirement chunk is a PRD internal split (``[PRD]-<root>:<slug>``). The
+    PRD root (no ``:``) is vacuously compliant — it holds overview / scope /
+    goals / non-goals, while the acceptance criteria belong to the requirement
+    chunks. Without this gate the requirement chunks silently degrade into a
+    paragraph of implementation conclusions and the acceptance basis is lost.
+    """
+    if not chunk_id.startswith("[PRD]-") or ":" not in chunk_id:
+        return []
+    missing: list[str] = []
+    if _USER_STORY_RE.search(content) is None:
+        missing.append("用户故事")
+    heading = _ACCEPTANCE_HEADING_RE.search(content)
+    if heading is None:
+        missing.append("验收标准")
+    elif _ACCEPTANCE_ITEM_RE.search(content[heading.end():]) is None:
+        missing.append("验收标准条目")
+    if not missing:
+        return []
+    return [
+        NewModelViolation(
+            code=PRD_REQUIREMENT_CONTRACT_VIOLATION,
+            message=(
+                f"PRD requirement chunk {chunk_id} missing: {', '.join(missing)}"
+                " — requirement chunks must carry a **用户故事** line and a"
+                " 验收标准 section with numbered items"
+            ),
+            chunk_id=chunk_id,
+        )
+    ]
+
+
+def scan_baseline_prd_requirement_residue(
+    contents,
+) -> list[NewModelViolation]:
+    """One-shot baseline sweep for PRD requirement contract drift — report only.
+
+    ``contents`` is an iterable of ``(file, chunk_id, chunk_content)`` tuples
+    already read by the caller (the ``validate-new-model`` CLI command); this
+    function performs no disk I/O of its own. Only ``prd/`` files participate.
+    """
+    out: list[NewModelViolation] = []
+    for file, chunk_id, content in contents:
+        if not file.startswith("prd/"):
+            continue
+        for v in scan_prd_requirement_contract(chunk_id, content):
+            out.append(
+                NewModelViolation(code=v.code, message=v.message, chunk_id=chunk_id, file=file)
+            )
     return out

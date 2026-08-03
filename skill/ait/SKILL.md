@@ -19,6 +19,10 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 - **create 显式开版本**：`version create <v>` 建版本工作区（已存在则报错，杜绝幽灵版本）（**P7:有活动未 merged 版本报 ACTIVE_VERSION_EXISTS——一次只一个开放版本，上一版须先 merge/revert**）；**P7 全严格自顶向下：`prd create` 不再自动开版本（无活动版本报 NO_ACTIVE_VERSION，须先 `version create`）；fsd create 需 PRD 已 confirm、tdd create 需 FSD 已 confirm、codegen 需 TDD 已 confirm，否则拒（PRD_NOT_CONFIRMED/FSD_NOT_CONFIRMED/TDD_NOT_CONFIRMED）**。
 - **讨论背景与回执（强制编排步骤）**：每层 create 前先无内容调用同名 create 取得讨论背景与 `context_token`——`prd create <id>`（现状）；`fsd create <id>`（发现式）；`fsd decompose <parent> <child>`（child 未建时为锚定式）；`tdd create <id> --parent <split>`（锚定式）。背景由程序沿 specgraph 关联提取、零写入且受同层相位门禁；令牌绑定层级、目标、父锚点、最终 file、操作、action、overrides 与实际背景。依据背景讨论后，所有有正文的 PRD/FSD/TDD create 及带内容 FSD 分解必须携带同一意图的 `--context-token`；背景或意图变化后旧令牌失效。仅明确决定跳过讨论时使用 `--skip-context`，其与 token 互斥且留下最小审计痕迹；纯关系分解无需 token。token 仅证明上下文连续性，不代表身份认证、授权或所有权。
+- **PRD 写作契约（写时门禁强制，写之前就要知道）**：每个 PRD **需求 chunk**（`[PRD]-<root>:<slug>`）必须含两样东西——① `**用户故事:** 作为 <角色>，我希望 <能力>，以便 <价值>`；② `#### 验收标准` 小节及其下的编号条目（`1. WHEN <触发> THEN 系统 SHALL <可观察行为>` / `IF <异常> THEN ... SHALL ...` EARS 形态，空壳小节不算）。缺任一项 → 写时门禁在落盘前拒绝，报 `PRD_REQUIREMENT_CONTRACT_VIOLATION`（零落盘，补齐后重跑同一命令即可）。**PRD 根 chunk 不写验收标准**（根只承载概述/范围/目标与度量/反向要求）。骨架见 `templates/TEMPLATE-PRD-AIT-DRAFT.md`。
+  - **写作分工（防层次污染）**：PRD 只写"问题与用户级可观察行为"，实现结论（函数名、JSON 结构、SHA 回退策略等）归 FSD 能力契约与 TDD。把缺陷/审计条目直译成一段"必须…不得…"的散文是最常见的退化形态——须先还原成用户诉求，再写成 EARS。
+  - **验收判据分层，互不替代**：PRD 需求 chunk = 用户级验收；FSD `:TEST` = 文件级集成验收；TDD = 单测要求。FSD `:TEST` 写了不构成 PRD 免写验收标准的理由。
+  - 历史遗留的不合规需求 chunk 不阻塞任何命令，但一旦以 `--action modify` 重写就必须补齐（修改即补齐）；`specgraph validate-new-model` 的 `prd_requirement_residue` 字段可一次性列出基线里所有不合规位置。
 - **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定；legacy `prdv1 commit`/`impl commit` 锁对应文档。锁定后本版本不可改。**层级冻结：`prd confirm` 锁 PRD 层（phase→prd-confirm），`prd revert` 成对返工解锁（phase→prd-creating）——每道门禁配返工。**
 - **confirm＝纯门禁**：`version confirm <v>` 只做校验报告（task 全 done + 六不变式：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、无孤儿、可追溯、树关系无环），**可重复跑、零落盘、不合入**。
 - **merge＝唯一落盘点**：`version merge <v>` 原子合入基线（内部先过同一门禁）+ 一次 git commit，失败字节级回退（docs 与 .meta 同步还原）。
@@ -28,14 +32,14 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 ```text
 /ait init --new-model --name <proj>   → 生成 docs/{prd,fsd,tdd} + [PRD]/[FSD] 根 + derives 派生边
-/ait prd create <[PRD]-id> ...         → 新模型 PRD（需先 version create，无活动版本报 NO_ACTIVE_VERSION；可 --action modify --overrides）
+/ait prd create <[PRD]-id> ...         → 新模型 PRD（需先 version create，无活动版本报 NO_ACTIVE_VERSION；可 --action modify --overrides；需求 chunk 须含用户故事+验收标准，见下方写作契约）
 /ait prd confirm|revert                → PRD 层冻结 / 成对返工（phase 阶段机）
 /ait fsd create <[FSD]-id> [--parent <PRD根>] ... → FSD 功能分解（--parent=从 PRD 派生功能树根,创建即建 derives 边〔PRD→FSD 唯一〕；split 内 ```yaml depends_on: [兄弟]``` 声明依赖，随文件全量对账——文件＝兄弟依赖边的所有权边界）
 /ait fsd decompose <parent> <child>   → FSD 向下拆分即建边（原子写子 FSD + decomposes 边；仅 FSD split 为 parent,PRD 派生走 fsd create --parent）
 /ait fsd confirm|revert               → FSD 层冻结 / 成对返工（phase fsd-*）
 /ait tdd create <[TDD]-id> --parent <fsd_split> → 叶子 TDD（必含 target_file；--parent 原子建 details 边，创建即建边）
 /ait tdd confirm|revert                → TDD 层冻结 / 成对返工（phase tdd-*）
-/ait specgraph validate-new-model      → 图合法性 + target_file 唯一性（重复报 DUPLICATE_TARGET_FILE）
+/ait specgraph validate-new-model      → 图合法性 + target_file 唯一性（重复报 DUPLICATE_TARGET_FILE）；另报 relation_residue / prd_requirement_residue 基线残留（报告不阻断）
 /ait version create <v>                → 显式开版本（已存在报错）
 /ait version commit <v>                → 全部 working chunk → committed（锁定）
 /ait version confirm <v>               → 纯门禁：六不变式+task 校验报告（可重复，不落盘）
@@ -124,6 +128,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 |---|---|---|
 | `DUPLICATE_TARGET_FILE` | 两个 TDD 声明同一 `target_file` | 改为各自唯一文件（目标2：不撞同一文件）。 |
 | `TDD_TARGET_FILE_REQUIRED` | TDD 缺 `target_file` | TDD 必须含 `target_file`。 |
+| `PRD_REQUIREMENT_CONTRACT_VIOLATION` | PRD 需求 chunk 缺用户故事 / 缺 `#### 验收标准` / 验收标准无编号条目 | 补齐用户故事与 EARS 编号条目后重跑同一命令（零落盘）；PRD 根 chunk 不受此约束。 |
 | 新模型图非法（FSD_MIXED_CHILDREN / DEPENDS_ON_*） | FSD 混 FSD/TDD 子、depends_on 跨级 | 见 `validate-new-model` 违规说明修正。 |
 | `MERGE_NO_COMMITTED` / `no metadata` | 新模型版本未 `version commit` / 未经 CLI 建版本 | 先 `version commit <v>`；版本 meta 由新模型 create 自动建。 |
 | `LOCKED` | 改已 commit 的 chunk | 锁定后不可改；用 `version revert <v> --confirm`。 |

@@ -71,7 +71,9 @@ def test_blank_slate_to_merge_end_to_end(tmp_path: Path, monkeypatch):
     _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-demo", "--action", "modify",
          "--overrides", "[PRD]-demo",
-         "--skip-context", "--content", "<!-- @id:[PRD]-demo -->\n## Demo\n\n<!-- @id:[PRD]-demo:feat -->\n## feat need\n")
+         "--skip-context", "--content", "<!-- @id:[PRD]-demo -->\n## Demo\n\n<!-- @id:[PRD]-demo:feat -->\n## feat need\n\n"
+         "**用户故事:** 作为用户,我希望该能力,以便达成价值。\n\n"
+         "#### 验收标准\n1. WHEN 条件 THEN 系统 SHALL 行为。\n")
     _run(runner, "prd", "confirm")
     _run(runner, "fsd", "create", "[FSD]-demo", "--parent", "[PRD]-demo",
          "--action", "modify", "--overrides", "[FSD]-demo",

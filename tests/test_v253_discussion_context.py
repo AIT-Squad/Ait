@@ -44,7 +44,11 @@ def _repeatable_context(runner, *args):
     return first
 
 
-PRD = "<!-- @id:[PRD]-app -->\n## App\n\n<!-- @id:[PRD]-app:cap -->\n## cap need\n"
+PRD = (
+    "<!-- @id:[PRD]-app -->\n## App\n\n"
+    "<!-- @id:[PRD]-app:cap -->\n## cap need\n"
+    "**用户故事:** 作为用户,我希望该能力,以便达成价值。\n\n#### 验收标准\n1. WHEN 条件 THEN 系统 SHALL 行为。\n"
+)
 FSD = ("<!-- @id:[FSD]-app -->\n## F\n\n<!-- @id:[FSD]-app:core -->\n## core\n\n"
        "<!-- @id:[FSD]-app:util -->\n## util\n```yaml\ndepends_on: [core]\n```\n")
 

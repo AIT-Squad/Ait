@@ -38,6 +38,7 @@ from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
 from .new_model_manager import NewModelManager
 from .new_model_validator import (
+    scan_baseline_prd_requirement_residue,
     scan_baseline_relation_residue,
     validate_prd_fsd_tdd_graph,
     validate_target_file_uniqueness,
@@ -1736,12 +1737,16 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             for chunk in parsed.chunks:
                 contents.append((parsed.file, chunk.id, chunk.content))
     residue = scan_baseline_relation_residue(contents)
+    # v2.77: same already-read contents feed the PRD requirement contract sweep
+    # (report-only, independent field — does not touch `passed`/exit code).
+    prd_residue = scan_baseline_prd_requirement_residue(contents)
     ok(
         {
             "version": version or "baseline",
             "passed": not violations,
             "violations": new_model_violations_to_details(violations),
             "relation_residue": new_model_violations_to_details(residue),
+            "prd_requirement_residue": new_model_violations_to_details(prd_residue),
         }
     )
 
