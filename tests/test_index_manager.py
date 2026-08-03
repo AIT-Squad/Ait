@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -14,24 +13,67 @@ from ait.schemas import (
 )
 from ait.specgraph import sync_specgraph
 
-DEMO_ROOT = Path(__file__).parent.parent / "project-demo"
+_PRD_FIXTURE = """# 图书管理
+
+<!-- @id:prd-book-mgmt-overview -->
+## 功能概述
+
+图书管理系统提供图书维护、借阅和归还能力。
+
+<!-- @id:prd-book-entry -->
+## 图书录入
+
+管理员可以录入图书的基本信息。
+
+<!-- @id:prd-book-lifecycle -->
+## 图书生命周期
+
+图书状态包括在馆、借出和下架。
+"""
+
+_IMPL_FIXTURE = """# 图书管理 API 合同
+
+<!-- @id:impl-api-overview -->
+## API 概述
+
+图书管理 API 提供图书操作接口。
+
+<!-- @ref:prd/book-management#prd-book-mgmt-overview rel:implements -->
+
+<!-- @id:impl-api-entry-post -->
+## 创建图书接口
+
+`POST /books` 创建图书。
+
+<!-- @id:impl-data-book -->
+## 图书数据模型
+
+图书数据包含标识、名称和库存。
+
+<!-- @id:impl-workflow-borrow-rollback -->
+## 借阅回滚流程
+
+借阅失败时恢复图书库存。
+"""
 
 
 @pytest.fixture
 def demo_root(tmp_path: Path) -> Path:
-    """Copy project-demo into a tmp directory so tests don't mutate the source."""
+    """Build a minimal legacy-format docs tree in-place (no external fixture project)."""
     dst = tmp_path / "demo"
-    shutil.copytree(DEMO_ROOT, dst)
+    (dst / "docs" / "prd").mkdir(parents=True)
+    (dst / "docs" / "impl").mkdir(parents=True)
+    (dst / "docs" / "prd" / "book-management.md").write_text(_PRD_FIXTURE, encoding="utf-8")
+    (dst / "docs" / "impl" / "api-contracts.md").write_text(_IMPL_FIXTURE, encoding="utf-8")
     return dst
 
 
 def test_build_baseline_matches_demo(demo_root: Path):
-    """Rebuilding baseline from demo files should produce the same block set."""
+    """Rebuilding baseline from the fixture tree should produce the expected block set."""
     mgr = IndexManager(demo_root)
     baseline = mgr.build_baseline()
     ids = {b.id for b in baseline.chunks}
 
-    # The demo's hand-maintained chunks-index.yaml lists these chunks.
     must_have = {
         "prd-book-mgmt-overview",
         "prd-book-entry",

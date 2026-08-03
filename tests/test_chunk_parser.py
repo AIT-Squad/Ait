@@ -2,46 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
-from ait.chunk_parser import parse_file, parse_text
-
-FIXTURE_ROOT = Path(__file__).parent.parent / "project-demo"
-
-
-def test_parse_book_management_prd():
-    """The demo PRD should yield 14 chunks (per chunks-index.yaml)."""
-    path = FIXTURE_ROOT / "docs/prd/book-management.md"
-    base = FIXTURE_ROOT / "docs"
-    pf = parse_file(path, base)
-
-    assert pf.file == "prd/book-management"
-    assert len(pf.chunks) == 14
-    chunk_ids = [b.id for b in pf.chunks]
-    assert "prd-book-mgmt-overview" in chunk_ids
-    assert "prd-book-lifecycle" in chunk_ids
-
-    # First block must include its @id annotation in content.
-    first = pf.chunks[0]
-    assert first.id == "prd-book-mgmt-overview"
-    assert first.heading == "功能概述"
-    assert first.level == 2
-    assert first.content.startswith("<!-- @id:prd-book-mgmt-overview -->")
-
-
-def test_parse_api_contracts_impl_with_refs():
-    """impl/api-contracts.md should yield 9 blocks and 5 implements refs."""
-    path = FIXTURE_ROOT / "docs/impl/api-contracts.md"
-    base = FIXTURE_ROOT / "docs"
-    pf = parse_file(path, base)
-
-    assert pf.file == "impl/api-contracts"
-    assert len(pf.chunks) == 9
-
-    implements = [r for r in pf.refs if r.rel == "implements"]
-    assert len(implements) == 5
-    # All implements should point at prd/book-management.
-    assert all(r.target_file == "prd/book-management" for r in implements)
+from ait.chunk_parser import parse_text
 
 
 def test_code_fence_masks_fake_ids():

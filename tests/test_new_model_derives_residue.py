@@ -1,7 +1,7 @@
-"""v2.82: derives-mention residue scan + ok()/fail() output symmetry.
+"""derives-mention residue scan (new_model_validator + validate-new-model wiring).
 
-Covers [TDD]-new_model_validator (derives residue) and [TDD]-cli (ok() exits,
-derives_residue field wired into validate-new-model).
+Covers [TDD]-new_model_validator (scan_derives_residue) and its exposure via
+`specgraph validate-new-model`.
 """
 
 from __future__ import annotations
@@ -15,7 +15,6 @@ from ait.cli import main
 from ait.new_model_manager import NewModelManager
 from ait.new_model_validator import DERIVES_RESIDUE, scan_derives_residue
 from ait.specgraph import load_specgraph, make_uri, specgraph_path, sync_specgraph
-from ait.version_manager import VersionManager
 
 
 def _payload(result):
@@ -125,21 +124,3 @@ def test_cli_no_residue_when_edge_present(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     data = _payload(runner.invoke(main, ["specgraph", "validate-new-model"]))["data"]
     assert data["derives_residue"] == []
-
-
-def test_ok_terminates_process(capsys):
-    """ok() must exit(0) by itself — a call site relying on fall-through must
-    never emit a second line."""
-    import pytest
-    from ait.cli import ok
-
-    with pytest.raises(SystemExit) as exc:
-        ok({"x": 1})
-        # unreachable: proves ok() itself stops execution, not the test
-        click_echo_marker = "should never run"
-        raise AssertionError(click_echo_marker)
-    assert exc.value.code == 0
-
-    out = capsys.readouterr().out.strip().splitlines()
-    assert len(out) == 1
-    assert json.loads(out[0]) == {"ok": True, "data": {"x": 1}}

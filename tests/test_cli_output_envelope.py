@@ -1,10 +1,15 @@
-"""v2.76 G11: validate-new-model & lint emit the standard ok() envelope."""
+"""CLI output envelope: validate-new-model & lint emit the standard ok() shape.
+
+Covers [TDD]-cli output contract — every stdout payload is wrapped as
+``{"ok": true, "data": {...}}`` and ok() terminates the process by itself.
+"""
 
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
+import pytest
 from click.testing import CliRunner
 
 from ait.cli import main
@@ -50,3 +55,20 @@ def test_lint_uses_ok_envelope(tmp_path: Path, monkeypatch):
     assert p["data"]["passed"] is True
     assert "violations" not in p          # lives under data, not flat
     assert "violations" in p["data"]
+
+
+def test_ok_terminates_process(capsys):
+    """ok() must exit(0) by itself — a call site relying on fall-through must
+    never emit a second line."""
+    from ait.cli import ok
+
+    with pytest.raises(SystemExit) as exc:
+        ok({"x": 1})
+        # unreachable: proves ok() itself stops execution, not the test
+        click_echo_marker = "should never run"
+        raise AssertionError(click_echo_marker)
+    assert exc.value.code == 0
+
+    out = capsys.readouterr().out.strip().splitlines()
+    assert len(out) == 1
+    assert json.loads(out[0]) == {"ok": True, "data": {"x": 1}}
