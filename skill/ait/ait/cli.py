@@ -1246,6 +1246,33 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
         )
 
 
+@main.command("push")
+@click.option("--dry-run", "dry_run", is_flag=True, default=False)
+@click.pass_context
+def push(ctx, dry_run: bool) -> None:
+    """v2.81: publish both repos — host artifacts first, then docs specs.
+
+    Deliberately exposes only --dry-run: no remote/branch/refspec option, so a
+    mis-push cannot be requested through the interface.
+    """
+    from .publisher import Publisher
+
+    # No phase gate: publishing changes no chunk state, so an in-flight version
+    # does not block it.
+    result = Publisher(_root(ctx)).publish(dry_run=dry_run)
+    if result["passed"]:
+        ok(result)
+        return
+    first_failed = next(
+        (repo for repo in result["repos"] if repo["outcome"] == "failed"), None
+    )
+    fail(
+        (first_failed or {}).get("error") or "push failed",
+        code=(first_failed or {}).get("error_code") or "PUSH_FAILED",
+        details=result,
+    )
+
+
 @main.group("acceptance")
 def acceptance_group() -> None:
     """Artifact acceptance — the configured test command that gates merge."""
