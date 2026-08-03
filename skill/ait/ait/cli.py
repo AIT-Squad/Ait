@@ -40,6 +40,7 @@ from .new_model_manager import NewModelManager
 from .new_model_validator import (
     scan_baseline_prd_requirement_residue,
     scan_baseline_relation_residue,
+    scan_derives_residue,
     validate_prd_fsd_tdd_graph,
     validate_target_file_uniqueness,
 )
@@ -47,7 +48,7 @@ from .new_model_validator import violations_to_details as new_model_violations_t
 from .prd_manager import PrdManager
 from .root import NotAtProjectRoot, RootResolutionError, resolve_project_root
 from .search import search_chunks
-from .specgraph import combined_specgraph, load_specgraph, resolve_chunk_uri, sync_specgraph
+from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
 from .validator import ValidationError, ValidationIssue
@@ -79,6 +80,10 @@ def _json_safe(value):
 
 def ok(data) -> None:
     click.echo(json.dumps({"ok": True, "data": _json_safe(data)}, ensure_ascii=False))
+    # v2.82: symmetric with fail()'s sys.exit — a command must not be able to
+    # keep running (and possibly emit a second JSON line) after a successful
+    # envelope, regardless of whether the call site remembers to `return`.
+    sys.exit(0)
 
 
 def fail(message: str, code: str = "ERROR", exit_code: int = 1, details: dict | None = None) -> None:
@@ -1773,6 +1778,11 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
     # v2.77: same already-read contents feed the PRD requirement contract sweep
     # (report-only, independent field — does not touch `passed`/exit code).
     prd_residue = scan_baseline_prd_requirement_residue(contents)
+    # v2.82: same contents (filtered to fsd/) feed the derives-mention sweep;
+    # needs edge lookups, so it takes the combined_view rather than the graph
+    # object already built above (report-only, independent field).
+    fsd_contents = [item for item in contents if item[0].startswith("fsd/")]
+    derives_residue = scan_derives_residue(combined_view(root, version), fsd_contents)
     ok(
         {
             "version": version or "baseline",
@@ -1780,6 +1790,7 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             "violations": new_model_violations_to_details(violations),
             "relation_residue": new_model_violations_to_details(residue),
             "prd_requirement_residue": new_model_violations_to_details(prd_residue),
+            "derives_residue": new_model_violations_to_details(derives_residue),
         }
     )
 

@@ -680,3 +680,42 @@ def scan_baseline_prd_requirement_residue(
                 NewModelViolation(code=v.code, message=v.message, chunk_id=chunk_id, file=file)
             )
     return out
+
+
+DERIVES_RESIDUE = "DERIVES_RESIDUE"
+_PRD_REQUIREMENT_MENTION_RE = re.compile(r"\[PRD\]-[A-Za-z0-9_]+:[A-Za-z0-9_]+")
+
+
+def scan_derives_residue(view, fsd_contents) -> list[NewModelViolation]:
+    """Report-only: an FSD chunk mentions a PRD requirement id in its body but
+    the graph has no ``derives`` edge from that id to this chunk.
+
+    ``fsd_contents`` is an iterable of ``(file, chunk_id, chunk_content)``
+    tuples for ``fsd/`` files only, already read by the caller. ``view`` is a
+    caller-supplied CombinedView (this scan needs edge lookups, unlike the
+    pure-string relation/prd_requirement residue scans — but it still performs
+    no disk I/O and produces no write).
+
+    Not a semantic judgement: mentioning a requirement id may legitimately mean
+    "this is explicitly out of scope for that requirement" — this only surfaces
+    the "mentioned but no edge" structural signal for a human to interpret.
+    """
+    out: list[NewModelViolation] = []
+    for file, chunk_id, content in fsd_contents:
+        if not file.startswith("fsd/"):
+            continue
+        mentioned = set(_PRD_REQUIREMENT_MENTION_RE.findall(content))
+        if not mentioned:
+            continue
+        derives_srcs = {edge.src for edge in view.edges_to(chunk_id, "derives")}
+        for prd_id in sorted(mentioned - derives_srcs):
+            out.append(
+                NewModelViolation(
+                    code=DERIVES_RESIDUE,
+                    message=f"{chunk_id} 正文提及 {prd_id} 但图上无对应 derives 边",
+                    chunk_id=chunk_id,
+                    file=file,
+                )
+            )
+    return out
+
