@@ -51,6 +51,10 @@ class CodegenBundle:
     chunks: list[dict]
     upstream: list[dict]
     dependencies: list[dict]
+    # v2.80: three-state, never two. `absent` (legal new file) and `unreadable`
+    # (exists but cannot be read) must stay distinguishable — collapsing them
+    # makes the generator treat existing code as empty and overwrite it.
+    target_file_status: str = "absent"
     target_file_content: str | None = None
 
 
@@ -855,13 +859,22 @@ class NewModelManager:
         dependencies = self._collect_dependency_context(view, upstream, tdd_root_chunk_id)
 
         # v2.60: read target_file current content so the AI has spec + code together.
+        # v2.80: report a three-state status. Collapsing "absent" and "unreadable"
+        # into a bare None (as before) let the generator mistake an unreadable
+        # file for a new one and overwrite the existing implementation.
         target_file_content: str | None = None
+        target_file_status = "absent"
         if target_file:
+            tf_path = self.root.parent / target_file
             try:
-                tf_path = self.root.parent / target_file
                 target_file_content = tf_path.read_text(encoding="utf-8")
-            except Exception:
-                pass  # file absent or unreadable — bundle still valid
+                target_file_status = "loaded"
+            except FileNotFoundError:
+                target_file_status = "absent"  # legal: a new file is to be created
+            except OSError:
+                # Exists but unreadable (encoding/permission/is-a-directory/…):
+                # the generator must stop, not assume a blank slate.
+                target_file_status = "unreadable"
 
         return CodegenBundle(
             version=version if source == "version" else "baseline",
@@ -879,6 +892,7 @@ class NewModelManager:
             ],
             upstream=upstream,
             dependencies=dependencies,
+            target_file_status=target_file_status,
             target_file_content=target_file_content,
         )
 

@@ -164,12 +164,11 @@ def test_four_layer_pipeline_end_to_end(tmp_path: Path, monkeypatch):
     assert cg["ok"] is True
     assert cg["data"]["target_file"] == "app/feat.py"
     # v2.74 (G19): full bundle in the temp file; stdout is a pointer.
-    import json as _json
-    bundle = _json.loads(Path(cg["data"]["bundle_path"]).read_text(encoding="utf-8"))
-    upstream_ids = {u["id"] for u in bundle["upstream"]}
-    assert "[FSD]-app:feat" in upstream_ids, f"上溯链缺父 split: {upstream_ids}"
-    assert "[FSD]-app" in upstream_ids, f"上溯链缺 FSD 根: {upstream_ids}"
-    assert "[PRD]-app" in upstream_ids, f"上溯链缺 PRD: {upstream_ids}"
+    # v2.80: that file is the rendered delivery text, so assert on the text.
+    delivered = Path(cg["data"]["bundle_path"]).read_text(encoding="utf-8")
+    assert "[FSD]-app:feat" in delivered, f"上溯链缺父 split:\n{delivered}"
+    assert "[FSD]-app" in delivered, f"上溯链缺 FSD 根:\n{delivered}"
+    assert "[PRD]-app" in delivered, f"上溯链缺 PRD:\n{delivered}"
 
 
 def test_codegen_requires_tdd_confirm_p7(tmp_path: Path, monkeypatch):

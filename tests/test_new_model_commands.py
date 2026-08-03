@@ -170,16 +170,14 @@ target_file: app/services/loan_service.py
     import hashlib as _hl
     raw = Path(pointer["bundle_path"]).read_text(encoding="utf-8")
     assert _hl.sha256(raw.encode("utf-8")).hexdigest() == pointer["sha256"]
-    bundle = json.loads(raw)
-    assert bundle["target_file"] == "app/services/loan_service.py"
-    assert [item["id"] for item in bundle["upstream"]] == [
-        "[FSD]-book_management:loan_service",
-        "[FSD]-book_management",
-    ]
-    assert [item["id"] for item in bundle["dependencies"]] == [
-        "[FSD]-book_management:persistence",
-    ]
-    assert bundle["dependencies"][0]["selection_reason"] == "depends_on_contract"
+    # v2.80: the delivered artifact is the rendered text, so the same selection
+    # is asserted structurally — each chunk must land in the section that owns
+    # its selection_reason (§2 parent_split, §3 depends_on_contract, §4 ancestor).
+    assert "app/services/loan_service.py" in raw
+    bounds = {n: raw.index("## %d. " % n) for n in range(2, 6)}
+    assert 'id="[FSD]-book_management:loan_service"' in raw[bounds[2]:bounds[3]]
+    assert 'id="[FSD]-book_management:persistence"' in raw[bounds[3]:bounds[4]]
+    assert 'id="[FSD]-book_management"' in raw[bounds[4]:bounds[5]]
 
 
 def test_tdd_create_requires_target_file(tmp_path: Path, monkeypatch):
