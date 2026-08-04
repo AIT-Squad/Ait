@@ -56,6 +56,7 @@ class ArtifactScope(StrictModel):
     parent_suffix: str
     enforcement: Literal["warn", "block"] = "warn"
     exempt_test_splits: list[str] = Field(default_factory=list)
+    exempt_paths: list[str] = Field(default_factory=list)
 
     @field_validator("parent_suffix")
     @classmethod

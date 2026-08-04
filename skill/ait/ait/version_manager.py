@@ -1471,7 +1471,11 @@ class VersionManager:
         """v2.83: read-only host `git ls-files` enumeration per configured
         scope prefix, diffed against declared TDD target_files. Non-git host
         or any git failure → vacuous (must never report false UNCOVERED_ARTIFACT
-        because enumeration was unavailable)."""
+        because enumeration was unavailable).
+
+        v2.85: paths matching the scope's `exempt_paths` (normalized exact
+        match) are skipped — never reported as UNCOVERED_ARTIFACT regardless
+        of the scope's enforcement."""
         from .new_model_validator import NewModelViolation
 
         declared = {
@@ -1480,6 +1484,9 @@ class VersionManager:
         out: list[NewModelViolation] = []
         host_root = self.root.parent
         for prefix, scope in scopes.items():
+            exempt_paths = {
+                self._normalize_target_file(p) for p in scope.get("exempt_paths", [])
+            }
             try:
                 result = subprocess.run(
                     ["git", "ls-files", prefix], cwd=host_root,
@@ -1491,15 +1498,19 @@ class VersionManager:
                 continue
             for line in result.stdout.splitlines():
                 path = line.strip()
-                if path and self._normalize_target_file(path) not in declared:
-                    out.append(
-                        NewModelViolation(
-                            code="UNCOVERED_ARTIFACT",
-                            message=f"{path} in scope '{prefix}' has no owning TDD",
-                            chunk_id=None,
-                            enforcement=scope.get("enforcement", "warn"),
-                        )
+                if not path:
+                    continue
+                normalized = self._normalize_target_file(path)
+                if normalized in declared or normalized in exempt_paths:
+                    continue
+                out.append(
+                    NewModelViolation(
+                        code="UNCOVERED_ARTIFACT",
+                        message=f"{path} in scope '{prefix}' has no owning TDD",
+                        chunk_id=None,
+                        enforcement=scope.get("enforcement", "warn"),
                     )
+                )
         return out
 
     @staticmethod

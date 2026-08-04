@@ -32,7 +32,12 @@ FSD = (
 )
 
 
-def _set_scopes(root: Path, enforcement: str, exempt: list[str] | None = None) -> None:
+def _set_scopes(
+    root: Path,
+    enforcement: str,
+    exempt: list[str] | None = None,
+    exempt_paths: list[str] | None = None,
+) -> None:
     (root / ".meta" / "config.yaml").write_text(
         yaml.safe_dump(
             {
@@ -41,6 +46,7 @@ def _set_scopes(root: Path, enforcement: str, exempt: list[str] | None = None) -
                         "parent_suffix": ":TEST",
                         "enforcement": enforcement,
                         "exempt_test_splits": exempt or [],
+                        "exempt_paths": exempt_paths or [],
                     }
                 }
             }
@@ -267,6 +273,38 @@ def test_all_host_artifacts_covered_no_violation(tmp_path: Path):
 
     codes = [v["code"] for v in result["violations"]]
     assert "UNCOVERED_ARTIFACT" not in codes
+
+
+def test_uncovered_host_artifact_exempt_path_suppresses_only_matching_file(tmp_path: Path):
+    """v2.85: exempt_paths skips only the matching file's UNCOVERED_ARTIFACT;
+    a different uncovered file in the same scope is still reported."""
+    root = _project(tmp_path, host_git=True)
+    _set_scopes(root, "block", exempt_paths=["tests/test_exempt_placeholder.py"])
+    mgr = _to_tdd_creating(root)
+    mgr.create_tdd(
+        "v9.0", "[TDD]-app-tests",
+        "<!-- @id:[TDD]-app-tests -->\n## T\n\n```yaml\ntarget_file: tests/test_app.py\n```\n",
+        parent_chunk_id="[FSD]-app:TEST",
+        skip_context=True,
+    )
+    mgr._add_edge("v9.0", "[FSD]-app:TEST", "[TDD]-app-tests", "details")
+    _set_phase(root, "v9.0", "tdd-confirm")
+
+    host = root.parent
+    (host / "tests").mkdir()
+    (host / "tests" / "test_app.py").write_text("def test_x(): pass\n", encoding="utf-8")
+    (host / "tests" / "test_exempt_placeholder.py").write_text("", encoding="utf-8")
+    (host / "tests" / "test_still_uncovered.py").write_text("def test_y(): pass\n", encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=host, capture_output=True)
+    subprocess.run(["git", "commit", "-qm", "add tests"], cwd=host, capture_output=True)
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    all_entries = result["violations"] + result["warnings"]
+    uncovered = [v for v in all_entries if v["code"] == "UNCOVERED_ARTIFACT"]
+    assert len(uncovered) == 1
+    assert "test_still_uncovered.py" in uncovered[0]["message"]
+    assert not any("test_exempt_placeholder.py" in v["message"] for v in uncovered)
 
 
 def test_non_git_host_scope_coverage_is_vacuous(tmp_path: Path):
