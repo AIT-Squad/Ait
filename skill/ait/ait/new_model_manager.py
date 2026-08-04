@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from . import config_store
 from .chunk_parser import Chunk, parse_file, parse_text
 from .index_manager import IndexManager
 from .new_model_validator import (
@@ -627,6 +629,19 @@ class NewModelManager:
         if parent_chunk_id is not None:
             view = combined_view(self.root, version)
             self._precheck_details_parent(view, parent_chunk_id, root_chunk_id)
+        # v2.83: governed artifact scope gate, evaluated before any write.
+        # Uses the RAW declared target_file (not `new_target`), because
+        # normalize_target_file's ".." handling silently discards excess
+        # up-levels for dedup purposes — exactly the lossy behaviour that
+        # would hide a traversal escape here.
+        scopes = config_store.read_config(self.root / ".meta").get("artifact_scopes", {})
+        if scopes:
+            effective_parent = parent_chunk_id
+            if effective_parent is None:
+                existing = combined_view(self.root, version).edges_to(root_chunk_id, "details")
+                effective_parent = existing[0].src if existing else None
+            raw_target = _target_file(content)
+            self._check_artifact_scope(root_chunk_id, effective_parent, raw_target, scopes)
         result = self._create_document(
             version,
             root_chunk_id,
@@ -667,6 +682,59 @@ class NewModelManager:
                 f"TDD {tdd_root} already has details parent {others}",
                 tdd_root,
             )
+
+    @staticmethod
+    def _check_artifact_scope(
+        root_chunk_id: str,
+        parent_chunk_id: str | None,
+        raw_target: str,
+        scopes: dict[str, dict],
+    ) -> None:
+        """v2.83: bidirectional governed-scope gate + path escape rejection.
+
+        ``scopes`` maps a path prefix to a dict with at least ``parent_suffix``
+        (e.g. ``":TEST"``). Evaluated before any write; raises on the first
+        violation found so zero bytes are ever persisted for a rejected call.
+
+        ``raw_target`` must be the *declared* target_file string, not the
+        lossy ``normalize_target_file`` form: that function's ``..`` handling
+        silently discards excess up-level segments for dedup-identity
+        purposes, which would hide a genuine traversal escape here. This
+        function instead uses ``os.path.normpath`` (which preserves leading
+        ``..`` that goes above the artifact tree) to compute the *effective*
+        location, and compares it against what the raw string naively claims.
+        """
+        posix_raw = raw_target.replace("\\", "/")
+        resolved = os.path.normpath(posix_raw).replace(os.sep, "/")
+        escapes_tree = resolved.startswith("..") or resolved.startswith("/")
+        for prefix, scope in scopes.items():
+            parent_suffix = scope["parent_suffix"]
+            claims_scope = posix_raw.lstrip("./").startswith(prefix)
+            if claims_scope and escapes_tree:
+                raise _validation_error(
+                    "TARGET_FILE_SCOPE_ESCAPE",
+                    f"target_file {raw_target} claims scope '{prefix}' but "
+                    f"resolves outside the artifact tree: {resolved}",
+                    root_chunk_id,
+                )
+            hits_scope = (not escapes_tree) and resolved.startswith(prefix.rstrip("/"))
+            is_scope_parent = (
+                parent_chunk_id is not None and parent_chunk_id.endswith(parent_suffix)
+            )
+            if hits_scope and not is_scope_parent:
+                raise _validation_error(
+                    "TEST_SCOPE_PARENT_MISMATCH",
+                    f"target_file {raw_target} is in scope '{prefix}' but "
+                    f"details parent does not end with '{parent_suffix}'",
+                    root_chunk_id,
+                )
+            if is_scope_parent and not hits_scope:
+                raise _validation_error(
+                    "TEST_SCOPE_PARENT_MISMATCH",
+                    f"details parent ends with '{parent_suffix}' but target_file "
+                    f"{raw_target} is not in scope '{prefix}'",
+                    root_chunk_id,
+                )
 
     def confirm_tdd_layer(self, version: str) -> dict:
         """Freeze the TDD layer: lock [TDD]- chunks, phase → tdd-confirm."""
@@ -906,6 +974,7 @@ class NewModelManager:
             "prd_root": 2,
             "test_implementation_tdd": 2,
             "prd_requirement": 3,
+            "test_acceptance_prd": 3,
         }
         return ranks[reason]
 
@@ -1048,6 +1117,16 @@ class NewModelManager:
                             reasons,
                             implementation_tdd,
                             "test_implementation_tdd",
+                        )
+                # v2.83: `:TEST` split自身从不接收 derives 边(结构隶属其FSD 根,
+                # 不参与 derives 端点),故不能像普通路径那样直接查它的 derives 入边。
+                # 改为对每个已确认拥有实现的功能 sibling,取其直接 derives 入边指向
+                # 的 PRD requirement,作为该 `:TEST` 场景下的 PRD 验收条件来源。
+                for derives_edge in view.edges_to(sibling.chunk_id, "derives"):
+                    requirement = view.node(derives_edge.src)
+                    if requirement is not None:
+                        self._append_codegen_context_item(
+                            items, reasons, requirement, "test_acceptance_prd"
                         )
         return self._sort_codegen_context(items)
 

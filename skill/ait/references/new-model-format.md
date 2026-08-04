@@ -88,7 +88,7 @@ depends_on: [store, config]
 2. **反向要求必填**：每块明确"不实现什么/不涉及什么/不负责什么（及归属）"——PRD 的范围"不包含"、FSD 的"反向要求"section、TDD 的"本文件不负责"。
 3. **术语就地展开**：总结性用语（如"六不变式"）在使用处展开其完整含义，不裸用名词、不设集中术语表、不指向别处——保证所有信息明确在文档中。
 
-> **`:TEST` 是验收节点**（既非 decompose 节点、也非 details 叶子）——冒号 split 结构隶属 root，不触发孤儿/追溯校验。将来（P9）从它 `details` 出 `target_file: tests/*.py` 的测试 TDD，把项目测试也纳入制品治理。
+> **`:TEST` 是验收节点**（既非 decompose 节点、也非 details 叶子）——冒号 split 结构隶属 root。从它 `details` 出 `target_file` 落在受治理制品范围（如测试范围 `tests/*.py`）内的 TDD，把该范围的制品也纳入治理：写入时校验双向归属（范围内 target_file 的 details 父必须是 `:TEST`，`:TEST` 的 details 子其 target_file 必须落在范围内）与路径逃逸拒绝；确认时校验 `:TEST` 至少有一个 details 子（`TEST_SPLIT_UNCOVERED`，可配置报告或阻断，显式豁免的验收节点跳过）与范围内制品的 TDD 属主完整性（`UNCOVERED_ARTIFACT`）。`:TEST` 自身从不接收 `derives` 边（结构隶属其 FSD 根），故其 PRD 验收条件经由被覆盖功能 sibling 的 `derives` 上游取得，见 `[TDD]-new_model_manager` 的上下文选择逻辑。测试文件命名按域/能力命名，不含版本号——版本信息属于 git 历史与 chg 记录。
 
 ## 6. target_file 规则
 

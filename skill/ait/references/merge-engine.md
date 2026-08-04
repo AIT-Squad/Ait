@@ -136,4 +136,4 @@ def serialize(file_header, chunks):
 - 删除-插入孤儿：delete 块 A 同时 add 一个 insert_after=A 的块
 - 全新文件（merge_new_file）
 - 序列化空文件头时不留多余空行
-- 用 project-demo/docs/prd/book-management.md 做 base，构造一组 ops，断言合并结果可被 chunk_parser 再次解析出预期数量的块（自反性）
+- 用内联构造的一段合法 PRD 文本做 base（不依赖外部 demo 项目），构造一组 ops，断言合并结果可被 chunk_parser 再次解析出预期数量的块（自反性）

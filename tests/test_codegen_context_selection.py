@@ -177,6 +177,62 @@ def test_codegen_test_tdd_includes_covered_siblings_and_implementation_tdds(tmp_
     assert reasons["[FSD]-app:dependency"] == "test_covered_sibling"
     assert reasons["[TDD]-dependency"] == "test_implementation_tdd"
     assert "[FSD]-app:unrelated" not in reasons
+    # v2.83: `:TEST` itself has no derives edge (structurally it never does);
+    # the PRD acceptance context is sourced from each covered sibling's own
+    # derives upstream instead.
+    assert reasons["[PRD]-app:feature"] == "test_acceptance_prd"
+    # [FSD]-app:dependency has no derives edge at all — must not fabricate one.
+    assert "[PRD]-app:dependency" not in reasons
+    assert "[PRD]-app:unrelated" not in reasons
+
+
+def test_codegen_test_tdd_dedupes_prd_shared_by_two_covered_siblings(tmp_path: Path):
+    """v2.83: two `test_covered_sibling`s deriving from the same PRD requirement
+    must contribute exactly one `test_acceptance_prd` entry, not two."""
+    root = (tmp_path / "project-docs")
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    _write(
+        root, "prd/[PRD]-shared",
+        "<!-- @id:[PRD]-shared -->\n## Shared\n\n"
+        "<!-- @id:[PRD]-shared:req -->\n## Shared requirement\n",
+    )
+    _write(
+        root, "fsd/[FSD]-shared",
+        "<!-- @id:[FSD]-shared -->\n## Shared design\n\n"
+        "<!-- @id:[FSD]-shared:a -->\n## A\n\n"
+        "<!-- @id:[FSD]-shared:b -->\n## B\n\n"
+        "<!-- @id:[FSD]-shared:TEST -->\n## Tests\n",
+    )
+    _write(root, "tdd/[TDD]-a", "<!-- @id:[TDD]-a -->\n## A impl\n\n```yaml\ntarget_file: app/a.py\n```\n")
+    _write(root, "tdd/[TDD]-b", "<!-- @id:[TDD]-b -->\n## B impl\n\n```yaml\ntarget_file: app/b.py\n```\n")
+    _write(
+        root, "tdd/[TDD]-shared-tests",
+        "<!-- @id:[TDD]-shared-tests -->\n## Shared tests\n\n```yaml\ntarget_file: tests/test_shared.py\n```\n",
+    )
+    IndexManager(root).rebuild_baseline()
+    sync_specgraph(root)
+    graph = load_specgraph(root)
+    prd_file, fsd_file = "prd/[PRD]-shared", "fsd/[FSD]-shared"
+    _add_edge(graph, "[PRD]-shared", prd_file, "[FSD]-shared", fsd_file, "derives")
+    _add_edge(graph, "[PRD]-shared:req", prd_file, "[FSD]-shared:a", fsd_file, "derives")
+    _add_edge(graph, "[PRD]-shared:req", prd_file, "[FSD]-shared:b", fsd_file, "derives")
+    _add_edge(graph, "[FSD]-shared:a", fsd_file, "[TDD]-a", "tdd/[TDD]-a", "details")
+    _add_edge(graph, "[FSD]-shared:b", fsd_file, "[TDD]-b", "tdd/[TDD]-b", "details")
+    _add_edge(graph, "[FSD]-shared:TEST", fsd_file, "[TDD]-shared-tests", "tdd/[TDD]-shared-tests", "details")
+    graph.save(specgraph_path(root))
+    versions = VersionManager(root)
+    versions.create("v1.0")
+    meta = versions.load_version_meta("v1.0")
+    meta.phase = "tdd-confirm"
+    versions.save_version_meta(meta)
+    manager = NewModelManager(root)
+
+    bundle = manager.prepare_codegen("v1.0", "[TDD]-shared-tests")
+
+    matches = [item for item in bundle.dependencies if item["id"] == "[PRD]-shared:req"]
+    assert len(matches) == 1
+    assert matches[0]["selection_reason"] == "test_acceptance_prd"
 
 
 def test_codegen_context_is_stable_for_active_version_and_baseline(tmp_path: Path):

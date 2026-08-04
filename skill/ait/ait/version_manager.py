@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, replace as _dc_replace
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
@@ -1301,14 +1301,25 @@ class VersionManager:
                 violations.append(
                     {"code": getattr(exc, "code", "DUPLICATE_BASELINE_CHUNK"), "message": str(exc), "chunk_id": None}
                 )
+        new_model_violations = self._collect_new_model_violations(version)
         violations.extend(
             {
                 "code": v.code,
                 "message": v.message,
                 "chunk_id": v.chunk_id,
             }
-            for v in self._collect_new_model_violations(version)
+            for v in new_model_violations
+            if getattr(v, "enforcement", None) != "warn"
         )
+        warnings: list[dict] = [
+            {
+                "code": v.code,
+                "message": v.message,
+                "chunk_id": v.chunk_id,
+            }
+            for v in new_model_violations
+            if getattr(v, "enforcement", None) == "warn"
+        ]
         acceptance = self.run_acceptance()
         if not acceptance["passed"]:
             violations.append(
@@ -1320,6 +1331,7 @@ class VersionManager:
                 "version": version,
                 "passed": False,
                 "violations": violations,
+                "warnings": warnings,
                 "acceptance": acceptance,
             }
 
@@ -1340,6 +1352,7 @@ class VersionManager:
             "version": version,
             "passed": True,
             "violations": [],
+            "warnings": warnings,
             "acceptance": acceptance,
             "code_result": artifacts["sha"],
             "artifacts": artifacts,
@@ -1431,8 +1444,69 @@ class VersionManager:
         violations = validate_prd_fsd_tdd_graph(raw)
         view = combined_view(self.root, version)
         targets = self._collect_new_model_target_files(view)
-        violations += validate_invariants(view, targets)
+
+        scopes = config_store.read_config(self.root / ".meta").get("artifact_scopes", {})
+        suffixes = frozenset(s["parent_suffix"] for s in scopes.values())
+        exempt = frozenset(
+            cid for s in scopes.values() for cid in s.get("exempt_test_splits", [])
+        )
+        for v in validate_invariants(
+            view, targets, test_scope_suffixes=suffixes, test_scope_exempt=exempt,
+        ):
+            if v.code == "TEST_SPLIT_UNCOVERED" and v.chunk_id:
+                matched = next(
+                    (s for s in scopes.values() if v.chunk_id.endswith(s["parent_suffix"])),
+                    None,
+                )
+                if matched is not None:
+                    v = _dc_replace(v, enforcement=matched.get("enforcement", "warn"))
+            violations.append(v)
+        if scopes:
+            violations += self._scope_coverage_violations(scopes, targets)
         return violations
+
+    def _scope_coverage_violations(
+        self, scopes: dict, targets: list[tuple[str, str | None]]
+    ) -> list:
+        """v2.83: read-only host `git ls-files` enumeration per configured
+        scope prefix, diffed against declared TDD target_files. Non-git host
+        or any git failure → vacuous (must never report false UNCOVERED_ARTIFACT
+        because enumeration was unavailable)."""
+        from .new_model_validator import NewModelViolation
+
+        declared = {
+            self._normalize_target_file(target) for _cid, target in targets if target
+        }
+        out: list[NewModelViolation] = []
+        host_root = self.root.parent
+        for prefix, scope in scopes.items():
+            try:
+                result = subprocess.run(
+                    ["git", "ls-files", prefix], cwd=host_root,
+                    capture_output=True, text=True, timeout=30,
+                )
+            except (OSError, subprocess.TimeoutExpired):
+                continue
+            if result.returncode != 0:
+                continue
+            for line in result.stdout.splitlines():
+                path = line.strip()
+                if path and self._normalize_target_file(path) not in declared:
+                    out.append(
+                        NewModelViolation(
+                            code="UNCOVERED_ARTIFACT",
+                            message=f"{path} in scope '{prefix}' has no owning TDD",
+                            chunk_id=None,
+                            enforcement=scope.get("enforcement", "warn"),
+                        )
+                    )
+        return out
+
+    @staticmethod
+    def _normalize_target_file(target: str) -> str:
+        from .new_model_validator import normalize_target_file
+
+        return normalize_target_file(target)
 
     def _collect_new_model_target_files(self, view) -> list[tuple[str, str | None]]:
         """(chunk_id, target_file|None) for every new-model TDD node in the view."""

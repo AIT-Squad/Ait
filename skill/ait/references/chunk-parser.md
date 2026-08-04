@@ -84,7 +84,6 @@ parse_text(text, file):
 <!-- @id:impl-chunk-parser-tests -->
 ## 测试要点
 
-- fixtures 用 [project-demo/docs/prd/book-management.md](../../../project-demo/docs/prd/book-management.md) 应能解析出 14 个块
-- fixtures 用 [project-demo/docs/impl/api-contracts.md](../../../project-demo/docs/impl/api-contracts.md) 应能解析出 9 个块 + 5 个 implements 关联
+- 构造一段合法格式的 PRD/impl 文本（内联 fixture，不依赖外部 demo 项目），断言解析出的块数、id 列表与 `implements` 关联数与预期一致
 - 代码围栏测试：构造一个含 ` ```markdown ... <!-- @id:fake --> ... ``` ` 的文件，确认 fake 不被识别
 - 嵌套块测试：## 块下含 ### 子块，应解析出独立的父块和子块（不嵌套）

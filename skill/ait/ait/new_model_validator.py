@@ -29,6 +29,11 @@ class NewModelViolation:
     rel: str | None = None
     src: str | None = None
     dst: str | None = None
+    enforcement: str | None = None
+    """v2.83: None means "always blocking" (pre-v2.83 semantics, unchanged for
+    all existing violation codes). "warn"/"block" is set by the caller
+    (version_manager) for scope-governed codes (TEST_SPLIT_UNCOVERED,
+    UNCOVERED_ARTIFACT) based on the matching artifact_scopes entry."""
 
 
 def validate_prd_fsd_tdd_graph(graph: SpecGraph) -> list[NewModelViolation]:
@@ -228,7 +233,11 @@ def check_edge_write(view, src: str, dst: str, rel: str) -> list[NewModelViolati
 
 
 def validate_invariants(
-    view, target_files: list[tuple[str, str | None]]
+    view,
+    target_files: list[tuple[str, str | None]],
+    *,
+    test_scope_suffixes: frozenset[str] = frozenset(),
+    test_scope_exempt: frozenset[str] = frozenset(),
 ) -> list[NewModelViolation]:
     """Six-invariant global gate over the combined chunk_id view (confirm-time).
 
@@ -376,6 +385,25 @@ def validate_invariants(
                 ),
             )
         )
+
+    # ⑦ v2.83: governed acceptance-split coverage. Suffixes/exempt list are
+    # supplied by the caller (empty by default => vacuous, byte-identical to
+    # pre-v2.83 behaviour). Enforcement (warn/block) is NOT decided here; the
+    # caller applies it to the returned violations.
+    if test_scope_suffixes:
+        for cid in sorted(new_nodes):
+            if cid in test_scope_exempt:
+                continue
+            if any(cid.endswith(suffix) for suffix in test_scope_suffixes):
+                if not view.edges_from(cid, "details"):
+                    violations.append(
+                        NewModelViolation(
+                            code="TEST_SPLIT_UNCOVERED",
+                            message=f"acceptance split has no details children: {cid}",
+                            chunk_id=cid, file=new_nodes[cid].file,
+                        )
+                    )
+
     return violations
 
 

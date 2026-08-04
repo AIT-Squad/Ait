@@ -50,6 +50,21 @@ class StrictModel(BaseModel):
 # ─────────────────────────────────────────────────────────────
 
 
+class ArtifactScope(StrictModel):
+    """v2.83: one governed-artifact-range entry under ProjectConfig.artifact_scopes."""
+
+    parent_suffix: str
+    enforcement: Literal["warn", "block"] = "warn"
+    exempt_test_splits: list[str] = Field(default_factory=list)
+
+    @field_validator("parent_suffix")
+    @classmethod
+    def _suffix_must_be_colon_split(cls, value: str) -> str:
+        if not value.startswith(":"):
+            raise ValueError("parent_suffix must start with ':' (e.g. ':TEST')")
+        return value
+
+
 class ProjectConfig(StrictModel):
     id_prefix_separator: str = "-"
     version_format: str = "{major}.{minor}"
@@ -57,6 +72,7 @@ class ProjectConfig(StrictModel):
     custom_relations: list[str] = Field(default_factory=list)
     id_prefixes: dict[str, str] = Field(default_factory=dict)
     mvp_scope_tags: list[str] = Field(default_factory=list)
+    artifact_scopes: dict[str, ArtifactScope] = Field(default_factory=dict)
 
 
 # ─────────────────────────────────────────────────────────────
