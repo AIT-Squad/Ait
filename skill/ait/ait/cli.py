@@ -20,7 +20,6 @@ from typing import cast
 
 import click
 
-from . import __version__
 from . import config_store
 from .chunk_parser import parse_file
 from .context_assembler import ContextAssembler
@@ -158,8 +157,32 @@ class JsonGroup(click.Group):
             sys.exit(1)
 
 
+def _print_version(ctx: click.Context, param: click.Parameter, value: bool) -> None:
+    """Eager --version callback: print the project's current document
+    version (numeric max of recorded vMAJOR.MINOR labels), not the package
+    build version. Falls back to "unversioned" outside a project root or
+    when no version has been recorded yet — never raises, exit code 0.
+    """
+    if not value or ctx.resilient_parsing:
+        return
+    try:
+        resolved = resolve_project_root()
+        label = VersionManager(resolved.root).latest_version_label()
+    except RootResolutionError:
+        label = None
+    click.echo(f"ait, version {label or 'unversioned'}")
+    ctx.exit()
+
+
 @click.group(cls=JsonGroup, help="AIT — AI-assisted document versioning.")
-@click.version_option(__version__, prog_name="ait")
+@click.option(
+    "--version",
+    is_flag=True,
+    expose_value=False,
+    is_eager=True,
+    callback=_print_version,
+    help="Show the current project document version and exit.",
+)
 @click.pass_context
 def main(ctx: click.Context) -> None:
     ctx.ensure_object(dict)

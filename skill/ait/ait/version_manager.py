@@ -55,6 +55,21 @@ from .yaml_io import save_model
 ConflictPolicy = Literal["abort", "use-version", "use-baseline"]
 
 
+def _parse_version_label(label: str) -> tuple[int, int] | None:
+    """Parse a "vMAJOR.MINOR" label into a numeric (major, minor) tuple for
+    correct numeric comparison. Returns None for anything that doesn't match.
+    """
+    if not label.startswith("v"):
+        return None
+    parts = label[1:].split(".")
+    if len(parts) != 2:
+        return None
+    try:
+        return (int(parts[0]), int(parts[1]))
+    except ValueError:
+        return None
+
+
 @dataclass
 class StageResult:
     staged: list[str]
@@ -199,6 +214,23 @@ class VersionManager:
         if not unmerged:
             return None
         return max(unmerged, key=lambda m: m.created_at).version
+
+    def latest_version_label(self) -> str | None:
+        """Return the version label with the greatest (major, minor) among
+        all recorded versions (merged or not). Compares numerically —
+        "v2.10" must not be treated as smaller than "v2.9" by string order.
+        Returns None when there are no versions, or none parse as "vX.Y".
+        """
+        best_key: tuple[int, int] | None = None
+        best_label: str | None = None
+        for meta in self.list_versions():
+            key = _parse_version_label(meta.version)
+            if key is None:
+                continue
+            if best_key is None or key > best_key:
+                best_key = key
+                best_label = meta.version
+        return best_label
 
     # ──────────────────────────────────────────────────
     # Chunk-level mutations (called by prd/impl managers)
