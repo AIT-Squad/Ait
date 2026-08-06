@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from ait.chunk_parser import parse_file
 from ait.new_model_manager import NewModelManager
 from ait.specgraph import load_specgraph
+from ait.validator import ValidationError
 from ait.version_manager import VersionManager
 
 
@@ -82,3 +85,43 @@ def test_new_model_merge_preserves_file_containers_and_edges(tmp_path: Path):
         for edge in baseline_graph.edges
     }
     assert ("[FSD]-book_management:book_model", "details", "[TDD]-book_model") in edge_triples
+
+
+def test_create_rejects_action_add_for_chunk_already_in_baseline(tmp_path: Path):
+    """回归测试(v2.87):create 若把已存在于baseline 的 chunk 也当 action=add 传入,
+    须在写入前(零写入)就报 DUPLICATE_BASELINE_CHUNK,不能拖到下一版本 merge/confirm 才发现。"""
+    root = tmp_path
+    (root / "docs").mkdir()
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    vm = VersionManager(root)
+    mgr = NewModelManager(root)
+
+    # v1:正常建 [PRD]-app 并合入 baseline。
+    vm.create("v1.0")
+    mgr.create_prd(
+        "v1.0",
+        "[PRD]-app",
+        "<!-- @id:[PRD]-app -->\n## App\n",
+        skip_context=True,
+    )
+    vm.stage("v1.0", ["[PRD]-app"])
+    vm.commit("v1.0", "seed baseline")
+    vm.merge("v1.0", conflict_policy="use-version")
+
+    # v2:content 里把已在 baseline 的 [PRD]-app 也当新增(action=add)一起传入。
+    vm.create("v2.0")
+    with pytest.raises(ValidationError) as exc:
+        mgr.create_prd(
+            "v2.0",
+            "[PRD]-app2",
+            "<!-- @id:[PRD]-app -->\n## App\n\n<!-- @id:[PRD]-app2 -->\n## App2\n",
+            skip_context=True,
+        )
+    assert exc.value.issues[0].code == "DUPLICATE_BASELINE_CHUNK"
+    assert exc.value.issues[0].chunk_id == "[PRD]-app"
+
+    # 零写入:不应留下任何本次 create 产生的版本文件或索引记录。
+    assert not (vm.versions_dir / "v2.0" / "prd" / "[PRD]-app2.md").exists()
+    version_index = mgr.indexes.load_version_index("v2.0")
+    assert version_index.chunks == []

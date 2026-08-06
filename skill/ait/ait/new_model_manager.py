@@ -1446,6 +1446,27 @@ class NewModelManager:
                     first = contract_violations[0]
                     raise _validation_error(first.code, first.message, chunk.id)
 
+        # v2.87 write-time closure: reject action=add for any chunk id that
+        # already exists in the baseline *before* any write happens. Previously
+        # this was only caught by `_assert_no_duplicate_adds` at merge/confirm
+        # time — by then the bogus add records were already committed into the
+        # version index (and the version phase advanced), forcing a `revert` to
+        # undo. A caller who pastes unchanged baseline chunks alongside a new
+        # one (default action="add") now fails immediately, zero-write.
+        if action == "add":
+            baseline_by_id = {entry.id: entry for entry in self.indexes.load_baseline().chunks}
+            for chunk in parsed.chunks:
+                if chunk.id in baseline_by_id:
+                    baseline_entry = baseline_by_id[chunk.id]
+                    raise _validation_error(
+                        "DUPLICATE_BASELINE_CHUNK",
+                        f"chunk '{chunk.id}' is action=add but already exists in baseline "
+                        f"file '{baseline_entry.file}'. Only include NEW chunks when "
+                        "action=add — omit unchanged baseline chunks from --content, or "
+                        "use --action modify --overrides <id> for changed ones.",
+                        chunk.id,
+                    )
+
         # P7: every layer requires an already-created version — no auto-create,
         # no ghost. `version create` is the sole entry (prd create no longer
         # bootstraps a version). Missing → VERSION_NOT_FOUND.
