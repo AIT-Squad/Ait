@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 840" width="680" role="img">
+  <title>AIT 文件树与命令边</title>
+  <desc>完整命令流：version create → prd/fsd/tdd → codegen → commit/confirm/merge 落 baseline；四阶段底色；红色虚线为返工路径；右侧为版本迭代回路</desc>
+
+  <rect x="0" y="0" width="680" height="840" fill="#FFFFFF"/>
+
+  <rect x="28" y="30" width="644" height="122" rx="12" fill="#EEEDFE"/>
+  <rect x="28" y="152" width="644" height="325" rx="12" fill="#E6F1FB"/>
+  <rect x="28" y="477" width="644" height="110" rx="12" fill="#FAEEDA"/>
+  <rect x="28" y="587" width="644" height="93" rx="12" fill="#E1F5EE"/>
+
+  <text x="340" y="24" text-anchor="middle" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">/ait init --new-model --name app</text>
+  <path d="M340 32 L340 70" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M334 64 L340 70 L346 64" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="328" y="56" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">version create v0.1</text>
+  <text x="328" y="72" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">prd create（先取讨论背景）</text>
+
+  <rect x="240" y="74" width="200" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="340" y="92" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[PRD]-app.md</text>
+  <text x="340" y="110" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">docs/prd/ · 需求 root</text>
+  <text x="626" y="102" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#2C2C2A">PRD 阶段</text>
+
+  <path d="M340 130 L340 160" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M334 154 L340 160 L346 154" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="352" y="143" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">fsd create --parent（derives）</text>
+
+  <path d="M640 160 L640 134" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M634 140 L640 134 L646 140" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="630" y="150" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#A32D2D">prd revert</text>
+
+  <rect x="240" y="164" width="200" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="340" y="182" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-app.md</text>
+  <text x="340" y="200" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">root + splits :parser :store :cli</text>
+  <text x="626" y="196" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#2C2C2A">FSD 阶段</text>
+
+  <path d="M340 220 L340 250 L145 250 L145 280" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M139 274 L145 280 L151 274" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M340 220 L340 280" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M334 274 L340 280 L346 274" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M340 220 L340 250 L535 250 L535 280" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M529 274 L535 280 L541 274" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="352" y="244" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">fsd decompose（decomposes，每子文件一条边）</text>
+
+  <rect x="60" y="284" width="170" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="145" y="302" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-parser.md</text>
+  <text x="145" y="320" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">叶 FSD</text>
+  <rect x="255" y="284" width="170" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="340" y="302" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-store.md</text>
+  <text x="340" y="320" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">继续拆分 :index :graph</text>
+  <rect x="450" y="284" width="170" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="535" y="302" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-cli.md</text>
+  <text x="535" y="320" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">叶 FSD</text>
+
+  <path d="M340 340 L340 366 L280 366 L280 390" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M274 384 L280 390 L286 384" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M340 340 L340 366 L450 366 L450 390" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M444 384 L450 390 L456 384" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="352" y="360" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">fsd decompose</text>
+
+  <rect x="200" y="394" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="280" y="412" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-store_index.md</text>
+  <text x="280" y="430" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">叶 FSD</text>
+  <rect x="370" y="394" width="160" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="450" y="412" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[FSD]-store_graph.md</text>
+  <text x="450" y="430" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">叶 FSD</text>
+
+  <path d="M145 340 L122 500" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M116 494 L122 500 L128 494" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="52" y="424" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">tdd create</text>
+  <text x="52" y="440" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">--parent</text>
+  <text x="52" y="456" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">（details）</text>
+  <path d="M280 450 L275 500" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M269 494 L275 500 L281 494" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M450 450 L428 500" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M422 494 L428 500 L434 494" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M535 340 L581 500" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M575 494 L581 500 L587 494" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M640 500 L640 454" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M634 460 L640 454 L646 460" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="630" y="484" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#A32D2D">fsd revert</text>
+
+  <text x="626" y="536" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#2C2C2A">TDD 阶段</text>
+  <rect x="52" y="504" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="122" y="522" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[TDD]-parser.md</text>
+  <text x="122" y="540" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">target_file 唯一</text>
+  <rect x="205" y="504" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="275" y="522" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[TDD]-store_index.md</text>
+  <text x="275" y="540" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">1 TDD = 1 文件</text>
+  <rect x="358" y="504" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="428" y="522" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[TDD]-store_graph.md</text>
+  <text x="428" y="540" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">1 TDD = 1 文件</text>
+  <rect x="511" y="504" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="581" y="522" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">[TDD]-cli.md</text>
+  <text x="581" y="540" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">1 TDD = 1 文件</text>
+
+  <path d="M122 560 L122 610" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M116 604 L122 610 L128 604" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="52" y="590" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">codegen</text>
+  <text x="52" y="606" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">prepare</text>
+  <path d="M275 560 L275 610" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M269 604 L275 610 L281 604" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M428 560 L428 610" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M422 604 L428 610 L434 604" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M581 560 L581 610" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M575 604 L581 610 L587 604" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <path d="M640 610 L640 564" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M634 570 L640 564 L646 570" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="630" y="594" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#A32D2D">tdd revert</text>
+
+  <text x="626" y="646" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#2C2C2A">code 生成</text>
+  <rect x="52" y="614" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="122" y="632" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#085041">src/parser.py</text>
+  <text x="122" y="650" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#0F6E56">宿主仓 · AI 生成</text>
+  <rect x="205" y="614" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="275" y="632" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#085041">src/store_index.py</text>
+  <text x="275" y="650" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#0F6E56">宿主仓 · AI 生成</text>
+  <rect x="358" y="614" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="428" y="632" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#085041">src/store_graph.py</text>
+  <text x="428" y="650" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#0F6E56">宿主仓 · AI 生成</text>
+  <rect x="511" y="614" width="140" height="56" rx="8" fill="#FFFFFF" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="581" y="632" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#085041">src/cli.py</text>
+  <text x="581" y="650" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#0F6E56">宿主仓 · AI 生成</text>
+
+  <path d="M236 102 L36 102 L36 728 L44 728" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M38 722 L44 728 L38 734" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="60" y="692" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">version commit → confirm → merge（验收后原子落盘，失败字节级回退）</text>
+
+  <path d="M656 700 L656 108" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <path d="M650 114 L656 108 L662 114" fill="none" stroke="#A32D2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="644" y="348" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#A32D2D">version revert --confirm</text>
+  <text x="644" y="364" text-anchor="end" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#A32D2D">整版退出 · 双仓回滚</text>
+
+  <rect x="48" y="700" width="584" height="56" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="340" y="718" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="14" font-weight="500" fill="#0C447C">docs/{prd,fsd,tdd}/ — baseline</text>
+  <text x="340" y="736" text-anchor="middle" dominant-baseline="central" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#185FA5">merge 落盘 + docs 仓提交 + 锚点 tag；confirm 已提交宿主仓并绑 code_result</text>
+
+  <path d="M632 728 L668 728 L668 44 L352 44 L352 70" fill="none" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M346 64 L352 70 L358 64" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="380" y="40" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">下一轮迭代：version create v0.2 → v0.3 → …</text>
+  <text x="380" y="60" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">prd create --action modify（与 add 同门禁，从 PRD 逐层向下改）</text>
+
+  <rect x="48" y="772" width="584" height="48" rx="12" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="4 3"/>
+  <text x="64" y="792" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">备注：/ait codegen prepare "[TDD]-x" 不直接写码——bundle 写入仓外临时文件 $TMP/ait-codegen/….md（sha256 校验），</text>
+  <text x="64" y="810" font-family="system-ui,Segoe UI,Microsoft YaHei,sans-serif" font-size="12" fill="#5F5E5A">Skill 层派生隔离子 agent（窗口仅注入该 bundle）依 TDD 规格生成/修改 target_file，再经 confirm + 验收收口</text>
+</svg>

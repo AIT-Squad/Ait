@@ -91,6 +91,10 @@ AIT 的答案：以 `<!-- @id:xxx -->` 标注的 **chunk** 为版本控制与关
 "检查通过的那个状态"就是"实际合并的那个状态"。计划带输入指纹，输入变了 merge 报
 `CONFIRMATION_STALE`，强制重新 confirm。
 
+**边界澄清（v2.72–v2.73）**：confirm 的"零写入"指**不写文档内容、不动 baseline**。它仍会
+持久化合并计划到版本 meta，并在宿主仓有未提交制品时主动提交宿主仓、绑定 `code_result`
+（与 merged 版本的双仓回滚互为对称——提交侧与回滚侧都是 AIT 自建，不要求用户手工 git）。
+
 ### 2.4 每道门禁都配返工路径
 
 `prd/fsd/tdd` 三层各有 `confirm` / `revert` 对，版本级有 `version revert`。
@@ -323,6 +327,11 @@ skill/ait/
 `:TEST` 是验收节点（既非分解节点也非 details 叶子），结构上隶属 root，
 不触发孤儿/追溯校验。
 
+**环检测的边界**：`SPEC_CYCLE` 只覆盖树关系（derives/decomposes/details）与 id 结构通道
+（root→split）。**`depends_on` 环不设门禁**——横向域依赖天然允许双向（本项目基线就有
+version↔task↔indexing 环，来自真实 import），且没有删边命令，硬门禁会成终态陷阱；
+它们仍可通过 `detect_cycle` 诊断。
+
 ### 5.2 FSD 三类分化与所有权分层
 
 每个 FSD 文件递归同构 = root + N 个功能 split + 恰 1 个 `:TEST`：
@@ -375,7 +384,22 @@ exit ≠ 0 → `ACCEPTANCE_FAILED`，拒于落盘前。未配置则跳过（真�
 **为什么存在机器本地配置层**：这个值**会被执行**，且路径因机器而异。让它随共享历史传播
 既不可移植也是安全隐患（拉取他人配置即执行他人命令）。
 
-### 5.6 合并语义
+### 5.6 受治理制品范围（v2.83–v2.85）
+
+六不变式保证"规格图结构合法"，但不保证"某类制品都被规格覆盖"。`config.yaml` 的
+`artifact_scopes` 把一类制品（如测试文件）纳入治理：
+
+| 校验 | 含义 | 默认 |
+|---|---|---|
+| `TEST_SPLIT_UNCOVERED` | 范围内 `:TEST` split 没有任何 details 子（验收空转） | 可配 |
+| `UNCOVERED_ARTIFACT` | 范围内存在没有 TDD 属主的制品文件 | 可配 |
+| `TARGET_FILE_SCOPE_ESCAPE` | TDD 的 target_file 逃逸出治理范围 | 可配 |
+
+每条按范围配 `warn`（报告不阻断）或 `block`（confirm 拒绝）；`exempt_test_splits` /
+`exempt_paths`（v2.85）提供显式豁免。**未配置 `artifact_scopes` 时全部真空通过**——
+存量项目行为不变。
+
+### 5.7 合并语义
 
 `version merge` 按每个 chunk 的**真实存在性**逐块处理：
 
@@ -441,7 +465,7 @@ CLI 的唯一消费者是 AI Agent。多行输出、混合日志、进度条都�
 
 ## 7. 模块地图
 
-`skill/ait/ait/` 下约 12.8k 行 Python。依赖方向自底向上，无环。
+`skill/ait/ait/` 下约 13.7k 行 Python。依赖方向自底向上，无环。
 
 | 层 | 模块 | 职责 |
 |---|---|---|
@@ -457,15 +481,18 @@ CLI 的唯一消费者是 AI Agent。多行输出、混合日志、进度条都�
 | | `specgraph.py` | SpecGraph 模型、`combined_view`、`sync_specgraph` |
 | | `migrations.py` | 一次性数据迁移 |
 | 新模型 | `new_model_manager.py` | 三层 create/confirm/revert、讨论背景、令牌、codegen |
-| | `new_model_validator.py` | 六不变式与图合法性校验 |
+| | `new_model_validator.py` | 六不变式、图合法性与治理范围校验 |
 | 版本 | `version_manager.py` | 三态、phase 机、gate、计划、merge、revert、验收 |
 | | `merge_engine.py` | 逐 chunk 按存在性合并 |
 | 查询 | `deps.py` / `impact.py` / `search.py` / `context_assembler.py` / `state.py` / `graph_md.py` | 关系查询、影响分析、检索、上下文、面板、图可视化 |
+| 交付 | `codegen_brief.py` | codegen bundle 的渲染（交付文本形态） |
 | 接入 | `init_manager.py` | 骨架、docs 仓、根 chunk、wrapper、治理迁移 |
 | 入口 | `cli.py` | click 命令面、JSON 输出契约 |
+| 发布 | `publisher.py` | `ait push` 双仓发布（先宿主后 docs） |
 | legacy | `prd_manager.py` / `impl_manager.py` / `task_manager.py` | 旧模型三态流水线（冻结） |
 
-测试：`tests/` 下 362 个用例全绿（1 skipped）。
+测试：`tests/` 下 434 个用例通过（1 skipped；另有 2 个 `dual_repo_publish` 用例依赖
+git 默认分支环境——bare 仓 HEAD 指向 master 而推送分支为 main 时失败，非代码 bug）。
 
 ---
 
@@ -483,10 +510,11 @@ CLI 的唯一消费者是 AI Agent。多行输出、混合日志、进度条都�
 | 治理收口 | v2.46–v2.54 | 不变式修正；退役 `add-edge`；P7 严格自顶向下；`derives` 独立成关系；讨论背景；空目录起步 |
 | 跨仓与可视化 | v2.55–v2.63 | docs/代码 git 隔离；跨仓绑定与同步回滚；SpecGraph HTML 规格树 |
 | 一致性加固 | v2.64–v2.71 | docs 仓治理；关系出生边界收口；上下文令牌；同文件覆盖保留；codegen 上下文收紧；配置分层 |
+| 交付与治理深化 | v2.72–v2.87 | 回滚锚点韧性（SHA 权威）；confirm 制品绑定；codegen 临时文件交付与子 agent 编排；PRD 写作契约与演进纪律；`push` 双仓发布；artifact_scopes 治理；`--content` 写时拦截 |
 
 AIT 从 v2.0 起**完全由自身开发**：每个版本都走完整的
 `version create → prd → fsd → tdd → codegen → confirm → merge` 闭环。
-`project-docs/` 是权威设计源（16 个 PRD chunk、17 个 FSD 文件、46 个 TDD 文件）；
+`project-docs/` 是权威设计源（1 个 PRD 文件、17 个 FSD 文件、97 个 TDD 文件）；
 `project-docs-v1/` 是归档的 legacy 基线。
 
 ---

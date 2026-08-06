@@ -9,6 +9,73 @@
 
 ---
 
+## v2.86–v2.87 — 2026-08-06 — 版本可见性与写时拦截收口
+
+- **v2.86 `ait --version` 动态化**：顶层 `--version` 从静态包版本改为显示当前项目的文档版本
+  （承接 PRD 需求 `cli_version_reflects_docs`）——一眼确认当前迭代到哪个版本。
+- **v2.87 `--content` 组装边界写时拦截**：`prd/fsd/tdd create` 在 `action=add` 且内容含
+  baseline 已存在 chunk id 时，于任何写盘前报 `DUPLICATE_BASELINE_CHUNK`（零落盘可重试）——
+  此前要到 merge 才被发现，此时 phase 已推进，只能整版 revert。同时明确 `--content` 只应包含
+  根 chunk + 本次真正新增/变化的 chunk（正例 v2.81／反例 v2.86）。
+
+## v2.83–v2.85 — 2026-08-04 — 受治理制品范围（artifact scopes）
+
+- **v2.83 `artifact_scopes`**：`config.yaml` 新增治理配置——声明哪些制品范围（如测试文件）
+  必须有 TDD 属主与验收覆盖。新增校验 `TEST_SPLIT_UNCOVERED`（`:TEST` split 无 details 子）、
+  `UNCOVERED_ARTIFACT`（范围内制品无 TDD 属主）、`TARGET_FILE_SCOPE_ESCAPE`（target_file
+  逃逸治理范围），每条可配 `warn`/`block`。违例新增 `enforcement` 字段，
+  未配置时行为与之前完全一致。
+- **v2.84 测试制品治理落地**：为既有测试文件批量补建属主 TDD（`tests/test_*.py` 全部纳入
+  治理范围）。
+- **v2.85 `exempt_paths`**：范围条目新增按归一化路径精确匹配的豁免清单。
+
+## v2.80–v2.82 — 2026-08-03 — 交付形态、双仓发布与残留扫描
+
+- **v2.80 codegen 交付形态改为渲染文本**：bundle 由 `codegen_brief.render` 产出 markdown
+  （不再是 JSON——转义破坏可读性、字母序排键把 upstream 挤到源码之后）；临时文件扩展名
+  `.json` → `.md`。`target_file` 状态三态化：`absent`（合法新文件）与 `unreadable`
+  （存在但读不了）必须可区分，否则生成方会把既有代码当空白覆盖。
+- **v2.81 `ait push` 双仓发布**：新顶层命令 `push`（`publisher` 模块）——先推宿主仓
+  （代码制品），再推 docs 仓（规格 + `refs/tags/ait/*` 锚点 tag）。
+- **v2.82 derives 声称一致性扫描 + 输出终止对称**：`validate-new-model` 新增
+  `derives_residue` 字段（FSD 正文提及某 PRD 需求 id 但图上无对应 derives 边，报告不阻断）；
+  `ok()` 末尾补 `sys.exit(0)`，与 `fail()` 对称，杜绝一条命令输出两段 JSON 的可能。
+
+## v2.76–v2.79 — 2026-08-02 ~ 08-03 — 写作契约与演进纪律
+
+- **v2.76 CLI 输出契约统一（G11）**：校验类命令统一为标准 `ok()`/`fail()` JSON 信封。
+- **v2.77 PRD 需求契约写时门禁**：每个 `[PRD]-<root>:<slug>` 需求 chunk 必须含
+  `**用户故事:**` 行与带编号条目的 `验收标准` 小节（EARS 形态），缺失报
+  `PRD_REQUIREMENT_CONTRACT_VIOLATION`（零落盘）；`validate-new-model` 新增
+  `prd_requirement_residue` 报告字段（只报告不阻断）。
+- **v2.78 PRD 基线契约化**：把历史需求 chunk 全部补齐为用户故事 + EARS 验收标准形态，
+  使基线自身通过 v2.77 门禁。
+- **v2.79 需求演进纪律**：写入 SKILL.md 与格式规范——新诉求先看能否与既有需求 chunk
+  共用同一句用户故事（角色+价值相同），能则 `modify` 加验收标准，不能才新增；
+  拆分上限用可观察信号；取代关系须双向标注。
+
+## v2.74–v2.75 — 2026-08-02 — codegen 交付通道与子 agent 编排
+
+- **v2.74 bundle 临时文件交付（G19）**：`codegen prepare` 不再 stdout 直出全 bundle
+  （大 bundle 会被工具输出上限静默截断）。改为写入仓外临时文件（绝不被 git 追踪），
+  stdout 只回指针 `{bundle_path, sha256, bytes, version, target_file, tdd_root, source_file}`，
+  `target_file` 置顶层。编排层读文件、按 sha256 校验完整性后才注入 LLM。
+- **v2.75 子 agent 生成编排（G24）写入 SKILL.md**：生成由 Skill 层派生的隔离子 agent
+  完成——其全新 context window 仅注入该 bundle；AIT 不派生 agent、不调 LLM，
+  只管可靠交付与事后收口（`version confirm` 绑制品 + acceptance 跑测试）。
+
+## v2.72–v2.73 — 2026-08-01 — 回滚锚点韧性与 confirm 制品绑定
+
+- **v2.72 回滚锚点韧性（G10）**：tag 只是防 GC 的优化，**提交 SHA 才是权威锚点**——
+  tag 不可解析时回退到版本 meta 记录的 `docs_commit`/`code_result` 继续回滚；
+  merge 建 tag 失败不再阻断（merge 仍成功、版本仍可回滚）；新增 `version backfill-tags`
+  为历史版本幂等补建缺失 tag。
+- **v2.73 confirm 提交制品仓（G25）**：`version confirm` 门禁通过后、persist plan 前，
+  若宿主仓脏则 `git add -A` + 提交为 `AIT <v> artifacts` 并绑定 `code_result`；
+  干净则绑定当前 HEAD；非 git 仓跳过。**原 HOST_DIRTY「脏则拒」语义被取代——
+  脏不再是拒绝的理由，而是提交的理由**，与 merged 版本双仓回滚互为对称。
+  注意：confirm 因此不再是"零写入"——它持久化合并计划并可能产生宿主仓提交。
+
 ## v2.71 — 2026-07-31 — 配置分层与 docs 仓治理收口
 
 - **配置分层**：新增 `config_store` 模块。`.meta/config.yaml` 只放机器无关的共享设置

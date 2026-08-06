@@ -1,235 +1,125 @@
-# AIT — AI-Assisted Document Versioning
+# AIT — Git-like Document Versioning for AI Coding
 
-**Chunk-level version control for the specs that drive AI coding.**
+> A (in-development) Claude Code Skill built for **continuous iteration on large projects** and
+> **multi-player AI-assisted development** — keeping AI-built projects maintainable over the long run.
 
-AIT manages `PRD → FSD → TDD → codegen → code` as one governed pipeline. Design documents
-are decomposed into `<!-- @id:... -->` **chunks**; relations between chunks live as explicit
-edges in a **SpecGraph**; every generated file is owned by exactly one TDD. The payoff: an AI
-agent can be handed a *focused and provably complete* context bundle for any file it is asked
-to write, and every artifact traces back to a product requirement.
-
-Ships as a **Claude Code Skill** (`/ait <subcommand>`) over a JSON-only CLI.
+**This is a Skill, not a CLI you call directly.** After installing, everything happens inside
+Claude Code via slash commands: `/ait init`, `/ait prd create`, `/ait version merge`, …
+There is no global `ait` binary on your PATH — see
+[USER_GUIDE.md §1.2](USER_GUIDE.md#12-usage-ait-subcommand) for how routing works.
 
 ---
 
-## The mainline model
+## Why
+
+AI is already very good at building MVPs. But as a project iterates, it will sooner or later get
+broken by the AI: the AI forgets a constraint established earlier, or changes one module while
+forgetting its impact on the modules that depend on it.
+
+A production-grade project under continuous iteration accumulates all kinds of special business
+requirements and special implementation constraints. As this body of information grows, the model's
+attention gets diluted by everything else in the project whenever it works on a specific problem.
+
+This kind of knowledge should be **persisted within the project scope and continuously updated** —
+not scattered across chat histories and personal memory. When the AI works on a problem, what it
+needs is "everything relevant to this problem", not "everything about this project".
+
+## How
+
+When modifying something, the model should be given **only the context relevant to that change,
+with everything else screened out** — spending the model's attention sweet spot entirely on the
+problem at hand.
+
+So AIT organizes development constraints (prompts) into a **structured document system**, and at
+actual code-generation time extracts precisely the information relevant to the current task:
+
+- **Chunk-level version control** (Git-like): documents are decomposed into semantic chunks
+  annotated with `<!-- @id:xxx -->`, with a full version lifecycle of
+  `/ait version create / commit / confirm / merge / revert`; merge lands atomically and rolls back
+  byte-for-byte on failure.
+- **Explicit relation graph (SpecGraph)**: derive/decompose/detail/dependency relations between
+  chunks are explicit edges on a graph — never inferred from naming, never written into document
+  bodies. When something changes, `/ait deps` / `/ait impact` answer "what does it depend on, and what
+  does it affect".
+- **Enforced invariants**: unique PRD↔FSD mapping, each TDD owning exactly one target file, no
+  orphans, no broken links, full traceability without cycles — rejected at write time with zero
+  disk writes, and re-validated globally before landing.
+- **Focused context assembly**: `/ait codegen prepare` walks up the graph and packs only "this TDD's
+  implementation blueprint + the upstream constraint chain + the interface contracts of its
+  dependencies + the current state of the target file". No more, no less.
+
+## The Three-Layer Document System
 
 ```
-[PRD]-app ──derives──▶ [FSD]-app                 problem → solution
-                          │
-                  (internal split)
-                          │
-              [FSD]-app:core ──decomposes──▶ [FSD]-core    recursive functional tree
-                          │
-                          └──details──▶ [TDD]-parser       leaf → implementation blueprint
-                                             │
-                                        target_file: src/parser.py
-
-[FSD]-app:a ──depends_on──▶ [FSD]-app:b          sibling capability dependency
+[PRD] Product Requirements ──derives──▶ [FSD] Functional Specs ──decomposes──▶ functional tree (recursive)
+        what / why                       decomposition + capability contracts (black-box)
+                                                │
+                                         ──details──▶ [TDD] Tech Design
+                                                single-file blueprint (white-box, 1 TDD ↔ 1 target_file)
 ```
 
-Four relation types, four birthplaces. Relations are never inferred from naming and never
-hand-written into document bodies:
-
-| Relation | Legal endpoints | Born from |
+| Layer | Answers | Contents |
 |---|---|---|
-| `derives` | PRD root → root FSD | `fsd create <id> --parent <PRD-root>` |
-| `decomposes` | FSD split → child FSD root | `fsd decompose <parent> <child>` |
-| `details` | leaf FSD split → TDD root | `tdd create <id> --parent <split>` |
-| `depends_on` | two sibling splits under one parent | `depends_on:` yaml block inside `fsd create` content (stripped from disk once the edge exists) |
+| **PRD** (Product Requirements Doc) | what / why | User-perspective requirements, zero technical content; each requirement carries a user story + acceptance criteria |
+| **FSD** (Functional Specifications Doc) | how to decompose | Functional decomposition + external capability contracts (only "what it provides", never implementation) |
+| **TDD** (Tech Design Doc) | how to implement | Single-file implementation blueprint; each TDD maps to exactly one `target_file` |
 
-## Six invariants — enforced, not just documented
+At code-generation time, the AI receives not the whole document library but a context bundle
+assembled along the relation graph — exactly enough to write this one file.
 
-| # | Invariant | Violation code |
-|---|---|---|
-| 1 | Each PRD root maps to exactly one FSD | `PRD_FSD_LINK_NOT_UNIQUE` |
-| 2 | Each TDD has exactly one FSD parent and one artifact | `TDD_MULTI_PARENT` / `TDD_TARGET_FILE_REQUIRED` |
-| 3 | Each artifact path is owned by exactly one TDD | `DUPLICATE_TARGET_FILE` |
-| 4 | Every edge endpoint is a real chunk (no ghost edges) | `MISSING_ENDPOINT` |
-| 5 | No orphan chunks outside the spec-tree roots | `ORPHAN_CHUNK` |
-| 6 | Every artifact traces TDD → FSD → … → PRD | `TRACE_BROKEN` / `SPEC_CYCLE` |
+## The Full Pipeline at a Glance
 
-Two enforcement layers: **write-time gates** reject increments that could never be legal
-(ghost endpoint, second TDD parent, artifact collision) with zero disk writes; the
-**confirm/merge gate** re-validates the full `baseline ∪ version` view before anything lands.
+![AIT pipeline: files as nodes, /ait commands as edges; red dashed lines are rework paths; the right-hand loop is version iteration](docs/ait-pipeline.svg)
 
-## Version lifecycle
+Files as nodes, commands as edges: each layer's `create` lands its document, `codegen prepare`
+connects a TDD to its code file, and `version commit → confirm → merge` atomically lands the
+version workspace into the baseline. Red dashed lines are the rework paths; the right-hand loop
+is continuous version iteration (v0.1 → v0.2 → …).
 
-One open version at a time. The phase machine forces strict top-down authoring:
+## Q&A
 
-```
-empty ─prd create→ prd-creating ─prd confirm→ prd-confirm
-      ─fsd create/decompose→ fsd-creating ─fsd confirm→ fsd-confirm
-      ─tdd create→ tdd-creating ─tdd confirm→ tdd-confirm
-      ─version merge→ merged
-```
+**Q: How is this different from agent memory files like AGENTS.md / MEMORY.md?**
 
-- `version create <v>` — the only way to open a version. A second open version is refused
-  (`ACTIVE_VERSION_EXISTS`); an existing name is refused (no ghost versions).
-- `version commit <v>` — bulk-lock every `working` chunk to `committed`.
-- `version confirm <v>` — **pure gate**: six invariants + artifact acceptance + a persisted
-  reconciliation plan. Repeatable, zero content writes.
-- `version merge <v>` — **the only landing point**: executes the confirmed plan atomically,
-  then commits the docs repo. Any failure rolls back byte-for-byte (`MERGE_ROLLBACK`).
-- `version revert <v> --confirm` — escape hatch. Unmerged: wipe the workspace. Merged: reset
-  the docs repo (and the host repo) to that version's anchor tag.
-- Each layer has its own `confirm` / `revert` pair — every gate has a rework path.
+Memory files like AGENTS.md / MEMORY.md exist at project level and user level, and some of what
+they hold is user habits and personal preferences — which should not become long-term global
+project constraints. But some constraints — business rules, architecture decisions, interface
+contracts — should be long-term global project constraints, **shared by every collaborator
+(human and AI) on the project, kept consistent, reviewable, and traceable**. AIT manages the
+latter: with versions, acceptance, and invariant gates — things memory files cannot do.
 
-## Discussion context & tokens
+**Q: How is this different from skills like superpowers / gsd?**
 
-Calling a `create` command **without content** returns a *discussion background* instead of
-writing anything: the relevant existing chunks, pulled along SpecGraph relations, plus a
-`context_token`. Content writes must carry that same token, which binds layer, target, parent
-anchor, file, action and the actual background it was derived from. Stale or mismatched
-tokens are rejected (`CONTEXT_TOKEN_STALE` / `CONTEXT_TOKEN_CONFLICT`). This is a continuity
-check, not authentication — `--skip-context` opts out explicitly and leaves an audit trace.
+Those skills focus on "how to get a development task done" (workflow orchestration, task
+execution). AIT focuses on **keeping the project's global memory normalized over time** — making
+the thousandth iteration as reliable as the first. The two don't conflict: task-execution skills
+solve "how to do it right this time"; AIT solves "how to not break it over time".
 
-## Docs / code isolation
+**Q: What's the relationship with Git?**
 
-`project-docs/` is its own Git repository, ignored by the host repo. AIT commits never touch
-your code history. `version merge` records the binding: `docs_commit`, `code_base`,
-`code_result`, plus a persistent `refs/tags/ait/<v>` revert anchor. Config is layered —
-`.meta/config.yaml` is shared and machine-independent, `.meta/config.local.yaml` holds
-machine-specific fields (`skill_dir`, `cli_path`, `wrapper_path`, `acceptance_command`) and is
-git-ignored. A corrupt config layer raises `CONFIG_UNREADABLE` rather than degrading to `{}` —
-gates fail closed.
+Complementary. Git versions code in units of files and line-level diffs; AIT versions **the design
+documents that drive AI coding** in units of semantic chunks, together with their relations. The
+`project-docs/` directory AIT manages is its own git repository, and every merge records the
+binding between doc version and code version (which code commit corresponds to which spec version).
+
+**Q: When is AIT NOT a good fit?**
+
+Building an MVP, a small feature, a one-off script — AIT is too heavy for that; just write it with
+AI directly. AIT's value shows in **continuously developed, scaled projects**: many iterations,
+accumulating constraints, multiple humans and AIs collaborating, changes in one place demanding
+global awareness. The longer a project lives, the more AIT is worth.
 
 ---
 
-## Install
+## Status & Docs
 
-As a Claude Code Skill (recommended):
+AIT is built with AIT (dogfooding): `project-docs/` is its authoritative design source, and every
+release goes through the full `/ait version create → prd → fsd → tdd → codegen → confirm → merge` loop.
 
-```bash
-git clone <this-repo> && cd Ait
-python install.py                 # installs to ~/.claude/skills/ait
-python install.py update          # upgrade, keeps the skill .venv
-python install.py uninstall
-```
-
-For development:
-
-```bash
-uv venv && uv pip install -e ".[dev]"
-uv run pytest                     # 362 passing
-```
-
-## Quickstart — zero to merged
-
-```bash
-mkdir my-project && cd my-project
-
-# 1. Bootstrap. Creates project-docs/ (+ its own git repo), the PRD/FSD roots,
-#    the derives edge, empty baseline stores, and the project-local wrapper.
-~/.claude/skills/ait/bin/ait init --new-model --name my_project
-
-AIT="project-docs/.ait/ait-cli"        # every later call goes through this
-
-# 2. Open a version.
-$AIT version create v0.1
-
-# 3. PRD — discuss first (no --content returns background + context_token), then write.
-$AIT prd create "[PRD]-my_project"
-$AIT prd create "[PRD]-my_project" --content-file prd.md --action modify \
-     --context-token ctx-v1.<digest>
-$AIT prd confirm
-
-# 4. FSD — derive the solution tree from the PRD.
-$AIT fsd create "[FSD]-my_project" --parent "[PRD]-my_project" --content-file fsd.md \
-     --context-token ctx-v1.<digest>
-$AIT fsd decompose "[FSD]-my_project:core" "[FSD]-core" --content-file core.md \
-     --context-token ctx-v1.<digest>
-$AIT fsd confirm
-
-# 5. TDD — one blueprint per target file.
-$AIT tdd create "[TDD]-parser" --parent "[FSD]-core:parse" --content-file tdd.md \
-     --context-token ctx-v1.<digest>
-$AIT tdd confirm
-
-# 6. codegen — get the focused bundle, let the AI write the code.
-$AIT codegen prepare "[TDD]-parser"
-
-# 7. Land it.
-$AIT acceptance set "uv run pytest -q"     # gates confirm & merge
-$AIT version commit v0.1
-$AIT version confirm v0.1
-$AIT version merge v0.1
-```
-
-`codegen prepare` **does not write code**. It returns the TDD body, the upstream chain to the
-PRD, the capability contracts of `depends_on` siblings, `target_file` and its current content.
-The Skill layer drives the AI from there.
-
-## Command surface
-
-| Group | Commands |
+| Doc | Contents |
 |---|---|
-| bootstrap | `init [--new-model --name N] [--check] [--refresh-wrapper] [--skip a,b] [--migrate [--apply]]` |
-| prd | `create` · `confirm` · `revert` |
-| fsd | `create` · `decompose` · `confirm` · `revert` |
-| tdd | `create` · `confirm` · `revert` |
-| codegen | `prepare <[TDD]-id>` |
-| acceptance | `set "<cmd>"` · `run` |
-| version | `create` · `commit` · `confirm` · `merge` · `revert` · `status` |
-| specgraph | `sync` · `query` · `export` · `graph-html` · `validate-new-model` |
-| query | `state` · `search` · `deps` · `impact` · `context` · `baseline-summary` · `reindex` · `lint` |
-| legacy | `prdv1 ...` · `impl ...` · `task ...` · `migrate-block-to-chunk` |
-
-Every command prints exactly one JSON object on stdout:
-
-```json
-{"ok": true,  "data": {...}}
-{"ok": false, "error": "...", "code": "..."}
-```
-
-## Layout
-
-```
-<project-root>/                     # run all commands from here
-└── project-docs/                   # hard-coded name; its own git repo
-    ├── docs/{prd,fsd,tdd}/         # baseline — what merge lands into
-    ├── versions/vX.Y/{prd,fsd,tdd}/ + state.md
-    ├── .ait/ait-cli                # project-local wrapper (generated, git-ignored)
-    └── .meta/
-        ├── chunks-index.yaml            # chunk state (baseline)
-        ├── chunks-index-vX.Y.yaml       # chunk state (per version)
-        ├── specgraph.yaml / -vX.Y.yaml  # chunk relations
-        ├── versions/vX.Y.yaml           # phase, plan, git bindings
-        ├── config.yaml / config.local.yaml
-        └── changes/chg-NNN.yaml
-```
-
-`chunks-index` owns *chunk state*; `specgraph` owns *chunk relations*. Both are split into a
-baseline file plus one file per version. Never edit `docs/`, `versions/` or `.meta/` by hand —
-route everything through the CLI.
-
-## Constraints by design
-
-- Run from the directory *containing* `project-docs/`, never from inside it. No `--project`
-  flag, no `AIT_ROOT`, no marker-file search (`NOT_AT_PROJECT_ROOT`, `CWD_INSIDE_PROJECT_DOCS`).
-- No system-wide `ait` binary — the project-local wrapper is the entry point (`init` itself is
-  the one exception, invoked from the skill directory).
-- The CLI never generates business code; it derives context and records state.
-- No multi-user locking. Single-writer model.
-- `chunk delete` is not implemented — `add` / `modify` cover current needs.
-- The legacy `prdv1 → impl → task` pipeline still runs but is frozen.
-
-## Docs
-
-| File | Contents |
-|---|---|
-| [USER_GUIDE.md](USER_GUIDE.md) | Task-oriented walkthrough, per-command reference, troubleshooting |
+| [USER_GUIDE.md](USER_GUIDE.md)（[中文](USER_GUIDE.zh-CN.md)） | Task-oriented walkthrough and troubleshooting |
 | [DESIGN.md](DESIGN.md) | Architecture, design rationale, module map |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill contract — authoritative command routing |
-| [skill/ait/references/new-model-format.md](skill/ait/references/new-model-format.md) | **Authoritative** PRD/FSD/TDD format spec |
-| [skill/ait/templates/](skill/ait/templates/) | Document skeletons shipped with the skill |
-
-## Dogfooding
-
-AIT is built with AIT. [project-docs/](project-docs/) holds its own PRD (16 chunks), 17 FSD
-files and 46 TDD files — each TDD owning exactly one source, test, reference or template file.
-Every release since v2.0 went through the full `version create → prd → fsd → tdd → codegen →
-confirm → merge` loop. `project-docs-v1/` is the archived legacy-model baseline.
+| [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill command contract |
 
 MIT licensed.
