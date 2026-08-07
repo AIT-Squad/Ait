@@ -1,0 +1,87 @@
+spec_version: "0.1"
+
+project:
+  name: "Example Framework"
+  description: "An example project adopting the 10xREC standard."
+  repository: "https://github.com/example/example-framework"
+  homepage: "https://example.org"
+  license: "Apache-2.0"
+  covenant_version: "0.1"
+  maturity: "production-candidate"
+  maintenance_status: "active"
+
+stewardship:
+  maintainers:
+    - name: "Example Maintainer Team"
+      role: "Core maintainers"
+      email: "maintainers@example.org"
+      url: "https://github.com/orgs/example/teams/maintainers"
+
+  security_contact:
+    name: "Example Security Team"
+    role: "Private security reports"
+    email: "security@example.org"
+
+  issue_tracker: "https://github.com/example/example-framework/issues"
+
+  # This is a target, not a warranty or service-level agreement.
+  response_expectation: >-
+    The maintainers aim to acknowledge ordinary issues within 14 days
+    and security reports within 5 business days.
+    Best-effort target only; this is not a service-level agreement.
+
+support:
+  versions:
+    - version: "3.x"
+      status: "supported"
+      end_of_support: null
+
+    - version: "2.x"
+      status: "security-only"
+      end_of_support: "2027-06-30"
+
+    - version: "1.x"
+      status: "end-of-life"
+      end_of_support: "2025-12-31"
+
+  tested_environments:
+    - "Ubuntu 24.04 / x86_64"
+    - "macOS 15 / arm64"
+    - "Node.js 22"
+    - "PostgreSQL 17"
+
+  untested_environments:
+    - "Windows on ARM"
+    - "32-bit operating systems"
+    - "Alternative JavaScript runtimes"
+
+  support_policy: "https://example.org/support-policy"
+
+quality:
+  ci_required: true
+  human_review_required: true
+  generated_code_review_required: true
+  ai_disclosure_required: true
+  minimum_approvals: 1
+
+  known_limitations:
+    - "Multi-process writes have not been fully tested."
+    - "The Windows ARM environment is not covered by CI."
+    - "The high-memory workload path remains experimental."
+
+  security_review_areas:
+    - "authentication"
+    - "authorization"
+    - "deserialization"
+    - "dependency installation"
+    - "release pipeline"
+
+lifecycle:
+  last_reviewed: "2026-08-07"
+  next_review_due: "2026-11-07"
+
+  abandonment_policy:
+    publish_status_change: true
+    disclose_known_critical_issues: true
+    allow_maintainer_transition: true
+    transition_documentation: true

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="204" height="20" aria-label="10xREC: maintenance mode">
+  <title>10xREC: maintenance mode</title>
+  <linearGradient id="s" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="r">
+    <rect width="204" height="20" rx="3"/>
+  </clipPath>
+  <g clip-path="url(#r)">
+    <rect width="65" height="20" fill="#555"/>
+    <rect x="65" width="139" height="20" fill="#dfb317"/>
+    <rect width="204" height="20" fill="url(#s)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">
+    <text x="32.5" y="15" fill="#010101" fill-opacity=".3">10xREC</text>
+    <text x="32.5" y="14">10xREC</text>
+    <text x="134.5" y="15" fill="#010101" fill-opacity=".3">
+      maintenance mode
+    </text>
+    <text x="134.5" y="14">maintenance mode</text>
+  </g>
+</svg>

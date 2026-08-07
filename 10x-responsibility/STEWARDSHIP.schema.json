@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://10xrec.example.org/schema/stewardship-0.1.json",
+  "title": "10xREC Project Stewardship Manifest",
+  "description": "Machine-readable maintenance and stewardship status for a software project.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "spec_version",
+    "project",
+    "stewardship",
+    "support",
+    "quality",
+    "lifecycle"
+  ],
+  "properties": {
+    "spec_version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "repository",
+        "license",
+        "maturity",
+        "maintenance_status"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository": {
+          "type": "string",
+          "format": "uri"
+        },
+        "license": {
+          "type": "string",
+          "description": "Prefer an SPDX license expression.",
+          "minLength": 1
+        },
+        "covenant_version": {
+          "type": "string",
+          "const": "0.1"
+        },
+        "maturity": {
+          "type": "string",
+          "enum": [
+            "prototype",
+            "experimental",
+            "production-candidate",
+            "production-ready",
+            "legacy"
+          ]
+        },
+        "maintenance_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "maintenance-mode",
+            "security-only",
+            "seeking-maintainer",
+            "unmaintained",
+            "archived"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "stewardship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maintainers"
+      ],
+      "properties": {
+        "maintainers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/contact"
+          }
+        },
+        "security_contact": {
+          "$ref": "#/$defs/contact"
+        },
+        "issue_tracker": {
+          "type": "string",
+          "format": "uri"
+        },
+        "response_expectation": {
+          "type": "string",
+          "description": "A target or best-effort statement, not a warranty."
+        }
+      }
+    },
+    "support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "versions",
+        "tested_environments"
+      ],
+      "properties": {
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "version",
+              "status"
+            ],
+            "properties": {
+              "version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "supported",
+                  "security-only",
+                  "unsupported",
+                  "end-of-life"
+                ]
+              },
+              "end_of_support": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date"
+              }
+            }
+          }
+        },
+        "tested_environments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "untested_environments": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "support_policy": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ci_required",
+        "human_review_required",
+        "generated_code_review_required",
+        "known_limitations"
+      ],
+      "properties": {
+        "ci_required": {
+          "type": "boolean"
+        },
+        "human_review_required": {
+          "type": "boolean"
+        },
+        "generated_code_review_required": {
+          "type": "boolean"
+        },
+        "ai_disclosure_required": {
+          "type": "boolean"
+        },
+        "minimum_approvals": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "known_limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "security_review_areas": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "last_reviewed",
+        "abandonment_policy"
+      ],
+      "properties": {
+        "last_reviewed": {
+          "type": "string",
+          "format": "date"
+        },
+        "next_review_due": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date"
+        },
+        "abandonment_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "publish_status_change",
+            "disclose_known_critical_issues",
+            "allow_maintainer_transition"
+          ],
+          "properties": {
+            "publish_status_change": {
+              "type": "boolean"
+            },
+            "disclose_known_critical_issues": {
+              "type": "boolean"
+            },
+            "allow_maintainer_transition": {
+              "type": "boolean"
+            },
+            "transition_documentation": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "email"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ]
+    }
+  }
+}
