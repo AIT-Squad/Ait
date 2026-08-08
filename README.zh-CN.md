@@ -65,20 +65,51 @@ AI 实现 MVP 的能力已经很强，但在迭代版本的过程中，多多少
 连接起来，`version commit → confirm → merge` 把版本工作区原子合入 baseline；红色虚线是
 各层返工路径，右侧回路是版本不断迭代（v0.1 → v0.2 → …）。
 
+## Install
+
+```bash
+git clone <this-repo> && cd Ait
+python install.py                      # 安装到 ~/.claude/skills/ait
+python install.py update               # 升级（保留 .venv，快）
+python install.py update --skip-venv   # 只更新文件
+python install.py uninstall
+python install.py --prefix /custom/path
+```
+
+首次运行 `bin/ait` 时会在 skill 目录内自建 `.venv` 并装依赖，无需手工处理。
+
+## Usage
+
+### 懒人模式（Dummy's way）
+
+直接告诉 AI：
+
+> **"Learn AIT and develop following the AIT pattern."**
+
+AI 会自行阅读 skill 文档，按 AIT 的流水线（prd → fsd → tdd → codegen）组织开发。
+
+### 手动模式（Manual mode）
+
+参照 [USER_GUIDE.zh-CN.md](USER_GUIDE.zh-CN.md)（[English](USER_GUIDE.md)）逐步操作：
+`/ait init` 初始化项目 → `version create` 开版本 → 逐层 `prd/fsd/tdd create + confirm` →
+`codegen prepare` 取上下文写码 → `version commit/confirm/merge` 收口。
+
 ## Q&A
 
 **Q: 与 AGENTS.md / MEMORY.md 这类 agent 记忆文件有什么区别？**
 
-AGENTS.md / MEMORY.md 等记忆文件分项目级和用户级，其中有一些是用户习惯、个人偏好，
-不应该作为项目全局的长期约束。而有一部分约束——业务规则、架构决策、接口契约——应该
-作为项目全局的长期约束，**共享给项目中的所有协作者（人和 AI），全局保持一致、可评审、
-可回溯**。AIT 管的是后者：它有版本、有验收、有不变式门禁，记忆文件管不了这些。
+AGENTS.md 的定位是提交进仓库、全团队共享的项目级指令——方向上和 AIT 一致。但它是
+一份**扁平散文文件**：个人习惯与长期约束混写、没有细粒度的版本生命周期、没有合入门禁，
+也无法回答"这条约束影响着哪些设计、哪份代码"。AIT 把约束切成带关系的 chunk，
+有版本、有验收、有不变式门禁、有到代码的可追溯链——这些是扁平记忆文件管不了的。
+MEMORY.md 一类则更偏个人/会话记忆，本就不该承担项目全局约束。
 
 **Q: 与 superpowers / gsd 这类 skill 有什么区别？**
 
-这类 skill 关注"如何完成一个开发任务"（流程编排、任务执行）。AIT 更关注**规范化地保持
-整个项目的全局记忆**——让第一千次迭代和第一次迭代一样可靠。两者不冲突：任务执行类
-skill 解决"这一次怎么做好"，AIT 解决"长期怎么做不坏"。
+superpowers 关注**单次任务的执行纪律**（TDD、调试、计划、审查）——"这一次怎么做好"。
+GSD 关注**把一个项目建成**：规范驱动、跨会话的结构化制品（PROJECT/STATE/PLAN）、波浪式并行与原子提交，解决长对话上下文腐烂和 AI 擅自改码。
+Ait 关注**项目持续迭代**：用 SpecGraph 把 PRD/FSD/TDD 建成显式关系图，靠 context_assembler 精准裁剪上下文（同样解决长对话上下文腐化）、用 impact 做改动影响面评估。
+ait 可以将文档和代码制品绑定，在 ait revert 时可以将文档和制品一并回滚。
 
 **Q: 与 Git 是什么关系？**
 

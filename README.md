@@ -76,23 +76,60 @@ connects a TDD to its code file, and `version commit → confirm → merge` atom
 version workspace into the baseline. Red dashed lines are the rework paths; the right-hand loop
 is continuous version iteration (v0.1 → v0.2 → …).
 
+## Install
+
+```bash
+git clone <this-repo> && cd Ait
+python install.py                      # install to ~/.claude/skills/ait
+python install.py update               # upgrade (keeps .venv, fast)
+python install.py update --skip-venv   # files only
+python install.py uninstall
+python install.py --prefix /custom/path
+```
+
+On first run, `bin/ait` creates a `.venv` inside the skill directory and installs its
+dependencies — no manual setup needed.
+
+## Usage
+
+### The dummy's way
+
+Just tell the AI:
+
+> **"Learn AIT and develop following the AIT pattern."**
+
+The AI will read the skill docs itself and organize development along the AIT pipeline
+(prd → fsd → tdd → codegen).
+
+### Manual mode
+
+Follow [USER_GUIDE.md](USER_GUIDE.md)（[中文](USER_GUIDE.zh-CN.md)）step by step:
+`/ait init` to bootstrap the project → `version create` to open a version → per-layer
+`prd/fsd/tdd create + confirm` → `codegen prepare` for the focused context →
+`version commit/confirm/merge` to land it.
+
 ## Q&A
 
 **Q: How is this different from agent memory files like AGENTS.md / MEMORY.md?**
 
-Memory files like AGENTS.md / MEMORY.md exist at project level and user level, and some of what
-they hold is user habits and personal preferences — which should not become long-term global
-project constraints. But some constraints — business rules, architecture decisions, interface
-contracts — should be long-term global project constraints, **shared by every collaborator
-(human and AI) on the project, kept consistent, reviewable, and traceable**. AIT manages the
-latter: with versions, acceptance, and invariant gates — things memory files cannot do.
+AGENTS.md is meant to be checked into the repo and shared by the whole team — directionally
+the same as AIT. But it is a **flat prose file**: personal habits and long-term constraints
+intermix, there is no fine-grained version lifecycle, no landing gate, and no way to answer
+"which designs and which code does this constraint affect". AIT cuts constraints into
+related chunks — with versions, acceptance, invariant gates, and a traceable chain to code.
+MEMORY.md-style files lean toward personal/session memory and were never meant to carry
+project-global constraints.
 
 **Q: How is this different from skills like superpowers / gsd?**
 
-Those skills focus on "how to get a development task done" (workflow orchestration, task
-execution). AIT focuses on **keeping the project's global memory normalized over time** — making
-the thousandth iteration as reliable as the first. The two don't conflict: task-execution skills
-solve "how to do it right this time"; AIT solves "how to not break it over time".
+superpowers is about **per-task execution discipline** (TDD, debugging, planning, review) —
+"how to do it right this time". GSD is about **getting a project built**: spec-driven, with
+cross-session structured artifacts (PROJECT/STATE/PLAN), wave-based parallelism and atomic
+commits — fixing context rot in long sessions and AI editing code without permission.
+AIT focuses on **continuous project iteration**: it builds PRD/FSD/TDD into an explicit
+SpecGraph, uses context_assembler to trim context precisely (also fixing context rot in long
+sessions) and impact to assess change blast radius. AIT can bind docs and code artifacts
+together, and when AIT reverts it rolls back both docs and artifacts together.
 
 **Q: What's the relationship with Git?**
 
