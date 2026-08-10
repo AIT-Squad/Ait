@@ -1,125 +1,249 @@
-# AIT — Git-like Document Versioning for AI Coding
+# AIT — Take AI Development from One-Off Generation to Continuous Delivery
 
-> A (in-development) Claude Code Skill built for **continuous iteration on large projects** and
-> **multi-player AI-assisted development** — keeping AI-built projects maintainable over the long run.
+> AIT is a Claude Code Skill for projects that evolve over time. It breaks requirements and designs into traceable semantic chunks, preserves the long-term integrity of AI development context, gives AI only trusted specifications relevant to the current task, and applies phase gates, dependency checks, and artifact acceptance to every iteration.
 
-**This is a Skill, not a CLI you call directly.** After installing, everything happens inside
-Claude Code via slash commands: `/ait init`, `/ait prd create`, `/ait version merge`, …
-There is no global `ait` binary on your PATH — see
-[USER_GUIDE.md §1.2](USER_GUIDE.md#12-usage-ait-subcommand) for how routing works.
+AIT is designed for teams whose projects accumulate business rules and implementation constraints, and where multiple developers or AI agents need to work from the same source of truth.
+
+**AIT is not another code repository, and it does not replace Git, code review, or project management.** It sits before those tools and turns “what to build, how to divide it, and how each file should be implemented” into shared, versioned specifications.
+
+中文：[README.zh-CN.md](README.zh-CN.md)
 
 ---
 
-## Why
+## What Problems Does AIT Solve?
 
-AI is already very good at building MVPs. But as a project iterates, it will sooner or later get
-broken by the AI: the AI forgets a constraint established earlier, or changes one module while
-forgetting its impact on the modules that depend on it.
+### 1. Keep AI focused on the current feature
 
-A production-grade project under continuous iteration accumulates all kinds of special business
-requirements and special implementation constraints. As this body of information grows, the model's
-attention gets diluted by everything else in the project whenever it works on a specific problem.
+As a project grows, sending all documents and code to AI dilutes important constraints. Sending only the target file has the opposite problem: the model can miss upstream requirements and dependency contracts.
 
-This kind of knowledge should be **persisted within the project scope and continuously updated** —
-not scattered across chat histories and personal memory. When the AI works on a problem, what it
-needs is "everything relevant to this problem", not "everything about this project".
+AIT divides specifications into semantic chunks with stable IDs and records their relationships in a SpecGraph. For a TDD, AIT assembles only:
 
-## How
+- the technical design for the current file;
+- upstream FSD and PRD constraints;
+- capability contracts of direct dependencies;
+- the current contents of the target file.
 
-When modifying something, the model should be given **only the context relevant to that change,
-with everything else screened out** — spending the model's attention sweet spot entirely on the
-problem at hand.
+This removes irrelevant context, improves signal-to-noise ratio, and usually reduces token usage. Actual token consumption still depends on chunk size and dependency depth; AIT does not currently enforce a hard token budget or automatic trimming.
 
-So AIT organizes development constraints (prompts) into a **structured document system**, and at
-actual code-generation time extracts precisely the information relevant to the current task:
+### 2. Turn AI work into assignable team boundaries
 
-- **Chunk-level version control** (Git-like): documents are decomposed into semantic chunks
-  annotated with `<!-- @id:xxx -->`, with a full version lifecycle of
-  `/ait version create / commit / confirm / merge / revert`; merge lands atomically and rolls back
-  byte-for-byte on failure.
-- **Explicit relation graph (SpecGraph)**: derive/decompose/detail/dependency relations between
-  chunks are explicit edges on a graph — never inferred from naming, never written into document
-  bodies. When something changes, `/ait deps` / `/ait impact` answer "what does it depend on, and what
-  does it affect".
-- **Enforced invariants**: unique PRD↔FSD mapping, each TDD owning exactly one target file, no
-  orphans, no broken links, full traceability without cycles — rejected at write time with zero
-  disk writes, and re-validated globally before landing.
-- **Focused context assembly**: `/ait codegen prepare` walks up the graph and packs only "this TDD's
-  implementation blueprint + the upstream constraint chain + the interface contracts of its
-  dependencies + the current state of the target file". No more, no less.
+AIT progressively breaks a requirement into three specification layers:
 
-## The Three-Layer Document System
-
-```
-[PRD] Product Requirements ──derives──▶ [FSD] Functional Specs ──decomposes──▶ functional tree (recursive)
-        what / why                       decomposition + capability contracts (black-box)
-                                                │
-                                         ──details──▶ [TDD] Tech Design
-                                                single-file blueprint (white-box, 1 TDD ↔ 1 target_file)
+```text
+PRD: align the team on why it matters and what users observe
+  ↓
+FSD: divide the work into functional domains, contracts, and dependencies
+  ↓
+TDD: create single-file implementation tasks (1 TDD → 1 target_file)
+  ↓
+codegen: prepare isolated context for each file and drive AI coding
 ```
 
-| Layer | Answers | Contents |
+FSDs can be recursively decomposed, and every TDD must own a unique `target_file`. These constraints let a team assign work first by functional domain and then by file, reducing the chance that multiple developers or agents edit the same file.
+
+AIT currently uses a **single-active-version, single-writer** model. It does not create Git branches, merge pull requests, provide multi-user locks, or record who approved a PRD. Team review, assignment, and branch integration remain in your Git platform and project workflow. The recommended setup is one AIT integrator, with contributors implementing confirmed TDDs in separate code branches or worktrees.
+
+### 3. Add engineering constraints for continuous delivery
+
+AIT does more than store documents. It turns delivery into a checkable state machine:
+
+```text
+version create
+  → PRD create / confirm
+  → FSD create / decompose / confirm
+  → TDD create / confirm
+  → codegen
+  → acceptance
+  → version confirm / merge
+```
+
+At key points, AIT checks:
+
+- whether work proceeds in PRD → FSD → TDD order;
+- whether requirements, functions, and implementations remain traceable;
+- whether the graph contains orphans, broken links, invalid tree cycles, or duplicate `target_file` ownership;
+- whether a confirmed merge plan has become stale;
+- whether the configured tests, build, or other acceptance command passes;
+- whether the specification version is bound to the corresponding code commit.
+
+AIT is therefore best suited to projects that need reliable delivery across many iterations—not one-time code generation.
+
+---
+
+## Capabilities and Boundaries
+
+| What you need | What AIT provides | What remains external |
 |---|---|---|
-| **PRD** (Product Requirements Doc) | what / why | User-perspective requirements, zero technical content; each requirement carries a user story + acceptance criteria |
-| **FSD** (Functional Specifications Doc) | how to decompose | Functional decomposition + external capability contracts (only "what it provides", never implementation) |
-| **TDD** (Tech Design Doc) | how to implement | Single-file implementation blueprint; each TDD maps to exactly one `target_file` |
-
-At code-generation time, the AI receives not the whole document library but a context bundle
-assembled along the relation graph — exactly enough to write this one file.
-
-## The Full Pipeline at a Glance
-
-![AIT pipeline: files as nodes, /ait commands as edges; red dashed lines are rework paths; the right-hand loop is version iteration](docs/ait-pipeline.svg)
-
-Files as nodes, commands as edges: each layer's `create` lands its document, `codegen prepare`
-connects a TDD to its code file, and `version commit → confirm → merge` atomically lands the
-version workspace into the baseline. Red dashed lines are the rework paths; the right-hand loop
-is continuous version iteration (v0.1 → v0.2 → …).
-
-## Q&A
-
-**Q: How is this different from agent memory files like AGENTS.md / MEMORY.md?**
-
-Memory files like AGENTS.md / MEMORY.md exist at project level and user level, and some of what
-they hold is user habits and personal preferences — which should not become long-term global
-project constraints. But some constraints — business rules, architecture decisions, interface
-contracts — should be long-term global project constraints, **shared by every collaborator
-(human and AI) on the project, kept consistent, reviewable, and traceable**. AIT manages the
-latter: with versions, acceptance, and invariant gates — things memory files cannot do.
-
-**Q: How is this different from skills like superpowers / gsd?**
-
-Those skills focus on "how to get a development task done" (workflow orchestration, task
-execution). AIT focuses on **keeping the project's global memory normalized over time** — making
-the thousandth iteration as reliable as the first. The two don't conflict: task-execution skills
-solve "how to do it right this time"; AIT solves "how to not break it over time".
-
-**Q: What's the relationship with Git?**
-
-Complementary. Git versions code in units of files and line-level diffs; AIT versions **the design
-documents that drive AI coding** in units of semantic chunks, together with their relations. The
-`project-docs/` directory AIT manages is its own git repository, and every merge records the
-binding between doc version and code version (which code commit corresponds to which spec version).
-
-**Q: When is AIT NOT a good fit?**
-
-Building an MVP, a small feature, a one-off script — AIT is too heavy for that; just write it with
-AI directly. AIT's value shows in **continuously developed, scaled projects**: many iterations,
-accumulating constraints, multiple humans and AIs collaborating, changes in one place demanding
-global awareness. The longer a project lives, the more AIT is worth.
+| Context integrity and AI focus | Versioned specifications, receipts and gates for stale/conflicting context, plus graph-based selection for the current TDD | Semantic correctness of source specifications, model token limits, and cost controls |
+| Team PRD review | Versioned user stories and acceptance criteria, frozen by `prd confirm` | Reviewers, approval records, meetings, or PR workflows |
+| Functional decomposition | Recursive FSD decomposition with capability contracts and dependencies | Staffing, scheduling, and task assignment |
+| Multi-branch development | Unique `target_file` ownership as an independent TDD boundary | Branch/worktree creation, code merge, and conflict resolution |
+| AI coding | Isolated context per TDD, used by the Skill to drive implementation | Final code review and human decisions |
+| Production constraints | Phase gates, graph validation, acceptance commands, deterministic merge plans, version binding, and rollback anchors | CI/CD, authorization, release approval, and operations |
 
 ---
 
-## Status & Docs
+## Recommended Team Workflow
 
-AIT is built with AIT (dogfooding): `project-docs/` is its authoritative design source, and every
-release goes through the full `/ait version create → prd → fsd → tdd → codegen → confirm → merge` loop.
+The following workflow supports shared review, layered decomposition, branch-based implementation, and controlled integration while respecting AIT's current boundaries.
 
-| Doc | Contents |
+### Phase 1: Agree on the PRD
+
+1. Product, design, and engineering discuss user stories, scope, and acceptance criteria.
+2. One integrator records the final decisions through AIT.
+3. After external review, run `/ait prd confirm` to freeze the requirement layer.
+
+### Phase 2: Decompose the FSD
+
+1. Derive FSDs from the PRD and recursively divide functional domains with `fsd decompose`.
+2. Define the capability and same-level dependencies of each function.
+3. Assign functional areas to owners. Contributors may submit design proposals; the integrator writes the accepted result through AIT.
+4. Validate dependencies and the graph, then run `/ait fsd confirm`.
+
+### Phase 3: Create file-level TDD tasks
+
+1. Create one or more TDDs for each leaf FSD.
+2. Bind every TDD to a unique `target_file`, including file responsibility, implementation design, and test requirements.
+3. Review all TDDs, then run `/ait tdd confirm`.
+
+### Phase 4: Implement in parallel with people and AI
+
+1. Create separate Git branches or worktrees for different TDDs.
+2. Each developer or agent runs `/ait codegen prepare <TDD-id>` for its assigned task.
+3. Complete code, tests, and review, then merge branches through the external Git workflow.
+
+### Phase 5: Validate and close the version
+
+1. Ensure the host repository contains only the changes intended for this AIT version.
+2. Run acceptance and inspect version status.
+3. Use `version confirm` for global gates and code-commit binding.
+4. Use `version merge` to merge the specification workspace into the baseline.
+5. If publishing, preview with `/ait push --dry-run` before `/ait push`.
+
+> Note: after its gates pass, `version confirm` may run `git add -A` and create an artifact commit in the host repository. Commit or remove unrelated local changes first.
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Claude Code;
+- Python 3.10 or newer;
+- Git;
+- access to a Python package index during first-time dependency installation.
+
+### 1. Install the Skill
+
+From the AIT repository root:
+
+```bash
+python install.py
+```
+
+AIT is installed to `~/.claude/skills/ait/` by default. To upgrade:
+
+```bash
+python install.py update
+```
+
+Restart Claude Code after installation. AIT is a Skill, not a system-wide CLI; daily usage is through `/ait <subcommand>`.
+
+### 2. Initialize a project
+
+Open Claude Code at the root of your code repository:
+
+```text
+/ait init --new-model --name my_project
+```
+
+AIT creates an independent `project-docs/` specification repository. Run subsequent commands from the project root that contains this directory.
+
+### 3. Complete the first iteration
+
+```text
+/ait version create v0.1
+
+/ait prd create "[PRD]-my_project"
+# Discuss and write the requirements with AI
+/ait prd confirm
+
+/ait fsd create "[FSD]-my_project"
+# Decompose further when needed:
+/ait fsd decompose "[FSD]-my_project:core" "[FSD]-core"
+/ait fsd confirm
+
+/ait tdd create "[TDD]-core" --parent "[FSD]-core:feature"
+/ait tdd confirm
+
+/ait codegen prepare "[TDD]-core"
+
+/ait acceptance set "pytest -q"
+/ait acceptance run
+/ait version commit v0.1
+/ait version confirm v0.1 --conflict-policy abort
+/ait version merge v0.1
+```
+
+For `prd/fsd/tdd create`, the Skill first retrieves related context and discusses the change with you, then writes it using a context receipt. You normally do not edit `project-docs/` yourself. Do not bypass AIT to modify managed documents or `.meta` files.
+
+---
+
+## What Belongs in Each Layer?
+
+| Layer | Core question | Main contents | Review focus |
+|---|---|---|---|
+| **PRD** | Why are we building this, and what does the user get? | User stories, scope, goals, and user-level acceptance criteria | Does the team agree on the requirement? |
+| **FSD** | How is the feature divided, and what does each module provide? | Functional boundaries, capability contracts, dependencies, and integration acceptance | Can work be assigned independently, and are interfaces clear? |
+| **TDD** | How should one file be implemented? | `target_file`, code structure, core logic, error boundaries, and unit-test requirements | Can AI implement this file independently? |
+
+AIT marks every chunk with `<!-- @id:... -->` and maintains four relationship types in the SpecGraph:
+
+- `derives`: PRD to FSD;
+- `decomposes`: FSD to a child FSD;
+- `details`: leaf FSD to TDD;
+- `depends_on`: dependencies between sibling functions.
+
+You do not maintain these relationships manually; the corresponding commands create and validate them.
+
+---
+
+## When Should You Use AIT?
+
+**A good fit:**
+
+- the project will live through many versions;
+- business rules, interface constraints, and historical decisions keep accumulating;
+- multiple developers or AI agents need a shared specification;
+- a change in one area often affects several modules;
+- the team wants tests and builds to become pre-merge gates.
+
+**Probably not a fit:**
+
+- one-off scripts, quick prototypes, or very small isolated features;
+- the team does not intend to maintain PRD, FSD, and TDD specifications;
+- you expect automatic Git branch management, PR approval, or CI/CD;
+- multiple operators must write to the same AIT version concurrently.
+
+---
+
+## How Is AIT Different from Git or Agent Memory?
+
+- **Git versions code; AIT versions the specifications and relationships that drive AI development.** They complement each other, and AIT records the binding between specification versions and code commits.
+- **AGENTS.md and MEMORY.md hold general rules or personal preferences; AIT holds reviewable, testable, traceable project requirements and designs.**
+- **Task-execution skills focus on completing this task; AIT focuses on preserving constraints after hundreds of iterations.**
+
+---
+
+## Status and Further Reading
+
+AIT is under active development and has used its own PRD → FSD → TDD → codegen process since v2.0.
+
+| Document | Read it when... |
 |---|---|
-| [USER_GUIDE.md](USER_GUIDE.md)（[中文](USER_GUIDE.zh-CN.md)） | Task-oriented walkthrough and troubleshooting |
-| [DESIGN.md](DESIGN.md) | Architecture, design rationale, module map |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill command contract |
+| [USER_GUIDE.md](USER_GUIDE.md) | You are adopting AIT, need the complete command reference, or are troubleshooting |
+| [DESIGN.md](DESIGN.md) | You want to understand the architecture, state machine, and design trade-offs |
+| [CHANGELOG.md](CHANGELOG.md) | You want the release history and latest capabilities |
+| [skill/ait/SKILL.md](skill/ait/SKILL.md) | You need the Skill routing and command contract |
 
-MIT licensed.
+MIT License.
