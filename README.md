@@ -8,6 +8,16 @@ AIT is designed for teams whose projects accumulate business rules and implement
 
 中文：[README.zh-CN.md](README.zh-CN.md)
 
+## Three Concepts to Know First
+
+AIT uses three document types to progressively turn a requirement into independently deliverable development tasks:
+
+- **PRD (Product Requirements Document)**: explains why the product change matters, who it serves, what user problem it solves, and how completion is judged.
+- **FSD (Functional Specification Document)**: divides the PRD into functional domains and defines what each function provides and how functions collaborate. It is the primary boundary for team-level functional ownership.
+- **TDD (Technical Design Document)**: refines a leaf function into a single-file implementation blueprint describing how one `target_file` should be implemented and tested. In AIT, TDD means Technical Design Document—not Test-Driven Development.
+
+Together they answer: **what and why → how the functionality is divided → how one file is implemented**.
+
 ---
 
 ## What Problems Does AIT Solve?
@@ -41,7 +51,7 @@ codegen: prepare isolated context for each file and drive AI coding
 
 FSDs can be recursively decomposed, and every TDD must own a unique `target_file`. These constraints let a team assign work first by functional domain and then by file, reducing the chance that multiple developers or agents edit the same file.
 
-AIT currently uses a **single-active-version, single-writer** model. It does not create Git branches, merge pull requests, provide multi-user locks, or record who approved a PRD. Team review, assignment, and branch integration remain in your Git platform and project workflow. The recommended setup is one AIT integrator, with contributors implementing confirmed TDDs in separate code branches or worktrees.
+AIT currently uses a **single-active-version, single-workspace-writer** model. It does not create Git branches, merge pull requests, provide multi-user locks, or record who approved a PRD. Team review and assignment remain external. Multiple contributors may prepare FSD and TDD design proposals in parallel, but one integrator should record and confirm them serially in the same AIT working copy. After TDD confirmation, implementation can proceed in parallel through external Git branches or worktrees.
 
 ### 3. Add engineering constraints for continuous delivery
 
@@ -93,24 +103,26 @@ The following workflow supports shared review, layered decomposition, branch-bas
 2. One integrator records the final decisions through AIT.
 3. After external review, run `/ait prd confirm` to freeze the requirement layer.
 
-### Phase 2: Decompose the FSD
+### Phase 2: Design FSDs in parallel by ownership
 
-1. Derive FSDs from the PRD and recursively divide functional domains with `fsd decompose`.
-2. Define the capability and same-level dependencies of each function.
-3. Assign functional areas to owners. Contributors may submit design proposals; the integrator writes the accepted result through AIT.
-4. Validate dependencies and the graph, then run `/ait fsd confirm`.
+1. After PRD confirmation, the integrator uses `fsd create --parent <PRD-root>` to create the root FSD and defines functional splits with clear boundaries. A split that needs deeper decomposition becomes a child FSD through `fsd decompose <parent-split> <child-FSD-root>`.
+2. Assign different FSDs to different owners. Each owner may design their function's capability contracts, dependencies, and integration acceptance in parallel and submit a design proposal.
+3. AIT does not provide specification branch management, multi-user locks, or semantic merging for version metadata. To avoid index and SpecGraph conflicts, the integrator should record accepted designs serially in one AIT working copy instead of directly merging contributor-modified `project-docs` branches.
+4. The integrator runs `/ait specgraph validate-new-model`, reviews critical dependencies, and then runs `/ait fsd confirm` after the combined design passes review. This freezes the FSD layer; complete global invariants such as orphan, traceability, and tree-cycle checks are enforced later by `/ait version confirm`.
 
-### Phase 3: Create file-level TDD tasks
+### Phase 3: Design TDDs in parallel
 
-1. Create one or more TDDs for each leaf FSD.
-2. Bind every TDD to a unique `target_file`, including file responsibility, implementation design, and test requirements.
-3. Review all TDDs, then run `/ait tdd confirm`.
+1. Use the confirmed FSD layer as shared input and assign different leaf FSDs to their owners.
+2. Owners may prepare TDD proposals in parallel, defining the `target_file`, file responsibility, implementation design, and test requirements.
+3. The integrator creates and reviews TDDs serially in one AIT working copy, verifies unique `target_file` ownership and non-conflicting file boundaries, then runs `/ait tdd confirm`.
 
-### Phase 4: Implement in parallel with people and AI
+### Phase 4: Implement in parallel by TDD
 
-1. Create separate Git branches or worktrees for different TDDs.
-2. Each developer or agent runs `/ait codegen prepare <TDD-id>` for its assigned task.
-3. Complete code, tests, and review, then merge branches through the external Git workflow.
+1. Assign confirmed TDDs to different developers or agents using separate Git branches or worktrees. Every development environment must be able to access the same confirmed `project-docs` version.
+2. Each developer or agent runs `/ait codegen prepare <TDD-id>` and implements the corresponding file from the focused context.
+3. Complete code, tests, and review, then merge the code branches through the external Git workflow.
+
+> Collaboration can begin after the initial FSD split, but the currently reliable workflow is: prepare FSD designs in parallel → integrator records them serially and runs `fsd confirm` → prepare TDD designs in parallel → integrator records them serially and runs `tdd confirm` → implement in parallel on code branches. AIT specification writes remain single-workspace-writer operations.
 
 ### Phase 5: Validate and close the version
 
@@ -196,15 +208,6 @@ For `prd/fsd/tdd create`, the Skill first retrieves related context and discusse
 | **PRD** | Why are we building this, and what does the user get? | User stories, scope, goals, and user-level acceptance criteria | Does the team agree on the requirement? |
 | **FSD** | How is the feature divided, and what does each module provide? | Functional boundaries, capability contracts, dependencies, and integration acceptance | Can work be assigned independently, and are interfaces clear? |
 | **TDD** | How should one file be implemented? | `target_file`, code structure, core logic, error boundaries, and unit-test requirements | Can AI implement this file independently? |
-
-AIT marks every chunk with `<!-- @id:... -->` and maintains four relationship types in the SpecGraph:
-
-- `derives`: PRD to FSD;
-- `decomposes`: FSD to a child FSD;
-- `details`: leaf FSD to TDD;
-- `depends_on`: dependencies between sibling functions.
-
-You do not maintain these relationships manually; the corresponding commands create and validate them.
 
 ---
 
