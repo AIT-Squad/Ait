@@ -1,37 +1,23 @@
-# AIT — Git-like Document Versioning for AI Coding
+# AIT — A Context-Engineering & Spec-Driven Framework for AI Coding
 
-> A (in-development) Claude Code Skill built for **continuous iteration on large projects** and
-> **multi-player AI-assisted development** — keeping AI-built projects maintainable over the long run.
-
-**This is a Skill, not a CLI you call directly.** After installing, everything happens inside
-Claude Code via slash commands: `/ait init`, `/ait prd create`, `/ait version merge`, …
-There is no global `ait` binary on your PATH — see
-[USER_GUIDE.md §1.2](USER_GUIDE.md#12-usage-ait-subcommand) for how routing works.
+> AIT is a context-engineering and spec-driven development framework that automatically guides
+> AI agents to organize and use prompts in a software-engineering manner. It solves the
+> reliability problem of continuous iteration on large projects, and the attention problem
+> of AI agents during development.
 
 ---
 
-## Why
+## How it works
 
-AI is already very good at building MVPs. But as a project iterates, it will sooner or later get
-broken by the AI: the AI forgets a constraint established earlier, or changes one module while
-forgetting its impact on the modules that depend on it.
+**Continuous project iteration** — Automatically maintains a global set of structured prompt
+documents that accurately describe the current code state and confirmed decisions, and
+auto-updates the global prompts after each iteration completes.
 
-A production-grade project under continuous iteration accumulates all kinds of special business
-requirements and special implementation constraints. As this body of information grows, the model's
-attention gets diluted by everything else in the project whenever it works on a specific problem.
+**Context rot** — Uses the relationship information in structured prompt documents to precisely
+extract the project knowledge an AI agent needs, ensuring the agent's attention lands exactly
+where it matters.
 
-This kind of knowledge should be **persisted within the project scope and continuously updated** —
-not scattered across chat histories and personal memory. When the AI works on a problem, what it
-needs is "everything relevant to this problem", not "everything about this project".
-
-## How
-
-When modifying something, the model should be given **only the context relevant to that change,
-with everything else screened out** — spending the model's attention sweet spot entirely on the
-problem at hand.
-
-So AIT organizes development constraints (prompts) into a **structured document system**, and at
-actual code-generation time extracts precisely the information relevant to the current task:
+Mechanisms:
 
 - **Chunk-level version control** (Git-like): documents are decomposed into semantic chunks
   annotated with `<!-- @id:xxx -->`, with a full version lifecycle of

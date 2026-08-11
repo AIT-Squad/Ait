@@ -73,3 +73,6 @@ TEMPLATE-TDD-AIT-DRAFT.md
 prd-fsd-tdd-discussion-notes.md
 CLAUDE.md
 project-docs/
+docs/introduction.md
+.ua/config.json
+.ua/.understandignore
