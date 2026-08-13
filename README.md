@@ -19,7 +19,7 @@
 documents that accurately describe the current code state and confirmed decisions, and
 auto-updates the global prompts after each iteration completes.
 
-**Context rot** — Uses the relationship information in structured prompt documents to precisely
+**Reducing context rot** — Uses the relationship information in structured prompt documents to precisely
 extract the project knowledge an AI agent needs, ensuring the agent's attention lands exactly
 where it matters.
 
