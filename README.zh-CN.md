@@ -4,6 +4,12 @@
 > 方式组织管理 prompt 并使用 prompt 进行开发。它解决大型项目持续迭代的可靠性问题及开发过程中
 AI 智能体的注意力问题。
 
+⭐ 如果这个项目对你有帮助，请给我们一个 Star！⭐
+
+<a href="https://linux.do">
+  <img alt="LINUX DO" src="https://shorturl.at/ggSqS" />
+</a>
+
 ---
 
 ## How it works
@@ -126,3 +132,7 @@ AIT 自身就是用 AIT 开发的（dogfooding）：`project-docs/` 是它的权
 | [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill 命令契约 |
 
 MIT licensed.
+
+---
+
+感谢 [LINUX DO](https://linux.do/) 社区一直以来的支持。

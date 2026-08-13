@@ -5,6 +5,12 @@
 > reliability problem of continuous iteration on large projects, and the attention problem
 > of AI agents during development.
 
+⭐ If this project helps you, please give us a Star! ⭐
+
+<a href="https://linux.do">
+  <img alt="LINUX DO" src="https://shorturl.at/ggSqS" />
+</a>
+
 ---
 
 ## How it works
@@ -146,3 +152,7 @@ release goes through the full `/ait version create → prd → fsd → tdd → c
 | [skill/ait/SKILL.md](skill/ait/SKILL.md) | Skill command contract |
 
 MIT licensed.
+
+---
+
+Thanks to the [LINUX DO](https://linux.do/) community for their continued support.
