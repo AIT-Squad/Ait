@@ -33,6 +33,8 @@ for stream in (sys.stdout, sys.stderr):
 
 DEFAULT_PREFIX = Path.home() / ".claude" / "skills" / "ait"
 
+ENTRY_PLACEHOLDER = "{{AIT_ENTRY}}"
+
 IGNORE_PATTERNS = shutil.ignore_patterns(
     "__pycache__",
     "*.pyc",
@@ -72,6 +74,24 @@ def confirm(prompt: str) -> bool:
 def is_ait_skill(path: Path) -> bool:
     """Refuse to touch a directory that doesn't look like an AIT skill install."""
     return (path / "SKILL.md").exists() and (path / "bin").exists()
+
+
+def fill_entry_path(dest: Path) -> None:
+    """Fill `{{AIT_ENTRY}}` in the installed SKILL.md with this install's real entry.
+
+    The source repo keeps the placeholder; only the copy under `dest` is rewritten,
+    so a custom `--prefix` yields the wrapper path that actually exists.
+    """
+    skill_md = dest / "SKILL.md"
+    if not skill_md.exists():
+        return
+    text = skill_md.read_text(encoding="utf-8")
+    if ENTRY_PLACEHOLDER not in text:
+        return
+    wrapper = "ait.cmd" if sys.platform == "win32" else "ait"
+    entry = str(dest / "bin" / wrapper)
+    skill_md.write_text(text.replace(ENTRY_PLACEHOLDER, entry), encoding="utf-8")
+    log(f"entry path filled: {entry}")
 
 
 def warmup_venv(dest: Path) -> None:
@@ -177,6 +197,7 @@ def do_install(source: Path, dest: Path, force: bool, warmup: bool) -> None:
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(source, dest, ignore=IGNORE_PATTERNS)
+    fill_entry_path(dest)
     log(f"installed to {dest}")
 
     if warmup:
@@ -216,6 +237,7 @@ def do_update(source: Path, dest: Path, skip_venv: bool = False) -> None:
         else:
             shutil.copy2(child, target)
 
+    fill_entry_path(dest)
     log(f"updated {dest}" + (" (kept .venv)" if venv_preserved else ""))
     if skip_venv:
         log("skipped venv refresh (--skip-venv)")
