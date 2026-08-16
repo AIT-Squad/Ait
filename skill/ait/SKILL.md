@@ -9,7 +9,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 ## Global Contract
 
-- **入口命令**：项目根下统一用 `project-docs/.ait/ait-cli <subcmd>`（`init` 自动生成的项目本地 wrapper）；唯一例外是 `init` 自身——首次用 `~/.claude/skills/ait/bin/ait init`，路径变更后用 `... init --refresh-wrapper`。不要假设系统存在全局 `ait`。
+- **入口命令**：项目根下统一用 `project-docs/.ait/ait-cli <subcmd>`（`init` 自动生成的项目本地 wrapper）；唯一例外是 `init` 自身——首次用随分发形态解析的 skill 入口：插件形态 `${CLAUDE_PLUGIN_ROOT}/bin/ait init`，Skill 形态 `~/.claude/skills/ait/bin/ait init`（二者是同一入口在不同分发形态下的位置，插件安装后会被复制到缓存目录，写死即指错），路径变更后用 `... init --refresh-wrapper`；`init` 之后一律回到项目本地 wrapper。不要假设系统存在全局 `ait`。
 - **运行目录**：必须从包含 `project-docs/` 的项目根运行；不要从 `project-docs/` 内部运行。
 - **写入规则**：不要直接写 `project-docs/{docs,versions,.meta}/*`，所有持久化必须经 `project-docs/.ait/ait-cli`。
 - **输出契约**：所有 CLI stdout 是单个 JSON：`{"ok": true, "data": {...}}` 或 `{"ok": false, "error": "...", "code": "..."}`。
@@ -83,7 +83,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 | User trigger | CLI | Routed skill |
 |---|---|---|
-| `/ait init [--new-model --name]` | `~/.claude/skills/ait/bin/ait init`（首次） | `ait-init-guide` |
+| `/ait init [--new-model --name]` | `${CLAUDE_PLUGIN_ROOT}/bin/ait init`（首次；Skill 形态同一入口在 `~/.claude/skills/ait/bin/ait`，之后走本地 wrapper） | `ait-init-guide` |
 | `/ait prd create\|confirm\|revert ...` | `project-docs/.ait/ait-cli prd ...`（新模型 PRD；create 需已有活动版本；link 已退役） | main |
 | `/ait fsd create\|decompose\|confirm\|revert ...` | `project-docs/.ait/ait-cli fsd ...`（decompose=拆分即建边；link 退役） | main |
 | `/ait tdd create\|confirm\|revert ...` | `project-docs/.ait/ait-cli tdd ...`（create --parent=创建即建 details 边） | main |

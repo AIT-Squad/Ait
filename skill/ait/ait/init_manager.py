@@ -696,9 +696,14 @@ class InitManager:
         share one ownership table and cannot drift apart.
         """
         # Resolve canonical paths.
-        skill_dir = os.environ.get(
-            "AIT_SKILL_DIR",
-            str(Path.home() / ".claude" / "skills" / "ait"),
+        # v2.90: resolve skill_dir by priority, first non-empty wins —
+        # AIT_SKILL_DIR (explicit override) > CLAUDE_PLUGIN_ROOT (plugin form;
+        # the harness injects the real load location, a cache dir when
+        # installed via an index) > ~/.claude/skills/ait (Skill-form fallback).
+        skill_dir = (
+            os.environ.get("AIT_SKILL_DIR")
+            or os.environ.get("CLAUDE_PLUGIN_ROOT")
+            or str(Path.home() / ".claude" / "skills" / "ait")
         )
         wrapper_basename = "ait.cmd" if os.name == "nt" else "ait"
         cli_path = str(Path(skill_dir) / "bin" / wrapper_basename)
