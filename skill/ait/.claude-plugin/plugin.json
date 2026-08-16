@@ -1,0 +1,10 @@
+{
+  "name": "ait",
+  "version": "2.88.0",
+  "description": "AIT — chunk 级文档版本控制与 prd→fsd→tdd→codegen 的 spec→code 流水线：规格与代码同源、可门禁、可回退、可追溯。",
+  "author": {
+    "name": "AIT contributors"
+  },
+  "homepage": "https://github.com/AIT-Squad/Ait",
+  "repository": "https://github.com/AIT-Squad/Ait.git"
+}
