@@ -63,9 +63,13 @@ def _commit(repo: Path, msg: str) -> None:
     _git(repo, "commit", "-qm", msg)
 
 
-def _remote_log(bare: Path) -> list[str]:
+def _remote_log(bare: Path, branch: str = "main") -> list[str]:
+    # the branch is explicit on purpose: a bare repo's HEAD defaults to
+    # refs/heads/master, so omitting it would read an empty master instead
+    # of the main branch these fixtures actually push to
     out = subprocess.run(
-        ["git", f"--git-dir={bare}", "log", "--oneline"], capture_output=True, text=True
+        ["git", f"--git-dir={bare}", "log", "--oneline", branch],
+        capture_output=True, text=True,
     )
     return [line for line in out.stdout.splitlines() if line.strip()]
 
