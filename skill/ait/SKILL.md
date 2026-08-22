@@ -1,11 +1,11 @@
 ---
 name: ait
-description: INVOKE THIS SKILL when the user types /ait followed by a subcommand. AIT 是 chunk 级文档版本控制系统，主线为新模型 prd→fsd→tdd→codegen 的 spec→code 流水线（旧模型 prdv1→impl→task 为 legacy），并路由到 sub-skills。命令含 init/prd/fsd/tdd/codegen/version/specgraph/state/search/context/reindex 与 legacy prdv1/impl/task。
+description: INVOKE THIS SKILL when the user types /ait followed by a subcommand. AIT 是 chunk 级文档版本控制系统，主线为 prd→fsd→tdd→codegen 的 spec→code 流水线，并路由到 sub-skills。命令含 init/prd/fsd/tdd/codegen/version/acceptance/specgraph/state/search/deps/impact/reindex/push/baseline-summary。
 ---
 
 # AIT — AI-Assisted Document Versioning
 
-AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本控制**系统。**主线模型**：`prd → fsd → tdd → codegen → code`——PRD 递归分解为 FSD 功能树，叶 FSD `details` 到 TDD（每个 TDD 唯一映射一个 `target_file`，可指向任意生成目标：源码/测试/SKILL.md 等），`codegen` 沿 specgraph 上溯组装聚焦上下文驱动 AI 编码。**legacy 模型** `prdv1 → impl → task → code` 仍可用但属遗留。主 skill 负责路由、全局契约与命令速查；具体讨论/面板/恢复由 `sub-skills/` 承担。
+AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本控制**系统。**主线模型**：`prd → fsd → tdd → codegen → code`——PRD 递归分解为 FSD 功能树，叶 FSD `details` 到 TDD（每个 TDD 唯一映射一个 `target_file`，可指向任意生成目标：源码/测试/SKILL.md 等），`codegen` 沿 specgraph 上溯组装聚焦上下文驱动 AI 编码。主 skill 负责路由、全局契约与命令速查；具体讨论/面板/恢复由 `sub-skills/` 承担。
 
 ## Global Contract
 
@@ -29,8 +29,8 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
   - **取代关系须双向标注**：一条验收标准被后续需求取代时，被取代方标注管辖权移交、取代方标注取代事实。不容许两条互斥规格在 baseline 并存。
   - **derives 随承载范围一同维护**：需求 chunk 因新增验收标准而涉及新功能域时，补建到对应 FSD split 的 `derives` 边即可。PRD 需求→FSD split 是 **M:N**，这种维护始终合法——"关系需要维护"不是新开需求 chunk 的理由。
   - **id 是稳定锚点**：AIT 不支持 internal split 改名（只有根 chunk 可经 `--overrides` 改名），需求 chunk 承载范围的演进由**标题与正文**表达，不改 id。
-- **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定；legacy `prdv1 commit`/`impl commit` 锁对应文档。锁定后本版本不可改。**层级冻结：`prd confirm` 锁 PRD 层（phase→prd-confirm），`prd revert` 成对返工解锁（phase→prd-creating）——每道门禁配返工。**
-- **confirm＝纯门禁**：`version confirm <v>` 只做校验报告（task 全 done + 六不变式：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、无孤儿、可追溯、树关系无环），**可重复跑、零落盘、不合入**。
+- **commit 即锁定**：`version commit <v>` 把新模型 chunk working→committed 锁定。锁定后本版本不可改。**层级冻结：`prd confirm` 锁 PRD 层（phase→prd-confirm），`prd revert` 成对返工解锁（phase→prd-creating）——每道门禁配返工。**
+- **confirm＝纯门禁**：`version confirm <v>` 只做校验报告（六不变式：PRD↔1FSD、TDD↔1FSD/1制品、制品↔1TDD、无孤儿、可追溯、树关系无环），**可重复跑、零落盘、不合入**。
 - **merge＝唯一落盘点**：`version merge <v>` 原子合入基线（内部先过同一门禁）+ 一次 git commit，失败字节级回退（docs 与 .meta 同步还原）。
 - **revert＝任意阶段退出**：不满意用 `version revert <vX.Y> --confirm` 整版清空（物理删除，未合入版本可用；无局部撤销）。merged 版本不可 revert。
 
@@ -48,7 +48,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 /ait specgraph validate-new-model      → 图合法性 + target_file 唯一性（重复报 DUPLICATE_TARGET_FILE）；另报 relation_residue / prd_requirement_residue 基线残留（报告不阻断）
 /ait version create <v>                → 显式开版本（已存在报错）
 /ait version commit <v>                → 全部 working chunk → committed（锁定）
-/ait version confirm <v>               → 纯门禁：六不变式+task 校验报告（可重复，不落盘）
+/ait version confirm <v>               → 纯门禁：六不变式校验报告（可重复，不落盘）
 /ait version merge <v>                 → 原子合入基线 + git commit（门禁前置，失败回退）
 /ait version revert <v> --confirm      → 任意阶段整版退出（未合入）
 /ait codegen prepare <[TDD]-id>        → 上溯 FSD/PRD + 旁取依赖 + target_file，输出聚焦上下文驱动编码
@@ -59,20 +59,12 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 > 关系四种：`derives`(PRD 根→FSD 根,派生,恰 1:1)、`decomposes`(FSD split→子 FSD 根,拆分)、`details`(叶 FSD split→TDD,细化)、`depends_on`(同父兄弟 split,依赖)。
 > ID：`[PRD]/[FSD]/[TDD]` 前缀、名内 `_`、层级 `-`、内部 split 用 `<父根id>:<split名>`。
 
-### legacy Pipeline（旧模型，遗留）
-
-```text
-/ait prdv1 create "<title>"   → 四段结构 PRD（req 草稿）→ confirm → commit 锁定
-/ait impl create <prd-chunk>  → 1 PRD→N impl（可 @extract）→ commit（pre-merge）锁定
-/ait task create/execute/complete → 派生 task、聚焦上下文、回写 code_refs → version confirm
-```
-
 ## Project Layout
 
 ```text
 <cwd>/project-docs/
-├── docs/{prd,fsd,tdd}/        # 新模型基线（confirm 合入）；legacy: docs/{impl,global}/
-├── versions/{vX.Y}/{prd,fsd,tdd,impl,tasks}/ + state.md
+├── docs/{prd,fsd,tdd}/        # 新模型基线（confirm 合入）
+├── versions/{vX.Y}/{prd,fsd,tdd}/ + state.md
 └── .meta/  chunks-index[-vX.Y].yaml（块状态）· specgraph[-vX.Y].yaml（块关系）·
            versions/{vX.Y}.yaml · changes/chg-NNN.yaml · requirements/req-NNN.yaml
 ```
@@ -91,10 +83,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 | `/ait specgraph validate-new-model` | `project-docs/.ait/ait-cli specgraph validate-new-model` | main |
 | `/ait version create\|commit\|confirm\|merge\|revert\|status <v>` | `project-docs/.ait/ait-cli version ...` | `ait-resume`（revert/错误） |
 | `/ait state [--version v]` | `project-docs/.ait/ait-cli state ...` | `ait-state` |
-| `/ait search\|context\|specgraph\|deps\|impact ...` | `project-docs/.ait/ait-cli ...` | main |
-| **legacy** `/ait prdv1 <title>` | `project-docs/.ait/ait-cli prdv1 create/save-draft/confirm/commit` | `ait-discuss` |
-| **legacy** `/ait impl <prd-chunk>` | `project-docs/.ait/ait-cli impl create/commit` | `ait-impl-discuss` |
-| **legacy** `/ait task create\|execute\|complete` | `project-docs/.ait/ait-cli task ...` | `ait-task-execute` |
+| `/ait search\|specgraph\|deps\|impact ...` | `project-docs/.ait/ait-cli ...` | main |
 | CLI error recovery | inspect `code` / `error` | `ait-resume` |
 
 ## codegen 的职责边界（重要）
@@ -109,18 +98,15 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 3. 派生**隔离子 agent**——其全新 context window **仅注入该 bundle**（别无他物），依据 bundle 内 TDD spec 生成/修改指针顶层的 `target_file`；
 4. 回 Skill 层：`version confirm`（G25 提交制品仓 + 绑 `code_result`）+ acceptance（跑测试）收口。
 
-子 agent 隔离窗口只有 spec 组装的上下文，使"代码来自 spec"从信任逼近结构事实。legacy `task execute` 同理输出 `impl_refs ∪ global_refs` bundle，完成调 `task complete/fail` 收口（无 task confirm）。
+子 agent 隔离窗口只有 spec 组装的上下文，使"代码来自 spec"从信任逼近结构事实。
 
 ## Sub-skills 索引
 
 | Sub-skill | Trigger | Purpose |
 |---|---|---|
-| `ait-state` | 查看/刷新 `state.md`、版本进度、chunk 三态、task 状态 | 调 `state [--save]` 渲染面板，兼进度查询。 |
+| `ait-state` | 查看/刷新 `state.md`、版本进度、chunk 三态 | 调 `state [--save]` 渲染面板，兼进度查询。 |
 | `ait-resume` | CLI 返回错误或要求恢复中断流程 | 据 JSON `code` 给恢复步骤（含 version revert）。 |
 | `ait-init-guide` | `/ait init` 进入差异补全模式 | 逐项确认 global 文件是否补齐。 |
-| `ait-discuss` (legacy) | `/ait prdv1 <title>` 创建/讨论 legacy PRD | Clarify → Design → Generate，CLI 存草稿/确认。 |
-| `ait-impl-discuss` (legacy) | `/ait impl <prd-chunk-id>` 规划/生成 impl | 读上下文、生成 impl chunk（含 @extract）、注册。 |
-| `ait-task-execute` (legacy) | `/ait task execute` 驱动 AI 编码 | 据聚焦 bundle 编码，完成调 task complete/fail。 |
 
 ## Required Knowledge
 
@@ -138,7 +124,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 | 新模型图非法（FSD_MIXED_CHILDREN / DEPENDS_ON_*） | FSD 混 FSD/TDD 子、depends_on 跨级 | 见 `validate-new-model` 违规说明修正。 |
 | `MERGE_NO_COMMITTED` / `no metadata` | 新模型版本未 `version commit` / 未经 CLI 建版本 | 先 `version commit <v>`；版本 meta 由新模型 create 自动建。 |
 | `LOCKED` | 改已 commit 的 chunk | 锁定后不可改；用 `version revert <v> --confirm`。 |
-| `ID_FORMAT` | chunk ID 非法字符 | 新模型用 `[PRD]/[FSD]/[TDD]` 前缀；legacy 用 `{type}-{domain}-{name}` 小写短横线。 |
+| `ID_FORMAT` | chunk ID 非法字符 | 新模型用 `[PRD]/[FSD]/[TDD]` 前缀。 |
 | `INVALID_PROJECT_NAME` | `init --new-model --name` 含大写/空格/中文/`/`/`..` | --name 只接受小写字母数字下划线+短横分段（须能构成合法 chunk id）。 |
 | `INVARIANT_VIOLATION` | 六不变式违例（孤儿/断链/多属主/多父/幽灵端点/树环） | 按 violations 明细补规格（PRD/边/target_file），confirm 复查后再 merge。 |
 | `GIT_DIRTY` | merge 时 git 不干净 | 先提交/暂存，或 `--allow-dirty-git`。 |
@@ -148,7 +134,6 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 | `INVALID_FILE_NAME` | --file 越界（路径逃逸/.md 后缀/跨 kind） | 只接受本 kind 目录内的相对索引路径。 |
 | `MODIFY_RENAME_COLLISION`/`DUPLICATE_OVERRIDES_TARGET` | modify 改名撞已存在 id / 两记录撞同一 override 目标 | 前置拦截零落盘；修 overrides 后重试。 |
 | `NOT_AT_PROJECT_ROOT` / `CWD_INSIDE_PROJECT_DOCS` | 运行目录不对 | 切到包含 `project-docs/` 的父目录。 |
-| **legacy** `PRD_NOT_COMMITTED`/`PRD_NOT_LOCKED`/`NO_IMPL`/`TASK_NOT_DONE` | 旧流水线前置未满足 | 先 `prdv1 commit` / 补 impl / 跑完 task。 |
 
 ## Scope Boundaries
 
@@ -156,4 +141,3 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 - 不提供多用户协作锁；不提供系统级全局 `ait`；不支持 `/ait:foo` colon 命名空间（用 `/ait foo`）。
 - 不绕过 CLI 直接改 AIT 管理文档或 `.meta`。
 - 新模型关系不从命名推断，四种关系各随其创建命令原子出生（四关系四出生地）：derives 随 `fsd create --parent`、decomposes 随 `fsd decompose`、details 随 `tdd create --parent`、depends_on 随 `fsd create` 的 split 内 yaml 声明；无任何 link/depend 命令；每个 TDD 唯一映射一个 `target_file`。fsd/tdd create 对不存在的版本报 VERSION_NOT_FOUND。
-- legacy：动态 global（ddl/schema/api）只来自 impl 的 `@extract`，不接受人工直接编辑。

@@ -7,7 +7,6 @@ from pathlib import Path
 
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
-from .specgraph import combined_specgraph, sync_specgraph
 from .version_manager import VersionManager, VersionManagerError
 
 
@@ -26,15 +25,8 @@ class StatePanel:
     prd_chunks: list[str] = field(default_factory=list)
     fsd_chunks: list[str] = field(default_factory=list)
     tdd_chunks: list[str] = field(default_factory=list)
-    impl_chunks: list[str] = field(default_factory=list)  # legacy (prdv1→impl)
-    impl_coverage: dict[str, list[str]] = field(default_factory=dict)
-    tasks: list[dict] = field(default_factory=list)  # [{id,status,source_chunk}]
 
     def to_dict(self) -> dict:
-        task_counts: dict[str, int] = {}
-        for t in self.tasks:
-            s = t.get("status", "created")
-            task_counts[s] = task_counts.get(s, 0) + 1
         return {
             "version": self.version,
             "title": self.title,
@@ -49,9 +41,6 @@ class StatePanel:
             "prd_chunks": self.prd_chunks,
             "fsd_chunks": self.fsd_chunks,
             "tdd_chunks": self.tdd_chunks,
-            "impl_chunks": self.impl_chunks,
-            "impl_coverage": self.impl_coverage,
-            "tasks": self.tasks,
             "counts": {
                 "working": len(self.working),
                 "staged": len(self.staged),
@@ -59,9 +48,6 @@ class StatePanel:
                 "prd": len(self.prd_chunks),
                 "fsd": len(self.fsd_chunks),
                 "tdd": len(self.tdd_chunks),
-                "impl": len(self.impl_chunks),
-                "covered_prd": len([v for v in self.impl_coverage.values() if v]),
-                "tasks": task_counts,
             },
         }
 
@@ -91,7 +77,6 @@ def load_version_state(project_root: Path, version: str | None = None) -> StateP
     prd_chunks: list[str] = []
     fsd_chunks: list[str] = []
     tdd_chunks: list[str] = []
-    impl_chunks: list[str] = []
     for entry in idx.chunks:
         by_action[entry.action] = by_action.get(entry.action, 0) + 1
         if entry.id.startswith("prd-") or entry.id.startswith("[PRD]-"):
@@ -100,15 +85,6 @@ def load_version_state(project_root: Path, version: str | None = None) -> StateP
             fsd_chunks.append(entry.id)
         elif entry.id.startswith("[TDD]-"):
             tdd_chunks.append(entry.id)
-        elif entry.id.startswith("impl-"):
-            impl_chunks.append(entry.id)
-
-    graph = combined_specgraph(root, version_name)
-    if not graph.specs:
-        sync_specgraph(root)
-        graph = combined_specgraph(root, version_name)
-    impl_coverage = compute_impl_coverage(graph, version_name, prd_chunks)
-    tasks = _load_version_tasks(root, version_name)
 
     return StatePanel(
         version=version_name,
@@ -124,48 +100,7 @@ def load_version_state(project_root: Path, version: str | None = None) -> StateP
         prd_chunks=prd_chunks,
         fsd_chunks=fsd_chunks,
         tdd_chunks=tdd_chunks,
-        impl_chunks=impl_chunks,
-        impl_coverage=impl_coverage,
-        tasks=tasks,
     )
-
-
-def _load_version_tasks(project_root: Path, version: str) -> list[dict]:
-    """Load task YAMLs from versions/{version}/tasks/ as lightweight dicts."""
-    import yaml
-
-    tasks_dir = project_root / "versions" / version / "tasks"
-    if not tasks_dir.exists():
-        return []
-    out: list[dict] = []
-    for path in sorted(tasks_dir.glob("*.yaml")):
-        try:
-            raw = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        except Exception:
-            continue
-        out.append({
-            "id": raw.get("id", path.stem),
-            "status": raw.get("status", "created"),
-            "source_chunk": raw.get("source_chunk", ""),
-            "title": raw.get("title", ""),
-        })
-    return out
-
-
-def compute_impl_coverage(graph, version: str, prd_chunks: list[str]) -> dict[str, list[str]]:
-    coverage: dict[str, list[str]] = {chunk_id: [] for chunk_id in prd_chunks}
-    for edge in graph.edges:
-        if edge.rel != "implements":
-            continue
-        dst_parts = edge.dst.split(":", 3)
-        src_parts = edge.src.split(":", 3)
-        if len(dst_parts) != 4 or len(src_parts) != 4:
-            continue
-        dst_version, dst_chunk = dst_parts[2], dst_parts[3]
-        src_version, src_chunk = src_parts[2], src_parts[3]
-        if dst_version == version and src_version == version and dst_chunk in coverage:
-            coverage[dst_chunk].append(src_chunk)
-    return coverage
 
 
 def render_markdown(panel: StatePanel) -> str:
