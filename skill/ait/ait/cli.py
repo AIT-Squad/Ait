@@ -1,4 +1,4 @@
-"""AIT CLI — `ait prd ...`, `ait impl ...`, `ait version ...`.
+"""AIT CLI — `ait prd ...`, `ait fsd ...`, `ait tdd ...`, `ait version ...`.
 
 All commands emit a single JSON object per ait-system.md§prd-ait-cmd-output:
 
@@ -22,17 +22,8 @@ import click
 
 from . import config_store
 from .chunk_parser import parse_file
-from .context_assembler import ContextAssembler
 from .deps import query_deps
-from .format_validator import (
-    fix_prd_text,
-    is_version_scope,
-    scan_impl_text,
-    scan_prd_text,
-    violations_to_details,
-)
 from .impact import analyze_impact
-from .impl_manager import ImplManager
 from .index_manager import IndexManager, IndexSchemaViolation
 from .init_manager import InitManager, InitManagerError
 from .new_model_manager import NewModelManager
@@ -44,12 +35,10 @@ from .new_model_validator import (
     validate_target_file_uniqueness,
 )
 from .new_model_validator import violations_to_details as new_model_violations_to_details
-from .prd_manager import PrdManager
 from .root import NotAtProjectRoot, RootResolutionError, resolve_project_root
 from .search import search_chunks
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
-from .task_manager import TaskManager, TaskManagerError
 from .validation import ValidationError, ValidationIssue
 from .version_manager import ConflictPolicy, VersionManager, VersionManagerError
 
@@ -103,24 +92,6 @@ def _read_content(content_file: Path | None, content: str | None) -> str:
         return sys.stdin.read()
     return content_file.read_text(encoding="utf-8")
 
-
-def _scoped_filename(value: str | None, *, scope: str, option: str) -> str | None:
-    if value is None:
-        return None
-    name = value.strip()
-    if (
-        not name
-        or name in {".", ".."}
-        or "/" in name
-        or "\\" in name
-        or ":" in name
-        or name.lower().endswith(".md")
-    ):
-        fail(
-            f"{option} only accepts a file name without path or .md suffix",
-            code="INVALID_FILE_NAME",
-        )
-    return f"{scope}/{name}"
 
 
 def _root(ctx: click.Context) -> Path:
@@ -392,262 +363,6 @@ def init_cmd(
 
 
 # ═══════════════════════════════════════════════════════════
-# /ait:prd ...
-# ═══════════════════════════════════════════════════════════
-
-
-@main.group("prdv1")
-def prd_group() -> None:
-    """Legacy old-model PRD commands (renamed from `prd`; new model now owns `prd`)."""
-
-
-@prd_group.command("create")
-@click.argument("title")
-@click.option("--author", default="system")
-@click.option("--version", "version", default=None, help="Target version (auto if absent)")
-@click.pass_context
-def prd_create(ctx, title: str, author: str, version: str | None) -> None:
-    mgr = PrdManager(_root(ctx))
-    try:
-        result = mgr.create(title, author=author, version=version)
-        ok({"req_id": result.req_id, "version": result.version, "title": title})
-    except (ValidationError, VersionManagerError) as exc:
-        fail(str(exc), code=getattr(exc, "code", "ERROR"))
-
-
-@prd_group.command("save-draft")
-@click.argument("req_id")
-@click.option(
-    "--content-file",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="File containing the PRD markdown draft (use - for stdin).",
-)
-@click.option("--content", default=None, help="Inline PRD markdown content")
-@click.pass_context
-def prd_save_draft(ctx, req_id: str, content_file: Path | None, content: str | None) -> None:
-    if content is None and content_file is None:
-        fail("Provide --content or --content-file", code="ARG_MISSING")
-    if content is None:
-        if str(content_file) == "-":
-            content = sys.stdin.read()
-        else:
-            content = content_file.read_text(encoding="utf-8")
-    mgr = PrdManager(_root(ctx))
-    try:
-        req = mgr.save_draft(req_id, content)
-        ok(
-            {
-                "req_id": req.id,
-                "status": req.status,
-                "chunk_count": len(req.prd_chunks),
-                "chunk_ids": [c.id for c in req.prd_chunks],
-            }
-        )
-    except (FileNotFoundError, ValidationError) as exc:
-        fail(str(exc), code="DRAFT_FAILED")
-
-
-@prd_group.command("resolve-candidates")
-@click.option(
-    "--from-file",
-    "from_file",
-    required=True,
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="YAML file containing PRD add/modify candidate decisions.",
-)
-@click.pass_context
-def prd_resolve_candidates(ctx, from_file: Path) -> None:
-    """Persist skill-produced PRD candidate decisions into the active version workspace."""
-    mgr = PrdManager(_root(ctx))
-    try:
-        ok(mgr.resolve_candidates(from_file))
-    except ValidationError as exc:
-        fail(str(exc), code=exc.issues[0].code if exc.issues else "CANDIDATES_INVALID")
-
-
-@prd_group.command("confirm")
-@click.argument("req_id")
-@click.option("--file", "prd_file", default=None, help="PRD file name under prd/ (no path, no .md)")
-@click.pass_context
-def prd_confirm(ctx, req_id: str, prd_file: str | None) -> None:
-    """Materialize the prd_draft into the version workspace."""
-    mgr = PrdManager(_root(ctx))
-    try:
-        result = mgr.write_to_version(
-            req_id,
-            prd_file=_scoped_filename(prd_file, scope="prd", option="--file"),
-        )
-        ok(
-            {
-                "req_id": req_id,
-                "version": result.version,
-                "file": result.file,
-                "chunk_ids": result.chunk_ids,
-            }
-        )
-    except (FileNotFoundError, ValidationError) as exc:
-        fail(str(exc), code="CONFIRM_FAILED")
-
-@prd_group.command("show")
-@click.argument("prd_file")
-@click.argument("chunk_id", required=False)
-@click.pass_context
-def prd_show(ctx, prd_file: str, chunk_id: str | None) -> None:
-    mgr = PrdManager(_root(ctx))
-    try:
-        ok(mgr.show(prd_file, chunk_id=chunk_id))
-    except FileNotFoundError as exc:
-        fail(str(exc), code="NOT_FOUND")
-
-
-@prd_group.command("commit")
-@click.argument("prd_file")
-@click.option("-m", "--message", required=True)
-@click.option("--req-id", default=None)
-@click.pass_context
-def prd_commit(ctx, prd_file: str, message: str, req_id: str | None) -> None:
-    mgr = PrdManager(_root(ctx))
-    try:
-        ok(mgr.commit(prd_file, message, req_id=req_id))
-    except ValidationError as exc:
-        fail(
-            str(exc),
-            code=exc.issues[0].code if exc.issues else "COMMIT_FAILED",
-            details=exc.details,
-        )
-
-
-# ═══════════════════════════════════════════════════════════
-# /ait:impl ...
-# ═══════════════════════════════════════════════════════════
-
-
-@main.group("impl")
-def impl_group() -> None:
-    """Impl-domain commands."""
-
-
-@impl_group.command("create")
-@click.argument("prd_chunk_id")
-@click.option(
-    "--content-file",
-    type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    help="File containing the impl markdown (use - for stdin).",
-)
-@click.option("--content", default=None, help="Inline impl markdown content.")
-@click.option("--impl-file", default=None, help="Impl file name under impl/ (no path, no .md).")
-@click.option("--req-id", default=None)
-@click.option("--prd-file", default=None, help="PRD file name under prd/ (no path, no .md).")
-@click.option(
-    "--action",
-    type=click.Choice(["add", "modify"]),
-    default="add",
-    show_default=True,
-    help="Version index action for created impl chunk(s).",
-)
-@click.option("--overrides", default=None, help="Baseline impl chunk id when --action modify.")
-@click.pass_context
-def impl_create(
-    ctx,
-    prd_chunk_id: str,
-    content_file: Path | None,
-    content: str | None,
-    impl_file: str | None,
-    req_id: str | None,
-    prd_file: str | None,
-    action: str,
-    overrides: str | None,
-) -> None:
-    if content is None and content_file is None:
-        fail("Provide --content or --content-file", code="ARG_MISSING")
-    if content is None:
-        if str(content_file) == "-":
-            content = sys.stdin.read()
-        else:
-            content = content_file.read_text(encoding="utf-8")
-    mgr = ImplManager(_root(ctx))
-    try:
-        result = mgr.create(
-            prd_chunk_id,
-            content,
-            impl_file=_scoped_filename(impl_file, scope="impl", option="--impl-file"),
-            req_id=req_id,
-            prd_file=_scoped_filename(prd_file, scope="prd", option="--prd-file"),
-            action=action,  # type: ignore[arg-type]
-            overrides=overrides,
-        )
-        ok(
-            {
-                "version": result.version,
-                "file": result.file,
-                "chunk_ids": result.chunk_ids,
-            }
-        )
-    except ValidationError as exc:
-        fail(str(exc), code=exc.issues[0].code if exc.issues else "IMPL_CREATE_FAILED")
-
-@impl_group.command("show")
-@click.argument("impl_chunk_id")
-@click.pass_context
-def impl_show(ctx, impl_chunk_id: str) -> None:
-    mgr = ImplManager(_root(ctx))
-    try:
-        ok(mgr.show(impl_chunk_id))
-    except FileNotFoundError as exc:
-        fail(str(exc), code="NOT_FOUND")
-
-@impl_group.command("commit")
-@click.argument("impl_chunk_id")
-@click.option("-m", "--message", required=True)
-@click.option("--req-id", default=None)
-@click.pass_context
-def impl_commit(ctx, impl_chunk_id: str, message: str, req_id: str | None) -> None:
-    mgr = ImplManager(_root(ctx))
-    try:
-        ok(mgr.commit(impl_chunk_id, message, req_id=req_id))
-    except ValidationError as exc:
-        fail(
-            str(exc),
-            code=exc.issues[0].code if exc.issues else "IMPL_COMMIT_FAILED",
-            details=exc.details,
-        )
-
-
-@impl_group.command("inherit")
-@click.argument("prd_chunk_id")
-@click.pass_context
-def impl_inherit(ctx, prd_chunk_id: str) -> None:
-    """Copy baseline impl chunks for a PRD into the active version workspace."""
-    mgr = ImplManager(_root(ctx))
-    try:
-        ok(mgr.inherit(prd_chunk_id))
-    except ValidationError as exc:
-        fail(str(exc), code=exc.issues[0].code if exc.issues else "IMPL_INHERIT_FAILED")
-
-
-@impl_group.command("lock")
-@click.option(
-    "--version",
-    "version_name",
-    default=None,
-    help="Version to lock; defaults to the current (non-merged) version.",
-)
-@click.pass_context
-def impl_lock(ctx, version_name: str | None) -> None:
-    """Lock impl for the version, advancing phase to ``impl_locked``.
-
-    Symmetric to PRD: ``prd commit`` auto-locks because PRD is committed
-    file-at-a-time, while impl is committed chunk-by-chunk so locking is an
-    explicit follow-up step (run after all impl chunks are committed).
-    """
-    mgr = ImplManager(_root(ctx))
-    try:
-        ok(mgr.lock(version=version_name))
-    except ValidationError as exc:
-        fail(str(exc), code=exc.issues[0].code if exc.issues else "IMPL_LOCK_FAILED")
-
-
-# ═══════════════════════════════════════════════════════════
 # /ait:version ...
 # ═══════════════════════════════════════════════════════════
 
@@ -795,175 +510,6 @@ def version_backfill_tags(ctx) -> None:
         ok(mgr.backfill_revert_tags())
     except VersionManagerError as exc:
         fail(str(exc), code=getattr(exc, "code", "BACKFILL_FAILED"))
-
-
-
-@main.group("task")
-def task_group() -> None:
-    """Task-domain commands (AI coding units derived from PRD+impl)."""
-
-
-@task_group.command("create")
-@click.argument("chunk_id", required=False)
-@click.pass_context
-def task_create(ctx, chunk_id: str | None) -> None:
-    """Derive task YAML(s) from a committed PRD chunk's impl coverage.
-
-    No chunk_id → list PRD chunks still pending task split (interactive driver).
-    """
-    mgr = TaskManager(_root(ctx))
-    try:
-        version = mgr.versions.current()
-        if not version:
-            fail("No active version", code="NO_VERSION")
-            return
-        if chunk_id is None:
-            pending = mgr.pending_prd_chunks(version)
-            ok({"version": version, "pending_chunks": pending, "interactive": True})
-            return
-        result = mgr.create(chunk_id, version=version)
-        ok(
-            {
-                "version": result.version,
-                "source_chunk": result.source_chunk,
-                "task_ids": result.task_ids,
-                "files": result.files,
-            }
-        )
-    except TaskManagerError as exc:
-        fail(str(exc), code=exc.code)
-
-
-@task_group.command("list")
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def task_list(ctx, version_opt: str | None) -> None:
-    mgr = TaskManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-        return
-    tasks = mgr.list_tasks(version)
-    ok(
-        {
-            "version": version,
-            "tasks": [
-                {
-                    "id": t.id,
-                    "status": t.status,
-                    "source_chunk": t.source_chunk,
-                    "impl_refs": t.impl_refs,
-                    "depends_on": t.depends_on,
-                    "order_hint": t.order_hint,
-                }
-                for t in sorted(tasks, key=lambda x: x.order_hint)
-            ],
-        }
-    )
-
-
-@task_group.command("show")
-@click.argument("task_id")
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def task_show(ctx, task_id: str, version_opt: str | None) -> None:
-    mgr = TaskManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-        return
-    try:
-        task = mgr.load_task(version, task_id)
-        ok(_json_safe(task))
-    except TaskManagerError as exc:
-        fail(str(exc), code=exc.code)
-
-
-@task_group.command("execute")
-@click.argument("task_or_chunk", required=False)
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def task_execute(ctx, task_or_chunk: str | None, version_opt: str | None) -> None:
-    """Prepare task(s) for AI coding: mark executing + emit the focused context bundle.
-
-    This command does NOT itself write code — it hands the Skill layer a
-    minimal, token-focused context (impl_refs ∪ global_refs only) plus the
-    task steps. The Skill drives the AI, then calls `task complete`/`task fail`
-    to self-close. No separate `task confirm`.
-
-    No selector → all pending (created/failed) tasks, dependency-ordered.
-    """
-    mgr = TaskManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-        return
-    try:
-        tasks = mgr.resolve_tasks(version, task_or_chunk)
-        prepared = []
-        skipped = []
-        for t in tasks:
-            if t.status == "done":
-                skipped.append({"id": t.id, "reason": "already done"})
-                continue
-            if not mgr.deps_satisfied(version, t):
-                skipped.append({"id": t.id, "reason": f"blocked by {t.depends_on}"})
-                continue
-            mgr.begin_execute(version, t.id)
-            prepared.append(mgr.assemble_context(version, t))
-        ok(
-            {
-                "version": version,
-                "prepared": prepared,
-                "skipped": skipped,
-                "note": "Skill drives AI coding over each prepared task, then calls"
-                " `ait task complete <id>` / `ait task fail <id>`.",
-            }
-        )
-    except TaskManagerError as exc:
-        fail(str(exc), code=exc.code)
-
-
-@task_group.command("complete")
-@click.argument("task_id")
-@click.option("--commit", default=None, help="git commit hash to bind.")
-@click.option("--path", "paths", multiple=True, help="code file path(s) to bind.")
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def task_complete(ctx, task_id: str, commit: str | None, paths: tuple, version_opt: str | None) -> None:
-    """Mark a task done and bind its code refs (execute's self-close step)."""
-    mgr = TaskManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-        return
-    try:
-        task = mgr.complete(version, task_id, commit=commit, paths=list(paths))
-        ok(_json_safe(task))
-    except TaskManagerError as exc:
-        fail(str(exc), code=exc.code)
-
-
-@task_group.command("fail")
-@click.argument("task_id")
-@click.option("--version", "version_opt", default=None)
-@click.pass_context
-def task_fail(ctx, task_id: str, version_opt: str | None) -> None:
-    mgr = TaskManager(_root(ctx))
-    version = version_opt or mgr.versions.current()
-    if not version:
-        fail("No active version", code="NO_VERSION")
-        return
-    try:
-        task = mgr.fail(version, task_id)
-        ok(_json_safe(task))
-    except TaskManagerError as exc:
-        fail(str(exc), code=exc.code)
-
-
-# ═══════════════════════════════════════════════════════════
-# /ait:context ... (AI plumbing — not in the user-facing 7 but useful for Skills)
-# ═══════════════════════════════════════════════════════════
 
 
 @main.group("fsd")
@@ -1342,7 +888,7 @@ def acceptance_run(ctx) -> None:
 
 @main.group("prd")
 def prdv2_group() -> None:
-    """New-model PRD documents — the primary `prd` (legacy old-model moved to `prdv1`)."""
+    """New-model PRD documents."""
 
 
 @prdv2_group.command("create")
@@ -1451,24 +997,6 @@ def prdv2_revert(ctx, version_opt: str | None) -> None:
 # declarations, decomposes via fsd decompose, details via tdd create --parent.
 
 
-@main.command("context")
-@click.argument("target_id")
-@click.option(
-    "--scenario",
-    type=click.Choice(["prd-to-impl", "impl-edit"]),
-    default="prd-to-impl",
-)
-@click.option("--focus", is_flag=True, help="Return only L1 target chunk.")
-@click.option("--deps", "include_deps", is_flag=True, help="Populate L2 from SpecGraph dependencies.")
-@click.pass_context
-def context_cmd(ctx, target_id: str, scenario: str, focus: bool, include_deps: bool) -> None:
-    """Assemble L1+L2 context for AI prompting."""
-    asm = ContextAssembler(_root(ctx))
-    try:
-        ok(asm.assemble(target_id, scenario=scenario, focus=focus, include_deps=include_deps).to_dict())
-    except FileNotFoundError as exc:
-        fail(str(exc), code="NOT_FOUND")
-
 # ════════════════════════════════════════════════════════════
 # /ait:state
 # ════════════════════════════════════════════════════════════
@@ -1490,126 +1018,13 @@ def state_cmd(ctx, version_name: str | None, save: bool, fmt: str) -> None:
         fail(str(exc), code="NO_VERSION")
 
 
-@main.command("lint")
-@click.option(
-    "--scope",
-    type=str,
-    default="baseline",
-    help="baseline, version, or a concrete version such as v1.6.",
-)
-@click.option("--fix", is_flag=True, default=False, help="Apply mechanical PRD section fixes.")
-@click.pass_context
-def lint_cmd(ctx, scope: str, fix: bool) -> None:
-    """Validate PRD/impl formatting rules without changing version state."""
-    root = _root(ctx)
-    try:
-        payload, _ = _run_lint(root, scope=scope, fix=fix)
-    except VersionManagerError as exc:
-        fail(str(exc), code=getattr(exc, "code", "NO_VERSION"))
-        return
-    ok(
-        {
-            "passed": payload["ok"],
-            "violations": payload["violations"],
-            **{k: v for k, v in payload.items() if k not in ("ok", "violations")},
-        }
-    )
-
-
-def _run_lint(root: Path, *, scope: str, fix: bool) -> tuple[dict, int]:
-    idx = IndexManager(root)
-    vm = VersionManager(root)
-    baseline_ids = {c.id for c in idx.load_baseline().chunks}
-    files = _lint_files(root, scope, vm)
-    fixed_files: list[str] = []
-
-    if fix:
-        for path, base_dir, kind in files:
-            if kind != "prd":
-                continue
-            original = path.read_text(encoding="utf-8")
-            fixed, changed = fix_prd_text(original)
-            if changed:
-                path.write_text(fixed, encoding="utf-8")
-                fixed_files.append(str(path.relative_to(root)).replace("\\", "/"))
-
-    violations = []
-    for path, base_dir, kind in files:
-        file_rel = _lint_file_rel(path, base_dir)
-        text = path.read_text(encoding="utf-8")
-        if kind == "prd":
-            violations.extend(scan_prd_text(text, file_rel))
-        elif kind == "impl":
-            version_ids = _version_ids_for_lint(root, idx, path, scope)
-            violations.extend(
-                scan_impl_text(
-                    text,
-                    file_rel,
-                    baseline_ids=baseline_ids,
-                    version_ids=version_ids,
-                )
-            )
-
-    data = {
-        "ok": not violations,
-        "violations": violations_to_details(violations),
-        "fixed_files": fixed_files,
-    }
-    return data, 0 if not violations else 1
-
-
-def _lint_files(root: Path, scope: str, vm: VersionManager) -> list[tuple[Path, Path, str]]:
-    if scope == "baseline":
-        base = root / "docs"
-        return _collect_markdown_files(base, base)
-    versions: list[str]
-    if scope == "version":
-        versions = [m.version for m in vm.list_versions() if not m.merged_at]
-    elif is_version_scope(scope):
-        if not (root / "versions" / scope).exists():
-            raise VersionManagerError(f"Version {scope} not found", code="VERSION_NOT_FOUND")
-        versions = [scope]
-    else:
-        raise VersionManagerError(f"Unknown lint scope {scope}", code="INVALID_SCOPE")
-    files: list[tuple[Path, Path, str]] = []
-    for version in versions:
-        base = root / "versions" / version
-        files.extend(_collect_markdown_files(base, base))
-    return files
-
-
-def _collect_markdown_files(base: Path, base_dir: Path) -> list[tuple[Path, Path, str]]:
-    files: list[tuple[Path, Path, str]] = []
-    for kind in ("prd", "impl"):
-        folder = base / kind
-        if not folder.exists():
-            continue
-        for path in sorted(folder.rglob("*.md")):
-            files.append((path, base_dir, kind))
-    return files
-
-
-def _lint_file_rel(path: Path, base_dir: Path) -> str:
-    rel = path.relative_to(base_dir).with_suffix("")
-    return str(rel).replace("\\", "/")
-
-
-def _version_ids_for_lint(root: Path, idx: IndexManager, path: Path, scope: str) -> set[str]:
-    if scope == "baseline":
-        return set()
-    parts = path.relative_to(root).parts
-    version = parts[1] if len(parts) > 2 and parts[0] == "versions" else None
-    if not version:
-        return set()
-    return {c.id for c in idx.load_version_index(version).chunks}
-
 # ════════════════════════════════════════════════════════════
 # /ait:search / deps / impact
 # ════════════════════════════════════════════════════════════
 
 @main.command("search")
 @click.argument("query")
-@click.option("--scope", type=click.Choice(["prd", "impl", "all"]), default="all")
+@click.option("--scope", type=click.Choice(["prd", "all"]), default="all")
 @click.option("--regexp", is_flag=True)
 @click.pass_context
 def search_cmd(ctx, query: str, scope: str, regexp: bool) -> None:
@@ -1679,7 +1094,7 @@ def reindex_cmd(ctx) -> None:
 
 
 @main.command("baseline-summary")
-@click.option("--scope", type=click.Choice(["prd", "impl", "all"]), default="all")
+@click.option("--scope", type=click.Choice(["prd", "all"]), default="all")
 @click.option("--format", "fmt", type=click.Choice(["yaml", "json"]), default="yaml")
 @click.pass_context
 def baseline_summary_cmd(ctx, scope: str, fmt: str) -> None:
@@ -1691,8 +1106,6 @@ def baseline_summary_cmd(ctx, scope: str, fmt: str) -> None:
         return
     if scope == "prd":
         chunks = [c for c in chunks if c.id.startswith("prd-")]
-    elif scope == "impl":
-        chunks = [c for c in chunks if c.id.startswith("impl-")]
     data = [
         {"id": c.id, "heading": c.heading, "summary": c.summary}
         for c in chunks
@@ -1819,44 +1232,6 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             "relation_residue": new_model_violations_to_details(residue),
             "prd_requirement_residue": new_model_violations_to_details(prd_residue),
             "derives_residue": new_model_violations_to_details(derives_residue),
-        }
-    )
-
-# ═══════════════════════════════════════════════════════════
-# /ait:migrate-block-to-chunk — v1.1 → v1.2 one-shot data migration
-# ═══════════════════════════════════════════════════════════
-
-@main.command("migrate-block-to-chunk")
-@click.option("--dry-run", is_flag=True, help="Show what would change, don't write.")
-@click.pass_context
-def migrate_block_to_chunk_cmd(ctx, dry_run: bool) -> None:
-    """One-time migration: rename `block` to `chunk` in all .meta/*.yaml files."""
-    from .migrations import MigrationError, migrate_block_to_chunk
-
-    root = _root(ctx)
-    meta_dir = root / ".meta"
-    try:
-        report = migrate_block_to_chunk(meta_dir, dry_run=dry_run)
-    except MigrationError as exc:
-        fail(str(exc), code="MIGRATION_FAILED")
-        return
-    ok(
-        {
-            "skipped": report.skipped_reason is not None,
-            "skipped_reason": report.skipped_reason,
-            "dry_run": dry_run,
-            "yaml_rewritten": [
-                str(p.relative_to(root)).replace("\\", "/")
-                for p in report.yaml_files_rewritten
-            ],
-            "files_renamed": [
-                [
-                    str(o.relative_to(root)).replace("\\", "/"),
-                    str(n.relative_to(root)).replace("\\", "/"),
-                ]
-                for o, n in report.files_renamed
-            ],
-            "fields_renamed_count": report.fields_renamed_count,
         }
     )
 

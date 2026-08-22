@@ -1,4 +1,4 @@
-"""CLI output envelope: validate-new-model & lint emit the standard ok() shape.
+"""CLI output envelope: validate-new-model emits the standard ok() shape.
 
 Covers [TDD]-cli output contract — every stdout payload is wrapped as
 ``{"ok": true, "data": {...}}`` and ok() terminates the process by itself.
@@ -44,17 +44,6 @@ def test_validate_new_model_uses_ok_envelope(tmp_path: Path, monkeypatch):
     # no flat top-level violations key (envelope, not flat)
     assert "violations" not in p
 
-
-def test_lint_uses_ok_envelope(tmp_path: Path, monkeypatch):
-    root = _blank_project(tmp_path)
-    monkeypatch.chdir(tmp_path)
-    r = CliRunner().invoke(main, ["lint", "--scope", "baseline"], catch_exceptions=False)
-    assert r.exit_code == 0
-    p = _payload(r)
-    assert p["ok"] is True
-    assert p["data"]["passed"] is True
-    assert "violations" not in p          # lives under data, not flat
-    assert "violations" in p["data"]
 
 
 def test_ok_terminates_process(capsys):
