@@ -1234,6 +1234,7 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
     import tempfile
 
     from .codegen_brief import render as render_codegen_bundle
+    from .io_utils import atomic_write_text
 
     mgr = NewModelManager(_root(ctx))
     version = version_opt or mgr.versions.current()
@@ -1255,7 +1256,11 @@ def codegen_prepare(ctx, tdd_root_chunk_id: str, version_opt: str | None) -> Non
         out_dir = Path(tempfile.gettempdir()) / "ait-codegen"
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{safe_v}_{safe_t}.md"
-        out_path.write_text(payload, encoding="utf-8")
+        # v2.92: write via atomic_write_text (newline="\n") — Path.write_text's
+        # text mode turns LF into CRLF on Windows, so the on-disk bytes differed
+        # from the string the digest was taken over and the truncation check
+        # below could never match.
+        atomic_write_text(out_path, payload)
         ok({
             "bundle_path": str(out_path),
             "sha256": digest,
