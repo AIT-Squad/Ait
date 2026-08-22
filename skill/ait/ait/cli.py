@@ -50,7 +50,7 @@ from .search import search_chunks
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, sync_specgraph
 from .state import render_state, save_state
 from .task_manager import TaskManager, TaskManagerError
-from .validator import ValidationError, ValidationIssue
+from .validation import ValidationError, ValidationIssue
 from .version_manager import ConflictPolicy, VersionManager, VersionManagerError
 
 # Force UTF-8 stdout on Windows consoles so Chinese chars survive.

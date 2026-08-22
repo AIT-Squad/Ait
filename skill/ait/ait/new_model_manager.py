@@ -21,7 +21,7 @@ from .new_model_validator import (
 )
 from .specgraph import combined_specgraph, combined_view, load_specgraph, resolve_chunk_uri, specgraph_path, sync_specgraph
 from .schemas import DiscussionUsage
-from .validator import ValidationError, ValidationIssue
+from .validation import ValidationError, ValidationIssue
 from .version_manager import VersionManager
 
 TARGET_FILE_RE = re.compile(r"^\s*target_file:\s*(\S+)\s*$", re.MULTILINE)

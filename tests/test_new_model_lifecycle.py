@@ -11,7 +11,7 @@ from click.testing import CliRunner
 
 from ait.cli import main
 from ait.new_model_manager import NewModelManager
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager
 
 

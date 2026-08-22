@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from ait.chunk_parser import Chunk
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager, VersionManagerError
 
 

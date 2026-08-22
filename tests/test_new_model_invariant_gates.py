@@ -17,7 +17,7 @@ from ait.new_model_validator import (
     validate_invariants,
 )
 from ait.specgraph import CombinedView, ViewEdge, ViewNode, load_specgraph
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager, VersionManagerError
 
 

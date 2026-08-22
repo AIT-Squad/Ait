@@ -176,25 +176,7 @@ class IndexManager:
 
     def save_version_index(self, idx: VersionIndex) -> None:
         idx.stats = self._compute_stats(idx)
-        idx.stats.tasks_summary = self._compute_tasks_summary(idx.version_name)
         save_model(self.version_index_path(idx.version_name), idx)
-
-    def _compute_tasks_summary(self, version: str) -> dict[str, int]:
-        """Aggregate task status counts for a version.
-
-        Defensive: any failure (missing tasks dir, import cycle, malformed
-        YAML) yields empty summary so save_version_index never blows up.
-        """
-        summary = {"created": 0, "executing": 0, "done": 0, "failed": 0}
-        try:
-            from .task_manager import TaskManager
-
-            tm = TaskManager(self.root)
-            for t in tm.list_tasks(version):
-                summary[t.status] = summary.get(t.status, 0) + 1
-        except Exception:
-            pass
-        return summary
 
     def query_version(
         self, version: str, chunk_id: str

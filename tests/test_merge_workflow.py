@@ -11,7 +11,7 @@ from ait.chunk_parser import Chunk
 from ait.hash_utils import chunk_hash
 from ait.io_utils import atomic_write_text
 from ait.schemas import VersionChunkEntry
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager, VersionManagerError
 
 

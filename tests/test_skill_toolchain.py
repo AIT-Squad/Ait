@@ -18,7 +18,7 @@ from ait.new_model_validator import (
     validate_target_file_uniqueness,
 )
 from ait.specgraph import combined_specgraph, load_specgraph
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager
 
 

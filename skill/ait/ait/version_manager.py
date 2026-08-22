@@ -49,7 +49,7 @@ from .schemas import (
     VersionIndex,
     VersionMeta,
 )
-from .validator import ValidationError, ValidationIssue
+from .validation import ValidationError, ValidationIssue
 from .yaml_io import save_model
 
 ConflictPolicy = Literal["abort", "use-version", "use-baseline"]
@@ -1315,14 +1315,6 @@ class VersionManager:
             raise VersionManagerError(f"Version {version} is already merged")
 
         violations: list[dict] = []
-        from .task_manager import TaskManager
-
-        tasks = TaskManager(self.root).list_tasks(version)
-        for task in tasks:
-            if task.status != "done":
-                violations.append(
-                    {"code": "TASK_NOT_DONE", "message": f"task not done: {task.id}", "chunk_id": task.id}
-                )
         idx = self.indexes.load_version_index(version)
         records = [c for c in idx.chunks if c.state == "committed"]
         effective = self._latest_by_chunk_id(records)

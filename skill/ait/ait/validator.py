@@ -17,23 +17,11 @@ Severity = Literal["E1", "E2", "E3"]
 
 ID_FORMAT = re.compile(r"^(prd|impl)-[a-z0-9]+(-[a-z0-9]+)*$")
 
-@dataclass(frozen=True)
-class ValidationIssue:
-    severity: Severity
-    code: str
-    message: str
-    chunk_id: str | None = None
-    file: str | None = None
-
-
-class ValidationError(Exception):
-    """Raised when an E1 issue blocks the operation."""
-
-    def __init__(self, issues: list[ValidationIssue], details: dict | None = None):
-        self.issues = issues
-        self.details = details or {}
-        msg = "; ".join(f"{i.code}: {i.message}" for i in issues)
-        super().__init__(msg)
+# v2.93: these two moved to `validation` (foundation domain) so the new-model
+# mainline can import them without depending on this legacy module. Re-exported
+# here — rather than redefined — so both sides raise and catch the *same* class
+# during the retirement window. This module retires with the lint domain.
+from .validation import ValidationError, ValidationIssue  # noqa: E402
 
 
 def validate_id_format(chunk_id: str) -> ValidationIssue | None:

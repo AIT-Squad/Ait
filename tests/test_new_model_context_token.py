@@ -9,7 +9,7 @@ from click.testing import CliRunner
 
 from ait.cli import main
 from ait.schemas import DiscussionUsage
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager
 
 

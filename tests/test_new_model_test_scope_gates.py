@@ -16,7 +16,7 @@ import yaml
 
 from ait.new_model_manager import NewModelManager
 from ait.specgraph import load_specgraph
-from ait.validator import ValidationError
+from ait.validation import ValidationError
 from ait.version_manager import VersionManager
 
 PRD = (
