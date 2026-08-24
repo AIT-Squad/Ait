@@ -653,16 +653,15 @@ surfaces problems early.
 ### 11.4 Search & rebuild
 
 ```text
-/ait search "keyword" [--scope prd|impl|all] [--regexp]
-/ait baseline-summary [--scope prd|impl|all] [--format yaml|json]
+/ait search "keyword" [--scope prd|all] [--regexp]
+/ait baseline-summary [--scope prd|all] [--format yaml|json]
 /ait reindex                      # rescan docs/, rebuild baseline index + SpecGraph
-/ait context <chunk-id> [--scenario prd-to-impl|impl-edit] [--focus] [--deps]
-/ait lint [--scope baseline|version|v0.1] [--fix]
 /ait version status v0.1
 ```
 
 `reindex` preserves explicit edges (`source: new-model-cli`) — rescanning never loses
-relations.
+relations. (The legacy `lint` / `context` commands were retired in v2.94 along with the
+legacy pipeline; focused context assembly now lives solely in `/ait codegen prepare`.)
 
 ---
 

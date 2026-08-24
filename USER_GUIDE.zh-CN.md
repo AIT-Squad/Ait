@@ -587,15 +587,15 @@ tag 只是防 GC 的优化，**提交 SHA 才是权威锚点**：tag 丢失时 r
 ### 11.4 检索与重建
 
 ```text
-/ait search "关键词" [--scope prd|impl|all] [--regexp]
-/ait baseline-summary [--scope prd|impl|all] [--format yaml|json]
+/ait search "关键词" [--scope prd|all] [--regexp]
+/ait baseline-summary [--scope prd|all] [--format yaml|json]
 /ait reindex                      # 扫 docs/ 重建 baseline 索引 + SpecGraph
-/ait context <chunk-id> [--scenario prd-to-impl|impl-edit] [--focus] [--deps]
-/ait lint [--scope baseline|version|v0.1] [--fix]
 /ait version status v0.1
 ```
 
-`reindex` 会保留显式边（`source: new-model-cli`），不会因重扫而丢关系。
+`reindex` 会保留显式边（`source: new-model-cli`），不会因重扫而丢关系。（legacy 的
+`lint` / `context` 命令已随 v2.94 的 legacy 流水线退役；聚焦上下文组装现在只有
+`/ait codegen prepare` 一个通道。）
 
 ---
 

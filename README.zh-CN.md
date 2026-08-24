@@ -102,7 +102,7 @@ MEMORY.md 一类则更偏个人/会话记忆，本就不该承担项目全局约
 
 superpowers 关注**单次任务的执行纪律**（TDD、调试、计划、审查）——"这一次怎么做好"。
 GSD 关注**把一个项目建成**：规范驱动、跨会话的结构化制品（PROJECT/STATE/PLAN）、波浪式并行与原子提交，解决长对话上下文腐烂和 AI 擅自改码。
-Ait 关注**项目持续迭代**：用 SpecGraph 把 PRD/FSD/TDD 建成显式关系图，靠 context_assembler 精准裁剪上下文（同样解决长对话上下文腐化）、用 impact 做改动影响面评估。
+Ait 关注**项目持续迭代**：用 SpecGraph 把 PRD/FSD/TDD 建成显式关系图，靠 `/ait codegen prepare` 精准裁剪上下文（同样解决长对话上下文腐化）、用 impact 做改动影响面评估。
 ait 可以将文档和代码制品绑定，在 ait revert 时可以将文档和制品一并回滚。
 
 **Q: 与 Git 是什么关系？**

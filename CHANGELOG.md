@@ -9,6 +9,40 @@
 
 ---
 
+## v2.94–v2.96 — 2026-08-22 ~ 08-23 — legacy 全退役与瘦身
+
+- **v2.94 legacy 流水线全退役**（-5,225 行）：删除 `context_assembler.py`、`format_validator.py`、
+  `impl_manager.py`、`prd_manager.py`、`task_manager.py`、旧 `validator.py` 六个模块及 19 个对应
+  测试文件（e2e / lint / prd-commit / impl / task 全系）。CLI 命令面同步收窄：`lint`、`context`、
+  `impl`、`task`、`prdv1`（含 `migrate-block-to-chunk`）下线；`search` / `baseline-summary` 的
+  `--scope` 收窄为 `prd|all`。上下文组装职责收敛到 `codegen prepare` + `codegen_brief` 单通道。
+- **v2.95 Skill 与 sub-skills 瘦身**：sub-skills 从 6 个收至 3 个（保留 `ait-init-guide` /
+  `ait-resume` / `ait-state`，退役 `ait-discuss` / `ait-impl-discuss` / `ait-task-execute`——
+  后两者随 legacy 流水线失去存在依据）；`SKILL.md` 命令契约同步收窄（-38 行）；`state` 面板
+  去除 legacy 计数。
+- **v2.96 文档对齐**（docs-only）：`ref_*` 参考 chunk（new_model_format / chunk_parser /
+  merge_engine / overview 等）与 `[TDD]-skill_manifest` 按 legacy 退役后的实际状态改写，宿主仓
+  无代码变更。
+
+## v2.88–v2.93 — 2026-08-16 ~ 08-22 — 插件分发形态与交付完整性
+
+- **v2.88 双分发形态起步**：新增 `.claude-plugin/plugin.json`（Claude Code 插件清单）与
+  `agents/codegen-generator.md` codegen 子 agent——只信 bundle、写入前 sha256 校验、只改
+  `target_file`、最小必要修改、歧义如实报告。
+- **v2.89 dual_repo 测试修复**：`_remote_log` 对 bare 仓显式传 `main` 分支（bare 仓 HEAD 默认
+  `master`，省略会读到空分支）——修复长期存在的两例环境性失败。
+- **v2.90 入口解析链**：`skill_dir` 解析改为三级优先——`AIT_SKILL_DIR`（显式覆盖）>
+  `CLAUDE_PLUGIN_ROOT`（插件形态，宿主注入）> `~/.claude/skills/ait`（Skill 形态兜底）；
+  `SKILL.md` 记录双形态入口。
+- **v2.91 安装占位符回填**：源码 `SKILL.md` 的 `{{AIT_ENTRY}}` 在安装时回填为真实入口路径
+  （Win 下 `ait.cmd`），自定义 `--prefix` 也能拿到正确 wrapper。
+- **v2.92 codegen bundle 完整性测试**：sha256 / 字节数断言必须**二进制读**落盘文件——按文本读
+  会隐式 CRLF→LF 转换从而掩盖缺陷（v2.92 之前正是因此长期未被发现）。
+- **v2.93 校验记录抽取**：新增 `validation.py`（纯数据模块：E1 阻断 / E2 警告 / E3 提示三级
+  校验记录与错误类型，无项目内依赖、不引入环），`validator` / CLI 层渲染逻辑去重。
+
+---
+
 ## v2.86–v2.87 — 2026-08-06 — 版本可见性与写时拦截收口
 
 - **v2.86 `ait --version` 动态化**：顶层 `--version` 从静态包版本改为显示当前项目的文档版本

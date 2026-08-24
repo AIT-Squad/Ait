@@ -119,7 +119,7 @@ superpowers is about **per-task execution discipline** (TDD, debugging, planning
 cross-session structured artifacts (PROJECT/STATE/PLAN), wave-based parallelism and atomic
 commits — fixing context rot in long sessions and AI editing code without permission.
 AIT focuses on **continuous project iteration**: it builds PRD/FSD/TDD into an explicit
-SpecGraph, uses context_assembler to trim context precisely (also fixing context rot in long
+SpecGraph, uses `/ait codegen prepare` to trim context precisely (also fixing context rot in long
 sessions) and impact to assess change blast radius. AIT can bind docs and code artifacts
 together, and when AIT reverts it rolls back both docs and artifacts together.
 
