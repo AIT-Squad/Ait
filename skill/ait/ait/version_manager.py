@@ -1461,6 +1461,7 @@ class VersionManager:
         from .new_model_validator import (
             validate_invariants,
             validate_prd_fsd_tdd_graph,
+            validate_target_file_existence,
         )
         from .specgraph import combined_specgraph, combined_view
 
@@ -1469,7 +1470,8 @@ class VersionManager:
         view = combined_view(self.root, version)
         targets = self._collect_new_model_target_files(view)
 
-        scopes = config_store.read_config(self.root / ".meta").get("artifact_scopes", {})
+        config = config_store.read_config(self.root / ".meta")
+        scopes = config.get("artifact_scopes", {})
         suffixes = frozenset(s["parent_suffix"] for s in scopes.values())
         exempt = frozenset(
             cid for s in scopes.values() for cid in s.get("exempt_test_splits", [])
@@ -1487,6 +1489,23 @@ class VersionManager:
             violations.append(v)
         if scopes:
             violations += self._scope_coverage_violations(scopes, targets)
+
+        # v2.96: the mirror of invariant ③. Coverage asks "does this artifact
+        # have an owner"; this asks "does the artifact an owner claims still
+        # exist" — without it a TDD outlives the file it was written for, which
+        # is how 10 retired TDDs survived three versions. Defaults to "warn" so
+        # landing the gate cannot make an existing version un-confirmable
+        # (invariant_governance AC#10/#12); this project sets "block" now that
+        # its own residue is cleared.
+        host_root = self.root.parent
+        violations += validate_target_file_existence(
+            [
+                (chunk_id, getattr(view.nodes.get(chunk_id), "file", None), target_file)
+                for chunk_id, target_file in targets
+            ],
+            exists=lambda p: (host_root / p).exists(),
+            enforcement=(config.get("target_file_existence") or {}).get("enforcement", "warn"),
+        )
         return violations
 
     def _scope_coverage_violations(

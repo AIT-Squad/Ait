@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from .chunk_parser import EXTRACT_END_PATTERN, EXTRACT_OPEN_PATTERN, REF_PATTERN
@@ -155,6 +156,52 @@ def validate_target_file_uniqueness(
                     file=sorted(owners)[0][1],
                 )
             )
+    return violations
+
+
+TDD_TARGET_FILE_MISSING = "TDD_TARGET_FILE_MISSING"
+
+
+def validate_target_file_existence(
+    entries: list[tuple[str, str | None, str | None]],
+    *,
+    exists: Callable[[str], bool],
+    enforcement: str | None = None,
+) -> list[NewModelViolation]:
+    """Report TDDs whose declared ``target_file`` no longer exists.
+
+    ``entries`` is the same ``(chunk_id, file, target_file)`` shape that
+    :func:`validate_target_file_uniqueness` consumes, so a caller collects once
+    and runs both. This is the mirror of invariant ③: uniqueness/coverage ask
+    "does this artifact have exactly one owner", this asks "does the artifact
+    an owner claims still exist". Without it a TDD outlives the file it was
+    written for and the spec tree keeps claiming a deleted artifact.
+
+    ``exists`` is injected by the caller (version domain resolves against the
+    host root) — this module does no disk IO. Paths are probed exactly as
+    declared: :func:`normalize_target_file`'s casefold exists for identity
+    comparison, and reusing it here would call a missing path present on a
+    case-sensitive filesystem. A probe that raises propagates (fail-closed);
+    swallowing it would read as "present" and wave the violation through.
+
+    TDDs with no ``target_file`` are skipped — that is the separate
+    ``TDD_TARGET_FILE_REQUIRED`` concern, not a second report of it.
+    """
+    violations: list[NewModelViolation] = []
+    for chunk_id, file, target_file in entries:
+        if not target_file:
+            continue
+        if exists(target_file):
+            continue
+        violations.append(
+            NewModelViolation(
+                code=TDD_TARGET_FILE_MISSING,
+                message=f"{chunk_id} declares target_file '{target_file}' which no longer exists",
+                chunk_id=chunk_id,
+                file=file,
+                enforcement=enforcement,
+            )
+        )
     return violations
 
 

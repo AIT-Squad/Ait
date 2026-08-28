@@ -9,7 +9,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
+
 from ait.chunk_parser import parse_file
+from ait.new_model_manager import NewModelManager
 from ait.schemas import VersionChunkEntry
 from ait.specgraph import sync_specgraph
 from ait.version_manager import VersionManager
@@ -154,3 +157,119 @@ def test_delete_prd_chunk_routes_to_global(tmp_path: Path):
     assert global_path.exists(), "prd/global.md must remain as the single PRD file"
     global_text = global_path.read_text(encoding="utf-8")
     assert "@id:prd-existing" not in global_text
+
+
+# ── v2.96: target_file existence reconciliation in gate() ──────────────────
+#
+# The mirror of invariant ③: coverage asks whether an artifact has an owner,
+# this asks whether the artifact an owner claims still exists. Enforcement
+# defaults to "warn" so landing the gate cannot make an existing version
+# un-confirmable (invariant_governance AC#10/#12).
+
+_TF_PRD = "<!-- @id:[PRD]-app -->\n## App\n"
+_TF_FSD = (
+    "<!-- @id:[FSD]-app -->\n## App design\n\n"
+    "<!-- @id:[FSD]-app:feat -->\n## Feat\n"
+)
+
+
+def _tf_set_enforcement(root: Path, enforcement: str | None) -> None:
+    """Write config.yaml; None omits the key entirely (the default path)."""
+    config: dict = {}
+    if enforcement is not None:
+        config["target_file_existence"] = {"enforcement": enforcement}
+    (root / ".meta" / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
+
+
+def _tf_set_phase(root: Path, version: str, phase: str) -> None:
+    vm = VersionManager(root)
+    meta = vm.load_version_meta(version)
+    meta.phase = phase  # type: ignore[assignment]
+    vm.save_version_meta(meta)
+
+
+def _tf_ready(tmp_path: Path, target_file: str) -> Path:
+    """PRD→FSD→TDD all confirmed, with the TDD declaring `target_file`.
+
+    No artifact_scopes are configured, so the scope gates stay vacuous and only
+    the existence reconciliation is under test.
+    """
+    root = tmp_path / "project-docs"
+    (root / "docs").mkdir(parents=True)
+    (root / ".meta" / "versions").mkdir(parents=True)
+    (root / ".meta" / "changes").mkdir(parents=True)
+    VersionManager(root).create("v9.0")
+
+    mgr = NewModelManager(root)
+    _tf_set_phase(root, "v9.0", "prd-creating")
+    mgr.create_prd("v9.0", "[PRD]-app", _TF_PRD, skip_context=True)
+    mgr.confirm_prd_layer("v9.0")
+    mgr.create_fsd("v9.0", "[FSD]-app", _TF_FSD, skip_context=True)
+    mgr._add_edge("v9.0", "[PRD]-app", "[FSD]-app", "derives")
+    mgr.confirm_fsd_layer("v9.0")
+    mgr.create_tdd(
+        "v9.0", "[TDD]-app",
+        f"<!-- @id:[TDD]-app -->\n## App TDD\n\n```yaml\ntarget_file: {target_file}\n```\n",
+        parent_chunk_id="[FSD]-app:feat", skip_context=True,
+    )
+    mgr.confirm_tdd_layer("v9.0")
+    _tf_set_phase(root, "v9.0", "tdd-confirm")
+    return root
+
+
+def test_missing_target_file_blocks_when_enforcement_block(tmp_path: Path):
+    root = _tf_ready(tmp_path, "src/gone.py")
+    _tf_set_enforcement(root, "block")
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    assert result["passed"] is False
+    assert any(
+        v["code"] == "TDD_TARGET_FILE_MISSING" and "src/gone.py" in v["message"]
+        for v in result["violations"]
+    )
+
+
+def test_missing_target_file_only_warns_when_enforcement_warn(tmp_path: Path):
+    root = _tf_ready(tmp_path, "src/gone.py")
+    _tf_set_enforcement(root, "warn")
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    assert "TDD_TARGET_FILE_MISSING" not in [v["code"] for v in result["violations"]]
+    assert "TDD_TARGET_FILE_MISSING" in [w["code"] for w in result["warnings"]]
+
+
+def test_missing_target_file_defaults_to_warn_when_unconfigured(tmp_path: Path):
+    """Landing the gate must not make an existing version un-confirmable."""
+    root = _tf_ready(tmp_path, "src/gone.py")
+    _tf_set_enforcement(root, None)
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    assert "TDD_TARGET_FILE_MISSING" not in [v["code"] for v in result["violations"]]
+    assert "TDD_TARGET_FILE_MISSING" in [w["code"] for w in result["warnings"]]
+
+
+def test_no_violation_when_target_file_exists(tmp_path: Path):
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "here.py").write_text("", encoding="utf-8")
+    root = _tf_ready(tmp_path, "src/here.py")
+    _tf_set_enforcement(root, "block")
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    all_codes = [v["code"] for v in result["violations"]] + [
+        w["code"] for w in result["warnings"]
+    ]
+    assert "TDD_TARGET_FILE_MISSING" not in all_codes
+
+
+def test_reconciliation_never_creates_the_missing_artifact(tmp_path: Path):
+    root = _tf_ready(tmp_path, "src/gone.py")
+    _tf_set_enforcement(root, "block")
+
+    VersionManager(root).gate("v9.0", check_host=False)
+
+    assert not (tmp_path / "src" / "gone.py").exists()
+    assert not (tmp_path / "src").exists()

@@ -32,6 +32,7 @@ from .new_model_validator import (
     scan_baseline_relation_residue,
     scan_derives_residue,
     validate_prd_fsd_tdd_graph,
+    validate_target_file_existence,
     validate_target_file_uniqueness,
 )
 from .new_model_validator import violations_to_details as new_model_violations_to_details
@@ -1200,9 +1201,8 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             version = None
     graph = combined_specgraph(root, version) if version else load_specgraph(root, "baseline")
     violations = validate_prd_fsd_tdd_graph(graph)
-    violations += validate_target_file_uniqueness(
-        NewModelManager(root).collect_tdd_target_files(graph)
-    )
+    tdd_targets = NewModelManager(root).collect_tdd_target_files(graph)
+    violations += validate_target_file_uniqueness(tdd_targets)
     # relation birth boundary closure: one-shot baseline sweep for residual
     # @ref/@extract/depends_on-derives declarations left in new-model docs
     # bodies. Report-only — never gates `ok`/exit code.
@@ -1224,6 +1224,12 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
     # object already built above (report-only, independent field).
     fsd_contents = [item for item in contents if item[0].startswith("fsd/")]
     derives_residue = scan_derives_residue(combined_view(root, version), fsd_contents)
+    # v2.96: the same collected entries answer the mirror question — does the
+    # artifact each TDD claims still exist. Report-only like the fields above;
+    # applying warn/block is the confirm gate's job, so no enforcement here.
+    target_file_missing = validate_target_file_existence(
+        tdd_targets, exists=lambda p: (root.parent / p).exists()
+    )
     ok(
         {
             "version": version or "baseline",
@@ -1232,6 +1238,7 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
             "relation_residue": new_model_violations_to_details(residue),
             "prd_requirement_residue": new_model_violations_to_details(prd_residue),
             "derives_residue": new_model_violations_to_details(derives_residue),
+            "target_file_missing": new_model_violations_to_details(target_file_missing),
         }
     )
 
