@@ -34,7 +34,7 @@ def test_rebuild_preserves_existing_summary(tmp_path: Path):
         ),
     )
 
-    baseline, _ = mgr.rebuild_baseline()
+    baseline = mgr.rebuild_baseline()
 
     assert baseline.chunks[0].summary == "旧摘要"
 
@@ -60,6 +60,6 @@ def test_rebuild_picks_markdown_over_index(tmp_path: Path):
         ),
     )
 
-    baseline, _ = mgr.rebuild_baseline()
+    baseline = mgr.rebuild_baseline()
 
     assert baseline.chunks[0].summary == "新摘要"

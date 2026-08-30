@@ -443,7 +443,7 @@ class InitManager:
                 created.append(self._rel(readme))
 
         # 4. Rebuild baseline index + baseline specgraph (global chunks get category).
-        baseline, _links = self.indexes.rebuild_baseline()
+        baseline = self.indexes.rebuild_baseline()
         from .specgraph import sync_specgraph
 
         graph = sync_specgraph(self.root)
@@ -539,7 +539,7 @@ class InitManager:
         #    derives edge as an explicit specgraph edge (v2.31: no @ref in
         #    doc body). source="new-model-cli" so _preserve_explicit_edges keeps
         #    it across every reindex, exactly like fsd decompose edges.
-        baseline, _links = self.indexes.rebuild_baseline()
+        baseline = self.indexes.rebuild_baseline()
         from .specgraph import load_specgraph, specgraph_path, sync_specgraph
 
         sync_specgraph(self.root)
@@ -634,7 +634,7 @@ class InitManager:
                 created.append(self._rel(readme))
 
         # Refresh indexes + specgraph after writing new globals.
-        baseline, _links = self.indexes.rebuild_baseline()
+        baseline = self.indexes.rebuild_baseline()
         from .specgraph import sync_specgraph
 
         graph = sync_specgraph(self.root)

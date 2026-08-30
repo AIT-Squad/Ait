@@ -75,7 +75,7 @@ def test_bootstrap_failed_when_roots_missing(tmp_path: Path, monkeypatch):
     # 让 rebuild_baseline 返回空基线,模拟解析失败
     empty = mgr.indexes.load_baseline()
     empty.chunks = []
-    monkeypatch.setattr(mgr.indexes, "rebuild_baseline", lambda: (empty, None))
+    monkeypatch.setattr(mgr.indexes, "rebuild_baseline", lambda: empty)
     with pytest.raises(InitManagerError) as exc:
         mgr.run(new_model=True, project_name="proj")
     assert exc.value.code == "BOOTSTRAP_FAILED"

@@ -89,10 +89,10 @@ def test_build_baseline_matches_demo(demo_root: Path):
 
 def test_rebuild_baseline_writes_files(demo_root: Path):
     mgr = IndexManager(demo_root)
-    baseline, links = mgr.rebuild_baseline()
+    baseline = mgr.rebuild_baseline()
     assert mgr.baseline_index_path().exists()
     assert baseline.chunks, "baseline must not be empty"
-    assert links.links == []
+    assert not mgr.baseline_index_path().with_name("links-index.yaml").exists()
 
     graph = sync_specgraph(demo_root)
     assert any(edge.rel == "implements" for edge in graph.edges)

@@ -19,8 +19,6 @@ from .io_utils import strip_md_ext, to_posix_rel
 from .schemas import (
     BaselineChunkEntry,
     BaselineIndex,
-    LinkEntry,
-    LinksIndex,
     VersionChunkEntry,
     VersionIndex,
     VersionIndexStats,
@@ -36,7 +34,6 @@ class IndexManager:
     """Read and write the three index files under .meta/."""
 
     BASELINE_FILE = "chunks-index.yaml"
-    LINKS_FILE = "links-index.yaml"
 
     def __init__(self, project_root: Path):
         self.root = project_root.resolve()
@@ -50,9 +47,6 @@ class IndexManager:
 
     def baseline_index_path(self) -> Path:
         return self.meta_dir / self.BASELINE_FILE
-
-    def links_index_path(self) -> Path:
-        return self.meta_dir / self.LINKS_FILE
 
     def version_dir(self, version: str) -> Path:
         return self.versions_dir / version
@@ -107,37 +101,16 @@ class IndexManager:
             chunks=entries,
         )
 
-    def build_links(self) -> LinksIndex:
-        """Scan docs/ + all versions/ and aggregate all @ref links.
+    def rebuild_baseline(self) -> BaselineIndex:
+        """Build + persist the baseline chunks-index.
 
-        Each link is recorded as `from: {file}#{chunk-id}`, `to: ...`, `rel: ...`.
-        Baseline-only — versions' refs are merged in on `version merge`.
-        """
-        links: list[LinkEntry] = []
-        for pf in self.scan_dir(self.docs_dir):
-            for ref in pf.refs:
-                links.append(
-                    LinkEntry.model_validate(
-                        {
-                            "from": f"{pf.file}#{ref.source_chunk_id}",
-                            "to": f"{ref.target_file}#{ref.target_chunk_id}",
-                            "rel": ref.rel,
-                        }
-                    )
-                )
-        return LinksIndex(updated=datetime.now(timezone.utc), links=links)
-
-    def rebuild_baseline(self) -> tuple[BaselineIndex, LinksIndex]:
-        """Build + persist baseline chunks-index.
-
-        NOTE (redesign): links-index is DEPRECATED — all relation queries now
-        go through specgraph. We still return a LinksIndex object for backward
-        compatibility with callers, but no longer write links-index.yaml to disk.
+        v3.0: the links-index half is gone. Relation queries have gone through
+        specgraph for a long time and links-index.yaml stopped being written
+        well before that; the tuple return was the last shape left over from it.
         """
         baseline = self.build_baseline()
         save_model(self.baseline_index_path(), baseline)
-        # links-index.yaml intentionally not written (deprecated).
-        return baseline, LinksIndex()
+        return baseline
 
     def load_baseline(self) -> BaselineIndex:
         path = self.baseline_index_path()
@@ -147,12 +120,6 @@ class IndexManager:
             return load_model(path, BaselineIndex)
         except PydanticValidationError as exc:
             raise IndexSchemaViolation(f"{path}: {exc}") from exc
-
-    def load_links(self) -> LinksIndex:
-        path = self.links_index_path()
-        if not path.exists():
-            return LinksIndex()
-        return load_model(path, LinksIndex)
 
     def query_baseline(self, chunk_id: str) -> BaselineChunkEntry | None:
         idx = self.load_baseline()

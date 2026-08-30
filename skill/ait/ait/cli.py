@@ -1063,7 +1063,7 @@ def reindex_cmd(ctx) -> None:
     """
     root = _root(ctx)
     mgr = IndexManager(root)
-    baseline, _links = mgr.rebuild_baseline()
+    baseline = mgr.rebuild_baseline()
     graph = sync_specgraph(root)
 
     # v1.5: refresh every version index so tasks_summary stays current.

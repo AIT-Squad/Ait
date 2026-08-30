@@ -3,10 +3,8 @@
 Five schemas (covering project-docs/.meta/*.yaml):
     - ProjectConfig       — .meta/config.yaml
     - BaselineIndex       — .meta/chunks-index.yaml
-    - LinksIndex          — .meta/links-index.yaml
     - VersionIndex        — .meta/chunks-index-{vX.Y}.yaml
     - VersionMeta         — .meta/versions/{vX.Y}.yaml
-    - RequirementMeta     — .meta/requirements/req-{N}.yaml
     - ChangeRecord        — .meta/changes/chg-{N}.yaml
 
 Field conventions follow project-docs/docs/prd/index-system.md.
@@ -33,9 +31,6 @@ VersionPhase = Literal[
     "merged",
 ]
 TaskStatus = Literal["created", "executing", "done", "failed"]
-ReqStatus = Literal[
-    "draft", "prd_draft", "prd_confirmed", "impl_progress", "impl_done", "merged"
-]
 ChangeType = Literal["ADD", "MODIFY", "DELETE"]
 
 
@@ -105,20 +100,6 @@ class BaselineIndex(StrictModel):
 # ─────────────────────────────────────────────────────────────
 # links-index.yaml
 # ─────────────────────────────────────────────────────────────
-
-
-class LinkEntry(StrictModel):
-    from_: str = Field(alias="from")
-    to: str
-    rel: str
-
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
-
-
-class LinksIndex(StrictModel):
-    version: int = 1
-    updated: datetime | None = None
-    links: list[LinkEntry] = Field(default_factory=list)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -305,42 +286,6 @@ class VersionMeta(StrictModel):
     revert_anchor: RevertAnchor | None = None
     recovery_journal: RecoveryJournal | None = None
     historical_anchor_repairs: list[HistoricalAnchorRepair] = Field(default_factory=list)
-
-
-# ─────────────────────────────────────────────────────────────
-# .meta/requirements/req-{N}.yaml
-# ─────────────────────────────────────────────────────────────
-
-
-class PrdChunkSummary(StrictModel):
-    id: str
-    heading: str
-    level: int
-    impl_status: Literal["pending", "in_progress", "done"] = "pending"
-
-class ImplChunkDraft(StrictModel):
-    id: str
-    file: str
-    heading: str
-    layer: Literal["api", "data", "workflow", "other"] = "other"
-    content: str
-
-class ImplDraftBundle(StrictModel):
-    prd_id: str
-    impl_chunks: list[ImplChunkDraft] = Field(default_factory=list)
-
-class RequirementMeta(StrictModel):
-    id: str
-    title: str
-    status: ReqStatus = "draft"
-    created_at: datetime
-    updated_at: datetime
-    author: str = ""
-    assigned_version: str | None = None
-    confirmed_at: datetime | None = None
-    prd_draft: str = ""
-    prd_chunks: list[PrdChunkSummary] = Field(default_factory=list)
-    impl_drafts: list[ImplDraftBundle] = Field(default_factory=list)
 
 
 # ─────────────────────────────────────────────────────────────
