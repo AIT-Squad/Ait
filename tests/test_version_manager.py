@@ -243,3 +243,48 @@ def test_add_chunk_refuses_to_overwrite_committed(vm_root: Path):
     with pytest.raises(ValidationError) as exc:
         vm.add_chunk("v1.1", chunk=_make_chunk("prd-lock-c", "C again"))
     assert exc.value.issues[0].code == "CHUNK_LOCKED"
+
+# ── v2.97: change-ledger id allocation ─────────────────────────────────────
+#
+# Ids were picked by lexicographic sort of the filenames, so once the ledger
+# crossed 999 the "last" name was chg-999, not chg-1000 — every later commit
+# re-issued an id that already existed and overwrote the record. Allocation is
+# numeric so a digit-count change cannot collide.
+
+def _seed_ledger(root: Path, numbers: list[int]) -> None:
+    changes = root / ".meta" / "changes"
+    for n in numbers:
+        (changes / f"chg-{n:03d}.yaml").write_text(f"id: chg-{n:03d}\n", encoding="utf-8")
+
+
+def test_next_chg_id_starts_at_one_on_empty_ledger(vm_root: Path):
+    assert VersionManager(vm_root)._next_chg_id() == "chg-001"
+
+
+def test_next_chg_id_increments_within_three_digits(vm_root: Path):
+    _seed_ledger(vm_root, list(range(1, 42)))
+    assert VersionManager(vm_root)._next_chg_id() == "chg-042"
+
+
+def test_next_chg_id_does_not_reissue_after_crossing_999(vm_root: Path):
+    """chg-999 sorts after chg-1000 as text — the id must still be free."""
+    _seed_ledger(vm_root, list(range(1, 1001)))
+    assert VersionManager(vm_root)._next_chg_id() == "chg-1001"
+
+
+def test_next_chg_id_keeps_climbing_past_the_boundary(vm_root: Path):
+    _seed_ledger(vm_root, list(range(1, 1003)))
+    assert VersionManager(vm_root)._next_chg_id() == "chg-1003"
+
+
+def test_next_chg_id_never_returns_an_occupied_id(vm_root: Path):
+    _seed_ledger(vm_root, list(range(1, 1001)))
+    allocated = VersionManager(vm_root)._next_chg_id()
+    assert not (vm_root / ".meta" / "changes" / f"{allocated}.yaml").exists()
+
+
+def test_next_chg_id_ignores_unparsable_ledger_names(vm_root: Path):
+    """A stray name must not drive the count into an occupied id."""
+    _seed_ledger(vm_root, [1, 2, 3])
+    (vm_root / ".meta" / "changes" / "chg-draft.yaml").write_text("x\n", encoding="utf-8")
+    assert VersionManager(vm_root)._next_chg_id() == "chg-004"

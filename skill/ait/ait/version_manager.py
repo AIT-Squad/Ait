@@ -2211,16 +2211,24 @@ class VersionManager:
             pass
 
     def _next_chg_id(self) -> str:
+        """Allocate the next free change-record id.
+
+        Ordering is numeric, not lexicographic: once the ledger crosses 999 the
+        name ``chg-999`` sorts *after* ``chg-1000``, so picking the textually
+        last file re-issued an id that already existed and silently overwrote
+        that record — and because ``commit()`` allocates per staged chunk, every
+        chunk in one commit collapsed onto the same id. Names that don't parse
+        are skipped rather than counted; a count-based fallback can also land on
+        an occupied id.
+        """
         self.changes_dir.mkdir(parents=True, exist_ok=True)
-        existing = sorted(self.changes_dir.glob("chg-*.yaml"))
-        if not existing:
-            return "chg-001"
-        last = existing[-1].stem  # chg-NNN
-        try:
-            n = int(last.split("-")[1]) + 1
-        except (IndexError, ValueError):
-            n = len(existing) + 1
-        return f"chg-{n:03d}"
+        highest = 0
+        for path in self.changes_dir.glob("chg-*.yaml"):
+            try:
+                highest = max(highest, int(path.stem.split("-", 1)[1]))
+            except (IndexError, ValueError):
+                continue
+        return f"chg-{highest + 1:03d}"
 
     def _build_change_record(
         self, version: str, entry: VersionChunkEntry, message: str
