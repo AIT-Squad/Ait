@@ -1516,7 +1516,13 @@ class VersionManager:
         derives_enforcement = (config.get("derives_residue") or {}).get("enforcement", "warn")
         violations += [
             _dc_replace(v, enforcement=derives_enforcement)
-            for v in scan_derives_residue(view, self._collect_fsd_contents(view))
+            for v in scan_derives_residue(
+                view,
+                self._collect_fsd_contents(view),
+                # same set TEST_SPLIT_UNCOVERED uses, so the two gates cannot
+                # disagree about what counts as an acceptance node
+                acceptance_suffixes=tuple(sorted(suffixes)),
+            )
         ]
         return violations
 

@@ -1223,7 +1223,17 @@ def specgraph_validate_new_model(ctx, version_opt: str | None) -> None:
     # needs edge lookups, so it takes the combined_view rather than the graph
     # object already built above (report-only, independent field).
     fsd_contents = [item for item in contents if item[0].startswith("fsd/")]
-    derives_residue = scan_derives_residue(combined_view(root, version), fsd_contents)
+    # v2.99: which suffixes mark acceptance nodes is project config, not a
+    # constant in the validator — read it here and pass it in (derives_mapping
+    # AC#6). Unconfigured means an empty set, never a guessed ":TEST".
+    scopes = config_store.read_config(root / ".meta").get("artifact_scopes", {}) or {}
+    acceptance_suffixes = tuple(sorted(
+        {s["parent_suffix"] for s in scopes.values() if s.get("parent_suffix")}
+    ))
+    derives_residue = scan_derives_residue(
+        combined_view(root, version), fsd_contents,
+        acceptance_suffixes=acceptance_suffixes,
+    )
     # v2.96: the same collected entries answer the mirror question — does the
     # artifact each TDD claims still exist. Report-only like the fields above;
     # applying warn/block is the confirm gate's job, so no enforcement here.

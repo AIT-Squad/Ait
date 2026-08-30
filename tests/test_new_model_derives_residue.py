@@ -124,3 +124,78 @@ def test_cli_no_residue_when_edge_present(tmp_path: Path, monkeypatch):
     runner = CliRunner()
     data = _payload(runner.invoke(main, ["specgraph", "validate-new-model"]))["data"]
     assert data["derives_residue"] == []
+
+
+# ── v2.99: legal derives targets only ─────────────────────────────────────
+#
+# The scan used to judge every fsd/ chunk alike. A requirement can only derive
+# to an FSD split — never to a root (that shape does not exist) and never to an
+# acceptance node (traceability AC#2). Reporting those produced findings nobody
+# could fix, which kept the count from ever reaching zero.
+
+_MENTION = "承接 [PRD]-app:feat 的能力契约"
+
+
+def test_fsd_root_chunk_is_not_a_derives_target():
+    view = _StubView({})
+    out = scan_derives_residue(view, [("fsd/[FSD]-app", "[FSD]-app", _MENTION)])
+    assert out == []
+
+
+def test_fsd_root_skipped_regardless_of_suffix_argument():
+    view = _StubView({})
+    contents = [("fsd/[FSD]-app", "[FSD]-app", _MENTION)]
+    assert scan_derives_residue(view, contents, acceptance_suffixes=(":TEST",)) == []
+
+
+def test_acceptance_node_skipped_when_suffix_supplied():
+    view = _StubView({})
+    contents = [("fsd/[FSD]-app", "[FSD]-app:TEST", _MENTION)]
+    assert scan_derives_residue(view, contents, acceptance_suffixes=(":TEST",)) == []
+
+
+def test_acceptance_node_still_judged_when_no_suffix_supplied():
+    """The scan must not guess which suffixes are acceptance nodes."""
+    view = _StubView({})
+    contents = [("fsd/[FSD]-app", "[FSD]-app:TEST", _MENTION)]
+    out = scan_derives_residue(view, contents)
+    assert [v.chunk_id for v in out] == ["[FSD]-app:TEST"]
+
+
+def test_multiple_suffixes_are_each_matched():
+    view = _StubView({})
+    contents = [
+        ("fsd/[FSD]-app", "[FSD]-app:TEST", _MENTION),
+        ("fsd/[FSD]-app", "[FSD]-app:ACCEPT", _MENTION),
+        ("fsd/[FSD]-app", "[FSD]-app:feat", _MENTION),
+    ]
+    out = scan_derives_residue(view, contents, acceptance_suffixes=(":TEST", ":ACCEPT"))
+    assert [v.chunk_id for v in out] == ["[FSD]-app:feat"]
+
+
+def test_suffix_matches_on_end_not_substring():
+    view = _StubView({})
+    contents = [("fsd/[FSD]-app", "[FSD]-app:TESTING_helper", _MENTION)]
+    out = scan_derives_residue(view, contents, acceptance_suffixes=(":TEST",))
+    assert [v.chunk_id for v in out] == ["[FSD]-app:TESTING_helper"]
+
+
+def test_ordinary_splits_are_still_judged():
+    """Container splits and capability splits are both legal targets."""
+    view = _StubView({})
+    contents = [
+        ("fsd/[FSD]-ait", "[FSD]-ait:new_model", _MENTION),      # container split
+        ("fsd/[FSD]-app", "[FSD]-app:feat", _MENTION),           # capability split
+    ]
+    out = scan_derives_residue(view, contents, acceptance_suffixes=(":TEST",))
+    assert {v.chunk_id for v in out} == {"[FSD]-ait:new_model", "[FSD]-app:feat"}
+
+
+def test_narrowing_does_not_hide_a_real_missing_edge():
+    view = _StubView({"[FSD]-app:other": ["[PRD]-app:feat"]})
+    contents = [
+        ("fsd/[FSD]-app", "[FSD]-app:feat", _MENTION),   # claims, no edge
+        ("fsd/[FSD]-app", "[FSD]-app:other", _MENTION),  # claims, has edge
+    ]
+    out = scan_derives_residue(view, contents, acceptance_suffixes=(":TEST",))
+    assert [v.chunk_id for v in out] == ["[FSD]-app:feat"]

@@ -387,3 +387,28 @@ def test_no_derives_violation_when_prose_claims_nothing(tmp_path: Path):
         w["code"] for w in result["warnings"]
     ]
     assert "DERIVES_RESIDUE" not in all_codes
+
+
+def test_gate_skips_acceptance_nodes_when_scopes_configured(tmp_path: Path):
+    """v2.99: gate passes artifact_scopes' parent_suffix set into the scan."""
+    root = _dr_ready(tmp_path, claim=True, with_edge=False)
+    (root / ".meta" / "config.yaml").write_text(yaml.safe_dump({
+        "derives_residue": {"enforcement": "block"},
+        "artifact_scopes": {"tests/": {"parent_suffix": ":feat", "enforcement": "warn"}},
+    }), encoding="utf-8")
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    all_codes = [v["code"] for v in result["violations"]] + [
+        w["code"] for w in result["warnings"]
+    ]
+    assert "DERIVES_RESIDUE" not in all_codes
+
+
+def test_gate_judges_the_split_when_no_scopes_configured(tmp_path: Path):
+    root = _dr_ready(tmp_path, claim=True, with_edge=False)
+    _dr_set_enforcement(root, "block")
+
+    result = VersionManager(root).gate("v9.0", check_host=False)
+
+    assert any(v["code"] == "DERIVES_RESIDUE" for v in result["violations"])

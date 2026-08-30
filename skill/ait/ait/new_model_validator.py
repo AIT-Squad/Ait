@@ -761,7 +761,7 @@ DERIVES_RESIDUE = "DERIVES_RESIDUE"
 _PRD_REQUIREMENT_MENTION_RE = re.compile(r"\[PRD\]-[A-Za-z0-9_]+:[A-Za-z0-9_]+")
 
 
-def scan_derives_residue(view, fsd_contents) -> list[NewModelViolation]:
+def scan_derives_residue(view, fsd_contents, *, acceptance_suffixes=()) -> list[NewModelViolation]:
     """Report-only: an FSD chunk mentions a PRD requirement id in its body but
     the graph has no ``derives`` edge from that id to this chunk.
 
@@ -771,6 +771,19 @@ def scan_derives_residue(view, fsd_contents) -> list[NewModelViolation]:
     pure-string relation/prd_requirement residue scans — but it still performs
     no disk I/O and produces no write).
 
+    Only chunks that could legally receive a requirement-level derives edge are
+    judged (derives_mapping AC#6): FSD roots are skipped because "requirement →
+    root" is not a defined edge shape, and acceptance nodes because they never
+    receive derives at all (traceability AC#2) — their acceptance criteria come
+    through functional siblings. Reporting those produced findings that could
+    not be fixed either way (adding the edge breaks the model, deleting the
+    prose loses information), which kept the count from ever reaching zero and
+    so kept enforcement from ever being raised above "report".
+
+    ``acceptance_suffixes`` is supplied by the caller from ``artifact_scopes`` —
+    which suffixes mark acceptance nodes is project configuration, not a
+    constant here, so an empty default judges them rather than guessing.
+
     Not a semantic judgement: mentioning a requirement id may legitimately mean
     "this is explicitly out of scope for that requirement" — this only surfaces
     the "mentioned but no edge" structural signal for a human to interpret.
@@ -778,6 +791,10 @@ def scan_derives_residue(view, fsd_contents) -> list[NewModelViolation]:
     out: list[NewModelViolation] = []
     for file, chunk_id, content in fsd_contents:
         if not file.startswith("fsd/"):
+            continue
+        if ":" not in chunk_id:
+            continue
+        if any(chunk_id.endswith(suffix) for suffix in acceptance_suffixes):
             continue
         mentioned = set(_PRD_REQUIREMENT_MENTION_RE.findall(content))
         if not mentioned:
