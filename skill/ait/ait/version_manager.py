@@ -1459,6 +1459,7 @@ class VersionManager:
         invariants run on the collapsed chunk_id view.
         """
         from .new_model_validator import (
+            scan_derives_residue,
             validate_invariants,
             validate_prd_fsd_tdd_graph,
             validate_target_file_existence,
@@ -1506,7 +1507,51 @@ class VersionManager:
             exists=lambda p: (host_root / p).exists(),
             enforcement=(config.get("target_file_existence") or {}).get("enforcement", "warn"),
         )
+
+        # v2.98: FSD prose says "承接 [PRD]-...:x"; the edge only exists if
+        # someone declared it, and report-only did not converge — each version
+        # closed one residue while its own new prose opened another. Same
+        # warn-by-default treatment so the gate can land with a backlog open
+        # (traceability AC#9).
+        derives_enforcement = (config.get("derives_residue") or {}).get("enforcement", "warn")
+        violations += [
+            _dc_replace(v, enforcement=derives_enforcement)
+            for v in scan_derives_residue(view, self._collect_fsd_contents(view))
+        ]
         return violations
+
+    def _collect_fsd_contents(self, view) -> list[tuple[str, str, str]]:
+        """(file, chunk_id, content) for every FSD chunk in the combined view.
+
+        Grouped by file so a document with many splits is parsed once, and
+        resolved through the same base-dir rule as
+        :meth:`_collect_new_model_target_files`. A file that is missing or fails
+        to parse is skipped rather than aborting the whole reconciliation.
+        """
+        by_file: dict[tuple[str, str], set[str]] = {}
+        for node in view.nodes.values():
+            if node.type != "fsd" or not node.chunk_id.startswith("[FSD]-"):
+                continue
+            by_file.setdefault((node.version, node.file), set()).add(node.chunk_id)
+
+        out: list[tuple[str, str, str]] = []
+        for (version, file), wanted in sorted(by_file.items()):
+            base_dir = (
+                self.versions_dir / version if version != "baseline" else self.root / "docs"
+            )
+            path = base_dir / f"{file}.md"
+            if not path.exists():
+                continue
+            try:
+                parsed = parse_file(path, base_dir)
+            except Exception:
+                continue
+            out.extend(
+                (parsed.file, chunk.id, chunk.content)
+                for chunk in parsed.chunks
+                if chunk.id in wanted
+            )
+        return out
 
     def _scope_coverage_violations(
         self, scopes: dict, targets: list[tuple[str, str | None]]
