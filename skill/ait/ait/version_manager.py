@@ -752,8 +752,6 @@ class VersionManager:
             )
         self._assert_no_duplicate_adds(records)
         self._assert_no_override_conflicts(records)
-        records = self._with_atomic_impl_deletes(version, records)
-
         version_root = self.versions_dir / version
         source_chunks: dict[str, Chunk] = {}
         if version_root.exists():
@@ -776,8 +774,6 @@ class VersionManager:
                     f"Cannot determine merge target for chunk {record.id}",
                     code="MERGE_TARGET_MISSING",
                 )
-            if self._should_route_legacy_prd_to_global(target_file, [record]):
-                target_file = "prd/global"
             baseline_path = self.root / "docs" / f"{target_file}.md"
             if baseline_path.exists() and target_file not in baseline_files:
                 baseline_files[target_file] = parse_file(baseline_path, self.root / "docs")
@@ -956,7 +952,6 @@ class VersionManager:
             if auto_snapshot:
                 self._create_snapshot(version)
             self._merge_specgraph_to_baseline(version)
-            self._assert_no_orphan_impl_refs()
 
             meta = self.load_version_meta(version)
             meta.merged_at = datetime.now(timezone.utc)
@@ -1204,8 +1199,6 @@ class VersionManager:
             elif conflict_policy == "use-version":
                 ok_records = effective_records  # ignore conflicts, force overwrite
 
-        ok_records = self._with_atomic_impl_deletes(version, ok_records)
-
         # Group by merge target file. Modify/delete records route through the
         # baseline chunk they override; their version-side draft may live in a
         # different version file.
@@ -1218,11 +1211,6 @@ class VersionManager:
                     file_key = base_entry.file
             if file_key is None:
                 continue
-            # PRD baseline 单文件化：所有 prd/* 路由强制收敛到 prd/global，
-            # 版本工作区允许多文件，但 confirm 阶段统一落到 docs/prd/global.md。
-            # impl/* 类目不受影响。
-            if self._should_route_legacy_prd_to_global(file_key, [r]):
-                file_key = "prd/global"
             by_file.setdefault(file_key, []).append(r)
 
         # Apply per-file merges.
@@ -1814,28 +1802,6 @@ class VersionManager:
         base.merge_into_baseline(version)
         base.save(specgraph_path(self.root, "baseline"))
 
-    def _assert_no_orphan_impl_refs(self) -> None:
-        from .specgraph import load_specgraph, parse_uri
-
-        graph = load_specgraph(self.root, "baseline")
-        missing: list[tuple[str, str]] = []
-        for edge in graph.edges:
-            if edge.rel != "implements":
-                continue
-            src = graph.specs.get(edge.src)
-            if src is None or src.type != "impl":
-                continue
-            dst = graph.specs.get(edge.dst)
-            if dst is None:
-                try:
-                    missing_id = parse_uri(edge.dst)[2]
-                except ValueError:
-                    missing_id = edge.dst
-                missing.append((src.chunk_id, missing_id))
-        if missing:
-            detail = ", ".join(f"{impl}->{prd}" for impl, prd in missing)
-            raise VersionManagerError(f"orphan impl @refs after merge: {detail}")
-
     @staticmethod
     def _latest_by_chunk_id(records: list[VersionChunkEntry]) -> list[VersionChunkEntry]:
         """Return the last committed record for each chunk id."""
@@ -1901,80 +1867,6 @@ class VersionManager:
                     code="DUPLICATE_OVERRIDES_TARGET",
                 )
             owners[target] = record.id
-
-    def _with_atomic_impl_deletes(
-        self, version: str, records: list[VersionChunkEntry]
-    ) -> list[VersionChunkEntry]:
-        changed_prd_ids = self._changed_prd_ids(records)
-        if not changed_prd_ids:
-            return records
-
-        from .specgraph import load_specgraph
-
-        baseline_graph = load_specgraph(self.root, "baseline")
-        version_graph = load_specgraph(self.root, version)
-        explicit_deletes = {
-            r.overrides or r.id for r in records if r.action == "delete"
-        }
-        existing_ids = {r.id for r in records}
-        existing_ids.update(
-            r.overrides
-            for r in records
-            if r.action in ("modify", "delete") and r.overrides is not None
-        )
-        synthetic: list[VersionChunkEntry] = []
-
-        for prd_id in changed_prd_ids:
-            baseline_impl_ids = set(baseline_graph.implements_of(prd_id, version="baseline"))
-            version_impl_ids = self._implements_of_exact_version(version_graph, prd_id, version)
-            for impl_id in sorted(baseline_impl_ids - version_impl_ids):
-                if impl_id in explicit_deletes or impl_id in existing_ids:
-                    continue
-                base_entry = self.indexes.query_baseline(impl_id)
-                if base_entry is None:
-                    continue
-                synthetic.append(
-                    VersionChunkEntry(
-                        id=impl_id,
-                        file=base_entry.file,
-                        heading=None,
-                        level=None,
-                        action="delete",
-                        state="committed",
-                        overrides=impl_id,
-                        base_hash=None,
-                        summary=base_entry.summary,
-                    )
-                )
-                existing_ids.add(impl_id)
-        return records + synthetic
-
-    @staticmethod
-    def _changed_prd_ids(records: list[VersionChunkEntry]) -> set[str]:
-        return {
-            r.id for r in records
-            if r.id.startswith("prd-") and r.action in ("add", "modify", "delete")
-        }
-
-    @staticmethod
-    def _should_route_legacy_prd_to_global(file_key: str, records: list[VersionChunkEntry]) -> bool:
-        if not file_key.startswith("prd/") or file_key == "prd/global":
-            return False
-        return all(record.id.startswith("prd-") for record in records)
-
-    @staticmethod
-    def _implements_of_exact_version(graph, prd_chunk_id: str, version: str) -> set[str]:
-        result: set[str] = set()
-        for edge in graph.edges:
-            if edge.rel != "implements":
-                continue
-            src = graph.specs.get(edge.src)
-            dst = graph.specs.get(edge.dst)
-            if src is None or dst is None:
-                continue
-            if src.version == version and dst.chunk_id == prd_chunk_id:
-                result.add(src.chunk_id)
-        return result
 
     def _git_clean(self) -> bool:
         import subprocess

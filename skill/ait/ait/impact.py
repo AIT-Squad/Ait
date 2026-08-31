@@ -1,8 +1,8 @@
 """Impact analysis on the combined chunk_id view.
 
-Forward decomposes/details (spec-tree downstream) + reverse
-depends_on/implements (dependents) — the traversal that powers the
-iteration flow "沿既有 chunk 关联逐层向下改".
+Forward decomposes/details (spec-tree downstream) + reverse depends_on
+(dependents) — the traversal that powers the iteration flow
+"沿既有 chunk 关联逐层向下改".
 """
 
 from __future__ import annotations

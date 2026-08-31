@@ -288,3 +288,21 @@ def test_next_chg_id_ignores_unparsable_ledger_names(vm_root: Path):
     _seed_ledger(vm_root, [1, 2, 3])
     (vm_root / ".meta" / "changes" / "chg-draft.yaml").write_text("x\n", encoding="utf-8")
     assert VersionManager(vm_root)._next_chg_id() == "chg-004"
+
+
+# ── v3.2: implements gate, impl cascade and bare-id PRD routing retired ─────
+
+
+def test_retired_legacy_members_are_gone():
+    """Every one of these could only fire on `implements` edges or bare-id PRD
+    records; neither can occur since v3.1, so the branches are removed."""
+    from ait.version_manager import VersionManager
+
+    for name in (
+        "_assert_no_orphan_impl_refs",
+        "_with_atomic_impl_deletes",
+        "_changed_prd_ids",
+        "_implements_of_exact_version",
+        "_should_route_legacy_prd_to_global",
+    ):
+        assert not hasattr(VersionManager, name), f"{name} should be retired"

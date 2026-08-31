@@ -1147,17 +1147,14 @@ def specgraph_graph_html(ctx, prd_chunk: str | None, version_opt: str | None) ->
 @specgraph_group.command("query")
 @click.argument("target")
 @click.option("--deps", is_flag=True)
-@click.option("--implements", "implements_", is_flag=True)
 @click.pass_context
-def specgraph_query(ctx, target: str, deps: bool, implements_: bool) -> None:
+def specgraph_query(ctx, target: str, deps: bool) -> None:
     root = _root(ctx)
     version = VersionManager(root).current()
     graph = combined_specgraph(root, version)
     uri = resolve_chunk_uri(root, target, version, graph=graph)
     if deps:
         edges = graph.dependencies(uri)
-    elif implements_:
-        edges = graph.implementations(uri)
     else:
         edges = graph.query(uri, direction="both")
     ok({"target": uri, "edges": [_json_safe(edge) for edge in edges]})

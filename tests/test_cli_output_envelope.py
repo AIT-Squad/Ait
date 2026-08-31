@@ -61,3 +61,14 @@ def test_ok_terminates_process(capsys):
     out = capsys.readouterr().out.strip().splitlines()
     assert len(out) == 1
     assert json.loads(out[0]) == {"ok": True, "data": {"x": 1}}
+
+
+def test_specgraph_query_implements_flag_is_gone(tmp_path: Path, monkeypatch):
+    """v3.2: the flag queried `implements` in-edges, a relation now unreachable."""
+    (tmp_path / "project-docs" / "docs").mkdir(parents=True)
+    (tmp_path / "project-docs" / ".meta").mkdir()
+    monkeypatch.chdir(tmp_path)
+    result = CliRunner().invoke(main, ["specgraph", "query", "x", "--implements"])
+    assert result.exit_code == 2
+    payload = json.loads(result.output.strip().splitlines()[-1])
+    assert payload["code"] == "USAGE_ERROR"

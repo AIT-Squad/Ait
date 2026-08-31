@@ -233,3 +233,34 @@ def test_impacted_walks_tree_downstream_and_dependents(tmp_path: Path):
     assert "[TDD]-app-x" in impacted, "details 孙层缺失"
     assert "[FSD]-other" in impacted, "反向 depends_on 依赖方缺失"
     assert "[PRD]-app" not in impacted, "起点不应出现在影响集"
+
+
+# ── v3.2: the `implements` relation is retired ──────────────────────────────
+
+
+def test_implements_edges_are_not_traversed():
+    """v3.1 removed @ref edge building — `implements`'s only birth point.
+
+    A hand-built edge of that kind must now be inert: the traversal sets were
+    narrowed to `depends_on`, so nothing can reach it.
+    """
+    from ait.specgraph import Edge, Spec, SpecGraph, make_uri
+
+    graph = SpecGraph()
+    a, b = make_uri("impl-a", "baseline"), make_uri("prd-b", "baseline")
+    for uri, cid in ((a, "impl-a"), (b, "prd-b")):
+        graph.add_spec(
+            Spec(uri=uri, title=cid, type="other", version="baseline",
+                 chunk_id=cid, file=f"x/{cid}")
+        )
+    graph.edges.append(Edge(src=a, dst=b, rel="implements"))
+
+    assert graph.dependencies(a) == []
+    assert graph.impacted(b) == []
+
+
+def test_implements_query_methods_are_gone():
+    from ait.specgraph import SpecGraph
+
+    assert not hasattr(SpecGraph, "implementations")
+    assert not hasattr(SpecGraph, "implements_of")

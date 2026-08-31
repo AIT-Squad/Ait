@@ -146,13 +146,10 @@ class SpecGraph:
         raise ValueError("direction must be one of: in, out, both")
 
     def dependencies(self, uri: str) -> list[Edge]:
-        return [edge for edge in self.query(uri, direction="out") if edge.rel in {"depends_on", "implements"}]
-
-    def implementations(self, uri: str) -> list[Edge]:
-        return [edge for edge in self.query(uri, direction="in", rel="implements")]
+        return [edge for edge in self.query(uri, direction="out") if edge.rel == "depends_on"]
 
     def impacted(self, uri: str) -> list[str]:
-        reverse = [edge for edge in self.edges if edge.rel in {"depends_on", "implements"}]
+        reverse = [edge for edge in self.edges if edge.rel == "depends_on"]
         seen: set[str] = set()
         queue = [uri]
         while queue:
@@ -197,22 +194,6 @@ class SpecGraph:
             return sorted(n for n in nodes if indeg[n] > 0)
         return None
 
-    def implements_of(self, prd_chunk_id: str, version: str) -> list[str]:
-        """chunk ids of impl specs that `implements` the given PRD chunk.
-
-        Restricted to the given version (or baseline). Used by task build.
-        """
-        result: list[str] = []
-        for edge in self.edges:
-            if edge.rel != "implements":
-                continue
-            dst = self.specs.get(edge.dst)
-            src = self.specs.get(edge.src)
-            if dst is None or src is None:
-                continue
-            if dst.chunk_id == prd_chunk_id and src.version in (version, "baseline"):
-                result.append(src.chunk_id)
-        return sorted(set(result))
 
     def dry_run_merge(self, other: "SpecGraph") -> "SpecGraph":
         """Return a new graph = self + other (no mutation, no disk write).
@@ -340,10 +321,10 @@ class CombinedView:
         Forward decomposes/details edges + id-structural children (a colon
         split ``X:*`` belongs to its root ``X`` with no explicit edge) —
         spec-tree downstream: change a PRD → its FSD tree → their TDDs —
-        plus reverse depends_on/implements (dependents of the changed chunk).
+        plus reverse depends_on (dependents of the changed chunk).
         """
         forward = {"derives", "decomposes", "details"}
-        reverse = {"depends_on", "implements"}
+        reverse = {"depends_on"}
         children: dict[str, list[str]] = {}
         for cid in self.nodes:
             if ":" in cid:
