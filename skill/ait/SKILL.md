@@ -37,7 +37,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 ## Pipeline（主线：新模型）
 
 ```text
-/ait init --new-model --name <proj>   → 生成 docs/{prd,fsd,tdd} + [PRD]/[FSD] 根 + derives 派生边
+/ait init --name <proj>              → 生成 docs/{prd,fsd,tdd} + [PRD]/[FSD] 根 + derives 派生边
 /ait prd create <[PRD]-id> ...         → 新模型 PRD（需先 version create，无活动版本报 NO_ACTIVE_VERSION；可 --action modify --overrides；需求 chunk 须含用户故事+验收标准，见下方写作契约）
 /ait prd confirm|revert                → PRD 层冻结 / 成对返工（phase 阶段机）
 /ait fsd create <[FSD]-id> [--parent <PRD根>] ... → FSD 功能分解（--parent=从 PRD 派生功能树根,创建即建 derives 边〔PRD→FSD 唯一〕；split 内 ```yaml depends_on: [兄弟]``` 声明依赖，随文件全量对账——文件＝兄弟依赖边的所有权边界）
@@ -75,7 +75,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 
 | User trigger | CLI | Routed skill |
 |---|---|---|
-| `/ait init [--new-model --name]` | `{{AIT_ENTRY}} init`（首次；之后走项目本地 wrapper） | `ait-init-guide` |
+| `/ait init [--name]` | `{{AIT_ENTRY}} init`（首次；之后走项目本地 wrapper） | main |
 | `/ait prd create\|confirm\|revert ...` | `project-docs/.ait/ait-cli prd ...`（新模型 PRD；create 需已有活动版本；link 已退役） | main |
 | `/ait fsd create\|decompose\|confirm\|revert ...` | `project-docs/.ait/ait-cli fsd ...`（decompose=拆分即建边；link 退役） | main |
 | `/ait tdd create\|confirm\|revert ...` | `project-docs/.ait/ait-cli tdd ...`（create --parent=创建即建 details 边） | main |
@@ -106,7 +106,6 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 |---|---|---|
 | `ait-state` | 查看/刷新 `state.md`、版本进度、chunk 三态 | 调 `state [--save]` 渲染面板，兼进度查询。 |
 | `ait-resume` | CLI 返回错误或要求恢复中断流程 | 据 JSON `code` 给恢复步骤（含 version revert）。 |
-| `ait-init-guide` | `/ait init` 进入差异补全模式 | 逐项确认 global 文件是否补齐。 |
 
 ## Required Knowledge
 
@@ -125,7 +124,7 @@ AIT (`/ait <subcommand>`) 是面向 AI 协作设计文档的 **chunk 级版本�
 | `MERGE_NO_COMMITTED` / `no metadata` | 新模型版本未 `version commit` / 未经 CLI 建版本 | 先 `version commit <v>`；版本 meta 由新模型 create 自动建。 |
 | `LOCKED` | 改已 commit 的 chunk | 锁定后不可改；用 `version revert <v> --confirm`。 |
 | `ID_FORMAT` | chunk ID 非法字符 | 新模型用 `[PRD]/[FSD]/[TDD]` 前缀。 |
-| `INVALID_PROJECT_NAME` | `init --new-model --name` 含大写/空格/中文/`/`/`..` | --name 只接受小写字母数字下划线+短横分段（须能构成合法 chunk id）。 |
+| `INVALID_PROJECT_NAME` | `init --name` 含大写/空格/中文/`/`/`..` | --name 只接受小写字母数字下划线+短横分段（须能构成合法 chunk id）。 |
 | `INVARIANT_VIOLATION` | 六不变式违例（孤儿/断链/多属主/多父/幽灵端点/树环） | 按 violations 明细补规格（PRD/边/target_file），confirm 复查后再 merge。 |
 | `GIT_DIRTY` | merge 时 git 不干净 | 先提交/暂存，或 `--allow-dirty-git`。 |
 | `MERGE_ROLLBACK` | merge 中途失败 | docs/ 与 .meta 已字节级回退；查 error 修复后重试。 |

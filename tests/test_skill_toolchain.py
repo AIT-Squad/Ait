@@ -97,7 +97,7 @@ def test_prdv2_create_and_link(tmp_path: Path, monkeypatch):
 
 def test_init_new_model_bootstrap(tmp_path: Path):
     root = _new_project(tmp_path)
-    result = InitManager(root).run(new_model=True, project_name="demo")
+    result = InitManager(root).run(project_name="demo")
 
     assert (root / "docs" / "prd" / "[PRD]-demo.md").exists()
     assert (root / "docs" / "fsd" / "[FSD]-demo.md").exists()
@@ -115,11 +115,11 @@ def test_init_new_model_bootstrap(tmp_path: Path):
 
 def test_init_new_model_is_idempotent(tmp_path: Path):
     root = _new_project(tmp_path)
-    InitManager(root).run(new_model=True, project_name="demo")
+    InitManager(root).run(project_name="demo")
     (root / "docs" / "prd" / "[PRD]-demo.md").write_text(
         "<!-- @id:[PRD]-demo -->\n## Custom\n\nuser edits\n", encoding="utf-8"
     )
-    InitManager(root).run(new_model=True, project_name="demo")
+    InitManager(root).run(project_name="demo")
     # user content preserved (not overwritten).
     assert "user edits" in (root / "docs" / "prd" / "[PRD]-demo.md").read_text(encoding="utf-8")
 
@@ -249,3 +249,26 @@ def test_taskless_new_model_confirm(tmp_path: Path):
     assert ("[PRD]-sys", "derives", "[FSD]-app") in rels
     assert ("[FSD]-app:svc", "details", "[TDD]-svc") in rels
     assert ("[FSD]-app:svc", "depends_on", "[FSD]-app:store") in rels
+
+
+# ── v3.1: SKILL.md carries no retired-flow guidance ─────────────────────────
+
+SKILL_ROOT = Path(__file__).resolve().parent.parent / "skill" / "ait"
+
+
+def test_skill_manifest_has_no_legacy_init_guidance():
+    text = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+    for retired in ("--new-model", "docs/global", "ait-init-guide"):
+        assert retired not in text, f"SKILL.md still mentions {retired!r}"
+    assert "/ait init" in text
+    assert "{{AIT_ENTRY}}" in text
+
+
+def test_init_guide_subskill_is_retired():
+    assert not (SKILL_ROOT / "sub-skills" / "ait-init-guide").exists()
+
+
+def test_version_manager_has_no_dynamic_global_extraction():
+    from ait.version_manager import VersionManager
+
+    assert not hasattr(VersionManager, "_extract_dynamic_global")

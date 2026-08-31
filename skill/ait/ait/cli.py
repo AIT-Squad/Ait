@@ -228,35 +228,28 @@ def _emit_wrapper_hints(root: Path) -> None:
     "--refresh-wrapper",
     is_flag=True,
     default=False,
-    help="仅刷新 .meta/config.yaml 的 skill_dir/cli_path/wrapper_path 与 project-docs/.ait/ait-cli*；不动 docs/global/*。",
+    help="仅刷新 .meta/config.yaml 的 skill_dir/cli_path/wrapper_path 与 project-docs/.ait/ait-cli*；不动 docs 内容。",
 )
 @click.option(
     "--check",
     "check_only",
     is_flag=True,
     default=False,
-    help="仅诊断当前 docs/global 状态（fresh/incomplete/ready），不写文件。",
-)
-@click.option(
-    "--skip",
-    "skip_csv",
-    type=str,
-    default="",
-    help="逗号分隔的 global 文件名列表（不含 .md），这些项写入 user-skipped 占位符。",
+    help="仅诊断新模型基线是否就绪（fresh/ready），不写文件。",
 )
 @click.option(
     "--new-model",
     "new_model",
     is_flag=True,
     default=False,
-    help="引导新模型 PRD/FSD/TDD 基线（docs/prd,fsd,tdd + 根 chunk + decomposes 边），不影响旧 init。",
+    help="已废弃：新模型现为 init 的唯一路径。保留此开关只为使既有调用不报未知参数，指定与否行为相同。",
 )
 @click.option(
     "--name",
     "project_name",
     type=str,
     default="project",
-    help="新模型基线的语义名（用于 [PRD]/[FSD] 根 chunk）。仅配合 --new-model。",
+    help="新模型基线的语义名（用于 [PRD]/[FSD] 根 chunk）。",
 )
 @click.option(
     "--migrate",
@@ -277,33 +270,26 @@ def init_cmd(
     ctx,
     refresh_wrapper: bool,
     check_only: bool,
-    skip_csv: str,
     new_model: bool,
     project_name: str,
     migrate: bool,
     apply_migration: bool,
 ) -> None:
-    """Bootstrap the global baseline (global PRD/impl overview + global skeletons).
+    """Bootstrap the PRD/FSD/TDD baseline for this project.
 
-    v1.5: incremental-aware. ``init`` always inspects ``docs/global/*`` first:
-
-    \b
-    - fresh      → no project-docs/docs-global yet → full bootstrap.
-    - incomplete → some files missing/skeleton → fill only missing
-                   (use ``--skip name1,name2`` to mark items the user declines;
-                    those get a ``user-skipped`` placeholder so re-running won't
-                    re-prompt).
-    - ready      → all 5 globals present → no docs writes; wrapper still refreshed.
+    v3.1: this is init's only path. The legacy ``docs/global`` skeleton and its
+    fresh/incomplete/ready incremental-fill machinery are retired, so there is
+    no branch to select — ``--new-model`` is accepted but no longer does
+    anything, and ``--skip`` (which only ever declined global items) is gone.
 
     Flags:
-      --check            : diagnose only, no writes.
+      --check            : report whether a baseline already exists; no writes.
       --refresh-wrapper  : regenerate the project-local wrapper / config paths.
-      --skip <names>     : honor user-declined items in incremental mode.
 
     ``--check`` takes precedence over ``--refresh-wrapper`` when both are set.
     """
     mgr = InitManager(_root(ctx))
-    skip_list = [s.strip() for s in skip_csv.split(",") if s.strip()]
+    del new_model  # deprecated no-op — accepted so old invocations don't error
     if apply_migration and not migrate:
         fail("--apply 仅在与 --migrate 同用时有效", code="USAGE_ERROR")
     try:
@@ -343,7 +329,7 @@ def init_cmd(
                 }
             )
             return
-        result = mgr.run(skip=skip_list, new_model=new_model, project_name=project_name)
+        result = mgr.run(project_name=project_name)
         ok(
             {
                 "created_files": result.created_files,

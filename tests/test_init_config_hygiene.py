@@ -190,7 +190,7 @@ def test_init_writes_machine_fields_to_local_layer_only(tmp_path: Path, monkeypa
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("AIT_SKILL_DIR", str(tmp_path / "skill"))
     root = tmp_path / "project-docs"
-    InitManager(root).run(new_model=True, project_name="demo")
+    InitManager(root).run(project_name="demo")
 
     meta = root / ".meta"
     shared, local = _shared(meta), _local(meta)
@@ -208,14 +208,14 @@ def test_init_is_idempotent_across_both_layers(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("AIT_SKILL_DIR", str(tmp_path / "skill"))
     root = tmp_path / "project-docs"
-    InitManager(root).run(new_model=True, project_name="demo")
+    InitManager(root).run(project_name="demo")
     meta = root / ".meta"
     before = (
         (meta / "config.yaml").read_text(encoding="utf-8"),
         (meta / "config.local.yaml").read_text(encoding="utf-8"),
         (root / ".gitignore").read_text(encoding="utf-8"),
     )
-    InitManager(root).run(new_model=True, project_name="demo")
+    InitManager(root).run(project_name="demo")
     after = (
         (meta / "config.yaml").read_text(encoding="utf-8"),
         (meta / "config.local.yaml").read_text(encoding="utf-8"),

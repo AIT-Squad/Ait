@@ -95,7 +95,8 @@ def test_rebuild_baseline_writes_files(demo_root: Path):
     assert not mgr.baseline_index_path().with_name("links-index.yaml").exists()
 
     graph = sync_specgraph(demo_root)
-    assert any(edge.rel == "implements" for edge in graph.edges)
+    # v3.1: @ref no longer builds edges anywhere, so no `implements` edge is born.
+    assert not any(edge.rel == "implements" for edge in graph.edges)
 
 
 def test_query_baseline(demo_root: Path):

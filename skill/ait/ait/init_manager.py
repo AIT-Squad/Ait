@@ -19,7 +19,7 @@ import re
 import stat
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Literal
+from typing import Literal
 
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
@@ -62,23 +62,6 @@ class MigrationReport:
     applicable: bool = True
 
 
-# Static global skeletons (human-maintained). chunk_id → (filename, heading, body)
-_STATIC_GLOBALS = {
-    "global-overview": ("overview", "项目概述", "<!-- 项目定位、目标用户、核心价值。init 时讨论填充。 -->"),
-    "global-tech-stack": ("tech-stack", "技术栈", "<!-- 语言/框架/存储/部署等技术选型。init 时讨论填充。 -->"),
-}
-# Dynamic global skeletons (sourced ONLY from impl @extract at version confirm).
-_DYNAMIC_GLOBALS = {
-    "ddl": "数据库 DDL",
-    "schema": "数据结构 Schema",
-    "api": "API 契约",
-}
-
-# All global filenames in canonical scan order. Used by `_scan_global_state`.
-GLOBAL_FILES = ["overview", "tech-stack", "ddl", "schema", "api"]
-
-# Regex to detect a `<!-- @id:global-* -->` chunk marker in a global file.
-_GLOBAL_ID_RE = re.compile(r"<!--\s*@id:global-[\w-]+\s*-->")
 
 
 class InitManager:
@@ -103,49 +86,6 @@ class InitManager:
     # ──────────────────────────────────────────────────
     # state detection
     # ──────────────────────────────────────────────────
-
-    def _classify_global_file(self, path: Path) -> str:
-        """Return one of: 'present' | 'skeleton' | 'missing'.
-
-        - missing  : file does not exist or is empty.
-        - skeleton : file exists with content but lacks `<!-- @id:global-* -->`.
-        - present  : file exists and carries a chunk id marker (whether
-                     auto-generated or user-customized).
-
-        For the caller (`_run_incremental`), `skeleton` and `missing` are
-        treated equivalently (both trigger fill); they're reported separately
-        so `ait-init-guide` can show the user a meaningful diagnosis.
-        """
-        try:
-            if not path.exists() or path.stat().st_size == 0:
-                return "missing"
-            text = path.read_text(encoding="utf-8")
-        except Exception:
-            return "missing"
-        if not _GLOBAL_ID_RE.search(text):
-            return "skeleton"
-        return "present"
-
-    def _scan_global_state(self) -> dict:
-        """Return ``{"overall": str, "files": {name: status}}``.
-
-        overall:
-          - 'ready'      → all 5 files are 'present'
-          - 'incomplete' → docs/global exists OR project-docs exists, but
-                           ≥1 file is missing/skeleton
-          - 'fresh'      → no project-docs and no docs/global yet
-        """
-        g = self.root / "docs" / "global"
-        per_file: dict[str, str] = {}
-        for name in GLOBAL_FILES:
-            per_file[name] = self._classify_global_file(g / f"{name}.md")
-        if all(s == "present" for s in per_file.values()):
-            overall = "ready"
-        elif (self.root / "project-docs").exists() or g.exists():
-            overall = "incomplete"
-        else:
-            overall = "fresh"
-        return {"overall": overall, "files": per_file}
 
     # ──────────────────────────────────────────────────
     # entrypoint
@@ -345,127 +285,50 @@ class InitManager:
         self,
         *,
         check_only: bool = False,
-        skip: Iterable[str] | None = None,
-        new_model: bool = False,
         project_name: str = "project",
     ) -> InitResult:
-        """Bootstrap or incrementally fill the global baseline.
+        """Bootstrap the PRD/FSD/TDD baseline. This is init's only path.
+
+        v3.1: the legacy `docs/global` skeleton (and its fresh/incomplete/ready
+        state machine, incremental fill and `skip` opt-outs) is retired, so
+        there is no longer a branch to choose — every `init` produces the
+        new-model baseline. `new_model` is gone from this signature; the CLI
+        still accepts `--new-model` as a deprecated no-op.
 
         Args:
-            check_only: diagnose only, no writes. Returns status + files dict.
-            skip:       names (without `.md`) the user explicitly declined to
-                        fill. Each gets a `<!-- @id ... user-skipped -->`
-                        placeholder so subsequent `init` runs don't re-prompt.
-            new_model:  bootstrap a PRD/FSD/TDD new-model baseline instead of the
-                        legacy global baseline. Idempotent: existing user files
-                        are never overwritten.
-            project_name: semantic name used for the `[PRD]`/`[FSD]` root chunks.
+            check_only:   report whether the baseline is already there; no writes.
+            project_name: semantic name for the `[PRD]`/`[FSD]` root chunks.
         """
-        if not check_only:
-            # v2.54 blank-slate bootstrap: on a brand-new directory project-docs/
-            # doesn't exist yet — `ait init` is the command that creates it. Build
-            # the skeleton (docs/ + .meta/versions + .meta/changes) FIRST so root
-            # resolution and every store below has real directories to write into.
-            self._ensure_project_docs_skeleton()
-            # v2.55 docs/code isolation: make project-docs an independent git repo
-            # so AIT commits never touch the host repo.
-            self._ensure_docs_git_repo()
-            # v2.53 迭代连续性地基: guarantee empty baseline stores exist from
-            # day one — 初始 = 现状为空的迭代, background retrieval zero-branch.
-            self._ensure_empty_baseline_stores()
-        if new_model and not check_only:
-            return self._run_new_model_bootstrap(project_name)
-
-        skip_set = {s.strip() for s in (skip or []) if s and s.strip()}
-        state = self._scan_global_state()
-
         if check_only:
-            return InitResult(status=state["overall"], files=state["files"])
+            return self._diagnose()
+        # v2.54 blank-slate bootstrap: on a brand-new directory project-docs/
+        # doesn't exist yet — `ait init` is the command that creates it. Build
+        # the skeleton (docs/ + .meta/versions + .meta/changes) FIRST so root
+        # resolution and every store below has real directories to write into.
+        self._ensure_project_docs_skeleton()
+        # v2.55 docs/code isolation: make project-docs an independent git repo
+        # so AIT commits never touch the host repo.
+        self._ensure_docs_git_repo()
+        # v2.53 迭代连续性地基: guarantee empty baseline stores exist from
+        # day one — 初始 = 现状为空的迭代, background retrieval zero-branch.
+        self._ensure_empty_baseline_stores()
+        return self._run_new_model_bootstrap(project_name)
 
-        if state["overall"] == "ready":
-            # All present — still refresh wrapper paths so re-running init on
-            # an already-ready project is useful (config drift recovery).
-            skill_dir, cli_path = self._mark_initialized()
-            wrapper_path = self._write_project_wrapper(cli_path)
-            return InitResult(
-                status="ready",
-                files=state["files"],
-                skill_dir=skill_dir,
-                cli_path=cli_path,
-                wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
-            )
+    def _diagnose(self) -> InitResult:
+        """`--check`: is a new-model baseline already present? No writes.
 
-        if state["overall"] == "fresh":
-            return self._run_full_bootstrap()
-
-        # incomplete
-        return self._run_incremental(state["files"], skip_set)
-
-    # ──────────────────────────────────────────────────
-    # bootstrap modes
-    # ──────────────────────────────────────────────────
-
-    def _run_full_bootstrap(self) -> InitResult:
-        """Original full bootstrap — extracted from the legacy `run()` body."""
-        created: list[str] = []
-        global_dir = self.root / "docs" / "global"
-        global_dir.mkdir(parents=True, exist_ok=True)
-
-        # 1. Static globals (each its own file + @id chunk).
-        for chunk_id, (fname, heading, body) in _STATIC_GLOBALS.items():
-            path = global_dir / f"{fname}.md"
-            content = f"<!-- @id:{chunk_id} -->\n## {heading}\n\n{body}\n"
-            atomic_write_text(path, content)
-            created.append(self._rel(path))
-
-        # 2. Dynamic global skeletons (empty bodies; filled by version confirm).
-        for ftype, heading in _DYNAMIC_GLOBALS.items():
-            path = global_dir / f"{ftype}.md"
-            chunk_id = f"global-{ftype}"
-            content = (
-                f"<!-- @id:{chunk_id} -->\n## {heading}\n\n"
-                f"<!-- 动态 global：内容由 version confirm 从 impl @extract 提取，请勿手工编辑。 -->\n"
-            )
-            atomic_write_text(path, content)
-            created.append(self._rel(path))
-
-        # 3. README placeholders for prd/ and impl/ (NOT indexed — no @id).
-        for sub in ("prd", "impl"):
-            d = self.root / "docs" / sub
-            d.mkdir(parents=True, exist_ok=True)
-            readme = d / "README.md"
-            if not readme.exists():
-                atomic_write_text(
-                    readme,
-                    f"# {sub.upper()} baseline\n\n"
-                    f"由各版本 `version confirm` 合入。init 仅建占位说明。\n",
-                )
-                created.append(self._rel(readme))
-
-        # 4. Rebuild baseline index + baseline specgraph (global chunks get category).
-        baseline = self.indexes.rebuild_baseline()
-        from .specgraph import sync_specgraph
-
-        graph = sync_specgraph(self.root)
-
-        # 5. Mark initialized in config.yaml (best-effort, append flag).
-        skill_dir, cli_path = self._mark_initialized()
-
-        # 6. Generate project-local thin wrapper.
-        wrapper_path = self._write_project_wrapper(cli_path)
-        if wrapper_path and self._rel(wrapper_path) not in created:
-            created.append(self._rel(wrapper_path))
-
-        return InitResult(
-            created_files=created,
-            chunks=len(baseline.chunks),
-            specs=len(graph.specs),
-            skill_dir=skill_dir,
-            cli_path=cli_path,
-            wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
-            status="fresh",
-            files={n: "present" for n in GLOBAL_FILES},
-        )
+        v3.1 replaces the five-file global scan. There is no `incomplete`
+        state any more — the new-model skeleton is produced whole or not at
+        all, so a partial baseline is not a state init can be in.
+        """
+        try:
+            roots = [
+                entry.id for entry in self.indexes.load_baseline().chunks
+                if entry.id.startswith("[PRD]-") or entry.id.startswith("[FSD]-")
+            ]
+        except Exception:
+            roots = []
+        return InitResult(status="ready" if roots else "fresh", files={})
 
     def _validate_project_name(self, name: str) -> None:
         """Reject names that can't form a valid new-model root chunk id.
@@ -577,85 +440,6 @@ class InitManager:
             cli_path=cli_path,
             wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
             status="fresh",
-        )
-
-    def _run_incremental(
-        self, files_state: dict[str, str], skip_set: set[str]
-    ) -> InitResult:
-        """Fill only missing/skeleton globals; honor user-skip placeholders."""
-        created: list[str] = []
-        skipped: list[str] = []
-        global_dir = self.root / "docs" / "global"
-        global_dir.mkdir(parents=True, exist_ok=True)
-
-        # Build name → (chunk_id, heading, body) lookup unifying static + dynamic.
-        name_to_meta: dict[str, tuple[str, str, str]] = {}
-        for chunk_id, (fname, heading, body) in _STATIC_GLOBALS.items():
-            name_to_meta[fname] = (chunk_id, heading, body)
-        for ftype, heading in _DYNAMIC_GLOBALS.items():
-            chunk_id = f"global-{ftype}"
-            name_to_meta[ftype] = (
-                chunk_id,
-                heading,
-                "<!-- 动态 global：内容由 version confirm 从 impl @extract 提取，请勿手工编辑。 -->",
-            )
-
-        for name in GLOBAL_FILES:
-            if files_state.get(name) == "present":
-                continue
-            chunk_id, heading, body = name_to_meta[name]
-            path = global_dir / f"{name}.md"
-            if name in skip_set:
-                # User-skip placeholder. Carries @id (so `_classify_global_file`
-                # treats it as `present` next run, no re-prompt) plus a marker
-                # comment so future readers understand why it's empty.
-                content = (
-                    f"<!-- @id:{chunk_id} -->\n## {heading}\n\n"
-                    f"<!-- ait-init-guide: user-skipped, will not be touched by init -->\n"
-                )
-                atomic_write_text(path, content)
-                skipped.append(self._rel(path))
-            else:
-                content = f"<!-- @id:{chunk_id} -->\n## {heading}\n\n{body}\n"
-                atomic_write_text(path, content)
-                created.append(self._rel(path))
-
-        # README placeholders if missing (idempotent).
-        for sub in ("prd", "impl"):
-            d = self.root / "docs" / sub
-            d.mkdir(parents=True, exist_ok=True)
-            readme = d / "README.md"
-            if not readme.exists():
-                atomic_write_text(
-                    readme,
-                    f"# {sub.upper()} baseline\n\n"
-                    f"由各版本 `version confirm` 合入。init 仅建占位说明。\n",
-                )
-                created.append(self._rel(readme))
-
-        # Refresh indexes + specgraph after writing new globals.
-        baseline = self.indexes.rebuild_baseline()
-        from .specgraph import sync_specgraph
-
-        graph = sync_specgraph(self.root)
-
-        skill_dir, cli_path = self._mark_initialized()
-        wrapper_path = self._write_project_wrapper(cli_path)
-        if wrapper_path and self._rel(wrapper_path) not in created:
-            created.append(self._rel(wrapper_path))
-
-        # Re-scan to report final per-file status to the caller (sub-skill).
-        final_state = self._scan_global_state()
-        return InitResult(
-            created_files=created,
-            chunks=len(baseline.chunks),
-            specs=len(graph.specs),
-            skill_dir=skill_dir,
-            cli_path=cli_path,
-            wrapper_path=self._rel(wrapper_path) if wrapper_path else "",
-            status="incomplete",
-            files=final_state["files"],
-            skipped=skipped,
         )
 
     def refresh_wrapper(self) -> InitResult:

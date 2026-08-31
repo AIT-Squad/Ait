@@ -179,11 +179,15 @@ def test_sync_specgraph_skips_new_model_ref(tmp_path: Path, monkeypatch):
     assert graph.edges == [], "新模型 chunk 的 @ref 残留不应造边"
 
 
-def test_sync_specgraph_keeps_legacy_ref(tmp_path: Path, monkeypatch):
-    """docs/prd/ 与新模型共用目录,legacy 裸 id chunk 的 @ref 造边行为不受影响(回归)。"""
+def test_sync_specgraph_builds_no_ref_edges(tmp_path: Path, monkeypatch):
+    """v3.1: no chunk builds edges from @ref — the legacy exception is retired.
+
+    Until v3.1 new-model chunks were excluded but legacy (bare-id) chunks kept
+    @ref-driven edges. docs/{impl,global} are gone, so the exception has no
+    subject left; relations are born only via the four canonical entry points.
+    """
     root = _project(tmp_path)
     (root / "docs" / "prd").mkdir(parents=True, exist_ok=True)
-    (root / "docs" / "impl").mkdir(parents=True)
     (root / "docs" / "prd" / "global.md").write_text(
         "<!-- @id:prd-alpha -->\n## Alpha\nbody\n\n"
         "<!-- @id:prd-beta -->\n## Beta\n\n<!-- @ref:prd/global#prd-alpha rel:related -->\n",
@@ -191,8 +195,7 @@ def test_sync_specgraph_keeps_legacy_ref(tmp_path: Path, monkeypatch):
     )
     IndexManager(root).rebuild_baseline()
     graph = sync_specgraph(root)
-    rels = {(e.rel) for e in graph.edges}
-    assert "related" in rels, "legacy @ref 造边行为不变"
+    assert "related" not in {e.rel for e in graph.edges}
 
 
 # ── G13: add_edge 私有化 ──────────────────────────────────────────────────────
@@ -237,3 +240,30 @@ def test_validate_new_model_empty_residue_when_clean(tmp_path: Path, monkeypatch
     assert p["ok"] is True
     assert p["data"]["relation_residue"] == []
 
+
+
+# ── v3.1: SpecType narrowed to the new model ────────────────────────────────
+
+
+def test_spec_type_no_longer_recognises_legacy_kinds():
+    from ait.specgraph import spec_type
+
+    assert spec_type("impl-api", "impl/api") == "other"
+    assert spec_type("global-ddl", "global/ddl") == "other"
+    assert spec_type("anything", None, {"doc_type": "impl"}) == "other"
+    # new-model recognition is untouched
+    assert spec_type("[PRD]-x", "prd/[PRD]-x") == "prd"
+    assert spec_type("[FSD]-x", "fsd/[FSD]-x") == "fsd"
+    assert spec_type("[TDD]-x", "tdd/[TDD]-x") == "tdd"
+
+
+def test_sync_specgraph_stamps_no_category_metadata(tmp_path: Path, monkeypatch):
+    """`category` (static/dynamic for global-*) had no reader; retired with it."""
+    root = _project(tmp_path)
+    (root / "docs" / "prd").mkdir(parents=True, exist_ok=True)
+    (root / "docs" / "prd" / "global.md").write_text(
+        "<!-- @id:prd-alpha -->\n## Alpha\nbody\n", encoding="utf-8"
+    )
+    IndexManager(root).rebuild_baseline()
+    graph = sync_specgraph(root)
+    assert all("category" not in (s.metadata or {}) for s in graph.specs.values())

@@ -60,8 +60,12 @@ def test_reindex_single_file_multiple_blocks(project_root: Path):
     assert data["specs"] == 2
 
 
-def test_reindex_picks_up_cross_file_refs(project_root: Path):
-    """@ref across PRD and impl files should produce an implements edge in specgraph."""
+def test_reindex_builds_no_edges_from_cross_file_refs(project_root: Path):
+    """v3.1: @ref residue never becomes an edge, in any directory.
+
+    Chunks are still indexed — only the edge-building is retired, so a stray
+    @ref is inert rather than a hidden relation.
+    """
     (project_root / "docs" / "prd" / "demo.md").write_text(
         "<!-- @id:prd-demo-feature -->\n## 功能\n\n描述\n",
         encoding="utf-8",
@@ -76,17 +80,14 @@ def test_reindex_picks_up_cross_file_refs(project_root: Path):
     data = _run_reindex(runner, project_root)
 
     assert data["chunks"] == 2
-    assert data["edges"] == 1
+    assert data["edges"] == 0
 
     import yaml
 
     graph = yaml.safe_load(
         (project_root / ".meta" / "specgraph.yaml").read_text(encoding="utf-8")
     )
-    edge = graph["edges"][0]
-    assert edge["src"] == "spec:impl:baseline:impl-api-demo"
-    assert edge["dst"] == "spec:prd:baseline:prd-demo-feature"
-    assert edge["rel"] == "implements"
+    assert graph["edges"] == []
 
 
 def test_reindex_supports_new_model_fsd_tdd_specs(project_root: Path):

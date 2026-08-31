@@ -1695,28 +1695,6 @@ class VersionManager:
             if snapshot_dir.exists():
                 shutil.rmtree(snapshot_dir)
 
-    def _extract_dynamic_global(self, version: str) -> list[str]:
-        """Extract @extract blocks from this version's impl into dynamic global.
-
-        Each block routes to docs/global/{type}.md and upserts a chunk named
-        block.target_chunk (same-chunk replace). Returns written chunk ids.
-        """
-        from .chunk_parser import parse_extract_blocks, parse_file
-
-        version_dir = self.versions_dir / version
-        if not version_dir.exists():
-            return []
-        written: list[str] = []
-        for path in sorted((version_dir / "impl").rglob("*.md")) if (version_dir / "impl").exists() else []:
-            text = path.read_text(encoding="utf-8")
-            parsed = parse_file(path, version_dir)
-            for blk in parse_extract_blocks(text, chunks=parsed.chunks):
-                gtype = blk.target_type  # ddl | schema | api
-                target_file = self.root / "docs" / "global" / f"{gtype}.md"
-                self._upsert_global_chunk(target_file, blk.target_chunk, blk.content, gtype)
-                written.append(blk.target_chunk)
-        return written
-
     def _upsert_global_chunk(
         self, target_file: Path, chunk_id: str, body: str, gtype: str
     ) -> None:

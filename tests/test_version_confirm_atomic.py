@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from ait.chunk_parser import parse_file
 from ait.hash_utils import chunk_hash
 from ait.schemas import VersionChunkEntry
@@ -61,6 +63,11 @@ def _committed(
     )
 
 
+@pytest.mark.skip(
+    reason=(
+        "v3.1: the PRD->impl cascade these cover is unreachable — `implements` edges had no birth point other than @ref, which v3.1 retired. The cascade code itself is still present and is scheduled for retirement in v3.2 with its own PRD/FSD/TDD coverage; skipping rather than deleting keeps that debt visible and the tests ready to delete alongside the code."
+    )
+)
 def test_modify_prd_replaces_impl_set(tmp_path: Path):
     vm = _init_project(tmp_path)
     prd = _parse_version_chunk(vm, "v1.1", "prd/global", "<!-- @id:prd-a -->\n## A new\n\nnew\n", "prd-a")
@@ -83,6 +90,11 @@ def test_modify_prd_replaces_impl_set(tmp_path: Path):
     assert "impl-new" in new_text
 
 
+@pytest.mark.skip(
+    reason=(
+        "v3.1: the PRD->impl cascade these cover is unreachable — `implements` edges had no birth point other than @ref, which v3.1 retired. The cascade code itself is still present and is scheduled for retirement in v3.2 with its own PRD/FSD/TDD coverage; skipping rather than deleting keeps that debt visible and the tests ready to delete alongside the code."
+    )
+)
 def test_modify_prd_keeps_impl_when_inherited(tmp_path: Path):
     vm = _init_project(tmp_path)
     prd = _parse_version_chunk(vm, "v1.1", "prd/global", "<!-- @id:prd-a -->\n## A new\n\nnew\n", "prd-a")
@@ -111,6 +123,11 @@ def test_modify_prd_keeps_impl_when_inherited(tmp_path: Path):
     assert "impl-old-2" not in text
 
 
+@pytest.mark.skip(
+    reason=(
+        "v3.1: the PRD->impl cascade these cover is unreachable — `implements` edges had no birth point other than @ref, which v3.1 retired. The cascade code itself is still present and is scheduled for retirement in v3.2 with its own PRD/FSD/TDD coverage; skipping rather than deleting keeps that debt visible and the tests ready to delete alongside the code."
+    )
+)
 def test_modify_prd_replaces_impl_by_modify_override(tmp_path: Path):
     vm = _init_project(tmp_path)
     prd = _parse_version_chunk(vm, "v1.1", "prd/global", "<!-- @id:prd-a -->\n## A new\n\nnew\n", "prd-a")
@@ -143,6 +160,11 @@ def test_modify_prd_replaces_impl_by_modify_override(tmp_path: Path):
     assert "impl-old-2" not in text
 
 
+@pytest.mark.skip(
+    reason=(
+        "v3.1: the PRD->impl cascade these cover is unreachable — `implements` edges had no birth point other than @ref, which v3.1 retired. The cascade code itself is still present and is scheduled for retirement in v3.2 with its own PRD/FSD/TDD coverage; skipping rather than deleting keeps that debt visible and the tests ready to delete alongside the code."
+    )
+)
 def test_delete_prd_removes_all_impls(tmp_path: Path):
     vm = _init_project(tmp_path)
     _commit_records(

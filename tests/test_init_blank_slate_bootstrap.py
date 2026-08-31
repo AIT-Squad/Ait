@@ -32,7 +32,7 @@ def test_init_on_blank_directory_builds_skeleton(tmp_path: Path, monkeypatch):
     assert not (tmp_path / "project-docs").exists(), "前置:真白板"
     runner = CliRunner()
 
-    p = _run(runner, "init", "--new-model", "--name", "demo")
+    p = _run(runner, "init", "--name", "demo")
     pd = tmp_path / "project-docs"
     assert (pd / "docs").is_dir(), "docs/ 骨架"
     assert (pd / ".meta" / "versions").is_dir() and (pd / ".meta" / "changes").is_dir()
@@ -54,10 +54,10 @@ def test_init_is_idempotent_on_existing_project(tmp_path: Path, monkeypatch):
     """已初始化项目重跑 init 幂等,不破坏既有 baseline 文件。"""
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
-    _run(runner, "init", "--new-model", "--name", "demo")
+    _run(runner, "init", "--name", "demo")
     prd = tmp_path / "project-docs" / "docs" / "prd" / "[PRD]-demo.md"
     before = prd.read_text(encoding="utf-8") if prd.exists() else None
-    _run(runner, "init", "--new-model", "--name", "demo")
+    _run(runner, "init", "--name", "demo")
     after = prd.read_text(encoding="utf-8") if prd.exists() else None
     assert before == after, "重跑不覆盖既有内容"
 
@@ -67,7 +67,7 @@ def test_blank_slate_to_merge_end_to_end(tmp_path: Path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     runner = CliRunner()
 
-    _run(runner, "init", "--new-model", "--name", "demo")
+    _run(runner, "init", "--name", "demo")
     _run(runner, "version", "create", "v0.1")
     _run(runner, "prd", "create", "[PRD]-demo", "--action", "modify",
          "--overrides", "[PRD]-demo",

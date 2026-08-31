@@ -9,11 +9,10 @@ from typing import Literal
 
 import yaml
 
-from .chunk_parser import parse_file
 from .index_manager import IndexManager
 from .io_utils import atomic_write_text
 
-SpecType = Literal["prd", "impl", "fsd", "tdd", "global", "other"]
+SpecType = Literal["prd", "fsd", "tdd", "other"]
 
 
 @dataclass
@@ -405,18 +404,14 @@ def spec_type(
     metadata: dict | None = None,
 ) -> SpecType:
     doc_type = (metadata or {}).get("doc_type") or (metadata or {}).get("type")
-    if isinstance(doc_type, str) and doc_type.lower() in {"prd", "impl", "fsd", "tdd", "global"}:
+    if isinstance(doc_type, str) and doc_type.lower() in {"prd", "fsd", "tdd"}:
         return doc_type.lower()  # type: ignore[return-value]
     if file:
         first_segment = file.split("/", 1)[0].lower()
-        if first_segment in {"prd", "impl", "fsd", "tdd", "global"}:
+        if first_segment in {"prd", "fsd", "tdd"}:
             return first_segment  # type: ignore[return-value]
     if chunk_id.startswith("prd-"):
         return "prd"
-    if chunk_id.startswith("impl-"):
-        return "impl"
-    if chunk_id.startswith("global-"):
-        return "global"
     if chunk_id.startswith("[PRD]-"):
         return "prd"
     if chunk_id.startswith("[FSD]-"):
@@ -457,31 +452,8 @@ def load_specgraph(project_root: Path, version: str = "baseline") -> SpecGraph:
     return SpecGraph.load(specgraph_path(project_root, version))
 
 
-def _global_category(chunk_id: str, file: str) -> str | None:
-    """static vs dynamic for global-* chunks; None for non-global."""
-    if spec_type(chunk_id, file) != "global":
-        return None
-    stem = (file or "").rsplit("/", 1)[-1]
-    if stem in {"ddl", "schema", "api"} or any(
-        chunk_id.startswith(f"global-{k}") for k in ("ddl", "schema", "api")
-    ):
-        return "dynamic"
-    return "static"
 
 
-_NEW_MODEL_ID_PREFIXES = ("[PRD]-", "[FSD]-", "[TDD]-")
-
-
-def _is_new_model_chunk_id(chunk_id: str) -> bool:
-    """True for new-model (bracket-prefixed) chunk ids.
-
-    Relation birth boundary closure: new-model chunks never get edges from
-    @ref residue — relations there are born only via the four canonical
-    entry points. ``docs/prd/`` is shared with the legacy single-file PRD
-    (bare ids, e.g. ``prd-alpha``), so the distinction must be made by chunk
-    id prefix, not by directory.
-    """
-    return chunk_id.startswith(_NEW_MODEL_ID_PREFIXES)
 
 
 def sync_specgraph(project_root: Path) -> SpecGraph:
@@ -504,28 +476,16 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
     for entry in indexes.load_baseline().chunks:
         uri = make_uri(entry.id, "baseline", entry.file, entry.metadata)
         meta: dict = {"source": "baseline", **entry.metadata}
-        cat = _global_category(entry.id, entry.file)
-        if cat:
-            meta["category"] = cat
         base.add_spec(
             Spec(uri=uri, title=entry.heading, type=spec_type(entry.id, entry.file, entry.metadata),
                  version="baseline", chunk_id=entry.id, file=entry.file, metadata=meta)
         )
         base_known[entry.id] = uri
-    # Baseline edges from docs/ @refs. New-model chunks ([PRD]-/[FSD]-/[TDD]-
-    # prefixed ids) never build edges from @ref residue — relations there are
-    # born only via the four canonical entry points
-    # (new_model_manager._add_edge). Legacy chunks (bare ids, incl. the
-    # single-file legacy PRD that still lives under docs/prd/) keep the
-    # existing @ref-driven edge behavior unchanged.
-    for pf in indexes.scan_dir(indexes.docs_dir):
-        for ref in pf.refs:
-            if _is_new_model_chunk_id(ref.source_chunk_id) or _is_new_model_chunk_id(ref.target_chunk_id):
-                continue
-            src = base_known.get(ref.source_chunk_id)
-            dst = base_known.get(ref.target_chunk_id)
-            if src and dst:
-                base.add_edge(src, dst, ref.rel, metadata={"source": "baseline-ref"})
+    # v3.1: no edge is ever built from an @ref comment. Relations are born only
+    # via the four canonical entry points (new_model_manager._add_edge). Until
+    # legacy retirement this skipped new-model chunks but still honoured @ref
+    # for legacy (bare-id) chunks under docs/{impl,global}; those directories
+    # are gone, so the exception has no subject left.
     _preserve_explicit_edges(previous_base, base)
     base.save(specgraph_path(root, "baseline"))
 
@@ -541,27 +501,12 @@ def sync_specgraph(project_root: Path) -> SpecGraph:
             uri = make_uri(entry.id, version, entry.file or "", entry.metadata)
             meta = {"source": "version", "state": entry.state,
                     "action": entry.action, "commit_id": entry.commit_id, **entry.metadata}
-            cat = _global_category(entry.id, entry.file or "")
-            if cat:
-                meta["category"] = cat
             vg.add_spec(
                 Spec(uri=uri, title=entry.heading or "", type=spec_type(entry.id, entry.file or "", entry.metadata),
                      version=version, chunk_id=entry.id, file=entry.file or "", metadata=meta)
             )
             v_known[entry.id] = uri
-        # Version edges from version markdown @refs (target may be version or
-        # baseline). Same new-model chunk-id exclusion as the baseline loop above.
-        version_dir = root / "versions" / version
-        if version_dir.exists():
-            for path in sorted(version_dir.rglob("*.md")):
-                parsed = parse_file(path, version_dir)
-                for ref in parsed.refs:
-                    if _is_new_model_chunk_id(ref.source_chunk_id) or _is_new_model_chunk_id(ref.target_chunk_id):
-                        continue
-                    src = v_known.get(ref.source_chunk_id)
-                    dst = v_known.get(ref.target_chunk_id) or base_known.get(ref.target_chunk_id)
-                    if src and dst:
-                        vg.add_edge(src, dst, ref.rel, metadata={"source": "version-ref"})
+        # v3.1: version graphs build no @ref edges either (see baseline note).
         _preserve_explicit_edges(previous_vg, vg)
         vg.save(specgraph_path(root, version))
 
