@@ -174,7 +174,7 @@ mkdir my-project && cd my-project
 然后在 Claude Code 中运行：
 
 ```text
-/ait init --new-model --name my_project
+/ait init --name my_project
 ```
 
 一条命令完成：
@@ -194,10 +194,9 @@ mkdir my-project && cd my-project
 
 | 选项 | 作用 |
 |---|---|
-| `--new-model --name N` | 新模型基线（PRD/FSD/TDD）——**推荐** |
-| `--check` | 只诊断 `docs/global` 状态（fresh / incomplete / ready），不写文件 |
+| `--name N` | 初始化 PRD/FSD/TDD 基线——**唯一**的 init 路径（新模型现为唯一模型） |
+| `--check` | 只报告是否已存在基线，不写文件 |
 | `--refresh-wrapper` | 只刷新 skill 路径与本地 wrapper，不动文档 |
-| `--skip a,b` | 增量模式下标记用户明确跳过的 global 项，避免反复追问 |
 | `--migrate [--apply]` | docs 仓治理迁移：把历史被追踪的 `.meta/snapshots/`、`.ait/` 移出 git 索引，把机器特定配置搬到本地层。默认只预览 |
 
 `--migrate` 单独给 `--apply` 会报 `USAGE_ERROR`；它是独立子模式，不执行常规初始化。
@@ -566,7 +565,7 @@ tag 只是防 GC 的优化，**提交 SHA 才是权威锚点**：tag 丢失时 r
 ```text
 /ait deps "[FSD]-app:core" --direction both|in|out
 /ait impact "[PRD]-app"                     # 传递影响闭包
-/ait specgraph query "[TDD]-parser" [--deps] [--implements]
+/ait specgraph query "[TDD]-parser" [--deps]
 /ait specgraph export --format dot
 /ait specgraph graph-html [--version v0.1] [--prd-chunk "[PRD]-app:req1"]
 /ait specgraph sync
@@ -678,7 +677,6 @@ tag 只是防 GC 的优化，**提交 SHA 才是权威锚点**：tag 丢失时 r
 |---|---|---|
 | `ait-state` | 查看/刷新状态、版本进度 | 渲染状态面板，兼进度查询 |
 | `ait-resume` | CLI 报错或要恢复中断流程 | 按 JSON `code` 给最短恢复路径 |
-| `ait-init-guide` | `init` 返回 `status=incomplete` | 逐项确认 global 文件补齐 |
 
 随 skill 分发的参考文档：`references/new-model-format.md`（**格式权威源**）、
 `chunk-system.md`、`chunk-parser.md`、`index-system.md`、`version-manager.md`、

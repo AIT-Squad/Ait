@@ -9,6 +9,27 @@
 
 ---
 
+## v2.97–v3.2 — 2026-08-30 ~ 09-01 — 新模型成为唯一模型 + 关系图谱全面收敛
+
+v2.97~v2.99 是门禁与可追溯性的收敛小步；v3.0~v3.2 是一次大规模瘦身——**删除 legacy 模型剩余部分，使新模型成为唯一模型**：`impl`/`global` 规格类型、`implements` 边、`@ref` 驱动建边、`docs/global` 增量初始化、`ait-init-guide` 子技能、`migrations.py`/`schemas.py` 整文件，全部退役。关系图谱现在**只**由四个规范出生地产生（四关系四出生地）。
+
+- **v2.97 change-record id 分配修复**：`_next_chg_id` 由"取文件名排序最后"改为"取数值最大值 +1"。旧逻辑在编号跨过 999（字典序 `chg-999` 排在 `chg-1000` 之后）时会重发已存在的 id 并静默覆盖；因 `commit()` 按暂存 chunk 逐个分配，一次 commit 的所有 chunk 会塌缩到同一 id。改为数值最大值分配，杜绝 id 复用与覆盖。
+- **v2.98 derives 残留纳入 confirm 门禁（warn-by-default）**：`scan_derives_residue` 接入 confirm 门禁（此前只报告、无法收敛——每个版本闭合一处残留，自身新正文又开一处）。FSD 正文"承接 [PRD]-...:x"但图上无对应 derives 边时，按 `derives_residue` 配置（默认 warn，可追溯性 AC#9）处理。新增 `_collect_fsd_contents` 助手。
+- **v2.99 derives 残留扫描收敛**：跳过 FSD 根（"需求→根"不是合法边形）与验收节点（永不受 derives，可追溯性 AC#2）；`acceptance_suffixes` 改由 `artifact_scopes` 配置读取（项目配置而非校验器常量）。残留计数终于能归零，治理强度可上调至 block。
+- **v3.0 legacy 整文件退役**：删除 `migrations.py`（-233 行）与 `schemas.py`（-55 行）整文件；`index_manager.py` 移除 impl/global 支撑（-45 行）。新模型成为唯一路径。
+- **v3.1 init 精简 + 文档模型收敛**：
+  - `init_manager.py` -290 行：退役 `docs/global` 骨架与 fresh/incomplete/ready 增量补全机制；`--new-model` 降级为废弃 no-op（init 现只有新模型一条路径）；`--skip` 删除；`--check` 改为只报告基线是否已存在。
+  - 删除 `ait-init-guide` 子技能（-66 行）——`/ait init` 改路由到 `main`。
+  - `specgraph.py` -73 行：移除 `impl`/`global` 规格类型、移除 `@ref` 驱动建边（关系只由四个规范入口产生）、移除 `implements` 边。
+  - `SKILL.md` 命令契约同步收窄。
+- **v3.2 边关系与门禁收口**：
+  - `version_manager.py` -108 行：移除 atomic impl 删除、`_should_route_legacy_prd_to_global` legacy PRD→global 路由、`_assert_no_orphan_impl_refs` orphan impl refs 断言、dynamic global 抽取（`_extract_dynamic_global`）。
+  - `specgraph.py` -27 行：`dependencies()` 现仅返回 `depends_on`（去 `implements`），`impacted()` 同样只跟 `depends_on`；`CombinedView` 反向边收窄为 `depends_on`。
+  - `cli.py`：`specgraph query --implements` 删除；`--content` 组装边界等文案微调。
+  - 测试：移除 `test_version_confirm_atomic.py`（-206 行）、`test_specgraph_orphan_guard.py`（-36 行）；新增 `test_specgraph_combined_view.py`（+31 行）、`test_version_manager.py`（+18 行）。
+
+---
+
 ## v2.94–v2.96 — 2026-08-22 ~ 08-23 — legacy 全退役与瘦身
 
 - **v2.94 legacy 流水线全退役**（-5,225 行）：删除 `context_assembler.py`、`format_validator.py`、

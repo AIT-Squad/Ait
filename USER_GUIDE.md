@@ -188,7 +188,7 @@ mkdir my-project && cd my-project
 Then in Claude Code:
 
 ```text
-/ait init --new-model --name my_project
+/ait init --name my_project
 ```
 
 One command does all of this:
@@ -210,10 +210,9 @@ files are never overwritten (idempotent).
 
 | Option | Effect |
 |---|---|
-| `--new-model --name N` | New-model baseline (PRD/FSD/TDD) — **recommended** |
-| `--check` | Only diagnose `docs/global` state (fresh / incomplete / ready); writes nothing |
+| `--name N` | Bootstrap the PRD/FSD/TDD baseline — the **only** init path (the new model is now the sole model) |
+| `--check` | Only report whether a baseline already exists; writes nothing |
 | `--refresh-wrapper` | Only refresh skill paths and the local wrapper; documents untouched |
-| `--skip a,b` | In incremental mode, mark global items the user explicitly skips, avoiding repeated prompts |
 | `--migrate [--apply]` | Docs-repo hygiene migration: untrack historically committed `.meta/snapshots/` and `.ait/`, move machine-specific config to the local layer. Preview by default |
 
 `--migrate` with `--apply` alone reports `USAGE_ERROR`; it is an independent sub-mode and
@@ -630,7 +629,7 @@ next-step suggestions.
 ```text
 /ait deps "[FSD]-app:core" --direction both|in|out
 /ait impact "[PRD]-app"                     # transitive impact closure
-/ait specgraph query "[TDD]-parser" [--deps] [--implements]
+/ait specgraph query "[TDD]-parser" [--deps]
 /ait specgraph export --format dot
 /ait specgraph graph-html [--version v0.1] [--prd-chunk "[PRD]-app:req1"]
 /ait specgraph sync
@@ -745,7 +744,6 @@ global contract and command cheat-sheets; concrete workflows live in sub-skills:
 |---|---|---|
 | `ait-state` | View/refresh state, version progress | Renders the state panel; doubles as progress query |
 | `ait-resume` | CLI error or interrupted flow to recover | Shortest recovery path from the JSON `code` |
-| `ait-init-guide` | `init` returns `status=incomplete` | Walks through completing global files item by item |
 
 References shipped with the skill: `references/new-model-format.md` (**the authoritative
 format spec**), `chunk-system.md`, `chunk-parser.md`, `index-system.md`,
